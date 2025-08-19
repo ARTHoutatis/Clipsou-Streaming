@@ -296,9 +296,34 @@ a {
     text-align: justify;
 }
 
+.rating-genres {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
 .fiche-content .stars { 
-    margin-bottom: 20px; 
     font-size: 20px;
+    margin: 0;
+}
+
+.genres {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.genre-tag {
+    background: rgba(31, 139, 255, 0.2);
+    color: #1f8bff;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid rgba(31, 139, 255, 0.3);
+    white-space: nowrap;
 }
 
 .button-group {
@@ -414,9 +439,23 @@ a {
         margin: 12px 0;
     }
     
+    .rating-genres {
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 15px;
+    }
+    
     .fiche-content .stars {
         font-size: 18px;
-        margin-bottom: 15px;
+    }
+    
+    .genres {
+        justify-content: center;
+    }
+    
+    .genre-tag {
+        font-size: 12px;
+        padding: 3px 10px;
     }
     
     .button-group {
@@ -488,6 +527,12 @@ a {
         font-size: 14px;
     }
     
+    .rating-genres {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+    
     .button {
         padding: 8px 16px;
         font-size: 12px;
@@ -533,7 +578,6 @@ a {
                 <img src="La.jpeg" alt="Affiche du film La vie au petit âge" loading="lazy">
                 <div class="card-info">
                     <span>La vie au petit âge</span>
-                    <div class="stars">★3.5/5</div>
                 </div>
             </a>
         </div>
@@ -542,7 +586,6 @@ a {
                 <img src="Dé.jpg" alt="Affiche du film Dédoublement" loading="lazy">
                 <div class="card-info">
                     <span>Dédoublement</span>
-                    <div class="stars">★4.5/5</div>
                 </div>
             </a>
         </div>
@@ -551,7 +594,6 @@ a {
                 <img src="Ja.jpg" alt="Affiche du film Jackson Goup" loading="lazy">
                 <div class="card-info">
                     <span>Jackson Goup</span>
-                    <div class="stars">★3/5</div>
                 </div>
             </a>
         </div>
@@ -566,7 +608,6 @@ a {
                 <img src="Al.jpg" alt="Affiche de la série Alex" loading="lazy">
                 <div class="card-info">
                     <span>Alex - Série Brickfilm</span>
-                    <div class="stars">★4/5</div>
                 </div>
             </a>
         </div>
@@ -575,7 +616,6 @@ a {
                 <img src="Law.jpg" alt="Affiche de la série Lawless Legend" loading="lazy">
                 <div class="card-info">
                     <span>Lawless Legend</span>
-                    <div class="stars">★3.5/5</div>
                 </div>
             </a>
         </div>
@@ -604,7 +644,14 @@ a {
         </div>
         <div class="fiche-right">
             <h3>La vie au petit âge</h3>
-            <div class="stars">★3.5/5</div>
+            <div class="rating-genres">
+                <div class="stars">★3.5/5</div>
+                <div class="genres">
+                    <span class="genre-tag">Comédie</span>
+                    <span class="genre-tag">Familial</span>
+                    <span class="genre-tag">Aventure</span>
+                </div>
+            </div>
             <p>Timmy, un enfant espiègle, nous fait visiter son village en briques. Mais chaque coin de rue réserve son lot de gags et de surprises ! Une aventure familiale pleine d'humour et de tendresse qui ravira petits et grands.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=XtqzuhtuH2E" target="_blank" class="button">▶ Regarder</a>
@@ -621,7 +668,14 @@ a {
         </div>
         <div class="fiche-right">
             <h3>Dédoublement</h3>
-            <div class="stars">★4.5/5</div>
+            <div class="rating-genres">
+                <div class="stars">★4.5/5</div>
+                <div class="genres">
+                    <span class="genre-tag">Thriller</span>
+                    <span class="genre-tag">Comédie</span>
+                    <span class="genre-tag">Action</span>
+                </div>
+            </div>
             <p>Deux frères identiques, l'un vêtu de blanc et l'autre de noir, s'entendent à merveille… jusqu'à ce que l'un finisse en prison. Entre comédie et évasion ! Un thriller haletant mêlant suspense et moments hilarants.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=gfbiTpqQDY0" target="_blank" class="button">▶ Regarder</a>
@@ -638,7 +692,14 @@ a {
         </div>
         <div class="fiche-right">
             <h3>Jackson Goup</h3>
-            <div class="stars">★3/5</div>
+            <div class="rating-genres">
+                <div class="stars">★3/5</div>
+                <div class="genres">
+                    <span class="genre-tag">Aventure</span>
+                    <span class="genre-tag">Fantastique</span>
+                    <span class="genre-tag">Comédie</span>
+                </div>
+            </div>
             <p>Un aventurier un peu maladroit traverse des contrées hostiles remplies de créatures féroces. Une aventure épique mêlant humour et fantastique qui vous transportera dans un monde extraordinaire plein de surprises.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=VUqwvqQ51sg" target="_blank" class="button">▶ Regarder</a>
@@ -655,7 +716,14 @@ a {
         </div>
         <div class="fiche-right">
             <h3>Alex</h3>
-            <div class="stars">★4/5</div>
+            <div class="rating-genres">
+                <div class="stars">★4/5</div>
+                <div class="genres">
+                    <span class="genre-tag">Action</span>
+                    <span class="genre-tag">Comédie</span>
+                    <span class="genre-tag">Drame</span>
+                </div>
+            </div>
             <p>Suivez les aventures captivantes d'Alex, un personnage attachant dans un univers en briques LEGO. Cette série brickfilm innovante mêle action, humour et émotion dans des épisodes soigneusement réalisés qui plairont à tous les âges.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/playlist?list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf" target="_blank" class="button">▶ Regarder la série</a>
@@ -672,7 +740,14 @@ a {
         </div>
         <div class="fiche-right">
             <h3>Lawless Legend</h3>
-            <div class="stars">★3.5/5</div>
+            <div class="rating-genres">
+                <div class="stars">★3.5/5</div>
+                <div class="genres">
+                    <span class="genre-tag">Western</span>
+                    <span class="genre-tag">Comédie</span>
+                    <span class="genre-tag">Action</span>
+                </div>
+            </div>
             <p>Plongez dans l'univers impitoyable du Far West à travers cette série brickfilm unique ! Suivez les aventures rocambolesques de cowboys en briques LEGO dans un monde où l'humour côtoie les duels au soleil couchant. Avec son esthétique VHS nostalgique et ses moments comiques savamment dosés, cette série réinvente le western classique dans un style visuel rétro irrésistible.</p>
             <div class="button-group">
                 <a href="https://youtube.com/playlist?list=PLljfI9MJr5K2Li687G4dOxjfyDQkIfJn3&si=FQ0ImMc9j-6wvtRk" target="_blank" class="button">▶ Regarder la série</a>
@@ -689,7 +764,13 @@ a {
         </div>
         <div class="fiche-right">
             <h3>Trailer Batman</h3>
-            <!-- pas d'étoiles ici car c'est un trailer -->
+            <div class="rating-genres">
+                <div class="genres">
+                    <span class="genre-tag">Action</span>
+                    <span class="genre-tag">Drame</span>
+                    <span class="genre-tag">Super-héros</span>
+                </div>
+            </div>
             <p>Le nouveau trailer de Batman, sombre et intense. Découvrez les premières images de cette adaptation épique qui redéfinit l'univers du chevalier noir avec une approche moderne et spectaculaire.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=SzbqZNObLNU" target="_blank" class="button">▶ Regarder</a>
