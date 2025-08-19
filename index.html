@@ -1,315 +1,703 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="fr">
 <head>
-<link rel="icon" type="image/png" href="favicon.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Clipsou Streaming</title>
+<link rel="icon" type="image/png" href="favicon.png">
 <style>
-  body {
-    margin: 0;
-    background-color: #0b0f14;
-    color: white;
-    font-family: 'Segoe UI', sans-serif;
-  }
+* {
+    box-sizing: border-box;
+}
 
-  /* Barre de navigation */
-  nav {
-    background: linear-gradient(90deg, #0b0f14, #111827);
-    padding: 12px 30px;
+body {
+    margin: 0;
+    background: radial-gradient(ellipse at center, #1a2332 0%, #0a0f16 50%, #000000 100%);
+    min-height: 100vh;
+    color: #fff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+}
+
+/* SOLUTION : Bloquer le scroll quand une popup est active */
+body:has(.fiche-popup:target) {
+    overflow: hidden;
+    height: 100vh;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        linear-gradient(135deg, rgba(31, 139, 255, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 20% 80%, rgba(31, 139, 255, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(0, 102, 204, 0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Navigation */
+nav {
+    background: #000;
+    padding: 15px 40px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-  }
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
 
-  .logo {
-    font-size: 26px;
-    font-weight: bold;
-  }
-  .logo span:nth-child(1) {
-    color: #1f8bff;
-    text-shadow: 0 0 6px #1f8bff;
-  }
-  .logo span:nth-child(2) {
-    color: #fff;
-    margin-left: 6px;
-  }
-  .logo span:nth-child(3) {
-    color: gray;
-    font-size: 17px;
-  }
+.logo { 
+    font-size: 28px; 
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+}
 
-  .discord-link {
-    background: #5865F2;
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.logo span:nth-child(1), .logo span:nth-child(2) { 
+    background: linear-gradient(45deg, #1f8bff, #0066cc, #1f8bff);
+    background-size: 200% 200%;
+    animation: gradientShift 3s ease infinite;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+
+.logo span:nth-child(1) { 
+    font-weight: 800;
+}
+
+.logo span:nth-child(2) { 
+    margin-left: 6px; 
+    font-weight: 300;
+}
+
+.logo span:nth-child(3) { 
+    color: #fff; 
+    font-size: 14px; 
+    margin-left: 12px;
+    background: rgba(0, 0, 0, 0.9);
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: 2px solid #4da6ff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 0 10px rgba(77, 166, 255, 0.5);
+}
+
+.nav-links {
+    display: flex;
+    gap: 15px;
+}
+
+.nav-links a {
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: 600;
     color: #fff;
     text-decoration: none;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-weight: bold;
-    transition: background 0.3s;
-  }
-  .discord-link:hover {
-    background: #4752C4;
-  }
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
 
-  /* Recherche */
-  .search-bar {
-    margin: 20px;
-    text-align: center;
-  }
-  .search-bar input {
-    padding: 10px 15px;
-    border-radius: 20px;
-    border: none;
-    width: 250px;
-    outline: none;
-    font-size: 15px;
-  }
+.discord-link { 
+    background: #5865F2; 
+}
+.discord-link:hover { 
+    background: #4752C4; 
+}
 
-  h2 {
-    margin-left: 20px;
-    margin-top: 30px;
-    text-shadow: 0 0 4px #1f8bff;
-  }
+.yt-link { 
+    background: #FF0000; 
+}
+.yt-link:hover { 
+    background: #CC0000; 
+}
 
-  /* Grille */
-  .grid {
+/* Sections */
+.section {
+    margin: 50px 0;
+}
+
+.section h2 { 
+    margin: 0 40px 30px; 
+    font-size: 32px;
+    font-weight: 700;
+    color: #1f8bff;
+    border-bottom: 3px solid #1f8bff;
+    display: inline-block;
+    padding-bottom: 10px;
+}
+
+/* Grille */
+.grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 16px;
-    padding: 20px;
-  }
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 24px;
+    padding: 0 40px;
+}
 
-  /* Carte film */
-  .card {
-    position: relative;
-    background: #111827;
+/* Cartes */
+.card {
+    background: rgba(26,35,50,0.8);
     border-radius: 12px;
     overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(31, 139, 255, 0.2);
     cursor: pointer;
-    transition: transform 0.3s, box-shadow 0.3s;
-  }
-  .card:hover {
+}
+
+.card:hover { 
+    transform: translateY(-5px); 
+    border-color: #1f8bff;
+    box-shadow: 0 8px 25px rgba(31, 139, 255, 0.2);
+}
+
+.card img { 
+    width: 100%; 
+    aspect-ratio: 9/12; 
+    object-fit: cover; 
+    transition: transform 0.3s ease;
+}
+
+.card:hover img {
     transform: scale(1.05);
-    box-shadow: 0 0 12px #1f8bff;
-  }
-  .card img {
-    width: 100%;
-    aspect-ratio: 9/12;
-    object-fit: cover;
-    display: block;
-  }
-  .card-info {
-    padding: 10px;
-    text-align: center;
-  }
-  .card-info span {
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-  }
+}
 
-  /* Étoiles */
-  .stars {
-    color: #1f8bff;
-    font-size: 16px;
-    margin-top: 5px;
-  }
+.card-info { 
+    padding: 16px 20px; 
+    text-align: center; 
+}
 
-  /* Overlay bouton sur les cartes */
-  .overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    opacity: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: opacity 0.3s;
-  }
-  .card:hover .overlay {
-    opacity: 1;
-  }
-  .overlay button {
-    background: #1f8bff;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 20px;
+.card-info span { 
+    display: block; 
+    font-size: 16px; 
+    font-weight: 600; 
+    margin-bottom: 8px;
     color: #fff;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-  .overlay button:hover {
-    background: #0066cc;
-  }
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
-  /* Popup fiche */
-  .fiche-popup {
+.stars { 
+    color: #1f8bff; 
+    font-size: 16px; 
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Popups */
+.fiche-popup {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.9);
+    background: rgba(0, 0, 0, 0.9);
     justify-content: center;
     align-items: center;
     z-index: 9999;
-  }
-  .fiche-content {
-    background: #111827;
     padding: 20px;
+    backdrop-filter: blur(5px);
+}
+
+.fiche-popup:target { 
+    display: flex; 
+}
+
+.fiche-content {
+    width: 100%;
+    max-width: 2000px;
+    max-height: 95vh;
+    background: rgba(26, 35, 50, 0.95);
+    border-radius: 16px;
+    display: grid;
+    gap: 30px;
+    padding: 30px;
+    overflow-y: auto;
+    border: 2px solid #1f8bff;
+    position: relative;
+}
+
+/* Layout dynamique basé sur l'orientation de l'image */
+.fiche-content {
+    grid-template-columns: 1fr 1.5fr; /* Layout par défaut pour images portrait */
+}
+
+/* Détection automatique du format paysage via CSS */
+.fiche-content:has(img[style*="aspect-ratio"]) {
+    grid-template-columns: 2fr 1fr; /* Plus d'espace pour l'image paysage */
+}
+
+/* Alternative : class CSS pour forcer le layout paysage */
+.fiche-content.landscape-layout {
+    grid-template-columns: 2fr 1fr;
+}
+
+.fiche-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.fiche-content img { 
+    width: 100%;
+    max-width: 100%;
+    max-height: 80vh;
+    height: auto;
     border-radius: 12px;
-    max-width: 800px;
-    width: 90%;
-    text-align: center;
-  }
-  .fiche-content img {
-    width: 60%;
-    aspect-ratio: 16/9;
-    border-radius: 12px;
-    object-fit: cover;
-    margin-bottom: 15px;
-  }
-  .fiche-content h3 {
-    margin: 10px 0;
-  }
-  .fiche-content p {
-    line-height: 1.6;
     margin-bottom: 20px;
-  }
-  .fiche-content .stars {
-    margin-bottom: 15px;
-  }
-  .fiche-content button {
-    background: #1f8bff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 20px;
+    object-fit: contain;
+}
+
+/* Style spécifique pour les images paysage */
+.fiche-content img.landscape {
+    max-height: 70vh;
+    width: 100%;
+    object-fit: cover;
+}
+
+.fiche-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 20px; /* Décalage supplémentaire du texte vers la droite */
+}
+
+.fiche-content h3 { 
+    margin: 0 0 16px 0; 
+    font-size: 28px;
+    font-weight: 700;
+    color: #1f8bff;
+}
+
+.fiche-content p { 
+    margin: 15px 0; 
+    font-size: 16px;
+    line-height: 1.6;
     color: #fff;
-    font-weight: bold;
+    text-align: justify;
+}
+
+.fiche-content .stars { 
+    margin-bottom: 20px; 
+    font-size: 20px;
+}
+
+.button-group {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: auto;
+}
+
+.button {
+    background: #1f8bff;
+    border-radius: 25px;
+    padding: 12px 24px;
+    color: #fff;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
     cursor: pointer;
-    transition: background 0.3s;
-    margin: 5px;
-  }
-  .fiche-content button:hover {
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.button:hover { 
     background: #0066cc;
-  }
-  .close-btn {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(31, 139, 255, 0.3);
+}
+
+.close-btn { 
     background: #ff4444;
-  }
-  .close-btn:hover {
+}
+
+.close-btn:hover { 
     background: #cc0000;
-  }
+    box-shadow: 0 4px 15px rgba(255, 68, 68, 0.3);
+}
+
+/* Responsive mobile */
+@media (max-width: 768px) {
+    nav {
+        padding: 12px 20px;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .logo {
+        font-size: 24px;
+        text-align: center;
+    }
+    
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .nav-links a {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+    
+    .section {
+        margin: 30px 0;
+    }
+    
+    .section h2 {
+        margin: 0 20px 24px;
+        font-size: 24px;
+    }
+    
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 16px;
+        padding: 0 20px;
+    }
+    
+    .card-info span {
+        font-size: 14px;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: initial;
+        line-height: 1.2;
+    }
+    
+    .stars {
+        font-size: 14px;
+    }
+    
+    .fiche-popup {
+        padding: 10px;
+    }
+    
+    .fiche-content {
+        grid-template-columns: 1fr !important; /* Force une colonne sur mobile */
+        gap: 20px;
+        padding: 20px;
+        text-align: center;
+        max-height: 90vh;
+    }
+    
+    .fiche-right {
+        padding-left: 0; /* Supprime le décalage sur mobile */
+    }
+    
+    .fiche-content h3 {
+        font-size: 22px;
+        margin-bottom: 12px;
+    }
+    
+    .fiche-content p {
+        font-size: 15px;
+        text-align: left;
+        margin: 12px 0;
+    }
+    
+    .fiche-content .stars {
+        font-size: 18px;
+        margin-bottom: 15px;
+    }
+    
+    .button-group {
+        justify-content: center;
+        gap: 12px;
+        margin-top: 20px;
+    }
+    
+    .button {
+        padding: 10px 20px;
+        font-size: 13px;
+    }
+    
+    .fiche-content img {
+        max-height: 50vh;
+        margin-bottom: 15px;
+    }
+}
+
+/* Très petit écran (moins de 480px) */
+@media (max-width: 480px) {
+    nav {
+        padding: 10px 15px;
+    }
+    
+    .logo {
+        font-size: 20px;
+    }
+    
+    .logo span:nth-child(3) {
+        font-size: 12px;
+        margin-left: 8px;
+        padding: 3px 6px;
+    }
+    
+    .section h2 {
+        margin: 0 15px 20px;
+        font-size: 20px;
+    }
+    
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
+        padding: 0 15px;
+    }
+    
+    .card-info {
+        padding: 12px 16px;
+    }
+    
+    .card-info span {
+        font-size: 13px;
+    }
+    
+    .stars {
+        font-size: 13px;
+    }
+    
+    .fiche-content {
+        padding: 15px;
+        border-radius: 12px;
+    }
+    
+    .fiche-content h3 {
+        font-size: 20px;
+    }
+    
+    .fiche-content p {
+        font-size: 14px;
+    }
+    
+    .button {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+}
+
+/* Amélioration des performances */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Mode sombre forcé pour les systèmes qui le supportent */
+@media (prefers-color-scheme: dark) {
+    body {
+        color-scheme: dark;
+    }
+}
 </style>
 </head>
 <body>
 
-<!-- NAVIGATION -->
 <nav>
-  <div class="logo">
-    <span>Clipsou</span><span>Streaming</span><span>beta</span>
-  </div>
-  <a href="https://discord.gg/c7jwnDsW" target="_blank" class="discord-link">💬 Discord</a>
+    <div class="logo">
+        <span>Clipsou</span>
+        <span>Streaming</span>
+        <span>beta</span>
+    </div>
+    <div class="nav-links">
+        <a href="https://discord.gg/c7jwnDsW" target="_blank" class="discord-link">💬 Discord</a>
+        <a href="https://www.youtube.com/@mrroxxor4369" target="_blank" class="yt-link">▶ YouTube</a>
+    </div>
 </nav>
 
-<!-- RECHERCHE -->
-<div class="search-bar">
-  <input type="text" id="searchInput" placeholder="Rechercher un film...">
-</div>
-
-<h2>FILMS</h2>
-<div class="grid" id="filmGrid">
-  <div class="card" data-title="La vie au petit âge" data-affiche="La1.jpg" data-desc="Timmy, un enfant espiègle, nous fait visiter son village en briques. Mais chaque coin de rue réserve son lot de gags et de surprises !" data-link="https://www.youtube.com/watch?v=XtqzuhtuH2E" data-rating="3.5">
-    <img src="La.jpeg" alt="La vie au petit âge">
-    <div class="overlay"><button>▶ Voir la fiche</button></div>
-    <div class="card-info">
-      <span>La vie au petit âge</span>
-      <div class="stars">★★★☆☆ (3/5)</div>
+<div class="section">
+    <h2>FILMS</h2>
+    <div class="grid">
+        <div class="card">
+            <a href="#film1">
+                <img src="La.jpeg" alt="Affiche du film La vie au petit âge" loading="lazy">
+                <div class="card-info">
+                    <span>La vie au petit âge</span>
+                    <div class="stars">★★★☆☆ (3,5/5)</div>
+                </div>
+            </a>
+        </div>
+        <div class="card">
+            <a href="#film2">
+                <img src="Dé.jpg" alt="Affiche du film Dédoublement" loading="lazy">
+                <div class="card-info">
+                    <span>Dédoublement</span>
+                    <div class="stars">★★★★☆ (4,5/5)</div>
+                </div>
+            </a>
+        </div>
+        <div class="card">
+            <a href="#film3">
+                <img src="Ja.jpg" alt="Affiche du film Jackson Goup" loading="lazy">
+                <div class="card-info">
+                    <span>Jackson Goup</span>
+                    <div class="stars">★★★☆☆ (3/5)</div>
+                </div>
+            </a>
+        </div>
     </div>
-  </div>
+</div>
 
-  <div class="card" data-title="Dédoublement" data-affiche="Dé1.jpg" data-desc="Deux frères identiques, l’un vêtu de blanc et l’autre de noir, s’entendent à merveille… jusqu’à ce que l’un finisse en prison. Entre comédie et évasion !" data-link="https://www.youtube.com/watch?v=gfbiTpqQDY0" data-rating="4.5">
-    <img src="Dé.jpg" alt="Dédoublement">
-    <div class="overlay"><button>▶ Voir la fiche</button></div>
-    <div class="card-info">
-      <span>Dédoublement</span>
-      <div class="stars">★★★★☆ (4/5)</div>
+<div class="section">
+    <h2>SÉRIES</h2>
+    <div class="grid">
+        <div class="card">
+            <a href="#serie1">
+                <img src="Al.jpg" alt="Affiche de la série Alex" loading="lazy">
+                <div class="card-info">
+                    <span>Alex - Série Brickfilm</span>
+                    <div class="stars">★★★★☆ (4/5)</div>
+                </div>
+            </a>
+        </div>
+        <div class="card">
+            <a href="#serie2">
+                <img src="Law.jpg" alt="Affiche de la série Lawless Legend" loading="lazy">
+                <div class="card-info">
+                    <span>Lawless Legend</span>
+                    <div class="stars">★★★☆☆ (3.5/5)</div>
+                </div>
+            </a>
+        </div>
     </div>
-  </div>
+</div>
 
-  <div class="card" data-title="Jackson Goup" data-affiche="Ja1.jpg" data-desc="Un aventurier un peu maladroit traverse des contrées hostiles remplies de créatures féroces. Une aventure épique mêlant humour et fantastique." data-link="https://www.youtube.com/watch?v=VUqwvqQ51sg" data-rating="4">
-    <img src="Ja.jpg" alt="Jackson Group">
-    <div class="overlay"><button>▶ Voir la fiche</button></div>
-    <div class="card-info">
-      <span>Jackson Goup</span>
-      <div class="stars">★★★☆☆ (3/5)</div>
+<div class="section">
+    <h2>PAS ENCORE SORTI</h2>
+    <div class="grid">
+        <div class="card">
+            <a href="#film4">
+                <img src="Ba.jpg" alt="Affiche du trailer Batman" loading="lazy">
+                <div class="card-info">
+                    <span>Trailer Batman</span>
+                </div>
+            </a>
+        </div>
     </div>
-  </div>
 </div>
 
-<h2>PAS ENCORE SORTI</h2>
-<div class="grid">
-  <div class="card" data-title="Trailer Batman" data-affiche="Ba1.jpg" data-desc="Le nouveau trailer de Batman, sombre et intense." data-link="https://www.youtube.com/watch?v=SzbqZNObLNU">
-    <img src="Ba.jpg" alt="Bande d'annonce">
-    <div class="overlay"><button>▶ Voir la fiche</button></div>
-    <div class="card-info"><span>Trailer Batman</span></div>
-  </div>
+<!-- POPUPS -->
+<div id="film1" class="fiche-popup">
+    <div class="fiche-content landscape-layout">
+        <div class="fiche-left">
+            <img src="La1.jpg" alt="Image du film La vie au petit âge" class="landscape">
+        </div>
+        <div class="fiche-right">
+            <h3>La vie au petit âge</h3>
+            <div class="stars">★★★☆☆ (3,5/5)</div>
+            <p>Timmy, un enfant espiègle, nous fait visiter son village en briques. Mais chaque coin de rue réserve son lot de gags et de surprises ! Une aventure familiale pleine d'humour et de tendresse qui ravira petits et grands.</p>
+            <div class="button-group">
+                <a href="https://www.youtube.com/watch?v=XtqzuhtuH2E" target="_blank" class="button">▶ Regarder</a>
+                <a href="#" class="button close-btn">❌ Fermer</a>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- POPUP FICHE -->
-<div class="fiche-popup" id="fichePopup">
-  <div class="fiche-content">
-    <img id="ficheAffiche" src="" alt="Affiche film">
-    <h3 id="ficheTitre"></h3>
-    <div class="stars" id="ficheStars"></div>
-    <p id="ficheDesc"></p>
-    <button id="ficheRegarder">▶ Regarder</button>
-    <button class="close-btn" id="ficheClose">❌ Fermer</button>
-  </div>
+<div id="film2" class="fiche-popup">
+    <div class="fiche-content landscape-layout">
+        <div class="fiche-left">
+            <img src="Dé1.jpg" alt="Image du film Dédoublement" class="landscape">
+        </div>
+        <div class="fiche-right">
+            <h3>Dédoublement</h3>
+            <div class="stars">★★★★☆ (4,5/5)</div>
+            <p>Deux frères identiques, l'un vêtu de blanc et l'autre de noir, s'entendent à merveille… jusqu'à ce que l'un finisse en prison. Entre comédie et évasion ! Un thriller haletant mêlant suspense et moments hilarants.</p>
+            <div class="button-group">
+                <a href="https://www.youtube.com/watch?v=gfbiTpqQDY0" target="_blank" class="button">▶ Regarder</a>
+                <a href="#" class="button close-btn">❌ Fermer</a>
+            </div>
+        </div>
+    </div>
 </div>
 
-<script>
-  const searchInput = document.getElementById('searchInput');
-  const fichePopup = document.getElementById('fichePopup');
-  const ficheAffiche = document.getElementById('ficheAffiche');
-  const ficheTitre = document.getElementById('ficheTitre');
-  const ficheDesc = document.getElementById('ficheDesc');
-  const ficheStars = document.getElementById('ficheStars');
-  const ficheRegarder = document.getElementById('ficheRegarder');
-  const ficheClose = document.getElementById('ficheClose');
-  let currentLink = "";
+<div id="film3" class="fiche-popup">
+    <div class="fiche-content landscape-layout">
+        <div class="fiche-left">
+            <img src="Ja1.jpg" alt="Image du film Jackson Goup" class="landscape">
+        </div>
+        <div class="fiche-right">
+            <h3>Jackson Goup</h3>
+            <div class="stars">★★★☆☆ (3/5)</div>
+            <p>Un aventurier un peu maladroit traverse des contrées hostiles remplies de créatures féroces. Une aventure épique mêlant humour et fantastique qui vous transportera dans un monde extraordinaire plein de surprises.</p>
+            <div class="button-group">
+                <a href="https://www.youtube.com/watch?v=VUqwvqQ51sg" target="_blank" class="button">▶ Regarder</a>
+                <a href="#" class="button close-btn">❌ Fermer</a>
+            </div>
+        </div>
+    </div>
+</div>
 
-  // Clic sur une carte → ouvre popup fiche
-  document.querySelectorAll('.card').forEach(card => {
-    card.addEventListener('click', () => {
-      ficheAffiche.src = card.dataset.affiche;
-      ficheTitre.textContent = card.dataset.title;
-      ficheDesc.textContent = card.dataset.desc;
-      ficheStars.textContent = card.querySelector(".stars") ? card.querySelector(".stars").textContent : "";
-      currentLink = card.dataset.link;
-      fichePopup.style.display = "flex";
-    });
-  });
+<div id="serie1" class="fiche-popup">
+    <div class="fiche-content landscape-layout">
+        <div class="fiche-left">
+            <img src="Al.jpg" alt="Image de la série Alex" class="landscape">
+        </div>
+        <div class="fiche-right">
+            <h3>Alex</h3>
+            <div class="stars">★★★★☆ (4/5)</div>
+            <p>Suivez les aventures captivantes d'Alex, un personnage attachant dans un univers en briques LEGO. Cette série brickfilm innovante mêle action, humour et émotion dans des épisodes soigneusement réalisés qui plairont à tous les âges.</p>
+            <div class="button-group">
+                <a href="https://www.youtube.com/playlist?list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf" target="_blank" class="button">▶ Regarder la série</a>
+                <a href="#" class="button close-btn">❌ Fermer</a>
+            </div>
+        </div>
+    </div>
+</div>
 
-  // Bouton regarder → ouvre YouTube
-  ficheRegarder.addEventListener('click', () => {
-    if(currentLink) window.open(currentLink, "_blank");
-  });
+<div id="serie2" class="fiche-popup">
+    <div class="fiche-content landscape-layout">
+        <div class="fiche-left">
+            <img src="Law.jpg" alt="Image de la série Lawless Legend" class="landscape">
+        </div>
+        <div class="fiche-right">
+            <h3>Lawless Legend</h3>
+            <div class="stars">★★★☆☆ (3.5/5)</div>
+            <p>Plongez dans l'univers impitoyable du Far West à travers cette série brickfilm unique ! Suivez les aventures rocambolesques de cowboys en briques LEGO dans un monde où l'humour côtoie les duels au soleil couchant. Avec son esthétique VHS nostalgique et ses moments comiques savamment dosés, cette série réinvente le western classique dans un style visuel rétro irrésistible.</p>
+            <div class="button-group">
+                <a href="https://youtube.com/playlist?list=PLljfI9MJr5K2Li687G4dOxjfyDQkIfJn3&si=FQ0ImMc9j-6wvtRk" target="_blank" class="button">▶ Regarder la série</a>
+                <a href="#" class="button close-btn">❌ Fermer</a>
+            </div>
+        </div>
+    </div>
+</div>
 
-  // Fermer la fiche
-  ficheClose.addEventListener('click', () => {
-    fichePopup.style.display = "none";
-  });
-
-  // Recherche
-  searchInput.addEventListener('keyup', () => {
-    const query = searchInput.value.toLowerCase();
-    document.querySelectorAll('.grid .card').forEach(card => {
-      const title = card.querySelector('.card-info span').innerText.toLowerCase();
-      card.style.display = title.includes(query) ? 'block' : 'none';
-    });
-  });
-</script>
+<div id="film4" class="fiche-popup">
+    <div class="fiche-content landscape-layout">
+        <div class="fiche-left">
+            <img src="Ba1.jpg" alt="Image du trailer Batman" class="landscape">
+        </div>
+        <div class="fiche-right">
+            <h3>Trailer Batman</h3>
+            <!-- pas d'étoiles ici car c'est un trailer -->
+            <p>Le nouveau trailer de Batman, sombre et intense. Découvrez les premières images de cette adaptation épique qui redéfinit l'univers du chevalier noir avec une approche moderne et spectaculaire.</p>
+            <div class="button-group">
+                <a href="https://www.youtube.com/watch?v=SzbqZNObLNU" target="_blank" class="button">▶ Regarder</a>
+                <a href="#" class="button close-btn">❌ Fermer</a>
+            </div>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
-
