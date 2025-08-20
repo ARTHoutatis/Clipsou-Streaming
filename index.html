@@ -538,243 +538,26 @@ html {
     scroll-behavior: auto;
 }
 
-/* Responsive mobile */
-@media (max-width: 768px) {
-    nav {
-        padding: 12px 20px;
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .logo {
-        font-size: 24px;
-        text-align: center;
-    }
-    
-    .nav-links {
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 10px;
-    }
-    
-    .nav-links a {
-        padding: 8px 16px;
-        font-size: 14px;
-    }
-
-    /* Carousel responsive */
-    .carousel-container {
-        aspect-ratio: 16/9;
-        min-height: 300px;
-    }
-
-    .carousel-content {
-        padding: 20px;
-    }
-
-    .carousel-title {
-        font-size: 1.8rem;
-        margin-bottom: 10px;
-    }
-
-    .carousel-description {
-        font-size: 0.95rem;
-        margin-bottom: 15px;
-    }
-
-    .carousel-genres {
-        gap: 6px;
-        margin: 10px 0 15px 0;
-    }
-
-    .carousel-genre-tag {
-        font-size: 0.75rem;
-        padding: 4px 10px;
-    }
-
-    .carousel-btn {
-        padding: 10px 18px;
-        font-size: 0.85rem;
-    }
-
-    .carousel-indicators {
-        bottom: 15px;
-        gap: 8px;
-    }
-
-    .carousel-indicator {
-        width: 10px;
-        height: 10px;
-    }
-    
-    .section {
-        margin: 30px 0;
-    }
-    
-    .section h2 {
-        margin: 0 20px 24px;
-        font-size: 24px;
-    }
-    
-    .grid {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 16px;
-        padding: 0 20px;
-    }
-    
-    .card-info span {
-        font-size: 14px;
-        white-space: normal;
-        overflow: visible;
-        text-overflow: initial;
-        line-height: 1.2;
-    }
-    
-    .stars {
-        font-size: 14px;
-    }
-    
-    .fiche-popup {
-        padding: 10px;
-    }
-    
-    .fiche-content {
-        grid-template-columns: 1fr !important; /* Force une colonne sur mobile */
-        gap: 20px;
-        padding: 20px;
-        text-align: center;
-        max-height: 90vh;
-    }
-    
-    .fiche-right {
-        padding-left: 0; /* Supprime le décalage sur mobile */
-    }
-    
-    .fiche-content h3 {
-        font-size: 22px;
-        margin-bottom: 12px;
-    }
-    
-    .fiche-content p {
-        font-size: 15px;
-        text-align: left;
-        margin: 12px 0;
-    }
-    
-    .rating-genres {
-        justify-content: center;
-        gap: 12px;
-        margin-bottom: 15px;
-    }
-    
-    .fiche-content .stars {
-        font-size: 18px;
-    }
-    
-    .genres {
-        justify-content: center;
-    }
-    
-    .genre-tag {
-        font-size: 12px;
-        padding: 3px 10px;
-    }
-    
-    .button-group {
-        justify-content: center;
-        gap: 12px;
-        margin-top: 20px;
-    }
-    
-    .button {
-        padding: 10px 20px;
-        font-size: 13px;
-    }
-    
-    .fiche-content img {
-        max-height: 50vh;
-        margin-bottom: 15px;
-    }
+/* Message pour utilisateurs mobiles */
+.mobile-message {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+    font-size: 1.2rem;
+    background: #000;
+    color: #fff;
+}
+.mobile-message strong {
+    color: #1f8bff;
 }
 
-/* Très petit écran (moins de 480px) */
-@media (max-width: 480px) {
-    nav {
-        padding: 10px 15px;
+/* Afficher uniquement sur écrans <= 768px */
+@media (max-width: 768px) {
+    body > *:not(.mobile-message) {
+        display: none !important;
     }
-    
-    .logo {
-        font-size: 20px;
-    }
-    
-    .logo span:nth-child(3) {
-        font-size: 12px;
-        margin-left: 8px;
-        padding: 3px 6px;
-    }
-
-    .carousel-container {
-        aspect-ratio: 16/9;
-        min-height: 250px;
-    }
-
-    .carousel-content {
-        padding: 15px;
-    }
-
-    .carousel-title {
-        font-size: 1.5rem;
-    }
-
-    .carousel-description {
-        font-size: 0.85rem;
-    }
-    
-    .section h2 {
-        margin: 0 15px 20px;
-        font-size: 20px;
-    }
-    
-    .grid {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 12px;
-        padding: 0 15px;
-    }
-    
-    .card-info {
-        padding: 12px 16px;
-    }
-    
-    .card-info span {
-        font-size: 13px;
-    }
-    
-    .stars {
-        font-size: 13px;
-    }
-    
-    .fiche-content {
-        padding: 15px;
-        border-radius: 12px;
-    }
-    
-    .fiche-content h3 {
-        font-size: 20px;
-    }
-    
-    .fiche-content p {
-        font-size: 14px;
-    }
-    
-    .rating-genres {
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .button {
-        padding: 8px 16px;
-        font-size: 12px;
+    .mobile-message {
+        display: block;
     }
 }
 
@@ -816,6 +599,12 @@ html {
         <a href="https://www.youtube.com/@mrroxxor4369" target="_blank" class="yt-link">▶ YouTube</a>
     </div>
 </nav>
+
+<div class="mobile-message">
+    📱 <strong>Le site n’est pas encore disponible sur mobile.</strong><br><br>
+    Une mise à jour est prévue prochainement afin de rendre Clipsou Streaming compatible avec smartphones et tablettes.<br><br>
+    Merci de votre patience 🙏
+</div>
 
 <!-- CAROUSEL HERO SECTION -->
 <div class="carousel-section">
