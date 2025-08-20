@@ -127,6 +127,173 @@ nav {
     background: #CC0000; 
 }
 
+/* CAROUSEL STYLES */
+.carousel-section {
+    margin: 40px 0 60px 0;
+    overflow: hidden;
+}
+
+.carousel-container {
+    position: relative;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16/9;
+    min-height: 400px;
+}
+
+.carousel-slides {
+    display: flex;
+    width: 500%; /* 5 slides = 100% * 5 */
+    height: 100%;
+    animation: carousel-auto 25s infinite; /* 5s par slide */
+}
+
+@keyframes carousel-auto {
+    0%, 18% { transform: translateX(0); }
+    20%, 38% { transform: translateX(-20%); }
+    40%, 58% { transform: translateX(-40%); }
+    60%, 78% { transform: translateX(-60%); }
+    80%, 98% { transform: translateX(-80%); }
+    100% { transform: translateX(0); }
+}
+
+.carousel-slide {
+    flex: 0 0 20%; /* Chaque slide = 20% de la largeur totale */
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    aspect-ratio: 16/9;
+}
+
+.carousel-slide::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(0, 0, 0, 0.7) 0%,
+        rgba(0, 0, 0, 0.4) 50%,
+        rgba(0, 0, 0, 0.8) 100%
+    );
+    z-index: 1;
+}
+
+.carousel-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 40px;
+    z-index: 2;
+    background: linear-gradient(
+        180deg,
+        transparent 0%,
+        rgba(0, 0, 0, 0.3) 30%,
+        rgba(0, 0, 0, 0.8) 100%
+    );
+}
+
+.carousel-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 15px 0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.carousel-description {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.5;
+    margin: 0 0 20px 0;
+    max-width: 600px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.carousel-genres {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0 20px 0;
+    flex-wrap: wrap;
+}
+
+.carousel-genre-tag {
+    background: rgba(31, 139, 255, 0.8);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid rgba(31, 139, 255, 0.6);
+    backdrop-filter: blur(5px);
+}
+
+.carousel-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(31, 139, 255, 0.9);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(31, 139, 255, 0.3);
+}
+
+.carousel-btn:hover {
+    background: rgba(31, 139, 255, 1);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(31, 139, 255, 0.4);
+}
+
+.carousel-btn::before {
+    content: 'ⓘ';
+    font-size: 1rem;
+}
+
+/* Indicateurs de slides */
+.carousel-indicators {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    z-index: 3;
+}
+
+.carousel-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    animation: indicator-cycle 25s infinite;
+}
+
+.carousel-indicator:nth-child(1) { animation-delay: 0s; }
+.carousel-indicator:nth-child(2) { animation-delay: 5s; }
+.carousel-indicator:nth-child(3) { animation-delay: 10s; }
+.carousel-indicator:nth-child(4) { animation-delay: 15s; }
+.carousel-indicator:nth-child(5) { animation-delay: 20s; }
+
+@keyframes indicator-cycle {
+    0%, 16% { 
+        background: rgba(31, 139, 255, 1);
+        transform: scale(1.3);
+    }
+    20%, 100% { 
+        background: rgba(255, 255, 255, 0.4);
+        transform: scale(1);
+    }
+}
+
 /* Sections */
 .section {
     margin: 50px 0;
@@ -204,7 +371,7 @@ a {
     color: inherit;
 }
 
-/* Popups */
+/* Popups avec position fixe et conservation du scroll */
 .fiche-popup {
     display: none;
     position: fixed;
@@ -361,6 +528,16 @@ a {
     box-shadow: 0 4px 15px rgba(255, 68, 68, 0.3);
 }
 
+/* Style pour empêcher le scroll vers le haut lors de la fermeture */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Classe pour maintenir la position du scroll */
+.maintain-scroll {
+    scroll-behavior: auto;
+}
+
 /* Responsive mobile */
 @media (max-width: 768px) {
     nav {
@@ -383,6 +560,51 @@ a {
     .nav-links a {
         padding: 8px 16px;
         font-size: 14px;
+    }
+
+    /* Carousel responsive */
+    .carousel-container {
+        aspect-ratio: 16/9;
+        min-height: 300px;
+    }
+
+    .carousel-content {
+        padding: 20px;
+    }
+
+    .carousel-title {
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+    }
+
+    .carousel-description {
+        font-size: 0.95rem;
+        margin-bottom: 15px;
+    }
+
+    .carousel-genres {
+        gap: 6px;
+        margin: 10px 0 15px 0;
+    }
+
+    .carousel-genre-tag {
+        font-size: 0.75rem;
+        padding: 4px 10px;
+    }
+
+    .carousel-btn {
+        padding: 10px 18px;
+        font-size: 0.85rem;
+    }
+
+    .carousel-indicators {
+        bottom: 15px;
+        gap: 8px;
+    }
+
+    .carousel-indicator {
+        width: 10px;
+        height: 10px;
     }
     
     .section {
@@ -490,6 +712,23 @@ a {
         margin-left: 8px;
         padding: 3px 6px;
     }
+
+    .carousel-container {
+        aspect-ratio: 16/9;
+        min-height: 250px;
+    }
+
+    .carousel-content {
+        padding: 15px;
+    }
+
+    .carousel-title {
+        font-size: 1.5rem;
+    }
+
+    .carousel-description {
+        font-size: 0.85rem;
+    }
     
     .section h2 {
         margin: 0 15px 20px;
@@ -541,6 +780,14 @@ a {
 
 /* Amélioration des performances */
 @media (prefers-reduced-motion: reduce) {
+    .carousel-slides {
+        animation: none;
+    }
+    
+    .carousel-indicator {
+        animation: none;
+    }
+    
     * {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
@@ -569,6 +816,102 @@ a {
         <a href="https://www.youtube.com/@mrroxxor4369" target="_blank" class="yt-link">▶ YouTube</a>
     </div>
 </nav>
+
+<!-- CAROUSEL HERO SECTION -->
+<div class="carousel-section">
+    <div class="carousel-container">
+        <div class="carousel-slides">
+            <!-- Slide 1: La vie au petit âge -->
+            <div class="carousel-slide" style="background-image: url('La1.jpg');">
+                <div class="carousel-content">
+                    <h2 class="carousel-title">La vie au petit âge</h2>
+                    <div class="carousel-genres">
+                        <span class="carousel-genre-tag">Comédie</span>
+                        <span class="carousel-genre-tag">Familial</span>
+                        <span class="carousel-genre-tag">Aventure</span>
+                    </div>
+                    <p class="carousel-description">
+                        Timmy, un enfant espiègle, nous fait visiter son village dans un monde entièrement construit en briques LEGO. Une aventure familiale pleine d'humour et de tendresse.
+                    </p>
+                    <a href="#film1" class="carousel-btn">Voir la fiche</a>
+                </div>
+            </div>
+
+            <!-- Slide 2: Dédoublement -->
+            <div class="carousel-slide" style="background-image: url('Dé1.jpg');">
+                <div class="carousel-content">
+                    <h2 class="carousel-title">Dédoublement</h2>
+                    <div class="carousel-genres">
+                        <span class="carousel-genre-tag">Thriller</span>
+                        <span class="carousel-genre-tag">Comédie</span>
+                        <span class="carousel-genre-tag">Action</span>
+                    </div>
+                    <p class="carousel-description">
+                        Deux frères identiques, l'un vêtu de blanc et l'autre de noir, s'entendent à merveille… jusqu'à ce que l'un finisse en prison. Un thriller haletant mêlant suspense et moments hilarants.
+                    </p>
+                    <a href="#film2" class="carousel-btn">Voir la fiche</a>
+                </div>
+            </div>
+
+            <!-- Slide 3: Jackson Goup -->
+            <div class="carousel-slide" style="background-image: url('Ja1.jpg');">
+                <div class="carousel-content">
+                    <h2 class="carousel-title">Jackson Goup</h2>
+                    <div class="carousel-genres">
+                        <span class="carousel-genre-tag">Aventure</span>
+                        <span class="carousel-genre-tag">Fantastique</span>
+                        <span class="carousel-genre-tag">Comédie</span>
+                    </div>
+                    <p class="carousel-description">
+                        Un aventurier un peu maladroit traverse des contrées hostiles remplies de créatures féroces. Une aventure épique mêlant humour et fantastique.
+                    </p>
+                    <a href="#film3" class="carousel-btn">Voir la fiche</a>
+                </div>
+            </div>
+
+            <!-- Slide 4: Alex (Série) -->
+            <div class="carousel-slide" style="background-image: url('Al.jpg');">
+                <div class="carousel-content">
+                    <h2 class="carousel-title">Alex</h2>
+                    <div class="carousel-genres">
+                        <span class="carousel-genre-tag">Action</span>
+                        <span class="carousel-genre-tag">Comédie</span>
+                        <span class="carousel-genre-tag">Drame</span>
+                    </div>
+                    <p class="carousel-description">
+                        Suivez les aventures captivantes d'Alex dans un univers en briques LEGO. Cette série brickfilm innovante mêle action, humour et émotion.
+                    </p>
+                    <a href="#serie1" class="carousel-btn">Voir la fiche</a>
+                </div>
+            </div>
+
+            <!-- Slide 5: Karma -->
+            <div class="carousel-slide" style="background-image: url('Ka1.jpg');">
+                <div class="carousel-content">
+                    <h2 class="carousel-title">Karma</h2>
+                    <div class="carousel-genres">
+                        <span class="carousel-genre-tag">Horreur</span>
+                        <span class="carousel-genre-tag">Mystère</span>
+                        <span class="carousel-genre-tag">Psychologique</span>
+                    </div>
+                    <p class="carousel-description">
+                        Une adolescente victime de harcèlement revient hanter son bourreau. Une spirale de terreur psychologique et de phénomènes paranormaux terrifians.
+                    </p>
+                    <a href="#film4" class="carousel-btn">Voir la fiche</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Indicateurs de slides -->
+        <div class="carousel-indicators">
+            <div class="carousel-indicator"></div>
+            <div class="carousel-indicator"></div>
+            <div class="carousel-indicator"></div>
+            <div class="carousel-indicator"></div>
+            <div class="carousel-indicator"></div>
+        </div>
+    </div>
+</div>
 
 <div class="section">
     <h2>FILMS</h2>
@@ -663,7 +1006,7 @@ a {
             <p>Timmy, un enfant espiègle, nous fait visiter son village dans un monde entièrement construit en briques LEGO. Mais chaque coin de rue réserve son lot de gags et de surprises ! Une aventure familiale pleine d'humour et de tendresse qui ravira petits et grands.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=XtqzuhtuH2E" target="_blank" class="button">▶ Regarder</a>
-                <a href="#" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
             </div>
         </div>
     </div>
@@ -687,7 +1030,7 @@ a {
             <p>Deux frères identiques, l'un vêtu de blanc et l'autre de noir, s'entendent à merveille… jusqu'à ce que l'un finisse en prison. Entre comédie et évasion ! Un thriller haletant mêlant suspense et moments hilarants.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=gfbiTpqQDY0" target="_blank" class="button">▶ Regarder</a>
-                <a href="#" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
             </div>
         </div>
     </div>
@@ -711,7 +1054,7 @@ a {
             <p>Un aventurier un peu maladroit traverse des contrées hostiles remplies de créatures féroces. Une aventure épique mêlant humour et fantastique qui vous transportera dans un monde extraordinaire plein de surprises.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=VUqwvqQ51sg" target="_blank" class="button">▶ Regarder</a>
-                <a href="#" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
             </div>
         </div>
     </div>
@@ -735,7 +1078,7 @@ a {
             <p>Suivez les aventures captivantes d'Alex, un personnage attachant dans un univers en briques LEGO. Cette série brickfilm innovante mêle action, humour et émotion dans des épisodes soigneusement réalisés qui plairont à tous les âges.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/playlist?list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf" target="_blank" class="button">▶ Regarder la série</a>
-                <a href="#" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
             </div>
         </div>
     </div>
@@ -759,7 +1102,7 @@ a {
             <p>Plongez dans l'univers du Far West à travers cette série brickfilm unique ! Cowboys en briques LEGO, duels au soleil couchant et esthétique VHS nostalgique : cette série réinvente le western avec humour dans un style rétro irrésistible.</p>
             <div class="button-group">
                 <a href="https://youtube.com/playlist?list=PLljfI9MJr5K2Li687G4dOxjfyDQkIfJn3&si=FQ0ImMc9j-6wvtRk" target="_blank" class="button">▶ Regarder la série</a>
-                <a href="#" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
             </div>
         </div>
     </div>
@@ -783,7 +1126,7 @@ a {
             <p>Victime de harcèlement scolaire, une adolescente met fin à ses jours. Mais son esprit tourmenté ne trouve pas la paix et revient hanter son bourreau. À travers des phénomènes paranormaux terrifiants, elle le plonge dans une spirale de terreur jusqu'à sa propre destruction.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=p79g08Igceo" target="_blank" class="button">▶ Regarder</a>
-                <a href="#" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
             </div>
         </div>
     </div>
@@ -806,7 +1149,7 @@ a {
             <p>Le nouveau trailer de Batman, sombre et intense. Découvrez les premières images de cette adaptation épique qui redéfinit l'univers du chevalier noir avec une approche moderne et spectaculaire.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=SzbqZNObLNU" target="_blank" class="button">▶ Regarder</a>
-                <a href="#" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
             </div>
         </div>
     </div>
@@ -814,3 +1157,4 @@ a {
 
 </body>
 </html>
+    
