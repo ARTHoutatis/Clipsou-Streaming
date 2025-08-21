@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Clipsou Streaming</title>
-<link rel="icon" type="image/png" href="favicon.png">
 <style>
 html {
     -webkit-text-size-adjust: 100%;
@@ -23,6 +22,15 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     -webkit-tap-highlight-color: transparent;
+}
+
+/* Visually hidden (for a11y/SEO) */
+.sr-only {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0);
+    white-space: nowrap; border: 0;
 }
 
 /* SOLUTION : Bloquer le scroll quand une popup est active */
@@ -47,7 +55,7 @@ body::before {
 }
 
 /* Navigation */
-nav {
+nav[aria-label="Navigation principale"] {
     background: #000;
     padding: 15px 40px;
     display: flex;
@@ -66,12 +74,15 @@ nav {
     align-items: center;
 }
 
-@keyframes gradientShift {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
+/* Icône à gauche du texte dans la banderole */
+.logo img {
+    width: 28px;
+    height: 28px;
+    margin-right: 10px;
+    display: block;
 }
 
-.logo span:nth-child(1), .logo span:nth-child(2) { 
+.logo span:nth-of-type(1), .logo span:nth-of-type(2) { 
     background: linear-gradient(45deg, #1f8bff, #0066cc, #1f8bff);
     background-size: 200% 200%;
     animation: gradientShift 3s ease infinite;
@@ -81,11 +92,11 @@ nav {
     color: transparent;
 }
 
-.logo span:nth-child(1) { 
+.logo span:nth-of-type(1) { 
     font-weight: 800;
 }
 
-.logo span:nth-child(2) { 
+.logo span:nth-of-type(2) { 
     margin-left: 6px; 
     font-weight: 300;
 }
@@ -120,7 +131,7 @@ nav {
     background: #CC0000; 
 }
 
-/* CAROUSEL STYLES */
+/* Carousel */
 .carousel-section {
     margin: 40px 0 60px 0;
     overflow: hidden;
@@ -652,8 +663,9 @@ html {
 </head>
 <body>
 
-<nav>
+<nav aria-label="Navigation principale">
     <div class="logo">
+        <img src="favicon.png" alt="Logo Clipsou" width="28" height="28">
         <span>Clipsou</span>
         <span>Streaming</span>
     </div>
@@ -662,8 +674,12 @@ html {
     </div>
 </nav>
 
+<h1 class="sr-only">Clipsou Streaming</h1>
+
+<main id="contenu" tabindex="-1">
+
 <!-- CAROUSEL HERO SECTION -->
-<div class="carousel-section">
+<div class="carousel-section" role="region" aria-label="Sélection de mises en avant">
     <div class="carousel-container">
         <div class="carousel-slides">
             <!-- Slide 1: La vie au petit âge -->
@@ -740,7 +756,7 @@ html {
                         <span class="carousel-genre-tag">Psychologique</span>
                     </div>
                     <p class="carousel-description">
-                        Une adolescente victime de harcèlement revient hanter son bourreau. Une spirale de terreur psychologique et de phénomènes paranormaux terrifians.
+                        Une adolescente victime de harcèlement revient hanter son bourreau. Une spirale de terreur psychologique et de phénomènes paranormaux terrifiants.
                     </p>
                     <a href="#film4" class="carousel-btn">Voir la fiche</a>
                 </div>
@@ -748,7 +764,7 @@ html {
         </div>
 
         <!-- Indicateurs de slides -->
-        <div class="carousel-indicators">
+        <div class="carousel-indicators" aria-hidden="true">
             <div class="carousel-indicator"></div>
             <div class="carousel-indicator"></div>
             <div class="carousel-indicator"></div>
@@ -833,13 +849,13 @@ html {
 </div>
 
 <!-- POPUPS -->
-<div id="film1" class="fiche-popup">
+<div id="film1" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film1-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="La1.jpg" alt="Image du film La vie au petit âge" class="landscape" decoding="async">
+            <img src="La1.jpg" alt="Image du film La vie au petit âge" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
-            <h3>La vie au petit âge</h3>
+            <h3 id="film1-title">La vie au petit âge</h3>
             <div class="rating-genres">
                 <div class="stars">★3.5/5</div>
                 <div class="genres">
@@ -857,13 +873,13 @@ html {
     </div>
 </div>
 
-<div id="film2" class="fiche-popup">
+<div id="film2" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film2-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Dé1.jpg" alt="Image du film Dédoublement" class="landscape" decoding="async">
+            <img src="Dé1.jpg" alt="Image du film Dédoublement" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
-            <h3>Dédoublement</h3>
+            <h3 id="film2-title">Dédoublement</h3>
             <div class="rating-genres">
                 <div class="stars">★4.5/5</div>
                 <div class="genres">
@@ -881,13 +897,13 @@ html {
     </div>
 </div>
 
-<div id="film3" class="fiche-popup">
+<div id="film3" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film3-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Ja1.jpg" alt="Image du film Jackson Goup" class="landscape" decoding="async">
+            <img src="Ja1.jpg" alt="Image du film Jackson Goup" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
-            <h3>Jackson Goup</h3>
+            <h3 id="film3-title">Jackson Goup</h3>
             <div class="rating-genres">
                 <div class="stars">★3/5</div>
                 <div class="genres">
@@ -905,13 +921,13 @@ html {
     </div>
 </div>
 
-<div id="serie1" class="fiche-popup">
+<div id="serie1" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="serie1-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Al.jpg" alt="Image de la série Alex" class="landscape" decoding="async">
+            <img src="Al.jpg" alt="Image de la série Alex" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
-            <h3>Alex</h3>
+            <h3 id="serie1-title">Alex</h3>
             <div class="rating-genres">
                 <div class="stars">★4/5</div>
                 <div class="genres">
@@ -929,13 +945,13 @@ html {
     </div>
 </div>
 
-<div id="serie2" class="fiche-popup">
+<div id="serie2" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="serie2-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Law.jpg" alt="Image de la série Lawless Legend" class="landscape" decoding="async">
+            <img src="Law.jpg" alt="Image de la série Lawless Legend" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
-            <h3>Lawless Legend</h3>
+            <h3 id="serie2-title">Lawless Legend</h3>
             <div class="rating-genres">
                 <div class="stars">★3.5/5</div>
                 <div class="genres">
@@ -953,13 +969,13 @@ html {
     </div>
 </div>
 
-<div id="film4" class="fiche-popup">
+<div id="film4" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film4-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Ka1.jpg" alt="Image du film Karma" class="landscape" decoding="async">
+            <img src="Ka1.jpg" alt="Image du film Karma" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
-            <h3>Karma</h3>
+            <h3 id="film4-title">Karma</h3>
             <div class="rating-genres">
                 <div class="stars">★3/5</div>
                 <div class="genres">
@@ -977,13 +993,13 @@ html {
     </div>
 </div>
 
-<div id="film5" class="fiche-popup">
+<div id="film5" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film5-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Ba1.jpg" alt="Image du trailer Batman" class="landscape" decoding="async">
+            <img src="Ba1.jpg" alt="Image du trailer Batman" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
-            <h3>Trailer Batman</h3>
+            <h3 id="film5-title">Trailer Batman</h3>
             <div class="rating-genres">
                 <div class="genres">
                     <span class="genre-tag">Action</span>
@@ -1000,5 +1016,6 @@ html {
     </div>
 </div>
 
+</main>
 </body>
 </html>
