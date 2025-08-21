@@ -90,20 +90,6 @@ nav {
     font-weight: 300;
 }
 
-.logo span:nth-child(3) { 
-    color: #fff; 
-    font-size: 14px; 
-    margin-left: 12px;
-    background: rgba(0, 0, 0, 0.9);
-    padding: 4px 8px;
-    border-radius: 8px;
-    font-weight: 600;
-    border: 2px solid #4da6ff;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    box-shadow: 0 0 10px rgba(77, 166, 255, 0.5);
-}
-
 .nav-links {
     display: flex;
     gap: 15px;
@@ -625,6 +611,17 @@ html {
     .button-group { grid-area: actions; display: flex; gap: 12px; flex-wrap: nowrap; justify-content: center; margin-left: auto; margin-right: auto; }
     .button { flex: 1 1 0; width: auto; text-align: center; padding: 14px 16px; min-height: 44px; }
     .fiche-right { text-align: center; }
+
+    /* Centrage total du contenu de la fiche (popup) sur mobile */
+    .fiche-content { justify-items: center; }
+    .fiche-left { align-items: center; }
+    .fiche-content img { display: block; margin: 0 auto 12px; }
+    .fiche-content h3 { text-align: center; }
+    .rating-genres { justify-content: center; margin-left: auto; margin-right: auto; }
+    .fiche-content .stars { display: inline-block; margin: 0 auto; }
+    .genres { justify-content: center; margin-left: auto; margin-right: auto; }
+    .fiche-content p { text-align: center; margin-left: auto; margin-right: auto; max-width: 42ch; }
+    .fiche-right { padding-left: 0; margin-inline: auto; max-width: 560px; width: 100%; }
 }
 
 /* Mode sombre forcé pour les systèmes qui le supportent */
@@ -658,7 +655,6 @@ html {
     <div class="logo">
         <span>Clipsou</span>
         <span>Streaming</span>
-        <span>beta</span>
     </div>
     <div class="nav-links">
         <a href="https://discord.gg/c7jwnDsW" target="_blank" rel="noopener noreferrer" class="discord-link">💬 Discord</a>
