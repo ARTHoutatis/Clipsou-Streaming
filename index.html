@@ -72,15 +72,19 @@ nav[aria-label="Navigation principale"] {
     font-weight: 700;
     display: flex;
     align-items: center;
-}
+    gap: 8px;
+ }
 
-/* Icône à gauche du texte dans la banderole */
-.logo img {
-    width: 28px;
-    height: 28px;
-    margin-right: 10px;
-    display: block;
-}
+ /* Icône à gauche du texte dans la banderole */
+ .logo img {
+     width: 28px;
+     height: 28px;
+     margin-right: 10px;
+     display: block;
+     flex-shrink: 0;
+ }
+ 
+ .logo span { white-space: nowrap; }
 
 .logo span:nth-of-type(1), .logo span:nth-of-type(2) { 
     background: linear-gradient(45deg, #1f8bff, #0066cc, #1f8bff);
@@ -547,10 +551,11 @@ html {
 @media (max-width: 768px) {
     /* Banderole: logo + Discord sur la même ligne, sans débordement */
     nav { padding: 12px 16px; width: 100%; max-width: 100vw; overflow-x: hidden; display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap; column-gap: 8px; }
-    .logo { flex: 1 1 auto; min-width: 0; }
+    .logo { flex: 1 1 0; min-width: 0; overflow: hidden; }
     .nav-links { width: auto; display: flex; flex-direction: row; align-items: center; gap: 8px; flex: 0 0 auto; }
     .nav-links a { padding: 8px 12px; font-size: 14px; width: auto; flex: 0 0 auto; }
     .nav-links a:not([href*="youtu"]) { padding: 6px 10px; }
+    .logo span { overflow: hidden; text-overflow: ellipsis; }
 
     /* Hide and fully disable carousel on mobile */
     .carousel-section { display: none !important; margin: 0; }
@@ -573,6 +578,10 @@ html {
     .fiche-popup { 
         padding-left: max(12px, env(safe-area-inset-left)); 
         padding-right: max(12px, env(safe-area-inset-right)); 
+        padding-top: max(12px, env(safe-area-inset-top));
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+        min-height: 100svh; /* compat meilleurs barres d'adresse mobiles */
+        align-items: center;
     }
 
     /* Popup: centrage strict du conteneur */
@@ -583,15 +592,16 @@ html {
             "content";
         width: 100%; /* occupe toute la largeur interne du conteneur */
         max-width: 95vw; /* cap à 95vw pour éviter tout débordement visuel */
-        max-height: 90vh;
+        max-height: min(90svh, 90dvh);
         padding: 16px;
         justify-items: center; /* centre horizontal */
         align-items: start;    /* image en haut */
         gap: 12px;
         margin-inline: auto; /* centre horizontalement */
+        -webkit-overflow-scrolling: touch; /* inertie iOS */
     }
     .fiche-left { align-items: center; width: 100%; grid-area: image; justify-self: center; }
-    .fiche-content img { display: block; margin: 0 auto 12px; max-width: 100%; max-height: 55vh; height: auto; }
+    .fiche-content img { display: block; margin: 0 auto 12px; max-width: 100%; max-height: 55svh; height: auto; }
     .fiche-right {
         grid-area: content;
         padding-left: 0;
@@ -614,7 +624,7 @@ html {
     .fiche-content p { grid-area: desc; text-align: center; margin: 8px 0 12px; }
     .fiche-right > * { margin-left: auto; margin-right: auto; }
     .fiche-right p { max-width: 42ch; }
-    .fiche-content img { max-height: 55vh; }
+    .fiche-content img { max-height: 55svh; }
     .rating-genres { grid-area: rating; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; white-space: normal; }
     .rating-genres .stars { display: inline-block; font-size: 16px; }
     .genres { display: inline-flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
