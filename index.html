@@ -570,8 +570,8 @@ html {
         grid-template-areas:
             "image"
             "content";
-        width: 95vw; /* 95% de la largeur sur mobile */
-        max-width: 95vw;
+        width: 100%; /* occupe toute la largeur interne du conteneur */
+        max-width: 95vw; /* cap à 95vw pour éviter tout débordement visuel */
         max-height: 90vh;
         padding: 16px;
         justify-items: center; /* centre horizontal */
@@ -604,9 +604,9 @@ html {
     .fiche-right > * { margin-left: auto; margin-right: auto; }
     .fiche-right p { max-width: 42ch; }
     .fiche-content img { max-height: 55vh; }
-    .rating-genres { grid-area: rating; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: nowrap; white-space: nowrap; }
+    .rating-genres { grid-area: rating; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; white-space: normal; }
     .rating-genres .stars { display: inline-block; font-size: 16px; }
-    .genres { display: inline-flex; gap: 6px; justify-content: center; flex-wrap: nowrap; }
+    .genres { display: inline-flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
     .genre-tag { font-size: 12px; padding: 3px 8px; }
     .genre-tag:nth-child(n+4) { display: none; } /* limiter à 3 genres visibles */
     .button-group { grid-area: actions; display: flex; gap: 12px; flex-wrap: nowrap; justify-content: center; margin-left: auto; margin-right: auto; }
