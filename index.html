@@ -548,11 +548,11 @@ html {
 
 /* Responsive mobile */
 @media (max-width: 768px) {
-    nav { padding: 12px 16px; width: 100%; max-width: 100vw; overflow-x: hidden; display: flex; flex-wrap: wrap; row-gap: 8px; }
-    .logo { font-size: 22px; }
-    .logo span:nth-child(3) { font-size: 12px; padding: 2px 6px; }
-    .nav-links { width: 100%; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-    .nav-links a { padding: 8px 12px; font-size: 14px; width: auto; }
+    /* Banderole: logo + Discord sur la même ligne, sans débordement */
+    nav { padding: 12px 16px; width: 100%; max-width: 100vw; overflow-x: hidden; display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap; column-gap: 8px; }
+    .logo { flex: 1 1 auto; min-width: 0; }
+    .nav-links { width: auto; display: flex; flex-direction: row; align-items: center; gap: 8px; flex: 0 0 auto; }
+    .nav-links a { padding: 8px 12px; font-size: 14px; width: auto; flex: 0 0 auto; }
     .nav-links a:not([href*="youtu"]) { padding: 6px 10px; }
 
     /* Hide and fully disable carousel on mobile */
@@ -578,6 +578,7 @@ html {
         padding-right: max(12px, env(safe-area-inset-right)); 
     }
 
+    /* Popup: centrage strict du conteneur */
     .fiche-content {
         grid-template-columns: 1fr;
         grid-template-areas:
@@ -609,6 +610,7 @@ html {
         justify-items: center;
         max-width: 560px; /* largeur lisible centrée */
         margin-inline: auto;
+        width: 100%; box-sizing: border-box;
     }
     .fiche-content h3 { grid-area: title; text-align: center; margin: 4px 0 6px; }
     .fiche-content p { grid-area: desc; text-align: center; margin: 8px 0 12px; }
@@ -620,7 +622,7 @@ html {
     .genres { display: inline-flex; gap: 6px; justify-content: center; flex-wrap: nowrap; }
     .genre-tag { font-size: 12px; padding: 3px 8px; }
     .genre-tag:nth-child(n+4) { display: none; } /* limiter à 3 genres visibles */
-    .button-group { grid-area: actions; display: flex; gap: 12px; flex-wrap: nowrap; justify-content: center; margin-top: 8px; padding-top: 8px; position: static; background: transparent; padding-bottom: 0; width: 100%; max-width: 520px; }
+    .button-group { grid-area: actions; display: flex; gap: 12px; flex-wrap: nowrap; justify-content: center; margin-left: auto; margin-right: auto; }
     .button { flex: 1 1 0; width: auto; text-align: center; padding: 14px 16px; min-height: 44px; }
     .fiche-right { text-align: center; }
 }
