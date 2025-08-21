@@ -569,14 +569,17 @@ html {
     .section h2 { margin: 0 16px 16px; font-size: 24px; }
     .grid { padding: 0 16px; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 
-    .fiche-content { grid-template-columns: 1fr; max-height: 90vh; padding: 16px; }
-    .fiche-left { align-items: center; }
-    .fiche-content img { display: block; margin: 0 auto 12px; }
-    .fiche-right { padding-left: 0; text-align: center; }
+    .fiche-content { grid-template-columns: 1fr; max-height: 90vh; padding: 16px; justify-items: center; }
+    .fiche-left { align-items: center; width: 100%; }
+    .fiche-content img { display: block; margin: 0 auto 12px; max-width: 90%; height: auto; }
+    .fiche-right { padding-left: 0; text-align: center; width: 100%; }
     .fiche-content h3 { text-align: center; }
     .fiche-content p { text-align: center; }
     .fiche-content img { max-height: 50vh; }
-    .button-group { display: flex; gap: 12px; flex-wrap: nowrap; justify-content: center; margin-top: 12px; padding-top: 12px; position: static; background: transparent; padding-bottom: 0; }
+    .rating-genres { justify-content: center; }
+    .rating-genres .stars { display: none; }
+    .genres { justify-content: center; }
+    .button-group { display: flex; gap: 12px; flex-wrap: nowrap; justify-content: center; margin-top: 12px; padding-top: 12px; position: static; background: transparent; padding-bottom: 0; width: 100%; }
     .button { flex: 1 1 0; width: auto; text-align: center; padding: 14px 16px; min-height: 44px; }
 }
 
