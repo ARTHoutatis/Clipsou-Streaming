@@ -128,6 +128,7 @@ nav {
 
 .yt-link { 
     background: #FF0000; 
+    display: none !important;
 }
 .yt-link:hover { 
     background: #CC0000; 
@@ -552,6 +553,7 @@ html {
     .logo span:nth-child(3) { font-size: 12px; padding: 2px 6px; }
     .nav-links { width: 100%; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
     .nav-links a { padding: 8px 12px; font-size: 14px; width: auto; }
+    .nav-links a:not([href*="youtu"]) { padding: 6px 10px; }
 
     /* Hide and fully disable carousel on mobile */
     .carousel-section { display: none !important; margin: 0; }
@@ -606,6 +608,7 @@ html {
         row-gap: 10px;
         justify-items: center;
         max-width: 560px; /* largeur lisible centrée */
+        margin-inline: auto;
     }
     .fiche-content h3 { grid-area: title; text-align: center; margin: 4px 0 6px; }
     .fiche-content p { grid-area: desc; text-align: center; margin: 8px 0 12px; }
@@ -657,7 +660,6 @@ html {
     </div>
     <div class="nav-links">
         <a href="https://discord.gg/c7jwnDsW" target="_blank" rel="noopener noreferrer" class="discord-link">💬 Discord</a>
-        <a href="https://www.youtube.com/@mrroxxor4369" target="_blank" rel="noopener noreferrer" class="yt-link">▶ YouTube</a>
     </div>
 </nav>
 
