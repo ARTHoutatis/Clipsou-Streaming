@@ -396,9 +396,9 @@ a {
 }
 
 .fiche-content {
-    width: 100%;
+    width: 95vw; /* occupe 95% de la largeur de l’écran */
     max-width: 1200px;
-    max-height: 92dvh; /* mieux géré sur mobile que 100vh */
+    max-height: 95vh;
     background: rgba(26, 35, 50, 0.95);
     border-radius: 16px;
     display: grid;
@@ -407,6 +407,7 @@ a {
     overflow-y: auto;
     border: 2px solid #1f8bff;
     position: relative;
+    margin: 0 auto; /* centre horizontalement */
 }
 
 /* Layout dynamique basé sur l'orientation de l'image */
@@ -567,11 +568,11 @@ html {
 
 /* Responsive mobile */
 @media (max-width: 768px) {
-    nav { padding: 12px 16px; }
+    nav { padding: 12px 16px; width: 100%; max-width: 100vw; overflow-x: hidden; display: flex; flex-wrap: wrap; row-gap: 8px; }
     .logo { font-size: 22px; }
     .logo span:nth-child(3) { font-size: 12px; padding: 2px 6px; }
-    .nav-links { gap: 10px; }
-    .nav-links a { padding: 8px 12px; font-size: 14px; }
+    .nav-links { width: 100%; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+    .nav-links a { padding: 8px 12px; font-size: 14px; width: auto; }
 
     /* Hide and fully disable carousel on mobile */
     .carousel-section { display: none !important; margin: 0; }
@@ -596,11 +597,13 @@ html {
         grid-template-areas:
             "image"
             "content";
+        width: 95vw; /* 95% de la largeur sur mobile aussi */
         max-height: 90vh;
         padding: 16px;
         justify-items: center; /* centre horizontal */
         align-items: start;    /* image en haut */
         gap: 12px;
+        margin: 0 auto; /* centre horizontalement */
     }
     .fiche-left { align-items: center; width: 100%; grid-area: image; }
     .fiche-content img { display: block; margin: 0 auto 12px; max-width: 100%; max-height: 55vh; height: auto; }
