@@ -548,7 +548,7 @@ html {
     nav { padding: 12px 16px; }
     .logo { font-size: 22px; }
     .logo span:nth-child(3) { font-size: 12px; padding: 2px 6px; }
-    .nav-links { gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .nav-links { gap: 10px; }
     .nav-links a { padding: 8px 12px; font-size: 14px; }
 
     /* Hide and fully disable carousel on mobile */
@@ -567,29 +567,17 @@ html {
 
     .section { margin: 30px 0; }
     .section h2 { margin: 0 16px 16px; font-size: 24px; }
-    .grid { padding: 0 16px; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    .grid { padding: 0 16px; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 
-    .fiche-content {
-        grid-template-columns: 1fr;
-        max-height: 90dvh;
-        padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
-        width: 100%;
-        max-width: none;
-        border-radius: 12px;
-    }
-    .fiche-right { padding-left: 0; }
-    .fiche-content img { max-height: 48dvh; }
-    .button-group {
-        gap: 12px;
-        position: sticky;
-        bottom: 0;
-        padding-top: 12px;
-        margin-top: 16px;
-        background: linear-gradient(180deg, rgba(26,35,50,0) 0%, rgba(26,35,50,0.95) 40%, rgba(26,35,50,0.95) 100%);
-        padding-bottom: calc(8px + env(safe-area-inset-bottom));
-    }
-    .button { width: 100%; text-align: center; padding: 14px 18px; min-height: 44px; }
-    .fiche-content h3 { position: sticky; top: 0; padding-top: calc(4px + env(safe-area-inset-top)); background: rgba(26,35,50,0.95); z-index: 2; }
+    .fiche-content { grid-template-columns: 1fr; max-height: 90vh; padding: 16px; }
+    .fiche-left { align-items: center; }
+    .fiche-content img { display: block; margin: 0 auto 12px; }
+    .fiche-right { padding-left: 0; text-align: center; }
+    .fiche-content h3 { text-align: center; }
+    .fiche-content p { text-align: center; }
+    .fiche-content img { max-height: 50vh; }
+    .button-group { display: flex; gap: 12px; flex-wrap: nowrap; justify-content: center; margin-top: 12px; padding-top: 12px; position: static; background: transparent; padding-bottom: 0; }
+    .button { flex: 1 1 0; width: auto; text-align: center; padding: 14px 16px; min-height: 44px; }
 }
 
 /* Mode sombre forcé pour les systèmes qui le supportent */
