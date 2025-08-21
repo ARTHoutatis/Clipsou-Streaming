@@ -579,7 +579,7 @@ html {
         gap: 12px;
         margin-inline: auto; /* centre horizontalement */
     }
-    .fiche-left { align-items: center; width: 100%; grid-area: image; }
+    .fiche-left { align-items: center; width: 100%; grid-area: image; justify-self: center; }
     .fiche-content img { display: block; margin: 0 auto 12px; max-width: 100%; max-height: 55vh; height: auto; }
     .fiche-right {
         grid-area: content;
@@ -594,6 +594,7 @@ html {
             "actions";
         row-gap: 10px;
         justify-items: center;
+        justify-self: center; /* centre l’item dans la grille */
         max-width: 560px; /* largeur lisible centrée */
         margin-inline: auto;
         width: 100%; box-sizing: border-box;
