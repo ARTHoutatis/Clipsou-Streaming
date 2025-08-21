@@ -447,7 +447,19 @@ a {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding-left: 20px; /* Décalage supplémentaire du texte vers la droite */
+    padding-left: 0; /* Décalage supplémentaire du texte vers la droite */
+    text-align: center;
+    width: 100%;
+    grid-area: content;
+    display: grid;
+    grid-template-areas:
+        "title"
+        "meta"
+        "desc"
+        "actions";
+    row-gap: 10px;
+    justify-items: center;
+    max-width: 560px; /* largeur lisible centrée */
 }
 
 .fiche-content h3 { 
@@ -456,6 +468,8 @@ a {
     font-weight: 700;
     color: #1f8bff;
     scroll-margin-top: 12px;
+    grid-area: title;
+    text-align: center;
 }
 
 .fiche-content p { 
@@ -464,14 +478,17 @@ a {
     line-height: 1.6;
     color: #fff;
     text-align: justify;
+    grid-area: desc;
 }
 
 .rating-genres {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
     margin-bottom: 20px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    white-space: nowrap; /* évite le retour à la ligne */
+    grid-area: meta;
 }
 
 .fiche-content .stars { 
@@ -482,7 +499,9 @@ a {
 .genres {
     display: flex;
     gap: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
 }
 
 .genre-tag {
@@ -496,6 +515,8 @@ a {
     white-space: nowrap;
 }
 
+.genre-tag:nth-child(n+4) { display: none; } /* limiter à 3 genres visibles */
+
 .button-group {
     display: flex;
     gap: 16px;
@@ -507,6 +528,7 @@ a {
     margin-top: 16px;
     background: linear-gradient(180deg, rgba(26,35,50,0) 0%, rgba(26,35,50,0.95) 40%, rgba(26,35,50,0.95) 100%);
     padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    grid-area: actions;
 }
 
 .button {
@@ -571,15 +593,19 @@ html {
 
     .fiche-content {
         grid-template-columns: 1fr;
+        grid-template-areas:
+            "image"
+            "content";
         max-height: 90vh;
         padding: 16px;
-        justify-items: center; /* centrage horizontal */
+        justify-items: center; /* centre horizontal */
         align-items: start;    /* image en haut */
-        gap: 16px;
+        gap: 12px;
     }
-    .fiche-left { align-items: center; width: 100%; }
-    .fiche-content img { display: block; margin: 0 auto 12px; max-width: 100%; max-height: 60vh; height: auto; }
+    .fiche-left { align-items: center; width: 100%; grid-area: image; }
+    .fiche-content img { display: block; margin: 0 auto 12px; max-width: 100%; max-height: 55vh; height: auto; }
     .fiche-right {
+        grid-area: content;
         padding-left: 0;
         text-align: center;
         width: 100%;
@@ -591,17 +617,19 @@ html {
             "actions";
         row-gap: 10px;
         justify-items: center;
+        max-width: 560px; /* largeur lisible centrée */
     }
     .fiche-content h3 { grid-area: title; text-align: center; margin: 4px 0 6px; }
     .fiche-content p { grid-area: desc; text-align: center; margin: 8px 0 12px; }
     .fiche-right > * { margin-left: auto; margin-right: auto; }
     .fiche-right p { max-width: 42ch; }
-    .fiche-content img { max-height: 60vh; }
-    .rating-genres { grid-area: rating; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: nowrap; margin: 4px 0 6px; }
-    .rating-genres .stars { display: inline-block; font-size: 18px; }
-    .genres { display: flex; gap: 8px; justify-content: center; flex-wrap: nowrap; }
-    .genre-tag { font-size: 13px; padding: 4px 10px; }
-    .button-group { grid-area: actions; display: flex; gap: 12px; flex-wrap: nowrap; justify-content: center; margin-top: 4px; padding-top: 8px; position: static; background: transparent; padding-bottom: 0; width: 100%; max-width: 520px; }
+    .fiche-content img { max-height: 55vh; }
+    .rating-genres { grid-area: rating; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: nowrap; white-space: nowrap; }
+    .rating-genres .stars { display: inline-block; font-size: 16px; }
+    .genres { display: inline-flex; gap: 6px; justify-content: center; flex-wrap: nowrap; }
+    .genre-tag { font-size: 12px; padding: 3px 8px; }
+    .genre-tag:nth-child(n+4) { display: none; } /* limiter à 3 genres visibles */
+    .button-group { grid-area: actions; display: flex; gap: 12px; flex-wrap: nowrap; justify-content: center; margin-top: 8px; padding-top: 8px; position: static; background: transparent; padding-bottom: 0; width: 100%; max-width: 520px; }
     .button { flex: 1 1 0; width: auto; text-align: center; padding: 14px 16px; min-height: 44px; }
 }
 
