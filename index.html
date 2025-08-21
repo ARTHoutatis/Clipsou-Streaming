@@ -396,18 +396,17 @@ a {
 }
 
 .fiche-content {
-    width: 95vw; /* occupe 95% de la largeur de l’écran */
-    max-width: 1200px;
+    width: 100%;
+    max-width: 2000px;
     max-height: 95vh;
     background: rgba(26, 35, 50, 0.95);
     border-radius: 16px;
     display: grid;
     gap: 30px;
-    padding: 24px;
+    padding: 30px;
     overflow-y: auto;
     border: 2px solid #1f8bff;
     position: relative;
-    margin: 0 auto; /* centre horizontalement */
 }
 
 /* Layout dynamique basé sur l'orientation de l'image */
@@ -448,19 +447,7 @@ a {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding-left: 0; /* Décalage supplémentaire du texte vers la droite */
-    text-align: center;
-    width: 100%;
-    grid-area: content;
-    display: grid;
-    grid-template-areas:
-        "title"
-        "meta"
-        "desc"
-        "actions";
-    row-gap: 10px;
-    justify-items: center;
-    max-width: 560px; /* largeur lisible centrée */
+    padding-left: 20px; /* Décalage supplémentaire du texte vers la droite */
 }
 
 .fiche-content h3 { 
@@ -469,8 +456,6 @@ a {
     font-weight: 700;
     color: #1f8bff;
     scroll-margin-top: 12px;
-    grid-area: title;
-    text-align: center;
 }
 
 .fiche-content p { 
@@ -479,17 +464,14 @@ a {
     line-height: 1.6;
     color: #fff;
     text-align: justify;
-    grid-area: desc;
 }
 
 .rating-genres {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 15px;
     margin-bottom: 20px;
-    flex-wrap: nowrap;
-    white-space: nowrap; /* évite le retour à la ligne */
-    grid-area: meta;
+    flex-wrap: wrap;
 }
 
 .fiche-content .stars { 
@@ -500,8 +482,8 @@ a {
 .genres {
     display: flex;
     gap: 8px;
-    flex-wrap: nowrap;
-    justify-content: center;
+    flex-wrap: wrap;
+    justify-content: start;
     align-items: center;
 }
 
@@ -516,8 +498,6 @@ a {
     white-space: nowrap;
 }
 
-.genre-tag:nth-child(n+4) { display: none; } /* limiter à 3 genres visibles */
-
 .button-group {
     display: flex;
     gap: 16px;
@@ -529,13 +509,12 @@ a {
     margin-top: 16px;
     background: linear-gradient(180deg, rgba(26,35,50,0) 0%, rgba(26,35,50,0.95) 40%, rgba(26,35,50,0.95) 100%);
     padding-bottom: calc(8px + env(safe-area-inset-bottom));
-    grid-area: actions;
 }
 
 .button {
     background: #1f8bff;
     border-radius: 25px;
-    padding: 14px 18px;
+    padding: 12px 24px;
     color: #fff;
     font-weight: 600;
     transition: all 0.3s ease;
@@ -592,18 +571,24 @@ html {
     .section h2 { margin: 0 16px 16px; font-size: 24px; }
     .grid { padding: 0 16px; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 
+    .fiche-popup { 
+        padding-left: max(12px, env(safe-area-inset-left)); 
+        padding-right: max(12px, env(safe-area-inset-right)); 
+    }
+
     .fiche-content {
         grid-template-columns: 1fr;
         grid-template-areas:
             "image"
             "content";
-        width: 95vw; /* 95% de la largeur sur mobile aussi */
+        width: 95vw; /* 95% de la largeur sur mobile */
+        max-width: 95vw;
         max-height: 90vh;
         padding: 16px;
         justify-items: center; /* centre horizontal */
         align-items: start;    /* image en haut */
         gap: 12px;
-        margin: 0 auto; /* centre horizontalement */
+        margin-inline: auto; /* centre horizontalement */
     }
     .fiche-left { align-items: center; width: 100%; grid-area: image; }
     .fiche-content img { display: block; margin: 0 auto 12px; max-width: 100%; max-height: 55vh; height: auto; }
@@ -634,6 +619,7 @@ html {
     .genre-tag:nth-child(n+4) { display: none; } /* limiter à 3 genres visibles */
     .button-group { grid-area: actions; display: flex; gap: 12px; flex-wrap: nowrap; justify-content: center; margin-top: 8px; padding-top: 8px; position: static; background: transparent; padding-bottom: 0; width: 100%; max-width: 520px; }
     .button { flex: 1 1 0; width: auto; text-align: center; padding: 14px 16px; min-height: 44px; }
+    .fiche-right { text-align: center; }
 }
 
 /* Mode sombre forcé pour les systèmes qui le supportent */
