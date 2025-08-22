@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Clipsou Streaming – Films et séries brickfilm en streaming</title>
+<title>Clipsou Streaming</title>
 <meta name="description" content="Regardez des films et séries brickfilm (LEGO) comme La vie au petit âge, Dédoublement, Jackson Goup, Karma et Alex. Gratuit, rapide et sans inscription.">
 <link rel="icon" href="favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="favicon.png">
@@ -607,7 +607,10 @@ html {
     .carousel-slides { animation: carousel-auto 25s infinite; will-change: transform; backface-visibility: hidden; transform: translate3d(0,0,0); }
     .carousel-slide { transform: translateZ(0); background-image: initial; }
     /* Prevent subpixel gaps/rounding on some mobile browsers */
-    .carousel-slides, .carousel-slide { -webkit-transform: translateZ(0); }
+    .carousel-slides, .carousel-slide { 
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+    }
 
     .carousel-container { min-height: 220px; }
     .carousel-content { padding: 16px; }
@@ -615,7 +618,7 @@ html {
     .carousel-description { display: none; }
     .carousel-genres { gap: 8px; margin: 10px 0 12px; }
     .carousel-genre-tag { padding: 4px 10px; font-size: 0.75rem; }
-    .carousel-indicators { bottom: 10px; gap: 8px; }
+    .carousel-indicators { bottom: calc(4px + env(safe-area-inset-bottom)); gap: 8px; pointer-events: none; }
     .carousel-indicator { width: 8px; height: 8px; }
 
     .section { margin: 30px 0; }
