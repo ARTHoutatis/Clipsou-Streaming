@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Recherche - Clipsou Streaming</title>
+<link rel="icon" href="favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="favicon.png">
 <style>
 html {
     -webkit-text-size-adjust: 100%;
@@ -226,11 +228,15 @@ a {
     }
     
     #search-input {
-        background: rgba(255, 255, 255, 0.3) !important;
+        background: rgba(255, 255, 255, 0.7) !important;
+        color: #0b1117; /* dark text for contrast on light bg */
+        border: 1px solid rgba(0,0,0,0.15);
         width: 100%;
     }
+    #search-input::placeholder { color: rgba(17, 24, 39, 0.6); }
     #search-input:focus {
-        background: rgba(255, 255, 255, 0.4) !important;
+        background: rgba(255, 255, 255, 0.85) !important;
+        border-color: #2B22EE;
     }
     
     .search-grid {
