@@ -16,7 +16,7 @@ html {
 
 body {
     margin: 0;
-    background: radial-gradient(ellipse at center, #1a2332 0%, #0a0f16 50%, #000000 100%);
+    background: #0b1117;
     min-height: 100vh;
     color: #fff;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -46,10 +46,7 @@ body::before {
     left: 0;
     right: 0;
     bottom: 0;
-    background: 
-        linear-gradient(135deg, rgba(31, 139, 255, 0.03) 0%, transparent 50%),
-        radial-gradient(circle at 20% 80%, rgba(31, 139, 255, 0.05) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(0, 102, 204, 0.04) 0%, transparent 50%);
+    background: none;
     pointer-events: none;
     z-index: -1;
 }
@@ -61,7 +58,7 @@ nav[aria-label="Navigation principale"] {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    box-shadow: none;
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -87,13 +84,7 @@ nav[aria-label="Navigation principale"] {
  .logo span { white-space: nowrap; }
 
 .logo span:nth-of-type(1), .logo span:nth-of-type(2) { 
-    background: linear-gradient(45deg, #1f8bff, #0066cc, #1f8bff);
-    background-size: 200% 200%;
-    animation: gradientShift 3s ease infinite;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
+    color: #2B22EE;
 }
 
 .logo span:nth-of-type(1) { 
@@ -104,6 +95,15 @@ nav[aria-label="Navigation principale"] {
     margin-left: 6px; 
     font-weight: 300;
 }
+
+/* .logo span:nth-of-type(1) { 
+    font-weight: 800;
+}
+
+.logo span:nth-of-type(2) { 
+    margin-left: 6px; 
+    font-weight: 300;
+} */
 
 .nav-links {
     display: flex;
@@ -121,10 +121,10 @@ nav[aria-label="Navigation principale"] {
 }
 
 .discord-link { 
-    background: #5865F2; 
+    background: #2B22EE; 
 }
 .discord-link:hover { 
-    background: #4752C4; 
+    background: #241DE0; 
 }
 
 .yt-link { 
@@ -207,7 +207,7 @@ nav[aria-label="Navigation principale"] {
     font-weight: 700;
     color: #fff;
     margin: 0 0 15px 0;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    text-shadow: none;
 }
 
 .carousel-description {
@@ -216,7 +216,7 @@ nav[aria-label="Navigation principale"] {
     line-height: 1.5;
     margin: 0 0 20px 0;
     max-width: 600px;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+    text-shadow: none;
 }
 
 .carousel-genres {
@@ -227,21 +227,21 @@ nav[aria-label="Navigation principale"] {
 }
 
 .carousel-genre-tag {
-    background: rgba(31, 139, 255, 0.8);
-    color: #fff;
+    background: rgba(255, 255, 255, 0.06);
+    color: #e6eef5;
     padding: 6px 14px;
     border-radius: 20px;
     font-size: 0.85rem;
     font-weight: 600;
-    border: 1px solid rgba(31, 139, 255, 0.6);
-    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: none;
 }
 
 .carousel-btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(31, 139, 255, 0.9);
+    background: #2B22EE;
     color: #fff;
     padding: 12px 24px;
     border-radius: 25px;
@@ -249,14 +249,14 @@ nav[aria-label="Navigation principale"] {
     font-weight: 600;
     font-size: 0.95rem;
     transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(31, 139, 255, 0.3);
+    backdrop-filter: none;
+    border: 1px solid #2B22EE;
 }
 
 .carousel-btn:hover {
-    background: rgba(31, 139, 255, 1);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(31, 139, 255, 0.4);
+    background: #241DE0;
+    transform: translateY(-1px);
+    box-shadow: none;
 }
 
 .carousel-btn::before {
@@ -293,7 +293,7 @@ nav[aria-label="Navigation principale"] {
 
 @keyframes indicator-cycle {
     0%, 16% { 
-        background: rgba(31, 139, 255, 1);
+        background: #2B22EE;
         transform: scale(1.3);
     }
     20%, 100% { 
@@ -311,8 +311,8 @@ nav[aria-label="Navigation principale"] {
     margin: 0 40px 30px; 
     font-size: 32px;
     font-weight: 700;
-    color: #1f8bff;
-    border-bottom: 3px solid #1f8bff;
+    color: #2B22EE;
+    border-bottom: 3px solid #2B22EE;
     display: inline-block;
     padding-bottom: 10px;
 }
@@ -331,14 +331,14 @@ nav[aria-label="Navigation principale"] {
     border-radius: 12px;
     overflow: hidden;
     transition: all 0.3s ease;
-    border: 1px solid rgba(31, 139, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     cursor: pointer;
 }
 
 .card:hover { 
     transform: translateY(-5px); 
-    border-color: #1f8bff;
-    box-shadow: 0 8px 25px rgba(31, 139, 255, 0.2);
+    border-color: #2B22EE;
+    box-shadow: none;
 }
 
 .card img { 
@@ -370,7 +370,7 @@ nav[aria-label="Navigation principale"] {
 }
 
 .stars { 
-    color: #1f8bff; 
+    color: #2B22EE; 
     font-size: 16px; 
 }
 
@@ -389,7 +389,7 @@ a {
     align-items: center;
     z-index: 9999;
     padding: clamp(12px, 3vw, 20px);
-    backdrop-filter: blur(5px);
+    backdrop-filter: none;
     overscroll-behavior: contain; /* empêche le scroll de fond sur mobile */
 }
 
@@ -407,7 +407,7 @@ a {
     gap: 30px;
     padding: 30px;
     overflow-y: auto;
-    border: 2px solid #1f8bff;
+    border: 1px solid rgba(255, 255, 255, 0.12);
     position: relative;
 }
 
@@ -456,7 +456,7 @@ a {
     margin: 0 0 16px 0; 
     font-size: 28px;
     font-weight: 700;
-    color: #1f8bff;
+    color: #2B22EE;
     scroll-margin-top: 12px;
 }
 
@@ -490,13 +490,13 @@ a {
 }
 
 .genre-tag {
-    background: rgba(31, 139, 255, 0.2);
-    color: #1f8bff;
+    background: rgba(255, 255, 255, 0.06);
+    color: #e6eef5;
     padding: 4px 12px;
     border-radius: 16px;
     font-size: 14px;
     font-weight: 500;
-    border: 1px solid rgba(31, 139, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     white-space: nowrap;
 }
 
@@ -514,7 +514,7 @@ a {
 }
 
 .button {
-    background: #1f8bff;
+    background: #2B22EE;
     border-radius: 25px;
     padding: 12px 24px;
     color: #fff;
@@ -528,9 +528,9 @@ a {
 }
 
 .button:hover { 
-    background: #0066cc;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(31, 139, 255, 0.3);
+    background: #241DE0;
+    transform: translateY(-1px);
+    box-shadow: none;
 }
 
 .close-btn { 
@@ -539,7 +539,7 @@ a {
 
 .close-btn:hover { 
     background: #cc0000;
-    box-shadow: 0 4px 15px rgba(255, 68, 68, 0.3);
+    box-shadow: none;
 }
 
 /* Style pour empêcher le scroll vers le haut lors de la fermeture */
@@ -669,6 +669,105 @@ html {
         transition-duration: 0.01ms !important;
     }
 }
+
+/* Footer */
+.footer {
+    margin-top: 60px;
+    padding: 32px 40px;
+    background: #000;
+    color: #8fa3b8;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+.footer .footer-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: center;
+}
+.footer a { color: #c8d4e0; text-decoration: none; }
+.footer a:hover { color: #fff; }
+
+/* Header extras (menu, search, avatar) */
+.menu-links { display: none; gap: 16px; align-items: center; margin-left: 24px; }
+.menu-links a { color: #c8d4e0; text-decoration: none; font-weight: 600; padding: 8px 12px; border-radius: 18px; }
+.menu-links a:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+.search { display: none; }
+
+/* Small Discord button to replace avatar */
+.discord-mini { display: none; width: 36px; height: 36px; border-radius: 50%; background: #5865F2; border: 1px solid rgba(255,255,255,0.18); color: #fff; font-weight: 800; align-items: center; justify-content: center; text-decoration: none; }
+.discord-mini:hover { filter: brightness(0.95); }
+/* Desktop: show full nav (links + search), keep only one external button */
+@media (min-width: 900px) {
+  .menu-links { display: flex; }
+  .nav-links { display: flex; }
+  .search { display: none; }
+  .discord-mini { display: none; }
+}
+/* Ensure any yt link in nav stays hidden if present */
+nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
+
+/* Rails (rows like Netflix) */
+.rail {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: clamp(180px, 18vw, 240px);
+    gap: 18px;
+    padding: 0 40px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: inline mandatory;
+}
+.rail::-webkit-scrollbar { height: 10px; }
+.rail::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
+.rail > .card { scroll-snap-align: start; }
+
+/* Card hover actions */
+.card { position: relative; }
+.card-actions {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 20%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.75) 100%);
+    opacity: 0;
+    transition: opacity .25s ease;
+}
+.card:hover .card-actions { opacity: 1; }
+.card-actions .actions {
+    display: inline-flex;
+    gap: 10px;
+}
+.quick-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: #2B22EE;
+    border: 1px solid #2B22EE;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 22px;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+}
+.quick-btn.secondary { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.16); }
+.quick-btn:hover { background: #241DE0; }
+
+/* Mobile overrides for rails (use grid like before) */
+@media (max-width: 768px) {
+    .rail { 
+        display: grid; 
+        grid-auto-flow: row; 
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
+        gap: 16px; 
+        padding: 0 16px;
+        overflow: visible;
+    }
+}
 </style>
 </head>
 <body>
@@ -679,6 +778,13 @@ html {
         <span>Clipsou</span>
         <span>Streaming</span>
     </div>
+
+    <div class="menu-links" role="navigation" aria-label="Liens">
+        <a href="#contenu">Accueil</a>
+        <a href="#films">Films</a>
+        <a href="#series">Séries</a>
+    </div>
+
     <div class="nav-links">
         <a href="https://discord.gg/c7jwnDsW" target="_blank" rel="noopener noreferrer" class="discord-link">💬 Discord</a>
     </div>
@@ -784,9 +890,9 @@ html {
     </div>
 </div>
 
-<div class="section">
+<div class="section" id="films">
     <h2>FILMS</h2>
-    <div class="grid">
+    <div class="rail">
         <div class="card">
             <a href="#film1">
                 <img src="La.jpeg" alt="Affiche du film La vie au petit âge" loading="lazy" decoding="async">
@@ -822,9 +928,9 @@ html {
     </div>
 </div>
 
-<div class="section">
+<div class="section" id="series">
     <h2>SÉRIES</h2>
-    <div class="grid">
+    <div class="rail">
         <div class="card">
             <a href="#serie1">
                 <img src="Al.jpg" alt="Affiche de la série Alex" loading="lazy" decoding="async">
@@ -846,7 +952,7 @@ html {
 
 <div class="section">
     <h2>PAS ENCORE SORTI</h2>
-    <div class="grid">
+    <div class="rail">
         <div class="card">
             <a href="#film5">
                 <img src="Ba.jpg" alt="Affiche du trailer Batman" loading="lazy" decoding="async">
@@ -1027,5 +1133,14 @@ html {
 </div>
 
 </main>
+<footer class="footer" role="contentinfo">
+  <div class="footer-inner">
+     <div> Clipsou Streaming depuis 2019</div>
+     <div>Créateur : Mr roxxor • Développeur : ARTH</div>
+   </div>
+ </footer>
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
 </body>
 </html>
