@@ -590,60 +590,115 @@ html {
         grid-template-areas:
             "image"
             "content";
-        width: 100%; /* occupe toute la largeur interne du conteneur */
-        max-width: 95vw; /* cap à 95vw pour éviter tout débordement visuel */
+        width: 100%;
+        max-width: 95vw;
         max-height: min(90svh, 90dvh);
-        padding: 16px;
-        justify-items: center; /* centre horizontal */
-        align-items: start;    /* image en haut */
-        gap: 12px;
-        margin-inline: auto; /* centre horizontalement */
-        -webkit-overflow-scrolling: touch; /* inertie iOS */
+        padding: 20px;
+        justify-items: center;
+        align-items: start;
+        gap: 16px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        text-align: center;
+        -webkit-overflow-scrolling: touch;
     }
-    .fiche-left { align-items: center; width: 100%; grid-area: image; justify-self: center; }
-    .fiche-content img { display: block; margin: 0 auto 12px; max-width: 100%; max-height: 55svh; height: auto; }
+    
+    .fiche-left { 
+        align-items: center; 
+        width: 100%; 
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .fiche-content img { 
+        display: block; 
+        margin: 0 auto 16px; 
+        max-width: 90%;
+        max-height: 50svh; 
+        height: auto;
+        border-radius: 12px;
+    }
+    
     .fiche-right {
-        grid-area: content;
         padding-left: 0;
         text-align: center;
         width: 100%;
-        display: grid;
-        grid-template-areas:
-            "title"
-            "rating"
-            "desc"
-            "actions";
-        row-gap: 10px;
-        justify-items: center;
-        justify-self: center; /* centre l’item dans la grille */
-        max-width: 560px; /* largeur lisible centrée */
-        margin-inline: auto;
-        width: 100%; box-sizing: border-box;
+        max-width: 500px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
     }
-    .fiche-content h3 { grid-area: title; text-align: center; margin: 4px 0 6px; }
-    .fiche-content p { grid-area: desc; text-align: center; margin: 8px 0 12px; }
-    .fiche-right > * { margin-left: auto; margin-right: auto; }
-    .fiche-right p { max-width: 42ch; }
-    .fiche-content img { max-height: 55svh; }
-    .rating-genres { grid-area: rating; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; white-space: normal; }
-    .rating-genres .stars { display: inline-block; font-size: 16px; }
-    .genres { display: inline-flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
-    .genre-tag { font-size: 12px; padding: 3px 8px; }
-    .genre-tag:nth-child(n+4) { display: none; } /* limiter à 3 genres visibles */
-    .button-group { grid-area: actions; display: flex; gap: 12px; flex-wrap: nowrap; justify-content: center; margin-left: auto; margin-right: auto; }
-    .button { flex: 1 1 0; width: auto; text-align: center; padding: 14px 16px; min-height: 44px; }
-    .fiche-right { text-align: center; }
-
-    /* Centrage total du contenu de la fiche (popup) sur mobile */
-    .fiche-content { justify-items: center; }
-    .fiche-left { align-items: center; }
-    .fiche-content img { display: block; margin: 0 auto 12px; }
-    .fiche-content h3 { text-align: center; }
-    .rating-genres { justify-content: center; margin-left: auto; margin-right: auto; }
-    .fiche-content .stars { display: inline-block; margin: 0 auto; }
-    .genres { justify-content: center; margin-left: auto; margin-right: auto; }
-    .fiche-content p { text-align: center; margin-left: auto; margin-right: auto; max-width: 42ch; }
-    .fiche-right { padding-left: 0; margin-inline: auto; max-width: 560px; width: 100%; }
+    
+    .fiche-content h3 { 
+        text-align: center; 
+        margin: 0 0 12px 0;
+        width: 100%;
+    }
+    
+    .fiche-content p { 
+        text-align: center; 
+        margin: 0 auto 16px;
+        max-width: 400px;
+        line-height: 1.5;
+    }
+    
+    .rating-genres { 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 12px; 
+        flex-wrap: wrap;
+        width: 100%;
+        margin: 0 auto 16px;
+    }
+    
+    .rating-genres .stars { 
+        display: inline-block; 
+        font-size: 18px;
+        margin: 0;
+    }
+    
+    .genres { 
+        display: flex; 
+        gap: 8px; 
+        justify-content: center; 
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    
+    .genre-tag { 
+        font-size: 13px; 
+        padding: 4px 10px;
+        white-space: nowrap;
+    }
+    
+    .button-group { 
+        display: flex; 
+        gap: 12px; 
+        flex-wrap: wrap;
+        justify-content: center; 
+        width: 100%;
+        margin: 16px auto 0;
+        padding-top: 16px;
+    }
+    
+    .button { 
+        flex: 1 1 auto;
+        max-width: 200px;
+        min-width: 120px;
+        text-align: center; 
+        padding: 14px 20px; 
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 }
 
 /* Mode sombre forcé pour les systèmes qui le supportent */
