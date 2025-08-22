@@ -126,6 +126,7 @@ nav[aria-label="Navigation principale"] {
     font-size: 16px;
     outline: none;
     transition: all 0.3s ease;
+    width: 100%;
 }
 
 #search-input:focus {
@@ -135,21 +136,6 @@ nav[aria-label="Navigation principale"] {
 
 #search-input::placeholder {
     color: rgba(255, 255, 255, 0.6);
-}
-
-#search-button {
-    background: #2B22EE;
-    color: #fff;
-    border: none;
-    padding: 15px 25px;
-    border-radius: 25px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-#search-button:hover {
-    background: #241DE0;
 }
 
 .search-results {
@@ -239,7 +225,7 @@ a {
         flex-direction: column;
     }
     
-    #search-input, #search-button {
+    #search-input {
         width: 100%;
     }
     
@@ -271,7 +257,6 @@ a {
     
     <div class="search-input-container">
         <input type="text" id="search-input" placeholder="Recherchez un genre, un film ou une série..." autocomplete="off">
-        <button id="search-button" type="button">🔍</button>
     </div>
     
     <div id="search-results" class="search-results">
@@ -383,19 +368,11 @@ function displayResults(results) {
 // Event listeners
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('search-input');
-    const searchButton = document.getElementById('search-button');
     
-    if (searchInput && searchButton) {
+    if (searchInput) {
         // Recherche en temps réel
         searchInput.addEventListener('input', function() {
             const query = this.value;
-            const results = searchMovies(query);
-            displayResults(results);
-        });
-        
-        // Recherche au clic
-        searchButton.addEventListener('click', function() {
-            const query = searchInput.value;
             const results = searchMovies(query);
             displayResults(results);
         });
