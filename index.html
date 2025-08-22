@@ -173,6 +173,7 @@ nav[aria-label="Navigation principale"] {
     height: auto;
     aspect-ratio: 16/9;
     min-height: 400px;
+    overflow: hidden; /* prevent any overflow on all devices */
 }
 
 .carousel-slides {
@@ -180,6 +181,10 @@ nav[aria-label="Navigation principale"] {
     width: 500%; /* 5 slides = 100% * 5 */
     height: 100%;
     animation: carousel-auto 25s infinite; /* 5s par slide */
+    margin: 0;
+    padding: 0;
+    gap: 0; /* avoid visual gaps */
+    will-change: transform;
 }
 
 @keyframes carousel-auto {
@@ -193,11 +198,14 @@ nav[aria-label="Navigation principale"] {
 
 .carousel-slide {
     flex: 0 0 20%; /* Chaque slide = 20% de la largeur totale */
+    min-width: 20%;
+    margin: 0;
     position: relative;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     aspect-ratio: 16/9;
+    transform: translateZ(0); /* GPU compositing */
 }
 
 .carousel-slide::before {
@@ -205,10 +213,10 @@ nav[aria-label="Navigation principale"] {
     position: absolute;
     inset: 0;
     background: linear-gradient(
-        135deg,
-        rgba(0, 0, 0, 0.7) 0%,
-        rgba(0, 0, 0, 0.4) 50%,
-        rgba(0, 0, 0, 0.8) 100%
+        90deg,
+        rgba(0, 0, 0, 0.80) 0%,
+        rgba(0, 0, 0, 0.60) 40%,
+        rgba(0, 0, 0, 0.20) 100%
     );
     z-index: 1;
 }
@@ -223,8 +231,8 @@ nav[aria-label="Navigation principale"] {
     background: linear-gradient(
         180deg,
         transparent 0%,
-        rgba(0, 0, 0, 0.3) 30%,
-        rgba(0, 0, 0, 0.8) 100%
+        rgba(0, 0, 0, 0.15) 30%,
+        rgba(0, 0, 0, 0.35) 100%
     );
 }
 
@@ -594,6 +602,7 @@ html {
 
     /* Show and enable carousel on mobile */
     .carousel-section { display: block; margin: 20px 0 40px; }
+    .carousel-container { overflow: hidden; }
     .carousel-slides { animation: carousel-auto 25s infinite; will-change: transform; backface-visibility: hidden; transform: translate3d(0,0,0); }
     .carousel-slide { transform: translateZ(0); background-image: initial; }
     /* Prevent subpixel gaps/rounding on some mobile browsers */
