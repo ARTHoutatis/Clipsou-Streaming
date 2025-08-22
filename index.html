@@ -135,6 +135,14 @@ nav[aria-label="Navigation principale"] {
     background: #CC0000; 
 }
 
+.search-link { 
+    background: rgba(255, 255, 255, 0.1); 
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.search-link:hover { 
+    background: rgba(255, 255, 255, 0.2); 
+}
+
 /* Carousel */
 .carousel-section {
     margin: 40px 0 60px 0;
@@ -848,7 +856,7 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     </div>
 
     <div class="nav-links">
-        <a href="https://discord.gg/c7jwnDsW" target="_blank" rel="noopener noreferrer" class="discord-link">💬 Discord</a>
+        <a href="search.html" class="search-link">🔍 Recherche</a>
     </div>
 </nav>
 
@@ -1198,7 +1206,10 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
 <footer class="footer" role="contentinfo">
   <div class="footer-inner">
      <div> Clipsou Streaming depuis 2019</div>
-     <div>Créateur : Mr roxxor • Développeur : ARTH</div>
+     <div>
+        <span>Créateur : Mr roxxor • Développeur : ARTH</span>
+        <a href="https://discord.gg/c7jwnDsW" target="_blank" rel="noopener noreferrer" class="discord-link" style="margin-left: 20px; border-radius: 15px; padding: 8px 16px;">💬 Discord</a>
+     </div>
    </div>
  </footer>
 </body>
