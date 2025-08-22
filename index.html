@@ -10,6 +10,8 @@
 html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    /* Force browsers to use light UI rendering for form controls, scrollbars, etc. */
+    color-scheme: light;
 }
 
 * {
@@ -736,11 +738,9 @@ html {
     }
 }
 
-/* Mode sombre forcé pour les systèmes qui le supportent */
+/* Neutralize system dark mode: keep site appearance unchanged in dark mode */
 @media (prefers-color-scheme: dark) {
-    body {
-        color-scheme: dark;
-    }
+    :root { color-scheme: light; }
 }
 
 /* Amélioration des performances */

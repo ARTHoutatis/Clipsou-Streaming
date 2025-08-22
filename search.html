@@ -10,6 +10,8 @@
 html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    /* Force browsers to use light UI rendering for form controls, scrollbars, etc. */
+    color-scheme: light;
 }
 
 * {
@@ -243,6 +245,11 @@ a {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 15px;
     }
+}
+
+/* Neutralize system dark mode: keep site appearance unchanged in dark mode */
+@media (prefers-color-scheme: dark) {
+    :root { color-scheme: light; }
 }
 </style>
 </head>
