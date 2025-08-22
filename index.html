@@ -145,6 +145,16 @@ nav[aria-label="Navigation principale"] {
     background: rgba(255, 255, 255, 0.2); 
 }
 
+/* Desktop/tablet: show loupe.png before the text */
+.nav-links .search-link { display: inline-flex; align-items: center; gap: 8px; position: relative; }
+.nav-links .search-link::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background: url('loupe.png') no-repeat center / contain;
+}
+
 /* Carousel */
 .carousel-section {
     margin: 40px 0 60px 0;
@@ -572,7 +582,8 @@ html {
     .nav-links a:not([href*="youtu"]) { padding: 6px 10px; }
     .nav-links .search-link { padding: 10px; font-size: 16px; background: #f5f7fa !important; border-radius: 50%; width: 44px; height: 44px; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 1px 3px rgba(0,0,0,0.12); } /* Compact search button on mobile */
     .nav-links .search-link { text-indent: -9999px; overflow: hidden; position: relative; }
-    .nav-links .search-link::before { content: "🔍"; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); text-indent: 0; color: #9aa3af; filter: none; }
+    /* Mobile: hide text and center the image icon */
+    .nav-links .search-link::before { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 22px; height: 22px; background: url('loupe.png') no-repeat center / contain; }
     .logo span { overflow: hidden; text-overflow: ellipsis; color: #2B22EE; }
 
     /* Hide and fully disable carousel on mobile */
@@ -861,7 +872,7 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     </div>
 
     <div class="nav-links">
-        <a href="search.html" class="search-link">🔍 Recherche</a>
+        <a href="search.html" class="search-link">Recherche</a>
     </div>
 </nav>
 
