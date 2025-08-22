@@ -594,13 +594,15 @@ html {
 
     /* Show and enable carousel on mobile */
     .carousel-section { display: block; margin: 20px 0 40px; }
-    .carousel-slides { animation: carousel-auto 25s infinite; }
-    .carousel-slide { background-image: initial; }
+    .carousel-slides { animation: carousel-auto 25s infinite; will-change: transform; backface-visibility: hidden; transform: translate3d(0,0,0); }
+    .carousel-slide { transform: translateZ(0); background-image: initial; }
+    /* Prevent subpixel gaps/rounding on some mobile browsers */
+    .carousel-slides, .carousel-slide { -webkit-transform: translateZ(0); }
 
     .carousel-container { min-height: 220px; }
     .carousel-content { padding: 16px; }
     .carousel-title { font-size: 1.4rem; }
-    .carousel-description { font-size: 0.95rem; max-width: 100%; }
+    .carousel-description { display: none; }
     .carousel-genres { gap: 8px; margin: 10px 0 12px; }
     .carousel-genre-tag { padding: 4px 10px; font-size: 0.75rem; }
     .carousel-indicators { bottom: 10px; gap: 8px; }
