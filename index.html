@@ -592,10 +592,10 @@ html {
     .nav-links .search-link::before { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 24px; height: 24px; background: url('loupe.png') no-repeat center / contain; filter: none !important; opacity: 1 !important; }
     .logo span { overflow: hidden; text-overflow: ellipsis; color: #2B22EE; }
 
-    /* Hide and fully disable carousel on mobile */
-    .carousel-section { display: none !important; margin: 0; }
-    .carousel-slides { animation: none !important; }
-    .carousel-slide { background-image: none !important; }
+    /* Show and enable carousel on mobile */
+    .carousel-section { display: block; margin: 20px 0 40px; }
+    .carousel-slides { animation: carousel-auto 25s infinite; }
+    .carousel-slide { background-image: initial; }
 
     .carousel-container { min-height: 220px; }
     .carousel-content { padding: 16px; }

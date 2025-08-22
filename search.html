@@ -245,6 +245,13 @@ a {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 15px;
     }
+    
+    /* Back button smaller on mobile */
+    .back-btn {
+        padding: 6px 10px;
+        font-size: 13px;
+        border-radius: 14px;
+    }
 }
 
 /* Neutralize system dark mode: keep site appearance unchanged in dark mode */
@@ -273,7 +280,7 @@ a {
     </div>
     
     <div class="search-input-container">
-        <input type="text" id="search-input" placeholder="Recherchez un genre, un film ou une série..." autocomplete="off">
+        <input type="search" id="search-input" placeholder="Recherchez un genre, un film ou une série..." autocomplete="off" enterkeyhint="search" inputmode="search" autocapitalize="none">
     </div>
     
     <div id="search-results" class="search-results">
@@ -394,11 +401,17 @@ document.addEventListener('DOMContentLoaded', function() {
             displayResults(results);
         });
         
-        // Recherche avec Enter
-        searchInput.addEventListener('keypress', function(e) {
+        // Recherche avec Enter / bouton "Aller à" et masquer le clavier
+        searchInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
+                e.preventDefault();
                 const results = searchMovies(this.value);
                 displayResults(results);
+                // Masquer le clavier sur mobile
+                this.blur();
+                if (document.activeElement) {
+                    document.activeElement.blur();
+                }
             }
         });
         
