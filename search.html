@@ -118,6 +118,17 @@ nav[aria-label="Navigation principale"] {
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
+    align-items: center;
+}
+
+/* Icône de recherche à côté du champ */
+.search-icon {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 auto;
+    display: inline-block;
+    opacity: 0.9;
+    filter: brightness(1.1);
 }
 
 #search-input {
@@ -226,7 +237,15 @@ a {
     }
     
     .search-input-container {
-        flex-direction: column;
+        flex-direction: row;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .search-icon {
+        width: 24px;
+        height: 24px;
+        opacity: 0.95;
     }
     
     #search-input {
@@ -280,6 +299,7 @@ a {
     </div>
     
     <div class="search-input-container">
+        <img src="loupe.png" alt="Recherche" class="search-icon" width="32" height="32">
         <input type="search" id="search-input" placeholder="Recherchez un genre, un film ou une série..." autocomplete="off" enterkeyhint="search" inputmode="search" autocapitalize="none">
     </div>
     
@@ -394,10 +414,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('search-input');
     
     if (searchInput) {
-        // Adapter le placeholder uniquement sur mobile
-        const isMobile = window.matchMedia('(max-width: 768px)').matches;
-        if (isMobile) {
-            searchInput.placeholder = 'Recherchez un film/série...';
+        // Placeholders pour desktop et mobile + switch auto selon taille d'écran
+        const desktopPlaceholder = 'Recherchez un genre, un film ou une série...';
+        const mobilePlaceholder = 'Recherchez un film/série...';
+        const mq = window.matchMedia('(max-width: 768px)');
+
+        function applyPlaceholder(e) {
+            const isMobileNow = e.matches === true || (e.media && window.matchMedia(e.media).matches);
+            searchInput.placeholder = isMobileNow ? mobilePlaceholder : desktopPlaceholder;
+        }
+
+        // Initialisation + écoute des changements (compatibilité navigateurs)
+        applyPlaceholder(mq);
+        if (typeof mq.addEventListener === 'function') {
+            mq.addEventListener('change', applyPlaceholder);
+        } else if (typeof mq.addListener === 'function') {
+            mq.addListener(applyPlaceholder);
         }
 
         // Recherche en temps réel
