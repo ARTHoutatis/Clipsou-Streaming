@@ -81,6 +81,8 @@ nav[aria-label="Navigation principale"] {
      margin-right: 10px;
      display: block;
      flex-shrink: 0;
+     filter: none !important;
+     opacity: 1 !important;
  }
  
  .logo span { white-space: nowrap; }
@@ -153,6 +155,8 @@ nav[aria-label="Navigation principale"] {
     width: 20px;
     height: 20px;
     background: url('loupe.png') no-repeat center / contain;
+    filter: none !important;
+    opacity: 1 !important;
 }
 
 /* Carousel */
@@ -580,10 +584,10 @@ html {
     .nav-links { display: flex; } /* Show search button on mobile */
     .nav-links a { padding: 8px 12px; font-size: 14px; width: auto; flex: 0 0 auto; }
     .nav-links a:not([href*="youtu"]) { padding: 6px 10px; }
-    .nav-links .search-link { padding: 10px; font-size: 16px; background: #f5f7fa !important; border-radius: 50%; width: 44px; height: 44px; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 1px 3px rgba(0,0,0,0.12); } /* Compact search button on mobile */
+    .nav-links .search-link { padding: 10px; font-size: 16px; background: #434344 !important; border-radius: 50%; width: 44px; height: 44px; border: 1px solid #3a3a3b; box-shadow: 0 2px 6px rgba(0,0,0,0.25); } /* Darker grey button on mobile */
     .nav-links .search-link { text-indent: -9999px; overflow: hidden; position: relative; }
     /* Mobile: hide text and center the image icon */
-    .nav-links .search-link::before { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 22px; height: 22px; background: url('loupe.png') no-repeat center / contain; }
+    .nav-links .search-link::before { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 24px; height: 24px; background: url('loupe.png') no-repeat center / contain; filter: none !important; opacity: 1 !important; }
     .logo span { overflow: hidden; text-overflow: ellipsis; color: #2B22EE; }
 
     /* Hide and fully disable carousel on mobile */
