@@ -861,7 +861,7 @@ html {
     padding: 32px 40px;
     background: #000;
     color: #8fa3b8;
-    border-top: 1px solid rgba(255,255,255,0.08);
+    border-top: none;
 }
 .footer .footer-inner {
     max-width: 1280px;
@@ -871,6 +871,7 @@ html {
     gap: 16px;
     align-items: center;
 }
+.footer .footer-actions { justify-self: end; text-align: right; }
 .footer a { color: #c8d4e0; text-decoration: none; }
 .footer a:hover { color: #fff; }
 
@@ -1030,6 +1031,58 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
          transform: translateY(-1px);
      }
 
+     /* Keep partenariat button green even when using .button styles */
+     .button.partner-link {
+         background: #16a34a !important;
+         border: 1px solid rgba(255,255,255,0.14);
+         box-shadow: 0 10px 20px rgba(22,163,74,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+     }
+     .button.partner-link:hover {
+         background: #15803d !important;
+         filter: brightness(0.98);
+     }
+
+     /* Discord footer button (blue) */
+     .button.discord-btn {
+         background: #5865F2 !important; /* Discord brand */
+         border: 1px solid rgba(255,255,255,0.14);
+         box-shadow: 0 10px 20px rgba(88,101,242,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+     }
+     .button.discord-btn:hover {
+         background: #4752C4 !important;
+         filter: brightness(0.98);
+     }
+     .button.discord-btn svg {
+         width: 35px;
+         height: 35px;
+         display: inline-block;
+         vertical-align: middle;
+     }
+
+     /* YouTube footer button (red) */
+     .button.youtube-btn {
+         background: #FF0000 !important; /* YouTube brand */
+         border: 1px solid rgba(255,255,255,0.14);
+         box-shadow: 0 10px 20px rgba(255,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+     }
+     .button.youtube-btn:hover {
+         background: #CC0000 !important;
+         filter: brightness(0.98);
+     }
+     .button.youtube-btn svg {
+         width: 30px;
+         height: 30px;
+         display: inline-block;
+         vertical-align: middle;
+         position: relative;
+         top: -2px; /* slightly up */
+     }
+
+     /* Footer buttons aligned to the right while keeping original layout */
+     .footer .footer-inner > div:nth-child(2) { text-align: right; }
+     .footer .footer-inner > div:nth-child(2) > span { float: left; }
+     .footer .footer-inner > div:nth-child(2)::after { content: ""; display: table; clear: both; }
+
      /* Focus-visible ring */
      :where(a, button, .quick-btn, input, [tabindex]):focus-visible {
          outline: 2px solid rgba(99,102,241,0.9);
@@ -1058,7 +1111,6 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     </div>
 
     <div class="nav-links">
-        <a href="#partenariat" class="partner-link">🤝 partenariat</a>
         <a href="search.html" class="search-link">Recherche</a>
     </div>
 </nav>
@@ -1485,12 +1537,24 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
 </div>
 
 </main>
-<footer class="footer" role="contentinfo">
+  <footer class="footer" role="contentinfo">
   <div class="footer-inner">
-     <div> Clipsou Streaming depuis 2019</div>
-     <div>
-        <span>Créateur : Mr Roxxor • Développeur : ARTH</span>
+     <div> Clipsou Streaming depuis 2019 • <span>Créateur : Mr Roxxor • Développeur : ARTH</span></div>
+     <div class="footer-actions">
         <a href="#submit-film" class="button" style="margin-left: 12px; border-radius: 8px; padding: 10px 16px;">🎬 ajouter votre film</a>
+        <a href="#partenariat" class="button partner-link" style="margin-left: 12px; border-radius: 8px; padding: 10px 16px;">🤝 partenariat</a>
+        <a href="https://discord.gg/9ekddx9Hqs" target="_blank" rel="noopener noreferrer" class="button discord-btn" aria-label="Rejoindre notre Discord" style="margin-left: 12px; border-radius: 8px; padding: 10px 16px;">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor">
+            <path d="M20.317 4.369A19.791 19.791 0 0 0 16.558 3c-.2.36-.43.85-.59 1.23a18.27 18.27 0 0 0-4.936 0c-.17-.39-.4-.87-.6-1.23-1.37.25-2.73.68-3.997 1.27C3.76 8.053 3.06 11.64 3.3 15.18c1.67 1.25 3.29 2.01 4.87 2.51.39-.54.74-1.12 1.04-1.73-.57-.22-1.11-.49-1.63-.8.14-.1.27-.21.4-.32 3.14 1.47 6.54 1.47 9.65 0 .13.11.26.22.4.32-.52.31-1.07.58-1.64.8.3.61.65 1.19 1.04 1.73 1.58-.5 3.2-1.26 4.87-2.51.4-5.37-.67-8.9-2.98-10.81ZM9.68 13.86c-.94 0-1.7-.86-1.7-1.92 0-1.05.75-1.92 1.7-1.92.94 0 1.7.86 1.7 1.92 0 1.05-.76 1.92-1.7 1.92Zm4.64 0c-.94 0-1.7-.86-1.7-1.92 0-1.05.76-1.92 1.7-1.92s1.7.86 1.7 1.92c0 1.05-.76 1.92-1.7 1.92Z"/>
+          </svg>
+          <span class="sr-only">Discord</span>
+        </a>
+        <a href="https://www.youtube.com/@clipsoustudio" target="_blank" rel="noopener noreferrer" class="button youtube-btn" aria-label="Voir notre chaîne YouTube" style="margin-left: 12px; border-radius: 8px; padding: 10px 16px;">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor">
+            <path d="M23.498 6.186a3.002 3.002 0 0 0-2.116-2.125C19.516 3.5 12 3.5 12 3.5s-7.516 0-9.382.561A3.002 3.002 0 0 0 .502 6.186C0 8.06 0 12 0 12s0 3.94.502 5.814a3.002 3.002 0 0 0 2.116 2.125C4.484 20.5 12 20.5 12 20.5s7.516 0 9.382-.561a3.002 3.002 0 0 0 2.116-2.125C24 15.94 24 12 24 12s0-3.94-.502-5.814ZM9.75 15.5v-7l6 3.5-6 3.5Z"/>
+          </svg>
+          <span class="sr-only">YouTube</span>
+        </a>
      </div>
    </div>
  </footer>
