@@ -170,6 +170,10 @@ nav[aria-label="Navigation principale"] {
 .yt-link { background: #FF0000; display: none !important; }
 .yt-link:hover { background: #CC0000; }
 
+/* Partenariat button in navbar */
+.partner-link { background: #16a34a; }
+.partner-link:hover { background: #15803d; }
+
 .search-link { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); }
 .search-link:hover { background: rgba(255,255,255,.2); }
 
@@ -1052,6 +1056,7 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     </div>
 
     <div class="nav-links">
+        <a href="#partenariat" class="partner-link">🤝 partenariat</a>
         <a href="search.html" class="search-link">Recherche</a>
     </div>
 </nav>
@@ -1239,6 +1244,29 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
 </div>
 
 <!-- POPUPS -->
+
+<div id="partenariat" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="partenariat-title">
+  <div class="fiche-content">
+    <div class="fiche-right" style="padding-left:0;">
+      <h3 id="partenariat-title">🤝 Partenariat</h3>
+      <p>
+        🎬 Bienvenue sur NOVA – Le Meilleur du Streaming Gratuit en VF & VOSTFR ! 🌟
+      </p>
+      <p>
+        Vous cherchez LE site ultime pour regarder films, séries et animés sans limite, gratuitement et en qualité HD, Full HD, voire 4K ? Ne cherchez plus : NOVA est votre nouvelle destination streaming incontournable !
+      </p>
+      <p>
+        Site partenaire :
+        <a href="https://nova-stream.live/" target="_blank" rel="noopener noreferrer"><strong>Nova Stream</strong></a>
+      </p>
+      <div class="button-group">
+        <a href="https://nova-stream.live/" target="_blank" rel="noopener noreferrer" class="button">🌐 Ouvrir Nova Stream</a>
+        <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+      </div>
+    </div>
+  </div>
+  
+</div>
 <div id="film1" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film1-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
