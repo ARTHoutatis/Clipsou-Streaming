@@ -466,6 +466,33 @@ a {
     text-transform: uppercase;
 }
 
+/* Urbanos City: chunky white slab for URBANOS + stylized "city" below */
+#film6-title { display: inline-block; line-height: 1; }
+#film6-title .urbanos {
+    display: inline-block;
+    font-family: 'Bevan', Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    text-transform: uppercase;
+    font-size: clamp(22px, 4vw, 40px);
+    letter-spacing: 1px;
+    color: #ffffff;
+    /* bold outline/shadow look */
+    text-shadow:
+      0 2px 0 rgba(0,0,0,0.55),
+      0 6px 14px rgba(0,0,0,0.55);
+}
+#film6-title .city {
+    display: inline-block;
+    font-family: 'Rye', Georgia, "Times New Roman", serif;
+    text-transform: lowercase;
+    font-size: clamp(16px, 2.8vw, 28px);
+    color: #ffffff;
+    margin-left: 8px;
+    letter-spacing: 1px;
+    text-shadow:
+      0 2px 0 rgba(0,0,0,0.55),
+      0 6px 14px rgba(0,0,0,0.55);
+}
+
 /* ===== Specific color treatments ===== */
 /* La vie au petit âge: dark red with shadow */
 #film1-title {
@@ -1121,6 +1148,14 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
                 </div>
             </a>
         </div>
+        <div class="card">
+            <a href="#film6">
+                <img src="Ur.jpg" alt="Affiche du film Urbanos City" loading="lazy" decoding="async">
+                <div class="card-info">
+                    <span>Urbanos City</span>
+                </div>
+            </a>
+        </div>
     </div>
 </div>
 
@@ -1322,6 +1357,30 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
             <p>Le nouveau trailer de Batman, sombre et intense. Découvrez les premières images de cette adaptation épique qui redéfinit l'univers du chevalier noir avec une approche moderne et spectaculaire.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=SzbqZNObLNU" target="_blank" rel="noopener noreferrer" class="button">▶ Regarder</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="film6" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film6-title">
+    <div class="fiche-content landscape-layout">
+        <div class="fiche-left">
+            <img src="Ur1.jpg" alt="Image du film Urbanos City" class="landscape" decoding="async" loading="lazy">
+        </div>
+        <div class="fiche-right">
+            <h3 id="film6-title"><span class="urbanos">URBANOS</span> <span class="city">city</span></h3>
+            <div class="rating-genres">
+                <div class="stars">★3/5</div>
+                <div class="genres">
+                    <span class="genre-tag">Comédie</span>
+                    <span class="genre-tag">Familial</span>
+                    <span class="genre-tag">Enfants</span>
+                </div>
+            </div>
+            <p>Le Noob vous présente la ville d'Urbanos de façon comique et marrante.</p>
+            <div class="button-group">
+                <a href="https://www.youtube.com/watch?v=ZcnWsRXHLic" target="_blank" rel="noopener noreferrer" class="button">▶ Regarder</a>
                 <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
             </div>
         </div>
