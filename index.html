@@ -4,9 +4,51 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Clipsou Streaming</title>
-<meta name="description" content="Regardez des films et séries brickfilm (LEGO) comme La vie au petit âge, Dédoublement, Jackson Goup, Karma et Alex. Gratuit, rapide et sans inscription.">
+<meta name="description" content="Regardez des films et séries comme La vie au petit âge, Dédoublement, Jackson Goup, Karma et Alex. Gratuit, rapide et sans inscription.">
 <link rel="icon" href="favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="favicon.png">
+<link rel="canonical" href="https://clipsoustreaming.netlify.app/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<!-- Open Graph -->
+<meta property="og:locale" content="fr_FR">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Clipsou Streaming">
+<meta property="og:title" content="Clipsou Streaming – Brickfilms et animations en streaming français">
+<meta property="og:description" content="Streaming français de brickfilms et animations. Découvrez La vie au petit âge, Dédoublement, Jackson Goup, Karma, Alex et plus.">
+<meta property="og:url" content="https://clipsoustreaming.netlify.app/">
+<meta property="og:image" content="https://clipsoustreaming.netlify.app/apercu.png">
+<meta property="og:image:alt" content="Clipsou Streaming – sélection de brickfilms et animations">
+<meta property="og:image:type" content="image/png">
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Clipsou Streaming – Brickfilms et animations en streaming français">
+<meta name="twitter:description" content="Streaming français de brickfilms et animations. Gratuit, rapide et sans inscription.">
+<meta name="twitter:image" content="https://clipsoustreaming.netlify.app/apercu.png">
+<!-- JSON-LD Organization + WebSite -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Clipsou Streaming",
+  "url": "https://clipsoustreaming.netlify.app/",
+  "logo": "https://clipsoustreaming.netlify.app/favicon.png",
+  "sameAs": [
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Clipsou Streaming",
+  "url": "https://clipsoustreaming.netlify.app/",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://clipsoustreaming.netlify.app/search.html?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
 <!-- Fonts for styled popup titles -->
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bangers&family=Cinzel:wght@700&family=Press+Start+2P&family=Rye&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Bevan:ital@0;1&display=swap" rel="stylesheet">
@@ -1295,5 +1337,14 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
      </div>
    </div>
  </footer>
-</body>
-</html>
+ <script>
+   document.addEventListener('DOMContentLoaded', function () {
+     document.querySelectorAll('img').forEach(function (img) {
+       if (!img.hasAttribute('loading')) img.setAttribute('loading', 'lazy');
+       if (!img.hasAttribute('decoding')) img.setAttribute('decoding', 'async');
+       if (!img.getAttribute('alt')) img.setAttribute('alt', 'Image – Clipsou Streaming');
+     });
+   });
+ </script>
+ </body>
+ </html>
