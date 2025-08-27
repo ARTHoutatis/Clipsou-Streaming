@@ -15,13 +15,21 @@ html {
     color-scheme: light;
 }
 
+/* Theme variables for gradients and brand */
+:root {
+    --bg-1: #0b1117;
+    --bg-2: #0e141b;
+    --brand-1: #2B22EE;
+    --brand-2: #6c5ce7;
+}
+
 * {
     box-sizing: border-box;
 }
 
 body {
     margin: 0;
-    background: #0b1117;
+    background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
     min-height: 100vh;
     color: #fff;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -104,7 +112,7 @@ nav[aria-label="Navigation principale"] {
 }
 
 .nav-links { display: flex; gap: 15px; }
-.nav-links a { padding: 10px 20px; border-radius: 20px; font-weight: 600; color: #fff; text-decoration: none; transition: all .3s ease; white-space: nowrap; }
+.nav-links a { padding: 10px 20px; border-radius: 5px; font-weight: 600; color: #fff; text-decoration: none; transition: all .3s ease; white-space: nowrap; }
 
 .discord-link { background: #2B22EE; }
 .discord-link:hover { background: #241DE0; }
@@ -128,7 +136,7 @@ nav[aria-label="Navigation principale"] {
 }
 
 /* Carousel */
-.carousel-section { margin: 40px 0 60px; overflow: hidden; }
+.carousel-section { margin: 0 0 60px; overflow: hidden; }
 
 .carousel-container {
     position: relative;
@@ -198,7 +206,7 @@ nav[aria-label="Navigation principale"] {
 
 .carousel-genre-tag { background: rgba(255,255,255,.06); color: #e6eef5; padding: 6px 14px; border-radius: 20px; font-size: .85rem; font-weight: 600; border: 1px solid rgba(255,255,255,.12); backdrop-filter: none; }
 
-.carousel-btn { display: inline-flex; align-items: center; gap: 8px; background: #2B22EE; color: #fff; padding: 12px 24px; border-radius: 25px; text-decoration: none; font-weight: 600; font-size: .95rem; transition: all .3s ease; backdrop-filter: none; border: 1px solid #2B22EE; }
+.carousel-btn { display: inline-flex; align-items: center; gap: 8px; background: #2B22EE; color: #fff; padding: 12px 24px; border-radius: 5px; text-decoration: none; font-weight: 600; font-size: .95rem; transition: all .3s ease; backdrop-filter: none; border: 1px solid #2B22EE; }
 
 .carousel-btn:hover { background: #241DE0; transform: translateY(-1px); box-shadow: none; }
 
@@ -248,7 +256,7 @@ nav[aria-label="Navigation principale"] {
 /* Sections */
 .section { margin: 50px 0; }
 
-.section h2 { margin: 0 40px 30px; font-size: 32px; font-weight: 700; color: #2B22EE; border-bottom: 3px solid #2B22EE; display: inline-block; padding-bottom: 10px; }
+.section h2 { margin: 0 40px 30px; font-size: 32px; font-weight: 700; color: #ffffff; display: inline-block; padding-bottom: 0; border: none; }
 
 /* Grille */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 24px; padding: 0 40px; }
@@ -281,7 +289,7 @@ nav[aria-label="Navigation principale"] {
 }
 
 .card-info { 
-    padding: 16px 20px; 
+    padding: 10px 10px; 
     text-align: center; 
 }
 
@@ -338,6 +346,8 @@ a {
     border: 1px solid rgba(255, 255, 255, 0.12);
     position: relative;
 }
+
+
 
 /* Layout dynamique basé sur l'orientation de l'image */
 .fiche-content {
@@ -438,13 +448,13 @@ a {
     bottom: 0;
     padding-top: 12px;
     margin-top: 16px;
-    background: linear-gradient(180deg, rgba(26,35,50,0) 0%, rgba(26,35,50,0.95) 40%, rgba(26,35,50,0.95) 100%);
+    background: transparent;
     padding-bottom: calc(8px + env(safe-area-inset-bottom));
 }
 
 .button {
     background: #2B22EE;
-    border-radius: 25px;
+    border-radius: 5px;
     padding: 12px 24px;
     color: #fff;
     font-weight: 600;
@@ -456,8 +466,9 @@ a {
     min-height: 44px;
 }
 
+
+
 .button:hover { 
-    background: #241DE0;
     transform: translateY(-1px);
     box-shadow: none;
 }
@@ -488,7 +499,7 @@ html {
     .nav-links { display: flex; } /* Show search button on mobile */
     .nav-links a { padding: 8px 12px; font-size: 14px; width: auto; flex: 0 0 auto; }
     .nav-links a:not([href*="youtu"]) { padding: 6px 10px; }
-    .nav-links .search-link { padding: 10px; font-size: 16px; background: #434344 !important; border-radius: 50%; width: 44px; height: 44px; border: 1px solid #3a3a3b; box-shadow: 0 2px 6px rgba(0,0,0,0.25); } /* Darker grey button on mobile */
+    .nav-links .search-link { padding: 10px; font-size: 16px; background: #434344 !important; border-radius: 5px; width: 44px; height: 44px; border: 1px solid #3a3a3b; box-shadow: 0 2px 6px rgba(0,0,0,0.25); } /* Darker grey button on mobile */
     .nav-links .search-link { text-indent: -9999px; overflow: hidden; position: relative; }
     /* Mobile: hide text and center the image icon */
     .nav-links .search-link::before { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 24px; height: 24px; background: url('loupe.png') no-repeat center / contain; filter: none !important; opacity: 1 !important; }
@@ -734,6 +745,24 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     transition: opacity .25s ease;
 }
 .card:hover .card-actions { opacity: 1; }
+.card::after {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .2px;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+}
+#films .card::after { content: 'Film'; }
+#series .card::after { content: 'Série'; }
+.card.ba::after { content: 'Trailer'; }
+#films .card.ba::after { content: 'Trailer'; }
+#series .card.ba::after { content: 'Trailer'; }
 .card-actions .actions {
     display: inline-flex;
     gap: 10px;
@@ -747,35 +776,104 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     border: 1px solid #2B22EE;
     color: #fff;
     padding: 10px 14px;
-    border-radius: 22px;
-    font-weight: 700;
-    font-size: 14px;
-    text-decoration: none;
-}
-.quick-btn.secondary { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.16); }
-.quick-btn:hover { background: #241DE0; }
-
-/* Mobile overrides for rails (use grid like before) */
-@media (max-width: 768px) {
-    .rail { 
-        display: grid; 
-        grid-auto-flow: row; 
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
-        gap: 16px; 
-        padding: 0 16px;
-        overflow: visible;
     }
-}
-</style>
-</head>
-<body>
+    /* Ensure any yt link in nav stays hidden if present */
+    nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
 
-<nav aria-label="Navigation principale">
-    <div class="logo">
-        <img src="favicon.png" alt="Logo Clipsou" width="28" height="28">
-        <span>Clipsou</span>
-        <span>Streaming</span>
-    </div>
+    /* Rails (rows like Netflix) */
+    .rail {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: clamp(180px, 18vw, 240px);
+        gap: 18px;
+        padding: 0 40px;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: inline mandatory;
+    }
+    .rail::-webkit-scrollbar { height: 10px; }
+    .rail::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
+    .rail > .card { scroll-snap-align: start; }
+
+    /* Card hover actions */
+    .card { position: relative; }
+    .card-actions {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(180deg, rgba(0,0,0,0) 20%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.75) 100%);
+        opacity: 0;
+        transition: opacity .25s ease;
+    }
+    .card:hover .card-actions { opacity: 1; }
+    .quick-btn:hover { background: #241DE0; }
+
+    /* Mobile overrides for rails (use grid like before) */
+ 
+
+     /* Subtle animated gradient background */
+     body {
+         background: radial-gradient(1200px 600px at 10% -10%, rgba(43,34,238,0.18), transparent 60%),
+                     radial-gradient(1000px 700px at 100% 10%, rgba(108,92,231,0.18), transparent 60%),
+                     linear-gradient(180deg, var(--bg-2), var(--bg-1));
+     }
+     
+     /* ===== Visual Enhancements (Index) ===== */
+    /* Section titles: plain white, no underline */
+    .section h2 {
+        border: none;
+        color: #ffffff;
+    }
+
+    /* Card polish */
+    .card {
+        background: linear-gradient(180deg, rgba(26,35,50,0.65), rgba(26,35,50,0.9));
+        box-shadow:
+          0 10px 30px rgba(0,0,0,0.35),
+          inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 14px 38px rgba(0,0,0,0.45);
+    }
+    .card img { will-change: transform; }
+
+     /* Buttons */
+     .carousel-btn,
+     .quick-btn,
+     .button {
+         background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+         border: 1px solid rgba(255,255,255,0.14);
+         box-shadow: 0 10px 20px rgba(43,34,238,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+     }
+     .carousel-btn:hover,
+     .quick-btn:hover,
+     .button:hover {
+         filter: brightness(0.95);
+         transform: translateY(-1px);
+     }
+
+     /* Focus-visible ring */
+     :where(a, button, .quick-btn, input, [tabindex]):focus-visible {
+         outline: 2px solid rgba(99,102,241,0.9);
+         outline-offset: 2px;
+         box-shadow: 0 0 0 6px rgba(99,102,241,0.25);
+     }
+
+     /* Smoother transitions */
+     * { transition: background-color .25s ease, color .25s ease, border-color .25s ease, transform .25s ease, box-shadow .25s ease; }
+
+ </style>
+ </head>
+ <body>
+ <nav aria-label="Navigation principale">
+     <div class="logo">
+     
+         <img src="favicon.png" alt="Logo Clipsou" width="28" height="28">
+         <span>Clipsou</span>
+         <span>Streaming</span>
+     </div>
 
     <div class="menu-links" role="navigation" aria-label="Liens">
         <a href="#contenu">Accueil</a>
@@ -951,7 +1049,7 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
 <div class="section">
     <h2>PAS ENCORE SORTI</h2>
     <div class="rail">
-        <div class="card">
+        <div class="card ba">
             <a href="#film5">
                 <img src="Ba.jpg" alt="Affiche du trailer Batman" loading="lazy" decoding="async">
                 <div class="card-info">

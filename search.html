@@ -77,7 +77,7 @@ nav[aria-label="Navigation principale"] {
 
 .nav-links a {
     padding: 10px 20px;
-    border-radius: 20px;
+    border-radius: 5px;
     font-weight: 600;
     color: #fff;
     text-decoration: none;
@@ -164,6 +164,7 @@ nav[aria-label="Navigation principale"] {
     transition: all 0.3s ease;
     border: 1px solid rgba(255, 255, 255, 0.12);
     cursor: pointer;
+    position: relative;
 }
 
 .card:hover { 
@@ -183,7 +184,7 @@ nav[aria-label="Navigation principale"] {
 }
 
 .card-info { 
-    padding: 16px 20px; 
+    padding: 10px 10px; 
     text-align: center; 
 }
 
@@ -202,6 +203,22 @@ nav[aria-label="Navigation principale"] {
 a {
     text-decoration: none;
     color: inherit;
+}
+
+/* Type badge (Film / Série) */
+.type-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .2px;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    z-index: 2;
 }
 
 /* Mobile styles */
@@ -255,6 +272,87 @@ a {
 /* Neutralize system dark mode: keep site appearance unchanged in dark mode */
 @media (prefers-color-scheme: dark) {
     :root { color-scheme: light; }
+}
+
+/* ===== Visual Enhancements (Search) ===== */
+/* CSS variables for subtle theming */
+:root {
+  --bg-1: #0b1117;
+  --bg-2: #0e141b;
+  --brand-1: #2B22EE;
+  --brand-2: #6c5ce7;
+  --card: rgba(26,35,50,0.72);
+}
+
+/* Animated gradient background */
+body {
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(43,34,238,0.18), transparent 60%),
+    radial-gradient(1000px 700px at 100% 10%, rgba(108,92,231,0.18), transparent 60%),
+    linear-gradient(180deg, var(--bg-2), var(--bg-1));
+}
+
+/* Glassy nav with subtle blur */
+nav[aria-label="Navigation principale"] {
+  background: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0.65));
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Gradient title text */
+.search-header h1 {
+  color: #ffffff;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.2);
+}
+
+/* Card polish */
+.card {
+  background: linear-gradient(180deg, rgba(26,35,50,0.65), rgba(26,35,50,0.85));
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 38px rgba(0,0,0,0.45);
+}
+.card img { will-change: transform; }
+
+/* Input focus ring */
+#search-input:focus {
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(43,34,238,0.35), 0 6px 20px rgba(0,0,0,0.35);
+}
+
+/* Back button gradient */
+.nav-links a.back-btn {
+  background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 10px 20px rgba(43,34,238,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.nav-links a.back-btn:hover {
+  filter: brightness(0.95);
+  transform: translateY(-1px);
+}
+
+/* Focus-visible ring for accessibility */
+:where(a, button, input, [tabindex]):focus-visible {
+  outline: 2px solid rgba(99,102,241,0.9);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px rgba(99,102,241,0.25);
+}
+
+/* Smoother transitions on interactive elements */
+* { transition: background-color .25s ease, color .25s ease, border-color .25s ease, transform .25s ease, box-shadow .25s ease; }
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 </style>
 </head>
@@ -374,16 +472,19 @@ function displayResults(results) {
         return;
     }
     
-    const resultsHTML = results.map(item => `
+    const resultsHTML = results.map(item => {
+        const typeLabel = item.type && item.type.toLowerCase().startsWith('s') ? 'Série' : 'Film';
+        return `
         <div class="card">
+            <span class="type-badge">${typeLabel}</span>
             <a href="index.html#${item.id}">
                 <img src="${item.image}" alt="Affiche de ${item.title}" loading="lazy">
                 <div class="card-info">
                     <span>${item.title}</span>
                 </div>
             </a>
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
     
     resultsContainer.innerHTML = `<div class="search-grid">${resultsHTML}</div>`;
 }
