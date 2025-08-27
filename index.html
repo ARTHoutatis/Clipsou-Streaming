@@ -513,6 +513,30 @@ a {
       0 2px 4px rgba(11, 61, 145, 0.45),   /* near shadow */
       0 0 14px rgba(11, 61, 145, 0.30);    /* ambient glow */
 }
+
+/* Make all popup titles large and consistent like DEDOUBLEMENT */
+#film1-title,
+#film2-title,
+#film3-title,
+#film4-title,
+#film5-title,
+#film6-title,
+#serie1-title,
+#serie2-title {
+    font-size: clamp(28px, 5vw, 40px);
+    line-height: 1.1;
+    display: inline-block;
+    min-width: 12ch; /* approx width of 'DEDOUBLEMENT' */
+    text-align: left;
+}
+/* Ensure nested spans inherit unified size */
+#film6-title .urbanos,
+#film6-title .city,
+#film5-title .trailer-word,
+#film5-title .batman-word,
+#serie1-title .al,
+#serie1-title .ex { font-size: 1em; }
+
 /* Alex: AL green, EX pink */
 #serie1-title .al { color: #9CFF00; }
 #serie1-title .ex { color: #ff69b4; }
