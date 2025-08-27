@@ -1,26 +1,1299 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#0ea5e9" />
-  <title>Crapaud3.0 – Porsche 911</title>
-  <!-- Préchargement optionnel si MP4 est disponible -->
-  <!-- <link rel="preload" href="furia/Video021.mp4" as="video" /> -->
-  <link rel="stylesheet" href="assets/style.css" />
-</head>
-<body class="landing">
-  <video class="bg-video" autoplay muted loop playsinline preload="auto">
-    <source src="furia/Vidéo021.mp4" type="video/mp4" />
-  </video>
-  <a class="official-link" href="http://crapaud3.0.free.fr/" target="_blank" rel="noopener noreferrer">Ancien site</a>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Clipsou Streaming</title>
+<meta name="description" content="Regardez des films et séries brickfilm (LEGO) comme La vie au petit âge, Dédoublement, Jackson Goup, Karma et Alex. Gratuit, rapide et sans inscription.">
+<link rel="icon" href="favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="favicon.png">
+<!-- Fonts for styled popup titles -->
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bangers&family=Cinzel:wght@700&family=Press+Start+2P&family=Rye&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bevan:ital@0;1&display=swap" rel="stylesheet">
+<style>
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    /* Force browsers to use light UI rendering for form controls, scrollbars, etc. */
+    color-scheme: light;
+}
 
-  <div class="overlay">
-    <h1 class="brand"><span class="brand-main">Crapaud3.0</span><span class="edition">édition 2025</span></h1>
-    <p class="tagline">en mémoire du site crapaud3.0</p>
-    <a class="cta" href="site.html">accéder au site</a>
-  </div>
+/* Theme variables for gradients and brand */
+:root {
+    --bg-1: #0b1117;
+    --bg-2: #0e141b;
+    --brand-1: #2B22EE;
+    --brand-2: #6c5ce7;
+}
 
-  <script src="assets/app.js" defer></script>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+    min-height: 100vh;
+    color: #fff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Visually hidden (for a11y/SEO) */
+.sr-only {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0);
+    white-space: nowrap; border: 0;
+}
+
+/* SOLUTION : Bloquer le scroll quand une popup est active */
+body:has(.fiche-popup:target) {
+    overflow: hidden;
+    height: 100vh;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: none;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Navigation */
+nav[aria-label="Navigation principale"] {
+    background: #000;
+    padding: 15px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: none;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.logo { 
+    font-size: 28px; 
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+ }
+
+ /* Icône à gauche du texte dans la banderole */
+ .logo img {
+     width: 28px;
+     height: 28px;
+     margin-right: 10px;
+     display: block;
+     flex-shrink: 0;
+     filter: none !important;
+     opacity: 1 !important;
+ }
+ 
+ .logo span { white-space: nowrap; }
+
+.logo span:nth-of-type(1), .logo span:nth-of-type(2) { 
+    color: #2B22EE;
+}
+
+.logo span:nth-of-type(1) { 
+    font-weight: 800;
+}
+
+.logo span:nth-of-type(2) { 
+    margin-left: 6px; 
+    font-weight: 300;
+}
+
+.nav-links { display: flex; gap: 15px; }
+.nav-links a { padding: 10px 20px; border-radius: 5px; font-weight: 600; color: #fff; text-decoration: none; transition: all .3s ease; white-space: nowrap; }
+
+.discord-link { background: #2B22EE; }
+.discord-link:hover { background: #241DE0; }
+
+.yt-link { background: #FF0000; display: none !important; }
+.yt-link:hover { background: #CC0000; }
+
+.search-link { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); }
+.search-link:hover { background: rgba(255,255,255,.2); }
+
+/* Desktop/tablet: show loupe.png before the text */
+.nav-links .search-link { display: inline-flex; align-items: center; gap: 8px; position: relative; }
+.nav-links .search-link::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background: url('loupe.png') no-repeat center / contain;
+    filter: none !important;
+    opacity: 1 !important;
+}
+
+/* Carousel */
+.carousel-section { margin: 0 0 60px; overflow: hidden; }
+
+.carousel-container {
+    position: relative;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16/9;
+    min-height: 400px;
+    overflow: hidden; /* prevent any overflow on all devices */
+}
+
+.carousel-slides { display: flex; width: 500%; height: 100%; animation: carousel-auto 25s infinite; margin: 0; padding: 0; gap: 0; will-change: transform; }
+
+@keyframes carousel-auto {
+    0%, 18% { transform: translateX(0); }
+    20%, 38% { transform: translateX(-20%); }
+    40%, 58% { transform: translateX(-40%); }
+    60%, 78% { transform: translateX(-60%); }
+    80%, 98% { transform: translateX(-80%); }
+    100% { transform: translateX(0); }
+}
+
+.carousel-slide {
+    flex: 0 0 20%; /* Chaque slide = 20% de la largeur totale */
+    min-width: 20%;
+    margin: 0;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    aspect-ratio: 16/9;
+    transform: translateZ(0); /* GPU compositing */
+}
+
+.carousel-slide::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.80) 0%,
+        rgba(0, 0, 0, 0.60) 40%,
+        rgba(0, 0, 0, 0.20) 100%
+    );
+    z-index: 1;
+}
+
+.carousel-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 40px;
+    z-index: 2;
+    background: linear-gradient(
+        180deg,
+        transparent 0%,
+        rgba(0, 0, 0, 0.15) 30%,
+        rgba(0, 0, 0, 0.35) 100%
+    );
+}
+
+.carousel-title { font-size: 2.5rem; font-weight: 700; color: #fff; margin: 0 0 15px; text-shadow: none; }
+
+.carousel-description { font-size: 1.1rem; color: rgba(255,255,255,.9); line-height: 1.5; margin: 0 0 20px; max-width: 600px; text-shadow: none; }
+
+.carousel-genres { display: flex; gap: 10px; margin: 15px 0 20px; flex-wrap: wrap; }
+
+.carousel-genre-tag { background: rgba(255,255,255,.06); color: #e6eef5; padding: 6px 14px; border-radius: 20px; font-size: .85rem; font-weight: 600; border: 1px solid rgba(255,255,255,.12); backdrop-filter: none; }
+
+.carousel-btn { display: inline-flex; align-items: center; gap: 8px; background: #2B22EE; color: #fff; padding: 12px 24px; border-radius: 5px; text-decoration: none; font-weight: 600; font-size: .95rem; transition: all .3s ease; backdrop-filter: none; border: 1px solid #2B22EE; }
+
+.carousel-btn:hover { background: #241DE0; transform: translateY(-1px); box-shadow: none; }
+
+.carousel-btn::before {
+    content: 'ⓘ';
+    font-size: 1rem;
+}
+
+.carousel-btn:hover {
+    background: linear-gradient(135deg, var(--brand-1), var(--brand-2)) !important;
+    color: #fff !important;
+    filter: none !important;
+}
+
+/* Indicateurs de slides */
+.carousel-indicators {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    z-index: 3;
+}
+
+.carousel-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    animation: indicator-cycle 25s infinite;
+}
+
+.carousel-indicator:nth-child(1) { animation-delay: 0s; }
+.carousel-indicator:nth-child(2) { animation-delay: 5s; }
+.carousel-indicator:nth-child(3) { animation-delay: 10s; }
+.carousel-indicator:nth-child(4) { animation-delay: 15s; }
+.carousel-indicator:nth-child(5) { animation-delay: 20s; }
+
+@keyframes indicator-cycle {
+    0%, 16% { 
+        background: #2B22EE;
+        transform: scale(1.3);
+    }
+    20%, 100% { 
+        background: rgba(255, 255, 255, 0.4);
+        transform: scale(1);
+    }
+}
+
+/* Sections */
+.section { margin: 50px 0; }
+
+.section h2 { margin: 0 40px 30px; font-size: 32px; font-weight: 700; color: #ffffff; display: inline-block; padding-bottom: 0; border: none; }
+
+/* Grille */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 24px; padding: 0 40px; }
+
+/* Cartes */
+.card {
+    background: rgba(26,35,50,0.8);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    cursor: pointer;
+}
+
+.card:hover { 
+    transform: translateY(-5px); 
+    border-color: #2B22EE;
+    box-shadow: none;
+}
+
+.card img { 
+    width: 100%; 
+    aspect-ratio: 9/12; 
+    object-fit: cover; 
+    transition: transform 0.3s ease;
+}
+
+.card:hover img {
+    transform: scale(1.05);
+}
+
+.card-info { 
+    padding: 10px 10px; 
+    text-align: center; 
+}
+
+.card-info span { 
+    display: block; 
+    font-size: 16px; 
+    font-weight: 600; 
+    margin-bottom: 8px;
+    color: #fff;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.stars { 
+    color: #2B22EE; 
+    font-size: 16px; 
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Popups avec position fixe et conservation du scroll */
+.fiche-popup {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: clamp(12px, 3vw, 20px);
+    backdrop-filter: none;
+    overscroll-behavior: contain; /* empêche le scroll de fond sur mobile */
+}
+
+.fiche-popup:target { 
+    display: flex; 
+}
+
+.fiche-content {
+    width: 100%;
+    max-width: 2000px;
+    max-height: 95vh;
+    background: rgba(26, 35, 50, 0.95);
+    border-radius: 16px;
+    display: grid;
+    gap: 30px;
+    padding: 30px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    position: relative;
+}
+
+/* Layout dynamique basé sur l'orientation de l'image */
+.fiche-content {
+    grid-template-columns: 1fr 1.5fr; /* Layout par défaut pour images portrait */
+}
+
+/* Alternative : class CSS pour forcer le layout paysage */
+.fiche-content.landscape-layout {
+    grid-template-columns: 2fr 1fr;
+}
+
+.fiche-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.fiche-content img { 
+    width: 100%;
+    max-width: 100%;
+    max-height: 80vh;
+    height: auto;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    object-fit: contain;
+}
+
+/* Style spécifique pour les images paysage */
+.fiche-content img.landscape {
+    max-height: 70vh;
+    width: 100%;
+    object-fit: cover;
+}
+
+.fiche-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 20px; /* Décalage supplémentaire du texte vers la droite */
+}
+
+.fiche-content h3 { 
+    margin: 0 0 16px 0; 
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+    scroll-margin-top: 12px;
+}
+
+/* Per-title font styles */
+#film2-title { font-family: inherit; font-size: inherit; }
+#film5-title { font-family: 'Anton', Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif; letter-spacing: 1px; }
+#film3-title, #film1-title { font-family: 'Cinzel', Georgia, 'Times New Roman', serif; }
+#serie1-title { font-family: 'Bevan', Georgia, serif; letter-spacing: 2px; text-transform: uppercase; }
+#serie2-title { font-family: 'Rye', Georgia, serif; }
+/* Karma: bold and stretched */
+#film4-title {
+    font-family: 'Anton', Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    display: inline-block; /* allow transform scaling */
+    transform: scaleX(1.35);
+    transform-origin: left center;
+    text-transform: uppercase;
+}
+
+/* ===== Specific color treatments ===== */
+/* La vie au petit âge: dark red with shadow */
+#film1-title {
+    color: #8B0000; /* dark red */
+    text-shadow: 0 2px 0 rgba(0,0,0,0.35), 0 4px 12px rgba(0,0,0,0.5);
+}
+/* Lawless Legend: darker red */
+#serie2-title { color: #6E0000; }
+/* DEDOUBLEMENT: bluish drop shadow (no outline) */
+#film2-title {
+    color: #ffffff; /* white */
+    font-weight: 800; /* bold */
+    font-size: 34px; /* larger */
+    text-transform: uppercase;
+    /* Soft, bluish shadow inspired by the reference */
+    text-shadow:
+      0 8px 18px rgba(11, 61, 145, 0.55),  /* main soft drop */
+      0 2px 4px rgba(11, 61, 145, 0.45),   /* near shadow */
+      0 0 14px rgba(11, 61, 145, 0.30);    /* ambient glow */
+}
+/* Alex: AL green, EX pink */
+#serie1-title .al { color: #9CFF00; }
+#serie1-title .ex { color: #ff69b4; }
+/* Trailer Batman: 'Trailer' white, 'Batman' red */
+#film5-title .trailer-word { color: #ffffff; }
+#film5-title .batman-word { color: #ff2a2a; font-weight: 800; }
+
+/* Card title styles removed per request */
+
+.fiche-content p { 
+    margin: 15px 0; 
+    font-size: 16px;
+    line-height: 1.6;
+    color: #fff;
+    text-align: justify;
+}
+
+.rating-genres {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.fiche-content .stars { 
+    font-size: 20px;
+    margin: 0;
+    color: #ffffff;
+}
+
+.fiche-content .stars::first-letter {
+    color: #FFD54A; /* warm yellow */
+}
+
+.genres {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: start;
+    align-items: center;
+}
+
+.genre-tag {
+    background: rgba(255, 255, 255, 0.06);
+    color: #e6eef5;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    white-space: nowrap;
+}
+
+.button-group {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: auto;
+    position: sticky;
+    bottom: 0;
+    padding-top: 12px;
+    margin-top: 16px;
+    background: transparent;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+}
+
+.button {
+    background: #2B22EE;
+    border-radius: 5px;
+    padding: 12px 24px;
+    color: #fff;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    white-space: nowrap;
+    min-height: 44px;
+}
+
+.button:hover { 
+    transform: translateY(-1px);
+    box-shadow: none;
+}
+
+.close-btn { 
+    background: #ff4444;
+}
+
+.close-btn:hover { 
+    background: #cc0000;
+    box-shadow: none;
+}
+
+/* Style pour empêcher le scroll vers le haut lors de la fermeture */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Responsive mobile */
+@media (max-width: 768px) {
+    /* Hide footer on mobile */
+    .footer { display: none; }
+    
+    /* Banderole: logo + Discord sur la même ligne, sans débordement */
+    nav { padding: 12px 16px; width: 100%; max-width: 100vw; overflow-x: hidden; display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap; column-gap: 8px; }
+    .logo { flex: 1 1 0; min-width: 0; overflow: hidden; font-size: 20px; }
+    .logo img { width: 20px; height: 20px; }
+    .nav-links { display: flex; } /* Show search button on mobile */
+    .nav-links a { padding: 8px 12px; font-size: 14px; width: auto; flex: 0 0 auto; }
+    .nav-links a:not([href*="youtu"]) { padding: 6px 10px; }
+    .nav-links .search-link { padding: 10px; font-size: 16px; background: #434344 !important; border-radius: 5px; width: 44px; height: 44px; border: 1px solid #3a3a3b; box-shadow: 0 2px 6px rgba(0,0,0,0.25); } /* Darker grey button on mobile */
+    .nav-links .search-link { text-indent: -9999px; overflow: hidden; position: relative; }
+    /* Mobile: hide text and center the image icon */
+    .nav-links .search-link::before { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 24px; height: 24px; background: url('loupe.png') no-repeat center / contain; filter: none !important; opacity: 1 !important; }
+    .logo span { overflow: hidden; text-overflow: ellipsis; color: #2B22EE; }
+
+    /* Show and enable carousel on mobile */
+    .carousel-section { display: block; margin: 20px 0 40px; }
+    .carousel-container { overflow: hidden; }
+    .carousel-slides { animation: carousel-auto 25s infinite; will-change: transform; backface-visibility: hidden; transform: translate3d(0,0,0); }
+    .carousel-slide { transform: translateZ(0); background-image: initial; }
+    /* Prevent subpixel gaps/rounding on some mobile browsers */
+    .carousel-slides, .carousel-slide { 
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+    }
+
+    .carousel-container { min-height: 220px; }
+    .carousel-content { padding: 16px; }
+    .carousel-title { font-size: 1.4rem; }
+    .carousel-description { display: none; }
+    .carousel-genres { gap: 8px; margin: 10px 0 12px; }
+    .carousel-genre-tag { padding: 4px 10px; font-size: 0.75rem; }
+    .carousel-indicators { bottom: calc(4px + env(safe-area-inset-bottom)); gap: 8px; pointer-events: none; }
+    .carousel-indicator { width: 8px; height: 8px; }
+
+    .section { margin: 30px 0; }
+    .section h2 { margin: 0 16px 16px; font-size: 24px; color: #2B22EE; }
+    .grid { padding: 0 16px; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+
+    .fiche-popup { 
+        padding-left: max(12px, env(safe-area-inset-left)); 
+        padding-right: max(12px, env(safe-area-inset-right)); 
+        padding-top: max(12px, env(safe-area-inset-top));
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+        min-height: 100svh; /* compat meilleurs barres d'adresse mobiles */
+        align-items: center;
+    }
+
+    /* Popup: centrage strict du conteneur */
+    .fiche-content {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "image"
+            "content";
+        width: 100%;
+        max-width: 95vw;
+        max-height: min(90svh, 90dvh);
+        padding: 20px;
+        justify-items: center;
+        align-items: start;
+        gap: 16px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        text-align: center;
+        -webkit-overflow-scrolling: touch;
+        overflow-x: hidden;
+    }
+    
+    .fiche-left { 
+        align-items: center; 
+        width: 100%; 
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .fiche-content img { 
+        display: block; 
+        margin: 0 auto 16px; 
+        max-width: 90%;
+        max-height: 50svh; 
+        height: auto;
+        border-radius: 12px;
+    }
+    
+    .fiche-right {
+        padding-left: 0;
+        text-align: center;
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .fiche-content h3 { 
+        text-align: center; 
+        margin: 0 0 12px 0;
+        width: 100%;
+        color: inherit; /* allow per-title colors */
+    }
+    
+    .fiche-content p { 
+        text-align: center; 
+        margin: 0 auto 16px;
+        max-width: 400px;
+        line-height: 1.5;
+    }
+    
+    .rating-genres { 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 12px; 
+        flex-wrap: wrap;
+        width: 100%;
+        margin: 0 auto 16px;
+    }
+    
+    .rating-genres .stars { 
+        display: inline-block; 
+        font-size: 18px;
+        margin: 0;
+        color: #2B22EE;
+    }
+    
+    .genres { 
+        display: flex; 
+        gap: 8px; 
+        justify-content: center; 
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    
+    .genre-tag { 
+        font-size: 13px; 
+        padding: 4px 10px;
+        white-space: nowrap;
+    }
+    
+    .button-group { 
+        display: flex; 
+        gap: 12px; 
+        flex-wrap: wrap;
+        justify-content: center; 
+        width: 100%;
+        margin: 16px auto 0;
+        padding-top: 16px;
+    }
+    
+    .button { 
+        flex: 1 1 auto;
+        max-width: 200px;
+        min-width: 120px;
+        text-align: center; 
+        padding: 14px 20px; 
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* Neutralize system dark mode: keep site appearance unchanged in dark mode */
+@media (prefers-color-scheme: dark) {
+    :root { color-scheme: light; }
+}
+
+/* Amélioration des performances */
+@media (prefers-reduced-motion: reduce) {
+    .carousel-slides {
+        animation: none;
+    }
+    
+    .carousel-indicator {
+        animation: none;
+    }
+    
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Footer */
+.footer {
+    margin-top: 60px;
+    padding: 32px 40px;
+    background: #000;
+    color: #8fa3b8;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+.footer .footer-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: center;
+}
+.footer a { color: #c8d4e0; text-decoration: none; }
+.footer a:hover { color: #fff; }
+
+/* Header extras (menu, search, avatar) */
+.menu-links { display: none; gap: 16px; align-items: center; margin-left: 24px; }
+.menu-links a { color: #c8d4e0; text-decoration: none; font-weight: 600; padding: 8px 12px; border-radius: 18px; }
+.menu-links a:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+.search { display: none; }
+
+/* Small Discord button to replace avatar */
+.discord-mini { display: none; width: 36px; height: 36px; border-radius: 50%; background: #5865F2; border: 1px solid rgba(255,255,255,0.18); color: #fff; font-weight: 800; align-items: center; justify-content: center; text-decoration: none; }
+.discord-mini:hover { filter: brightness(0.95); }
+/* Desktop: show full nav (links + search), keep only one external button */
+@media (min-width: 900px) {
+  .menu-links { display: flex; }
+  .nav-links { display: flex; }
+  .search { display: none; }
+  .discord-mini { display: none; }
+}
+/* Ensure any yt link in nav stays hidden if present */
+nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
+
+/* Rails (rows like Netflix) */
+.rail {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: clamp(180px, 18vw, 240px);
+    gap: 18px;
+    padding: 0 40px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: inline mandatory;
+}
+.rail::-webkit-scrollbar { height: 10px; }
+.rail::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
+.rail > .card { scroll-snap-align: start; }
+
+/* Card hover actions */
+.card { position: relative; }
+.card-actions {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 20%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.75) 100%);
+    opacity: 0;
+    transition: opacity .25s ease;
+}
+.card:hover .card-actions { opacity: 1; }
+.card::after {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .2px;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+}
+#films .card::after { content: 'Film'; }
+#series .card::after { content: 'Série'; }
+.card.ba::after { content: 'Trailer'; }
+#films .card.ba::after { content: 'Trailer'; }
+#series .card.ba::after { content: 'Trailer'; }
+.card-actions .actions {
+    display: inline-flex;
+    gap: 10px;
+}
+.quick-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: #2B22EE;
+    border: 1px solid #2B22EE;
+    color: #fff;
+    padding: 10px 14px;
+    }
+    /* Ensure any yt link in nav stays hidden if present */
+    nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
+
+    /* Rails (rows like Netflix) */
+    .rail {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: clamp(180px, 18vw, 240px);
+        gap: 18px;
+        padding: 0 40px;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: inline mandatory;
+    }
+    .rail::-webkit-scrollbar { height: 10px; }
+    .rail::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
+    .rail > .card { scroll-snap-align: start; }
+
+    /* Card hover actions */
+    .card { position: relative; }
+    .card-actions {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(180deg, rgba(0,0,0,0) 20%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.75) 100%);
+        opacity: 0;
+        transition: opacity .25s ease;
+    }
+    .card:hover .card-actions { opacity: 1; }
+    .quick-btn:hover { background: #241DE0; }
+
+    /* Mobile overrides for rails (use grid like before) */
+ 
+
+     /* Subtle animated gradient background */
+     body {
+         background: radial-gradient(1200px 600px at 10% -10%, rgba(43,34,238,0.18), transparent 60%),
+                     radial-gradient(1000px 700px at 100% 10%, rgba(108,92,231,0.18), transparent 60%),
+                     linear-gradient(180deg, var(--bg-2), var(--bg-1));
+     }
+     
+     /* ===== Visual Enhancements (Index) ===== */
+    /* Section titles: plain white, no underline */
+    .section h2 {
+        border: none;
+        color: #ffffff;
+    }
+
+    /* Card polish */
+    .card {
+        background: linear-gradient(180deg, rgba(26,35,50,0.65), rgba(26,35,50,0.9));
+        box-shadow:
+          0 10px 30px rgba(0,0,0,0.35),
+          inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 14px 38px rgba(0,0,0,0.45);
+    }
+    .card img { will-change: transform; }
+
+     /* Buttons */
+     .carousel-btn,
+     .quick-btn,
+     .button {
+         background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+         border: 1px solid rgba(255,255,255,0.14);
+         box-shadow: 0 10px 20px rgba(43,34,238,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+     }
+     .carousel-btn:hover,
+     .quick-btn:hover,
+     .button:hover {
+         filter: brightness(0.95);
+         transform: translateY(-1px);
+     }
+
+     /* Focus-visible ring */
+     :where(a, button, .quick-btn, input, [tabindex]):focus-visible {
+         outline: 2px solid rgba(99,102,241,0.9);
+         outline-offset: 2px;
+         box-shadow: 0 0 0 6px rgba(99,102,241,0.25);
+     }
+
+     /* Smoother transitions */
+     * { transition: background-color .25s ease, color .25s ease, border-color .25s ease, transform .25s ease, box-shadow .25s ease; }
+
+ </style>
+ </head>
+ <body>
+ <nav aria-label="Navigation principale">
+     <div class="logo">
+     
+         <img src="favicon.png" alt="Logo Clipsou" width="28" height="28">
+         <span>Clipsou</span>
+         <span>Streaming</span>
+     </div>
+
+    <div class="menu-links" role="navigation" aria-label="Liens">
+        <a href="#contenu">Accueil</a>
+        <a href="#films">Films</a>
+        <a href="#series">Séries</a>
+    </div>
+
+    <div class="nav-links">
+        <a href="search.html" class="search-link">Recherche</a>
+    </div>
+</nav>
+
+<h1 class="sr-only">Clipsou Streaming</h1>
+
+<main id="contenu" tabindex="-1">
+
+<!-- CAROUSEL HERO SECTION -->
+<div class="carousel-section" role="region" aria-label="Sélection de mises en avant">
+    <div class="carousel-container">
+        <div class="carousel-slides">
+            <!-- Slide 1: La vie au petit âge -->
+            <div class="carousel-slide" style="background-image: url('La1.jpg');">
+                <div class="carousel-content">
+                    <h2 class="carousel-title">La vie au petit âge</h2>
+                    <div class="carousel-genres">
+                        <span class="carousel-genre-tag">Comédie</span>
+                        <span class="carousel-genre-tag">Familial</span>
+                        <span class="carousel-genre-tag">Aventure</span>
+                    </div>
+                    <p class="carousel-description">
+                        Timmy, un enfant espiègle, nous fait visiter son village dans un monde entièrement construit en briques LEGO. Une aventure familiale pleine d'humour et de tendresse.
+                    </p>
+                    <a href="#film1" class="carousel-btn">Voir la fiche</a>
+                </div>
+            </div>
+
+            <!-- Slide 2: Dédoublement -->
+            <div class="carousel-slide" style="background-image: url('Dé1.jpg');">
+                <div class="carousel-content">
+                    <h2 class="carousel-title">Dédoublement</h2>
+                    <div class="carousel-genres">
+                        <span class="carousel-genre-tag">Thriller</span>
+                        <span class="carousel-genre-tag">Comédie</span>
+                        <span class="carousel-genre-tag">Action</span>
+                    </div>
+                    <p class="carousel-description">
+                        Deux frères identiques, l'un vêtu de blanc et l'autre de noir, s'entendent à merveille… jusqu'à ce que l'un finisse en prison. Un thriller haletant mêlant suspense et moments hilarants.
+                    </p>
+                    <a href="#film2" class="carousel-btn">Voir la fiche</a>
+                </div>
+            </div>
+
+            <!-- Slide 3: Jackson Goup -->
+            <div class="carousel-slide" style="background-image: url('Ja1.jpg');">
+                <div class="carousel-content">
+                    <h2 class="carousel-title">Jackson Goup</h2>
+                    <div class="carousel-genres">
+                        <span class="carousel-genre-tag">Aventure</span>
+                        <span class="carousel-genre-tag">Fantastique</span>
+                        <span class="carousel-genre-tag">Comédie</span>
+                    </div>
+                    <p class="carousel-description">
+                        Un aventurier un peu maladroit traverse des contrées hostiles remplies de créatures féroces. Une aventure épique mêlant humour et fantastique.
+                    </p>
+                    <a href="#film3" class="carousel-btn">Voir la fiche</a>
+                </div>
+            </div>
+
+            <!-- Slide 4: Alex (Série) -->
+            <div class="carousel-slide" style="background-image: url('Al.jpg');">
+                <div class="carousel-content">
+                    <h2 class="carousel-title">Alex</h2>
+                    <div class="carousel-genres">
+                        <span class="carousel-genre-tag">Action</span>
+                        <span class="carousel-genre-tag">Comédie</span>
+                        <span class="carousel-genre-tag">Drame</span>
+                    </div>
+                    <p class="carousel-description">
+                        Suivez les aventures captivantes d'Alex dans un univers en briques LEGO. Cette série brickfilm innovante mêle action, humour et émotion.
+                    </p>
+                    <a href="#serie1" class="carousel-btn">Voir la fiche</a>
+                </div>
+            </div>
+
+            <!-- Slide 5: Karma -->
+            <div class="carousel-slide" style="background-image: url('Ka1.jpg');">
+                <div class="carousel-content">
+                    <h2 class="carousel-title">Karma</h2>
+                    <div class="carousel-genres">
+                        <span class="carousel-genre-tag">Horreur</span>
+                        <span class="carousel-genre-tag">Mystère</span>
+                        <span class="carousel-genre-tag">Psychologique</span>
+                    </div>
+                    <p class="carousel-description">
+                        Une adolescente victime de harcèlement revient hanter son bourreau. Une spirale de terreur psychologique et de phénomènes paranormaux terrifiants.
+                    </p>
+                    <a href="#film4" class="carousel-btn">Voir la fiche</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Indicateurs de slides -->
+        <div class="carousel-indicators" aria-hidden="true">
+            <div class="carousel-indicator"></div>
+            <div class="carousel-indicator"></div>
+            <div class="carousel-indicator"></div>
+            <div class="carousel-indicator"></div>
+            <div class="carousel-indicator"></div>
+        </div>
+    </div>
+</div>
+
+<div class="section" id="films">
+    <h2>FILMS</h2>
+    <div class="rail">
+        <div class="card">
+            <a href="#film1">
+                <img src="La.jpeg" alt="Affiche du film La vie au petit âge" loading="lazy" decoding="async">
+                <div class="card-info">
+                    <span>La vie au petit age</span>
+                </div>
+            </a>
+        </div>
+        <div class="card">
+            <a href="#film2">
+                <img src="Dé.jpg" alt="Affiche du film Dédoublement" loading="lazy" decoding="async">
+                <div class="card-info">
+                    <span>Dédoublement</span>
+                </div>
+            </a>
+        </div>
+        <div class="card">
+            <a href="#film3">
+                <img src="Ja.jpg" alt="Affiche du film Jackson Goup" loading="lazy" decoding="async">
+                <div class="card-info">
+                    <span>Jackson Goup</span>
+                </div>
+            </a>
+        </div>
+        <div class="card">
+            <a href="#film4">
+                <img src="Ka.jpeg" alt="Affiche du film Karma" loading="lazy" decoding="async">
+                <div class="card-info">
+                    <span>Karma</span>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="section" id="series">
+    <h2>SÉRIES</h2>
+    <div class="rail">
+        <div class="card">
+            <a href="#serie1">
+                <img src="Al.jpg" alt="Affiche de la série Alex" loading="lazy" decoding="async">
+                <div class="card-info">
+                    <span>Alex</span>
+                </div>
+            </a>
+        </div>
+        <div class="card">
+            <a href="#serie2">
+                <img src="Law.jpg" alt="Affiche de la série Lawless Legend" loading="lazy" decoding="async">
+                <div class="card-info">
+                    <span>Lawless Legend</span>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="section">
+    <h2>PAS ENCORE SORTI</h2>
+    <div class="rail">
+        <div class="card ba">
+            <a href="#film5">
+                <img src="Ba.jpg" alt="Affiche du trailer Batman" loading="lazy" decoding="async">
+                <div class="card-info">
+                    <span>Trailer Batman</span>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- POPUPS -->
+<div id="film1" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film1-title">
+    <div class="fiche-content landscape-layout">
+        <div class="fiche-left">
+            <img src="La1.jpg" alt="Image du film La vie au petit âge" class="landscape" decoding="async" loading="lazy">
+        </div>
+        <div class="fiche-right">
+            <h3 id="film1-title">La vie au petit age</h3>
+            <div class="rating-genres">
+                <div class="stars">★3.5/5</div>
+                <div class="genres">
+                    <span class="genre-tag">Comédie</span>
+                    <span class="genre-tag">Familial</span>
+                    <span class="genre-tag">Aventure</span>
+                </div>
+            </div>
+            <p>Timmy, un enfant espiègle, nous fait visiter son village dans un monde entièrement construit en briques LEGO. Mais chaque coin de rue réserve son lot de gags et de surprises ! Une aventure familiale pleine d'humour et de tendresse qui ravira petits et grands.</p>
+            <div class="button-group">
+                <a href="https://www.youtube.com/watch?v=XtqzuhtuH2E" target="_blank" rel="noopener noreferrer" class="button">▶ Regarder</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="film2" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film2-title">
+    <div class="fiche-content landscape-layout">
+        <div class="fiche-left">
+            <img src="Dé1.jpg" alt="Image du film Dédoublement" class="landscape" decoding="async" loading="lazy">
+        </div>
+        <div class="fiche-right">
+            <h3 id="film2-title">DEDOUBLEMENT</h3>
+            <div class="rating-genres">
+                <div class="stars">★4.5/5</div>
+                <div class="genres">
+                    <span class="genre-tag">Thriller</span>
+                    <span class="genre-tag">Comédie</span>
+                    <span class="genre-tag">Action</span>
+                </div>
+            </div>
+            <p>Deux frères identiques, l'un vêtu de blanc et l'autre de noir, s'entendent à merveille… jusqu'à ce que l'un finisse en prison. Entre comédie et évasion ! Un thriller haletant mêlant suspense et moments hilarants.</p>
+            <div class="button-group">
+                <a href="https://www.youtube.com/watch?v=gfbiTpqQDY0" target="_blank" rel="noopener noreferrer" class="button">▶ Regarder</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="film3" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film3-title">
+    <div class="fiche-content landscape-layout">
+        <div class="fiche-left">
+            <img src="Ja1.jpg" alt="Image du film Jackson Goup" class="landscape" decoding="async" loading="lazy">
+        </div>
+        <div class="fiche-right">
+            <h3 id="film3-title">Jackson Goup</h3>
+            <div class="rating-genres">
+                <div class="stars">★3/5</div>
+                <div class="genres">
+                    <span class="genre-tag">Aventure</span>
+                    <span class="genre-tag">Fantastique</span>
+                    <span class="genre-tag">Comédie</span>
+                </div>
+            </div>
+            <p>Un aventurier un peu maladroit traverse des contrées hostiles remplies de créatures féroces. Une aventure épique mêlant humour et fantastique qui vous transportera dans un monde extraordinaire plein de surprises.</p>
+            <div class="button-group">
+                <a href="https://www.youtube.com/watch?v=VUqwvqQ51sg" target="_blank" rel="noopener noreferrer" class="button">▶ Regarder</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="serie1" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="serie1-title">
+    <div class="fiche-content landscape-layout">
+        <div class="fiche-left">
+            <img src="Al.jpg" alt="Image de la série Alex" class="landscape" decoding="async" loading="lazy">
+        </div>
+        <div class="fiche-right">
+            <h3 id="serie1-title"><span class="al">AL</span><span class="ex">EX</span></h3>
+            <div class="rating-genres">
+                <div class="stars">★4/5</div>
+                <div class="genres">
+                    <span class="genre-tag">Action</span>
+                    <span class="genre-tag">Comédie</span>
+                    <span class="genre-tag">Drame</span>
+                </div>
+            </div>
+            <p>Suivez les aventures captivantes d'Alex, un personnage attachant dans un univers en briques LEGO. Cette série brickfilm innovante mêle action, humour et émotion dans des épisodes soigneusement réalisés qui plairont à tous les âges.</p>
+            <div class="button-group">
+                <a href="https://www.youtube.com/playlist?list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf" target="_blank" rel="noopener noreferrer" class="button">▶ Regarder la série</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="serie2" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="serie2-title">
+    <div class="fiche-content landscape-layout">
+        <div class="fiche-left">
+            <img src="Law.jpg" alt="Image de la série Lawless Legend" class="landscape" decoding="async" loading="lazy">
+        </div>
+        <div class="fiche-right">
+            <h3 id="serie2-title">Lawless Legend</h3>
+            <div class="rating-genres">
+                <div class="stars">★3.5/5</div>
+                <div class="genres">
+                    <span class="genre-tag">Western</span>
+                    <span class="genre-tag">Comédie</span>
+                    <span class="genre-tag">Action</span>
+                </div>
+            </div>
+            <p>Plongez dans l'univers du Far West à travers cette série brickfilm unique ! Cowboys en briques LEGO, duels au soleil couchant et esthétique VHS nostalgique : cette série réinvente le western avec humour dans un style rétro irrésistible.</p>
+            <div class="button-group">
+                <a href="https://youtube.com/playlist?list=PLljfI9MJr5K2Li687G4dOxjfyDQkIfJn3&si=FQ0ImMc9j-6wvtRk" target="_blank" rel="noopener noreferrer" class="button">▶ Regarder la série</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="film4" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film4-title">
+    <div class="fiche-content landscape-layout">
+        <div class="fiche-left">
+            <img src="Ka1.jpg" alt="Image du film Karma" class="landscape" decoding="async" loading="lazy">
+        </div>
+        <div class="fiche-right">
+            <h3 id="film4-title">Karma</h3>
+            <div class="rating-genres">
+                <div class="stars">★3/5</div>
+                <div class="genres">
+                    <span class="genre-tag">Horreur</span>
+                    <span class="genre-tag">Mystère</span>
+                    <span class="genre-tag">Psychologique</span>
+                </div>
+            </div>
+            <p>Victime de harcèlement scolaire, une adolescente met fin à ses jours. Mais son esprit tourmenté ne trouve pas la paix et revient hanter son bourreau. À travers des phénomènes paranormaux terrifiants, elle le plonge dans une spirale de terreur jusqu'à sa propre destruction.</p>
+            <div class="button-group">
+                <a href="https://www.youtube.com/watch?v=p79g08Igceo" target="_blank" rel="noopener noreferrer" class="button">▶ Regarder</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="film5" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film5-title">
+    <div class="fiche-content landscape-layout">
+        <div class="fiche-left">
+            <img src="Ba1.jpg" alt="Image du trailer Batman" class="landscape" decoding="async" loading="lazy">
+        </div>
+        <div class="fiche-right">
+            <h3 id="film5-title"><span class="trailer-word">Trailer</span> <span class="batman-word">BATMAN</span></h3>
+            <div class="rating-genres">
+                <div class="genres">
+                    <span class="genre-tag">Action</span>
+                    <span class="genre-tag">Drame</span>
+                    <span class="genre-tag">Super-héros</span>
+                </div>
+            </div>
+            <p>Le nouveau trailer de Batman, sombre et intense. Découvrez les premières images de cette adaptation épique qui redéfinit l'univers du chevalier noir avec une approche moderne et spectaculaire.</p>
+            <div class="button-group">
+                <a href="https://www.youtube.com/watch?v=SzbqZNObLNU" target="_blank" rel="noopener noreferrer" class="button">▶ Regarder</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+</main>
+<footer class="footer" role="contentinfo">
+  <div class="footer-inner">
+     <div> Clipsou Streaming depuis 2019</div>
+     <div>
+        <span>Créateur : Mr Roxxor • Développeur : ARTH</span>
+        <a href="https://discord.gg/c7jwnDsW" target="_blank" rel="noopener noreferrer" class="discord-link" style="margin-left: 20px; border-radius: 15px; padding: 8px 16px;">💬 Discord</a>
+     </div>
+   </div>
+ </footer>
 </body>
 </html>
