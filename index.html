@@ -656,7 +656,7 @@ html {
     .logo span { overflow: hidden; text-overflow: ellipsis; color: #2B22EE; }
 
     /* Show and enable carousel on mobile */
-    .carousel-section { display: block; margin: 20px 0 40px; }
+    .carousel-section { display: block; margin: 0 0 40px; }
     .carousel-container { overflow: hidden; }
     .carousel-slides { animation: carousel-auto 25s infinite; will-change: transform; backface-visibility: hidden; transform: translate3d(0,0,0); }
     .carousel-slide { transform: translateZ(0); background-image: initial; }
@@ -678,6 +678,10 @@ html {
     .section { margin: 30px 0; }
     .section h2 { margin: 0 16px 16px; font-size: 24px; color: #2B22EE; }
     .grid { padding: 0 16px; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    /* Rails padding on mobile */
+    .rail { padding: 0 16px; }
+    /* Last section (Batman trailer): left-align and remove left padding so the card touches the left edge */
+    .section:last-of-type .rail { justify-content: start; padding-left: 0; }
 
     /* Ensure rating text (including /5) stays white on mobile */
     .rating-genres .stars,
