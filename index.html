@@ -176,9 +176,11 @@ nav[aria-label="Navigation principale"] {
 
 .search-link { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); }
 .search-link:hover { background: rgba(255,255,255,.2); }
+.home-link { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); }
+.home-link:hover { background: rgba(255,255,255,.2); }
 
 /* Desktop/tablet: show loupe.png before the text */
-.nav-links .search-link { display: inline-flex; align-items: center; gap: 8px; position: relative; }
+.nav-links .search-link, .nav-links .home-link { display: inline-flex; align-items: center; gap: 8px; position: relative; }
 .nav-links .search-link::before {
     content: '';
     display: inline-block;
@@ -188,6 +190,15 @@ nav[aria-label="Navigation principale"] {
     filter: none !important;
     opacity: 1 !important;
 }
+.nav-links .home-link::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background: url('Accueil.png') no-repeat center / contain;
+    filter: none !important;
+    opacity: 1 !important;
+ }
 
 /* Carousel */
 .carousel-section { margin: 0 0 60px; overflow: hidden; }
@@ -1238,19 +1249,9 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
          <span>Streaming</span>
      </div>
 
-    <div class="menu-links" role="navigation" aria-label="Liens">
-       <a href="#contenu">Accueil</a>
-       <a href="#top-rated">Mieux notés</a>
-       <a href="#genre-action">Action</a>
-       <a href="#genre-comedie">Comédie</a>
-       <a href="#genre-drame">Drame</a>
-       <a href="#genre-familial">Familial</a>
-       <a href="#genre-horreur">Horreur</a>
-   </div>
-
     <div class="nav-links">
-        <a href="search.html" class="search-link">Recherche</a>
-    </div>
+       <a href="search.html" class="search-link">Recherche</a>
+   </div>
 </nav>
 
 <h1 class="sr-only">Clipsou Streaming</h1>
