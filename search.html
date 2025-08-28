@@ -101,6 +101,27 @@ nav[aria-label="Navigation principale"] {
     white-space: nowrap;
 }
 
+/* Button-like links with icons */
+.search-link { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); }
+.search-link:hover { background: rgba(255,255,255,.2); }
+.home-link { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); }
+.home-link:hover { background: rgba(255,255,255,.2); }
+.nav-links .search-link, .nav-links .home-link { display: inline-flex; align-items: center; gap: 8px; position: relative; }
+.nav-links .search-link::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background: url('loupe.png') no-repeat center / contain;
+}
+.nav-links .home-link::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background: url('Accueil.png') no-repeat center / contain;
+}
+
 .back-btn { 
     background: #ff4444; 
 }
@@ -377,6 +398,21 @@ nav[aria-label="Navigation principale"] {
     scroll-behavior: auto !important;
   }
 }
+
+/* Global dark scrollbars (Firefox + WebKit) */
+html {
+  scrollbar-color: #615d5d #0a0a0a; /* thumb track */
+  scrollbar-width: thin; /* Firefox */
+}
+*::-webkit-scrollbar { width: 12px; height: 12px; }
+*::-webkit-scrollbar-track { background: #0a0a0a; }
+*::-webkit-scrollbar-thumb {
+  background: #000000;
+  border-radius: 8px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: #000000; }
 </style>
 </head>
 <body>
@@ -389,7 +425,7 @@ nav[aria-label="Navigation principale"] {
     </div>
 
     <div class="nav-links">
-        <a href="index.html" class="back-btn">← Retour</a>
+        <a href="index.html" class="home-link">Accueil</a>
     </div>
 </nav>
 
