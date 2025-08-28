@@ -824,6 +824,17 @@ html {
         scroll-margin: 0 !important;
         scroll-margin-inline-start: 0 !important;
     }
+    /* Hide generic back-to-top floating buttons on mobile */
+    a[href*="#top" i],
+    a[aria-label*="haut" i],
+    a[aria-label*="top" i],
+    .back-to-top, .scroll-to-top, .to-top, .gotop,
+    [class*="back-to-top" i], [class*="scroll-to-top" i], [class*="to-top" i],
+    [id*="back-to-top" i], [id*="scroll-to-top" i], [id*="to-top" i] {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
     /* Keep consistent alignment for all sections: no extra left padding on mobile */
 
     /* Ensure rating text (including /5) stays white on mobile */
