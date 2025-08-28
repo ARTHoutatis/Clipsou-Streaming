@@ -102,18 +102,9 @@ nav[aria-label="Navigation principale"] {
 }
 
 /* Button-like links with icons */
-.search-link { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); }
-.search-link:hover { background: rgba(255,255,255,.2); }
 .home-link { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); }
 .home-link:hover { background: rgba(255,255,255,.2); }
-.nav-links .search-link, .nav-links .home-link { display: inline-flex; align-items: center; gap: 8px; position: relative; }
-.nav-links .search-link::before {
-  content: '';
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  background: url('loupe.png') no-repeat center / contain;
-}
+.nav-links .home-link { display: inline-flex; align-items: center; gap: 8px; position: relative; }
 .nav-links .home-link::before {
   content: '';
   display: inline-block;
@@ -122,12 +113,7 @@ nav[aria-label="Navigation principale"] {
   background: url('Accueil.png') no-repeat center / contain;
 }
 
-.back-btn { 
-    background: #ff4444; 
-}
-.back-btn:hover { 
-    background: #cc0000; 
-}
+/* (removed legacy .back-btn styles) */
 
 /* Page de recherche */
 .search-container {
@@ -256,6 +242,8 @@ nav[aria-label="Navigation principale"] {
 /* Category per type (search uses data-type) */
 .card[data-type="film"] .card-info::before { content: 'Film'; }
 .card[data-type="série"] .card-info::before { content: 'Série'; }
+/* Label for trailers */
+.card[data-type="trailer"] .card-info::before { content: 'Trailer'; }
 
 a {
     text-decoration: none;
@@ -270,6 +258,22 @@ a {
     .logo { font-size: 20px; margin-right: 12px; }
     .logo img { width: 20px; height: 20px; }
     .logo span { color: #2B22EE; }
+    /* Accueil button: icon-only like index mobile search button */
+    .nav-links .home-link {
+        padding: 10px;
+        background: #434344 !important;
+        border-radius: 5px;
+        width: 44px;
+        height: 44px;
+        border: 1px solid #3a3a3b;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0; /* hide text visually, keep accessible name */
+        gap: 0;
+    }
+    .nav-links .home-link::before { width: 20px; height: 20px; }
     
     .search-container {
         padding: 0 16px;
@@ -302,14 +306,7 @@ a {
         gap: 15px;
     }
     
-    /* Back button smaller on mobile */
-    .nav-links a.back-btn {
-        padding: 8px 10px;
-        font-size: 13px;
-        border-radius: 8px;
-        /* Plus d'espace entre la flèche et le texte */
-        word-spacing: 8px;
-    }
+    /* (back button styles removed) */
 }
 
 /* Neutralize system dark mode: keep site appearance unchanged in dark mode */
@@ -369,15 +366,7 @@ nav[aria-label="Navigation principale"] {
 }
 
 /* Back button gradient */
-.nav-links a.back-btn {
-  background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
-  border: 1px solid rgba(255,255,255,0.14);
-  box-shadow: 0 10px 20px rgba(43,34,238,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
-}
-.nav-links a.back-btn:hover {
-  filter: brightness(0.95);
-  transform: translateY(-1px);
-}
+/* (back button gradient styles removed) */
 
 /* Focus-visible ring for accessibility */
 :where(a, button, input, [tabindex]):focus-visible {
@@ -498,7 +487,7 @@ const moviesDatabase = [
     {
         id: 'film5',
         title: 'Trailer Batman',
-        type: 'film',
+        type: 'trailer',
         genres: ['Action', 'Drame', 'Super-héros'],
         image: 'Ba.jpg'
     },
@@ -546,7 +535,13 @@ function displayResults(results) {
     }
     
     const resultsHTML = results.map(item => {
-        const typeAttr = item.type && item.type.toLowerCase().startsWith('s') ? 'série' : 'film';
+        // Map explicit types to data-type for styling
+        let typeAttr = 'film';
+        if (item.type) {
+            const t = item.type.toLowerCase();
+            if (t.startsWith('s')) typeAttr = 'série';
+            else if (t === 'trailer') typeAttr = 'trailer';
+        }
         const ratingAttr = (typeof item.rating !== 'undefined' && item.rating !== null) ? ` data-rating="${item.rating}"` : '';
         return `
         <div class="card" data-type="${typeAttr}">
