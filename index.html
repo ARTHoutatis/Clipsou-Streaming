@@ -1186,6 +1186,9 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
      .footer .footer-inner > div:nth-child(2) > span { float: left; }
      .footer .footer-inner > div:nth-child(2)::after { content: ""; display: table; clear: both; }
 
+     /* Prevent top row cards from tucking under sticky nav when hovering up */
+    #top-rated .rail { padding-top: 10px; }
+
      /* Focus-visible ring */
      :where(a, button, .quick-btn, input, [tabindex]):focus-visible {
          outline: 2px solid rgba(99,102,241,0.9);
