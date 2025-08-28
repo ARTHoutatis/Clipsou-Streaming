@@ -1015,7 +1015,22 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
 .rail::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
 .rail > .card { scroll-snap-align: start; }
 
-/* Card hover actions */
+  /* Global dark scrollbars (Firefox + WebKit) */
+  html {
+      scrollbar-color: #615d5d #0a0a0a; /* thumb track */
+      scrollbar-width: thin; /* Firefox */
+  }
+  *::-webkit-scrollbar { width: 12px; height: 12px; }
+  *::-webkit-scrollbar-track { background: #0a0a0a; }
+  *::-webkit-scrollbar-thumb {
+      background: #000000;
+      border-radius: 8px;
+      border: 3px solid transparent;
+      background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-thumb:hover { background: #000000; }
+
+  /* Card hover actions */
 .card { position: relative; }
 .card-actions {
     position: absolute;
