@@ -184,8 +184,9 @@ nav[aria-label="Navigation principale"] {
 }
 
 .card:hover { 
-    transform: translateY(-5px); 
+    transform: scale(1.03);
     border-color: #2B22EE;
+    box-shadow: none;
 }
 
 .card img { 
@@ -196,46 +197,51 @@ nav[aria-label="Navigation principale"] {
 }
 
 .card:hover img {
-    transform: scale(1.05);
+    transform: none;
 }
 
 .card-info { 
-    padding: 10px 10px; 
-    text-align: center; 
-}
-
-.card-info span { 
-    display: block; 
-    font-size: 16px; 
-    font-weight: 600; 
-    margin-bottom: 8px;
-    color: #fff;
-    line-height: 1.3;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    position: static; /* below the image, not overlay */
+    width: 100%;
+    padding: 8px 12px; 
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+    background: transparent;
+    text-align: left;
     white-space: nowrap;
 }
+
+/* Hide original title text like index; we render via pseudo elements */
+.card-info span { display: none; }
+
+/* Bottom label: category + rating (match index) */
+.card .card-info::before { 
+    content: 'Catégorie'; /* default, overridden below */
+    color: #fff; 
+    font-weight: 700; 
+    font-size: 16px;
+}
+/* Show rating only when provided via data-rating attribute */
+.card .card-info[data-rating]::after {
+    content: ' ⭐ ' attr(data-rating) '/5';
+    color: #fff; /* numbers in white; emoji star renders yellow */
+    font-weight: 700;
+    font-size: 16px;
+    opacity: 1;
+}
+
+/* Category per type (search uses data-type) */
+.card[data-type="film"] .card-info::before { content: 'Film'; }
+.card[data-type="série"] .card-info::before { content: 'Série'; }
 
 a {
     text-decoration: none;
     color: inherit;
 }
 
-/* Type badge (Film / Série) */
-.type-badge {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    padding: 4px 8px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: .2px;
-    border-radius: 6px;
-    background: rgba(0,0,0,0.6);
-    border: 1px solid rgba(255,255,255,0.2);
-    color: #fff;
-    z-index: 2;
-}
+/* Top-left badge removed to match index card layout */
 
 /* Mobile styles */
 @media (max-width: 768px) {
@@ -293,6 +299,7 @@ a {
 /* ===== Visual Enhancements (Search) ===== */
 /* CSS variables for subtle theming */
 :root {
+  /* Original dark blues */
   --bg-1: #0b1117;
   --bg-2: #0e141b;
   --brand-1: #2B22EE;
@@ -408,6 +415,7 @@ const moviesDatabase = [
         id: 'film1',
         title: 'La vie au petit âge',
         type: 'film',
+        rating: 3.5,
         genres: ['Comédie', 'Familial', 'Aventure'],
         image: 'La.jpeg'
     },
@@ -415,6 +423,7 @@ const moviesDatabase = [
         id: 'film2',
         title: 'Dédoublement',
         type: 'film',
+        rating: 4.5,
         genres: ['Thriller', 'Comédie', 'Action'],
         image: 'Dé.jpg'
     },
@@ -422,6 +431,7 @@ const moviesDatabase = [
         id: 'film3',
         title: 'Jackson Goup',
         type: 'film',
+        rating: 3,
         genres: ['Aventure', 'Fantastique', 'Comédie'],
         image: 'Ja.jpg'
     },
@@ -429,6 +439,7 @@ const moviesDatabase = [
         id: 'film4',
         title: 'Karma',
         type: 'film',
+        rating: 3,
         genres: ['Horreur', 'Mystère', 'Psychologique'],
         image: 'Ka.jpeg'
     },
@@ -436,6 +447,7 @@ const moviesDatabase = [
         id: 'serie1',
         title: 'Alex',
         type: 'série',
+        rating: 4,
         genres: ['Action', 'Comédie', 'Drame'],
         image: 'Al.jpg'
     },
@@ -443,6 +455,7 @@ const moviesDatabase = [
         id: 'serie2',
         title: 'Lawless Legend',
         type: 'série',
+        rating: 3.5,
         genres: ['Western', 'Comédie', 'Action'],
         image: 'Law.jpg'
     },
@@ -452,6 +465,14 @@ const moviesDatabase = [
         type: 'film',
         genres: ['Action', 'Drame', 'Super-héros'],
         image: 'Ba.jpg'
+    },
+    {
+        id: 'film6',
+        title: 'Urbanos City',
+        type: 'film',
+        rating: 3,
+        genres: ['Comédie', 'Familial', 'Enfants'],
+        image: 'Ur.jpg'
     }
 ];
 
@@ -489,13 +510,13 @@ function displayResults(results) {
     }
     
     const resultsHTML = results.map(item => {
-        const typeLabel = item.type && item.type.toLowerCase().startsWith('s') ? 'Série' : 'Film';
+        const typeAttr = item.type && item.type.toLowerCase().startsWith('s') ? 'série' : 'film';
+        const ratingAttr = (typeof item.rating !== 'undefined' && item.rating !== null) ? ` data-rating="${item.rating}"` : '';
         return `
-        <div class="card">
-            <span class="type-badge">${typeLabel}</span>
+        <div class="card" data-type="${typeAttr}">
             <a href="index.html#${item.id}">
                 <img src="${item.image}" alt="Affiche de ${item.title}" loading="lazy">
-                <div class="card-info">
+                <div class="card-info"${ratingAttr}>
                     <span>${item.title}</span>
                 </div>
             </a>
