@@ -736,6 +736,29 @@ html {
     .carousel-content { padding: 16px; }
     .carousel-title { font-size: 1.4rem; }
     .carousel-description { display: none; }
+
+    /* Footer: stack actions under text on mobile (one column) */
+    .footer .footer-inner {
+        display: grid;
+        grid-template-columns: 1fr;
+        row-gap: 10px;
+        align-items: start;
+    }
+    .footer .footer-actions {
+        justify-self: stretch;
+        text-align: left;
+        display: flex;
+        flex-direction: column; /* force buttons below each other */
+        gap: 8px;
+        width: 100%;
+        margin-left: 0 !important;
+    }
+    .footer .footer-actions .button {
+        width: 100%; /* full width buttons on mobile */
+        margin-left: 0 !important;
+    }
+    /* Neutralize desktop float that could affect footer text on mobile */
+    .footer .footer-inner > div:nth-child(2) > span { float: none; }
     .carousel-genres { gap: 8px; margin: 10px 0 12px; }
     .carousel-genre-tag { padding: 4px 10px; font-size: 0.75rem; }
     .carousel-indicators { bottom: calc(4px + env(safe-area-inset-bottom)); gap: 8px; pointer-events: none; }
@@ -1588,8 +1611,14 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
 </main>
   <footer class="footer" role="contentinfo">
   <div class="footer-inner">
-     <div> Clipsou Streaming depuis 2019 • <span>Créateur : Mr Roxxor • Développeur : ARTH</span></div>
-     <div class="footer-actions">
+    <div>
+      Clipsou Streaming depuis 2019<br>
+      <span>Notre équipe</span><br>
+      <span>FERRIS : vice president</span><br>
+      <span>MR ROXXOR : créateur du site</span><br>
+      <span>ARTH : animateur 3D et développeur</span>
+    </div>
+    <div class="footer-actions">
         <a href="#submit-film" class="button" style="margin-left: 12px; border-radius: 8px; padding: 10px 16px;">🎬 ajouter votre film</a>
         <a href="#partenariat" class="button partner-link" style="margin-left: 12px; border-radius: 8px; padding: 10px 16px;">🤝 partenariat</a>
         <a href="https://discord.gg/9ekddx9Hqs" target="_blank" rel="noopener noreferrer" class="button discord-btn" aria-label="Rejoindre notre Discord" style="margin-left: 12px; border-radius: 8px; padding: 10px 16px;">
