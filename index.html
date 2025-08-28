@@ -363,21 +363,41 @@ nav[aria-label="Navigation principale"] {
 }
 
 .card-info { 
-    padding: 10px 10px; 
-    text-align: center; 
-}
-
-.card-info span { 
-    display: block; 
-    font-size: 16px; 
-    font-weight: 600; 
-    margin-bottom: 8px;
-    color: #fff;
-    line-height: 1.3;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    position: static; /* below the image, not overlay */
+    width: 100%;
+    padding: 6px 10px; 
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 28px;
+    background: transparent;
+    text-align: left;
     white-space: nowrap;
 }
+
+/* Remove original title text area spacing; we render via pseudo elements */
+.card-info span { display: none; }
+
+/* Bottom label: category + rating */
+.card .card-info::before { 
+    content: 'Catégorie'; /* default, overridden below */
+    color: #fff; 
+    font-weight: 700; 
+    font-size: 13px;
+}
+/* Show rating only when provided via data-rating attribute */
+.card .card-info[data-rating]::after {
+    content: ' ⭐ ' attr(data-rating) '/5';
+    color: #fff; /* numbers in white; emoji star renders yellow */
+    font-weight: 700;
+    font-size: 12px;
+    opacity: 1;
+}
+
+/* Category per section/type */
+#films .card .card-info::before { content: 'Film'; }
+#series .card .card-info::before { content: 'Série'; }
+.card.ba .card-info::before { content: 'Trailer'; }
 
 .stars { 
     color: #2B22EE; 
@@ -1015,25 +1035,6 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     font-size: 12px;
     font-weight: 700;
     letter-spacing: .2px;
-    border-radius: 6px;
-    background: rgba(0,0,0,0.6);
-    border: 1px solid rgba(255,255,255,0.2);
-    color: #fff;
-}
-#films .card::after { content: 'Film'; }
-#series .card::after { content: 'Série'; }
-.card.ba::after { content: 'Trailer'; }
-#films .card.ba::after { content: 'Trailer'; }
-#series .card.ba::after { content: 'Trailer'; }
-.card-actions .actions {
-    display: inline-flex;
-    gap: 10px;
-}
-.carousel-arrow {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
     height: 48px;
     border-radius: 50%;
     background: rgba(0,0,0,0.55);
@@ -1193,7 +1194,20 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
      }
 
      /* Smoother transitions */
-     * { transition: background-color .25s ease, color .25s ease, border-color .25s ease, transform .25s ease, box-shadow .25s ease; }
+    * { transition: background-color .25s ease, color .25s ease, border-color .25s ease, transform .25s ease, box-shadow .25s ease; }
+
+    /* Category label via data-type attribute for new genre sections */
+    .card .card-info::before { margin-right: 8px; }
+    .card .card-info[data-type="film"]::before { content: "Film"; }
+    .card .card-info[data-type="serie"]::before { content: "Série"; }
+    .card .card-info[data-type="trailer"]::before { content: "Trailer"; }
+
+    /* Improve legibility for 'Trailer' in film5 title: keep lowercase and use a font with distinct 'i' dot */
+    #film5-title .trailer-word {
+        text-transform: none !important;
+        font-family: Verdana, Tahoma, "Segoe UI", Arial, sans-serif;
+        letter-spacing: 0.3px;
+    }
 
  </style>
  </head>
@@ -1207,10 +1221,14 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
      </div>
 
     <div class="menu-links" role="navigation" aria-label="Liens">
-        <a href="#contenu">Accueil</a>
-        <a href="#films">Films</a>
-        <a href="#series">Séries</a>
-    </div>
+       <a href="#contenu">Accueil</a>
+       <a href="#top-rated">Mieux notés</a>
+       <a href="#genre-action">Action</a>
+       <a href="#genre-comedie">Comédie</a>
+       <a href="#genre-drame">Drame</a>
+       <a href="#genre-familial">Familial</a>
+       <a href="#genre-horreur">Horreur</a>
+   </div>
 
     <div class="nav-links">
         <a href="search.html" class="search-link">Recherche</a>
@@ -1326,59 +1344,56 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     </div>
 </div>
 
-<div class="section" id="films">
-    <h2>FILMS</h2>
+<!-- NEW: Top Rated -->
+<div class="section" id="top-rated">
+    <h2>⭐ Mieux notés</h2>
     <div class="rail">
+        <!-- 1) Dédoublement (4.5) -->
+        <div class="card">
+            <a href="#film2">
+                <img src="Dé.jpg" alt="Affiche du film Dédoublement" loading="lazy" decoding="async">
+                <div class="card-info" data-type="film" data-rating="4.5">
+                    <span>Dédoublement</span>
+                </div>
+            </a>
+        </div>
+        <!-- 2) Alex (4) -->
+        <div class="card">
+            <a href="#serie1">
+                <img src="Al.jpg" alt="Affiche de la série Alex" loading="lazy" decoding="async">
+                <div class="card-info" data-type="serie" data-rating="4">
+                    <span>Alex</span>
+                </div>
+            </a>
+        </div>
+        <!-- 3) La vie au petit âge (3.5) -->
         <div class="card">
             <a href="#film1">
                 <img src="La.jpeg" alt="Affiche du film La vie au petit âge" loading="lazy" decoding="async">
-                <div class="card-info">
+                <div class="card-info" data-type="film" data-rating="3.5">
                     <span>La vie au petit age</span>
                 </div>
             </a>
         </div>
+    </div>
+    </div>
+
+<!-- NEW: Genre - Action -->
+<div class="section" id="genre-action">
+    <h2>🔥 Action</h2>
+    <div class="rail">
         <div class="card">
             <a href="#film2">
                 <img src="Dé.jpg" alt="Affiche du film Dédoublement" loading="lazy" decoding="async">
-                <div class="card-info">
+                <div class="card-info" data-type="film" data-rating="4.5">
                     <span>Dédoublement</span>
                 </div>
             </a>
         </div>
         <div class="card">
-            <a href="#film3">
-                <img src="Ja.jpg" alt="Affiche du film Jackson Goup" loading="lazy" decoding="async">
-                <div class="card-info">
-                    <span>Jackson Goup</span>
-                </div>
-            </a>
-        </div>
-        <div class="card">
-            <a href="#film4">
-                <img src="Ka.jpeg" alt="Affiche du film Karma" loading="lazy" decoding="async">
-                <div class="card-info">
-                    <span>Karma</span>
-                </div>
-            </a>
-        </div>
-        <div class="card">
-            <a href="#film6">
-                <img src="Ur.jpg" alt="Affiche du film Urbanos City" loading="lazy" decoding="async">
-                <div class="card-info">
-                    <span>Urbanos City</span>
-                </div>
-            </a>
-        </div>
-    </div>
-</div>
-
-<div class="section" id="series">
-    <h2>SÉRIES</h2>
-    <div class="rail">
-        <div class="card">
             <a href="#serie1">
                 <img src="Al.jpg" alt="Affiche de la série Alex" loading="lazy" decoding="async">
-                <div class="card-info">
+                <div class="card-info" data-type="serie" data-rating="4">
                     <span>Alex</span>
                 </div>
             </a>
@@ -1386,27 +1401,137 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
         <div class="card">
             <a href="#serie2">
                 <img src="Law.jpg" alt="Affiche de la série Lawless Legend" loading="lazy" decoding="async">
-                <div class="card-info">
+                <div class="card-info" data-type="serie" data-rating="3.5">
                     <span>Lawless Legend</span>
                 </div>
             </a>
         </div>
-    </div>
-</div>
-
-<div class="section">
-    <h2>PAS ENCORE SORTI</h2>
-    <div class="rail">
         <div class="card ba">
             <a href="#film5">
                 <img src="Ba.jpg" alt="Affiche du trailer Batman" loading="lazy" decoding="async">
-                <div class="card-info">
+                <div class="card-info" data-type="trailer">
                     <span>Trailer Batman</span>
                 </div>
             </a>
         </div>
     </div>
 </div>
+
+<!-- NEW: Genre - Comédie -->
+<div class="section" id="genre-comedie">
+    <h2>😂 Comédie</h2>
+    <div class="rail">
+        <div class="card">
+            <a href="#film1">
+                <img src="La.jpeg" alt="Affiche du film La vie au petit âge" loading="lazy" decoding="async">
+                <div class="card-info" data-type="film" data-rating="3.5">
+                    <span>La vie au petit age</span>
+                </div>
+            </a>
+        </div>
+        <div class="card">
+            <a href="#film2">
+                <img src="Dé.jpg" alt="Affiche du film Dédoublement" loading="lazy" decoding="async">
+                <div class="card-info" data-type="film" data-rating="4.5">
+                    <span>Dédoublement</span>
+                </div>
+            </a>
+        </div>
+        <div class="card">
+            <a href="#film3">
+                <img src="Ja.jpg" alt="Affiche du film Jackson Goup" loading="lazy" decoding="async">
+                <div class="card-info" data-type="film" data-rating="3">
+                    <span>Jackson Goup</span>
+                </div>
+            </a>
+        </div>
+        <div class="card">
+            <a href="#serie1">
+                <img src="Al.jpg" alt="Affiche de la série Alex" loading="lazy" decoding="async">
+                <div class="card-info" data-type="serie" data-rating="4">
+                    <span>Alex</span>
+                </div>
+            </a>
+        </div>
+        <div class="card">
+            <a href="#serie2">
+                <img src="Law.jpg" alt="Affiche de la série Lawless Legend" loading="lazy" decoding="async">
+                <div class="card-info" data-type="serie" data-rating="3.5">
+                    <span>Lawless Legend</span>
+                </div>
+            </a>
+        </div>
+        <div class="card">
+            <a href="#film6">
+                <img src="Ur.jpg" alt="Affiche du film Urbanos City" loading="lazy" decoding="async">
+                <div class="card-info" data-type="film" data-rating="3">
+                    <span>Urbanos City</span>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- NEW: Genre - Drame -->
+<div class="section" id="genre-drame">
+    <h2>😢 Drame</h2>
+    <div class="rail">
+        <div class="card">
+            <a href="#serie1">
+                <img src="Al.jpg" alt="Affiche de la série Alex" loading="lazy" decoding="async">
+                <div class="card-info" data-type="serie" data-rating="4">
+                    <span>Alex</span>
+                </div>
+            </a>
+        </div>
+        <div class="card ba">
+            <a href="#film5">
+                <img src="Ba.jpg" alt="Affiche du trailer Batman" loading="lazy" decoding="async">
+                <div class="card-info" data-type="trailer">
+                    <span>Trailer Batman</span>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- NEW: Genre - Familial -->
+<div class="section" id="genre-familial">
+    <h2>👨‍👩‍👧 Familial</h2>
+    <div class="rail">
+        <div class="card">
+            <a href="#film1">
+                <img src="La.jpeg" alt="Affiche du film La vie au petit âge" loading="lazy" decoding="async">
+                <div class="card-info" data-type="film" data-rating="3.5">
+                    <span>La vie au petit age</span>
+                </div>
+            </a>
+        </div>
+        <div class="card">
+            <a href="#film6">
+                <img src="Ur.jpg" alt="Affiche du film Urbanos City" loading="lazy" decoding="async">
+                <div class="card-info" data-type="film" data-rating="3">
+                    <span>Urbanos City</span>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- NEW: Genre - Horreur (moved to bottom) -->
+<div class="section" id="genre-horreur">
+    <h2>👻 Horreur</h2>
+    <div class="rail">
+        <div class="card">
+            <a href="#film4">
+                <img src="Ka.jpeg" alt="Affiche du film Karma" loading="lazy" decoding="async">
+                <div class="card-info" data-type="film" data-rating="3">
+                    <span>Karma</span>
+                </div>
+            </a>
+        </div>
+    </div>
+    </div>
 
 <!-- POPUPS -->
 
