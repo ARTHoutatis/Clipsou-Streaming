@@ -812,9 +812,19 @@ html {
     .section h2 { margin: 0 16px 16px; font-size: 24px; color: #2B22EE; }
     .grid { padding: 0 16px; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
     /* Rails padding on mobile */
-    .rail { padding: 0 16px; }
-    /* Last section (Batman trailer): left-align and remove left padding so the card touches the left edge */
-    .section:last-of-type .rail { justify-content: start; padding-left: 0; }
+    .rail { 
+        padding: 0; 
+        scroll-snap-type: none !important;   /* force disable snapping on mobile */
+        scroll-padding-left: 0 !important;   /* ensure first card aligns exactly at left */
+        scroll-padding-inline-start: 0 !important;
+    }
+    /* Also disable snap alignment on children for mobile */
+    .rail > .card, .rail > * {
+        scroll-snap-align: none !important;
+        scroll-margin: 0 !important;
+        scroll-margin-inline-start: 0 !important;
+    }
+    /* Keep consistent alignment for all sections: no extra left padding on mobile */
 
     /* Ensure rating text (including /5) stays white on mobile */
     .rating-genres .stars,
@@ -1007,19 +1017,27 @@ html {
 nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
 
 /* Rails (rows like Netflix) */
+/* Base layout for all viewports (keeps cards correctly sized on mobile) */
 .rail {
     display: grid;
     grid-auto-flow: column;
     grid-auto-columns: clamp(180px, 18vw, 240px);
     gap: 18px;
-    padding: 0 40px;
     overflow-x: auto;
     overscroll-behavior-x: contain;
-    scroll-snap-type: inline mandatory;
+}
+/* Desktop-only: add side paddings + enable snapping */
+@media (min-width: 769px) {
+  .rail {
+      padding: 0 40px;
+      scroll-snap-type: inline mandatory; /* enable snapping on desktop only */
+  }
 }
 .rail::-webkit-scrollbar { height: 10px; }
 .rail::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
-.rail > .card { scroll-snap-align: start; }
+@media (min-width: 769px) {
+  .rail > .card { scroll-snap-align: start; }
+}
 
   /* Global dark scrollbars (Firefox + WebKit) */
   html {
@@ -1037,12 +1055,13 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
   *::-webkit-scrollbar-thumb:hover { background: #000000; }
 
   /* Card hover actions */
-.card { position: relative; }
-.card-actions {
+  .card { position: relative; }
+  .card-actions {
     position: absolute;
     inset: 0;
     display: grid;
     place-items: center;
+{{ ... }}
     background: linear-gradient(180deg, rgba(0,0,0,0) 20%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.75) 100%);
     opacity: 0;
     transition: opacity .25s ease;
@@ -1081,20 +1100,22 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     /* Ensure any yt link in nav stays hidden if present */
     nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
 
-    /* Rails (rows like Netflix) */
-    .rail {
-        display: grid;
-        grid-auto-flow: column;
-        grid-auto-columns: clamp(180px, 18vw, 240px);
-        gap: 18px;
-        padding: 0 40px;
-        overflow-x: auto;
-        overscroll-behavior-x: contain;
-        scroll-snap-type: inline mandatory;
+    /* Rails (rows like Netflix) - desktop only duplication */
+    @media (min-width: 769px) {
+        .rail {
+            display: grid;
+            grid-auto-flow: column;
+            grid-auto-columns: clamp(180px, 18vw, 240px);
+            gap: 18px;
+            padding: 0 40px;
+            overflow-x: auto;
+            overscroll-behavior-x: contain;
+            scroll-snap-type: inline mandatory; /* desktop only */
+        }
+        .rail::-webkit-scrollbar { height: 10px; }
+        .rail::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
+        .rail > .card { scroll-snap-align: start; }
     }
-    .rail::-webkit-scrollbar { height: 10px; }
-    .rail::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
-    .rail > .card { scroll-snap-align: start; }
 
     /* Card hover actions */
     .card { position: relative; }
@@ -1791,10 +1812,8 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
   <div class="footer-inner">
     <div>
       Clipsou Streaming depuis 2019<br><br>
-      <span>Notre équipe</span><br>
-      <span>FERRIS : vice president</span><br>
-      <span>MR ROXXOR : créateur du site</span><br>
-      <span>ARTH : animateur 3D et développeur</span>
+      <span>Créateur : Mroxxor</span><br>
+      <span>Développeur : ARTH</span>
     </div>
     <div class="footer-actions">
         <a href="#submit-film" class="button" style="margin-left: 12px; border-radius: 8px; padding: 10px 16px;">🎬 ajouter votre film</a>
