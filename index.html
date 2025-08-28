@@ -176,11 +176,9 @@ nav[aria-label="Navigation principale"] {
 
 .search-link { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); }
 .search-link:hover { background: rgba(255,255,255,.2); }
-.home-link { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); }
-.home-link:hover { background: rgba(255,255,255,.2); }
 
 /* Desktop/tablet: show loupe.png before the text */
-.nav-links .search-link, .nav-links .home-link { display: inline-flex; align-items: center; gap: 8px; position: relative; }
+.nav-links .search-link { display: inline-flex; align-items: center; gap: 8px; position: relative; }
 .nav-links .search-link::before {
     content: '';
     display: inline-block;
@@ -190,15 +188,6 @@ nav[aria-label="Navigation principale"] {
     filter: none !important;
     opacity: 1 !important;
 }
-.nav-links .home-link::before {
-    content: '';
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    background: url('Accueil.png') no-repeat center / contain;
-    filter: none !important;
-    opacity: 1 !important;
- }
 
 /* Carousel */
 .carousel-section { margin: 0 0 60px; overflow: hidden; }
@@ -992,10 +981,6 @@ html {
 .footer a:hover { color: #fff; }
 
 /* Header extras (menu, search, avatar) */
-.menu-links { display: none; gap: 16px; align-items: center; margin-left: 24px; }
-.menu-links a { color: #c8d4e0; text-decoration: none; font-weight: 600; padding: 8px 12px; border-radius: 18px; }
-.menu-links a:hover { background: rgba(255,255,255,0.08); color: #fff; }
-
 .search { display: none; }
 
 /* Small Discord button to replace avatar */
@@ -1003,7 +988,6 @@ html {
 .discord-mini:hover { filter: brightness(0.95); }
 /* Desktop: show full nav (links + search), keep only one external button */
 @media (min-width: 900px) {
-  .menu-links { display: flex; }
   .nav-links { display: flex; }
   .search { display: none; }
   .discord-mini { display: none; }
@@ -1795,7 +1779,7 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
   <footer class="footer" role="contentinfo">
   <div class="footer-inner">
     <div>
-      Clipsou Streaming depuis 2019<br>
+      Clipsou Streaming depuis 2019<br><br>
       <span>Notre équipe</span><br>
       <span>FERRIS : vice president</span><br>
       <span>MR ROXXOR : créateur du site</span><br>
