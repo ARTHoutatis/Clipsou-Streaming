@@ -791,7 +791,18 @@ html {
         gap: 8px; 
         pointer-events: auto; 
     }
-    .carousel-arrow { width: 48px; height: 48px; -webkit-tap-highlight-color: transparent; }
+    .carousel-arrow { 
+        width: 48px; 
+        height: 48px; 
+        display: inline-flex; 
+        align-items: center; 
+        justify-content: center; 
+        background: rgba(0, 0, 0, 0.5); /* fond translucide noir */
+        color: #ffffff; /* flèches blanches via currentColor */
+        border-radius: 5px; 
+        border: 1px solid rgba(255,255,255,0.18);
+        -webkit-tap-highlight-color: transparent; 
+    }
     /* Remove blue outline on mobile tap/click */
     .carousel-arrow:focus,
     .carousel-arrow:focus-visible,
