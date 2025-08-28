@@ -761,8 +761,21 @@ html {
     .footer .footer-inner > div:nth-child(2) > span { float: none; }
     .carousel-genres { gap: 8px; margin: 10px 0 12px; }
     .carousel-genre-tag { padding: 4px 10px; font-size: 0.75rem; }
-    .carousel-indicators { bottom: calc(4px + env(safe-area-inset-bottom)); gap: 8px; pointer-events: none; }
-    .carousel-indicator { width: 8px; height: 8px; }
+    /* Replace dots by arrows on mobile */
+    .carousel-indicators { display: none !important; }
+    .carousel-arrows { 
+        display: inline-flex; 
+        position: absolute; 
+        bottom: calc(8px + env(safe-area-inset-bottom)); 
+        right: 12px; 
+        gap: 8px; 
+        pointer-events: auto; 
+    }
+    .carousel-arrow { width: 48px; height: 48px; -webkit-tap-highlight-color: transparent; }
+    /* Remove blue outline on mobile tap/click */
+    .carousel-arrow:focus,
+    .carousel-arrow:focus-visible,
+    .carousel-arrow:active { outline: none !important; box-shadow: none !important; }
 
     .section { margin: 30px 0; }
     .section h2 { margin: 0 16px 16px; font-size: 24px; color: #2B22EE; }
@@ -1016,6 +1029,23 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     display: inline-flex;
     gap: 10px;
 }
+.carousel-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+    cursor: pointer;
+    transition: background .2s ease, transform .2s ease;
+    user-select: none;
+}
+.carousel-arrow:focus { outline: 2px solid #2B22EE; outline-offset: 2px; }
+.carousel-arrow:hover { background: rgba(0,0,0,0.7); transform: translateY(-1px); }
+.carousel-arrow svg { width: 24px; height: 24px; display: block; }
 .quick-btn {
     display: inline-flex;
     align-items: center;
@@ -1283,6 +1313,15 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
             <div class="carousel-indicator" role="button" tabindex="0" aria-label="Aller à la diapositive 3" data-index="2"></div>
             <div class="carousel-indicator" role="button" tabindex="0" aria-label="Aller à la diapositive 4" data-index="3"></div>
             <div class="carousel-indicator" role="button" tabindex="0" aria-label="Aller à la diapositive 5" data-index="4"></div>
+        </div>
+        <!-- Flèches (mobile uniquement, masquées sur desktop via CSS) -->
+        <div class="carousel-arrows" aria-label="Contrôles du carrousel" role="group">
+            <button class="carousel-arrow prev" aria-label="Diapositive précédente" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            </button>
+            <button class="carousel-arrow next" aria-label="Diapositive suivante" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+            </button>
         </div>
     </div>
 </div>
@@ -1704,6 +1743,11 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
           goToSlide(next);
         }
 
+        function prevSlide() {
+          const prev = (currentIndex - 1 + slideCount) % slideCount;
+          goToSlide(prev);
+        }
+
         indicators.forEach((dot) => {
           dot.addEventListener('click', () => {
             const idx = parseInt(dot.getAttribute('data-index') || '0', 10);
@@ -1719,6 +1763,22 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
             }
           });
         });
+
+        // Mobile arrows
+        const prevBtn = carousel.querySelector('.carousel-arrow.prev');
+        const nextBtn = carousel.querySelector('.carousel-arrow.next');
+        if (prevBtn) {
+          prevBtn.addEventListener('click', () => {
+            stopAuto();
+            prevSlide();
+          });
+        }
+        if (nextBtn) {
+          nextBtn.addEventListener('click', () => {
+            stopAuto();
+            nextSlide();
+          });
+        }
 
         // Initialize: disable CSS keyframes and start JS autoplay from slide 0
         slidesTrack.classList.add('manual');
