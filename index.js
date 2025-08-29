@@ -150,5 +150,178 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Auto-build sections from popups so nothing depends on pre-existing cards
+  (function buildFromPopups() {
+    // Utility: slugify for ids
+    const slug = (name) => (name || '')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+    // Collect items from popups
+    const items = [];
+    document.querySelectorAll('.fiche-popup[id]').forEach(popup => {
+      const id = popup.getAttribute('id');
+      // Skip non-content popups like partenariat/submit
+      if (!/^film\d+|^serie\d+/i.test(id)) return;
+      const titleEl = popup.querySelector('h3');
+      const title = titleEl ? titleEl.textContent.trim().replace(/\s+/g, ' ') : '';
+      const imgEl = popup.querySelector('.fiche-left img');
+      const image = imgEl ? imgEl.getAttribute('src') : '';
+      const genreEls = popup.querySelectorAll('.rating-genres .genres .genre-tag');
+      const genres = Array.from(genreEls).map(g => g.textContent.trim()).filter(Boolean);
+      const starsText = (popup.querySelector('.rating-genres .stars') || {}).textContent || '';
+      const m = starsText.match(/([0-9]+(?:[\.,][0-9]+)?)/);
+      const rating = m ? parseFloat(m[1].replace(',', '.')) : undefined;
+      let type = 'film';
+      if (/^serie/i.test(id)) type = 'série';
+      else if (/trailer/i.test(title)) type = 'trailer';
+      items.push({ id, title, image, genres, rating, type });
+    });
+
+    // Helper: derive thumbnail from popup image (remove trailing digits and prefer .jpg/.jpeg/.png)
+    function deriveThumbnail(src) {
+      if (!src) return '';
+      try {
+        const m = src.match(/^(.*?)(\d+)?\.(jpg|jpeg|png|webp)$/i);
+        if (!m) return src;
+        const base = m[1];
+        const originalExt = m[3].toLowerCase();
+        const candidates = [
+          base + '.jpg',
+          base + '.jpeg',
+          base + '.png',
+          // fallback to original without digit if it already had none
+          base + '.' + originalExt
+        ];
+        // Remove duplicates while preserving order
+        return candidates.filter((v, i, a) => a.indexOf(v) === i);
+      } catch { return [src]; }
+    }
+
+    // Helper to create a card node from item
+    function createCard(item) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      const a = document.createElement('a');
+      a.setAttribute('href', `#${item.id}`);
+      const img = document.createElement('img');
+      const thumbs = deriveThumbnail(item.image);
+      let idx = 0;
+      img.src = (thumbs && thumbs[0]) || item.image || 'apercu.png';
+      img.onerror = function () {
+        if (idx < thumbs.length - 1) {
+          idx += 1;
+          this.src = thumbs[idx];
+        } else if (this.src !== 'apercu.png') {
+          this.src = 'apercu.png';
+        }
+      };
+      img.setAttribute('alt', `Affiche de ${item.title}`);
+      img.setAttribute('loading', 'lazy');
+      img.setAttribute('decoding', 'async');
+      const info = document.createElement('div');
+      info.className = 'card-info';
+      info.setAttribute('data-type', item.type || 'film');
+      if (typeof item.rating !== 'undefined') info.setAttribute('data-rating', String(item.rating));
+      a.appendChild(img);
+      a.appendChild(info);
+      card.appendChild(a);
+      return card;
+    }
+
+    // Populate Top Rated
+    const topRated = document.querySelector('#top-rated .rail');
+    if (topRated) {
+      const existing = new Set(Array.from(topRated.querySelectorAll('.card a')).map(a => a.getAttribute('href') || ''));
+      items.filter(it => typeof it.rating === 'number' && it.rating >= 3.5)
+        .forEach(it => {
+          const href = `#${it.id}`;
+          if (existing.has(href)) return;
+          topRated.appendChild(createCard(it));
+          existing.add(href);
+        });
+    }
+
+    // Group by genre and ensure sections
+    const firstPopup = document.querySelector('.fiche-popup');
+    const byGenre = new Map();
+    items.forEach(it => {
+      (it.genres || []).forEach(g => {
+        if (!g) return;
+        const key = g.trim();
+        if (!byGenre.has(key)) byGenre.set(key, []);
+        byGenre.get(key).push(it);
+      });
+    });
+
+    // Emoji mapping for genre headers
+    function genreEmoji(name) {
+      const g = (name || '').toLowerCase();
+      const map = {
+        'action': '🔥',
+        'comédie': '😂',
+        'comedie': '😂',
+        'drame': '😢',
+        'familial': '👨‍👩‍👧',
+        'horreur': '👻',
+        'aventure': '🗺️',
+        'thriller': '🗡️',
+        'fantastique': '✨',
+        'western': '🤠',
+        'mystère': '🕵️',
+        'mystere': '🕵️',
+        'ambience': '🌫️',
+        'enfants': '🧒',
+        'super-héros': '🦸',
+        'super heros': '🦸',
+        'psychologique': '🧠'
+      };
+      return map[g] || '🎞️';
+    }
+
+    byGenre.forEach((list, genreName) => {
+      const id = 'genre-' + slug(genreName);
+      // If only one item for this genre, remove existing section if present and skip creation
+      if (!list || list.length <= 1) {
+        const existingSection = document.getElementById(id);
+        if (existingSection) existingSection.remove();
+        return;
+      }
+
+      let section = document.getElementById(id);
+      if (!section) {
+        section = document.createElement('div');
+        section.className = 'section';
+        section.id = id;
+        const h2 = document.createElement('h2');
+        h2.textContent = `${genreEmoji(genreName)} ${genreName}`;
+        const rail = document.createElement('div');
+        rail.className = 'rail';
+        section.appendChild(h2);
+        section.appendChild(rail);
+        if (firstPopup && firstPopup.parentNode) firstPopup.parentNode.insertBefore(section, firstPopup);
+        else (document.querySelector('main') || document.body).appendChild(section);
+      }
+
+      const rail = section.querySelector('.rail');
+      // Ensure existing header has emoji
+      const header = section.querySelector('h2');
+      if (header) header.textContent = `${genreEmoji(genreName)} ${genreName}`;
+      const existing = new Set(Array.from(rail.querySelectorAll('.card a')).map(a => a.getAttribute('href') || ''));
+      list.forEach(it => {
+        const href = `#${it.id}`;
+        if (existing.has(href)) return;
+        rail.appendChild(createCard(it));
+        existing.add(href);
+      });
+
+      // After population, if the section ends up with <= 1 card, remove it
+      const cardCount = rail.querySelectorAll('.card').length;
+      if (cardCount <= 1) {
+        section.remove();
+      }
+    });
+  })();
+
   // removed scroll buttons logic
 });
