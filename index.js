@@ -298,6 +298,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     byGenre.forEach((list, genreName) => {
       const id = 'genre-' + slug(genreName);
+      // TEMP: Skip 'Mystère' section to avoid duplicates with Backrooms/Karma
+      const lowerName = (genreName || '').toLowerCase();
+      if (lowerName === 'mystère' || lowerName === 'mystere') {
+        const existing = document.getElementById(id);
+        if (existing) existing.remove();
+        return; // do not build this genre section
+      }
       // If only one item for this genre, remove existing section if present and skip creation
       if (!list || list.length <= 1) {
         const existingSection = document.getElementById(id);
