@@ -47,7 +47,9 @@ body::before {
 
 /* Navigation */
 nav[aria-label="Navigation principale"] {
-    background: #000;
+    background: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0.65));
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
     padding: 15px 40px;
     display: flex;
     justify-content: space-between;
@@ -274,6 +276,7 @@ nav[aria-label="Navigation principale"] {
     transition: all 0.3s ease;
     border: 1px solid rgba(255, 255, 255, 0.12);
     cursor: pointer;
+    position: relative; /* enable overlay watermark */
 }
 
 .card:hover { 
@@ -293,42 +296,8 @@ nav[aria-label="Navigation principale"] {
     transform: none;
 }
 
-.card-info { 
-    position: static; /* below the image, not overlay */
-    width: 100%;
-    padding: 8px 12px; 
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    min-height: 36px;
-    background: transparent;
-    text-align: left;
-    white-space: nowrap;
-}
-
-/* Remove original title text area spacing; we render via pseudo elements */
-.card-info span { display: none; }
-
-/* Bottom label: category + rating */
-.card .card-info::before { 
-    content: 'Catégorie'; /* default, overridden below */
-    color: #fff; 
-    font-weight: 700; 
-    font-size: 16px;
-}
-/* Show rating only when provided via data-rating attribute */
-.card .card-info[data-rating]::after {
-    content: ' ⭐ ' attr(data-rating) '/5';
-    color: #fff; /* numbers in white; emoji star renders yellow */
-    font-weight: 700;
-    font-size: 16px;
-    opacity: 1;
-}
-
-/* Category per section/type */
-#films .card .card-info::before { content: 'Film'; }
-#series .card .card-info::before { content: 'Série'; }
-.card.ba .card-info::before { content: 'Trailer'; }
+/* Hide film title text on index cards as requested */
+.card .card-info span { display: none; }
 
 .stars { 
     color: #2B22EE; 
@@ -1041,23 +1010,6 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     transition: opacity .25s ease;
 }
 .card:hover .card-actions { opacity: 1; }
-.card::after {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    padding: 4px 8px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: .2px;
-    height: 48px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.55);
-    border: 1px solid rgba(255,255,255,0.25);
-    color: #fff;
-    cursor: pointer;
-    transition: background .2s ease, transform .2s ease;
-    user-select: none;
-}
 .carousel-arrow:focus { outline: 2px solid #2B22EE; outline-offset: 2px; }
 .carousel-arrow:hover { background: rgba(0,0,0,0.7); transform: translateY(-1px); }
 .carousel-arrow svg { width: 24px; height: 24px; display: block; }

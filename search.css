@@ -80,29 +80,7 @@
     margin-top: 20px;
 }
 
-/* Card base styles live in common.css; keep only search-specific bits below */
-
-/* Bottom label: category + rating (match index) */
-.card .card-info::before { 
-    content: 'Catégorie'; /* default, overridden below */
-    color: #fff; 
-    font-weight: 700; 
-    font-size: 16px;
-}
-/* Show rating only when provided via data-rating attribute */
-.card .card-info[data-rating]::after {
-    content: ' ⭐ ' attr(data-rating) '/5';
-    color: #fff; /* numbers in white; emoji star renders yellow */
-    font-weight: 700;
-    font-size: 16px;
-    opacity: 1;
-}
-
-/* Category per type (search uses data-type) */
-.card[data-type="film"] .card-info::before { content: 'Film'; }
-.card[data-type="série"] .card-info::before { content: 'Série'; }
-/* Label for trailers */
-.card[data-type="trailer"] .card-info::before { content: 'Trailer'; }
+/* Card base, type and rating styles are inherited from common.css */
 
 /* Base link styles are provided by common.css */
 
@@ -192,12 +170,20 @@ nav[aria-label="Navigation principale"] {
   box-shadow:
     0 10px 30px rgba(0,0,0,0.35),
     inset 0 1px 0 rgba(255,255,255,0.06);
+  position: relative; /* enable overlay watermark */
 }
 .card:hover {
   transform: translateY(-6px);
   box-shadow: 0 14px 38px rgba(0,0,0,0.45);
 }
 .card img { will-change: transform; }
+
+/* Disable overlay watermark: place the logo inside the info bar */
+.card::after { content: none; }
+
+/* Info bar layout (logo, sizing) inherits from common.css */
+
+/* Keep type then rating side-by-side (handled in common.css) */
 
 /* Input focus ring */
 #search-input:focus {
