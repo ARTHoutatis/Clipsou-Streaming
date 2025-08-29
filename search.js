@@ -6,7 +6,7 @@ const moviesDatabase = [
         type: 'film',
         rating: 3.5,
         genres: ['Comédie', 'Familial', 'Aventure'],
-        image: '../../images/fiches/La.jpeg'
+        image: 'La.jpeg'
     },
     {
         id: 'film2',
@@ -14,7 +14,7 @@ const moviesDatabase = [
         type: 'film',
         rating: 4.5,
         genres: ['Thriller', 'Comédie', 'Action'],
-        image: '../../images/fiches/Dé.jpg'
+        image: 'Dé.jpg'
     },
     {
         id: 'film3',
@@ -22,7 +22,7 @@ const moviesDatabase = [
         type: 'film',
         rating: 3,
         genres: ['Aventure', 'Fantastique', 'Comédie'],
-        image: '../../images/fiches/Ja.jpg'
+        image: 'Ja.jpg'
     },
     {
         id: 'film4',
@@ -30,7 +30,7 @@ const moviesDatabase = [
         type: 'film',
         rating: 3,
         genres: ['Horreur', 'Mystère', 'Psychologique'],
-        image: '../../images/fiches/Ka.jpeg'
+        image: 'Ka.jpeg'
     },
     {
         id: 'serie1',
@@ -38,7 +38,7 @@ const moviesDatabase = [
         type: 'série',
         rating: 4,
         genres: ['Action', 'Comédie', 'Drame'],
-        image: '../../images/fiches/Al.jpg'
+        image: 'Al.jpg'
     },
     {
         id: 'serie2',
@@ -46,14 +46,14 @@ const moviesDatabase = [
         type: 'série',
         rating: 3.5,
         genres: ['Western', 'Comédie', 'Action'],
-        image: '../../images/fiches/Law.jpg'
+        image: 'Law.jpg'
     },
     {
         id: 'film5',
         title: 'Trailer Batman',
         type: 'trailer',
         genres: ['Action', 'Drame', 'Super-héros'],
-        image: '../../images/fiches/Ba.jpg'
+        image: 'Ba.jpg'
     },
     {
         id: 'film6',
@@ -61,7 +61,7 @@ const moviesDatabase = [
         type: 'film',
         rating: 3,
         genres: ['Comédie', 'Familial', 'Enfants'],
-        image: '../../images/fiches/Ur.jpg'
+        image: 'Ur.jpg'
     },
     {
         id: 'film7',
@@ -69,7 +69,7 @@ const moviesDatabase = [
         type: 'film',
         rating: 3.5,
         genres: ['Horreur', 'Mystère', 'Action'],
-        image: '../../images/fiches/Bac.jpg'
+        image: 'Bac.jpg'
     }
 ];
 
@@ -129,7 +129,7 @@ function displayResults(results) {
         const ratingAttr = (typeof item.rating !== 'undefined' && item.rating !== null) ? ` data-rating="${item.rating}"` : '';
         return `
         <div class="card" data-type="${typeAttr}">
-            <a href="../Index/index.html#${item.id}">
+            <a href="index.html#${item.id}">
                 <img src="${item.image}" alt="Affiche de ${item.title}" loading="lazy">
                 <div class="card-info"${ratingAttr}></div>
             </a>
