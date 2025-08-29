@@ -229,17 +229,19 @@ document.addEventListener('DOMContentLoaded', function () {
       return card;
     }
 
-    // Populate Top Rated
+    // Populate Top Rated (sorted by rating desc)
     const topRated = document.querySelector('#top-rated .rail');
     if (topRated) {
-      const existing = new Set(Array.from(topRated.querySelectorAll('.card a')).map(a => a.getAttribute('href') || ''));
-      items.filter(it => typeof it.rating === 'number' && it.rating >= 3.5)
-        .forEach(it => {
-          const href = `#${it.id}`;
-          if (existing.has(href)) return;
-          topRated.appendChild(createCard(it));
-          existing.add(href);
+      const sorted = items
+        .filter(it => typeof it.rating === 'number' && it.rating >= 3.5)
+        .sort((a, b) => {
+          const ra = (typeof a.rating === 'number') ? a.rating : -Infinity;
+          const rb = (typeof b.rating === 'number') ? b.rating : -Infinity;
+          if (rb !== ra) return rb - ra;
+          return (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' });
         });
+      topRated.innerHTML = '';
+      sorted.forEach(it => topRated.appendChild(createCard(it)));
     }
 
     // Group by genre and ensure sections
@@ -307,12 +309,20 @@ document.addEventListener('DOMContentLoaded', function () {
       // Ensure existing header has emoji
       const header = section.querySelector('h2');
       if (header) header.textContent = `${genreEmoji(genreName)} ${genreName}`;
-      const existing = new Set(Array.from(rail.querySelectorAll('.card a')).map(a => a.getAttribute('href') || ''));
-      list.forEach(it => {
+      // Sort by rating desc then title, rebuild rail to enforce order
+      const sorted = list.slice().sort((a, b) => {
+        const ra = (typeof a.rating === 'number') ? a.rating : -Infinity;
+        const rb = (typeof b.rating === 'number') ? b.rating : -Infinity;
+        if (rb !== ra) return rb - ra;
+        return (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' });
+      });
+      rail.innerHTML = '';
+      const seen = new Set();
+      sorted.forEach(it => {
         const href = `#${it.id}`;
-        if (existing.has(href)) return;
+        if (seen.has(href)) return;
         rail.appendChild(createCard(it));
-        existing.add(href);
+        seen.add(href);
       });
 
       // After population, if the section ends up with <= 1 card, remove it
