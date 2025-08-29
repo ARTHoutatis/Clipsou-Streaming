@@ -13,7 +13,7 @@
   display: inline-block;
   width: 20px;
   height: 20px;
-  background: url('Accueil.png') no-repeat center / contain;
+  background: url('../../images/icones/Accueil.png') no-repeat center / contain;
 }
 
 /* Page de recherche */

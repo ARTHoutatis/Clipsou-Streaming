@@ -109,4 +109,6 @@ document.addEventListener('DOMContentLoaded', function () {
     goToSlide(0);
     startAuto();
   }
+
+  // removed scroll buttons logic
 });

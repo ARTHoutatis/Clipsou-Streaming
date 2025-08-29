@@ -5,6 +5,14 @@
     --brand-2: #6c5ce7;
 }
 
+/* Ensure no parent color overrides the gradient fill */
+#film7 .fiche-right #film7-title .urbanos-grad {
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    color: transparent !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
 /* box-sizing reset moved to common.css */
 
 body {
@@ -107,7 +115,7 @@ nav[aria-label="Navigation principale"] {
     display: inline-block;
     width: 20px;
     height: 20px;
-    background: url('loupe.png') no-repeat center / contain;
+    background: url('../../images/icones/loupe.png') no-repeat center / contain;
     filter: none !important;
     opacity: 1 !important;
 }
@@ -413,6 +421,61 @@ nav[aria-label="Navigation principale"] {
 
 /* Per-title font styles */
 #film2-title { font-family: inherit; font-size: inherit; }
+
+/* Backrooms Urbanos title base size */
+#film7-title {
+    font-size: clamp(28px, 5vw, 44px);
+}
+
+/* Inline SVG sizing for URBANOS logo */
+#film7-title .urbanos-svg { display: inline-block; line-height: 1; }
+#film7-title .urbanos-logo { height: 1.10em; width: auto; vertical-align: -0.32em; display: inline-block; }
+
+/* Apply VHS pixel style ONLY to "Backrooms" */
+#film7-title .backrooms-vhs {
+    font-family: 'VT323', monospace;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #ffffff;
+    font-size: 1.08em; /* légèrement plus grand */
+    /* Pas de contour */
+    -webkit-text-stroke: 0; 
+    text-shadow: none; 
+}
+
+#film7-title .urbanos-grad {
+    display: inline-block;
+    font-weight: 800; /* bold look for the second word */
+    font-family: 'Luckiest Guy', Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif; /* rounded bubbly logo style */
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    /* Three clear bands with top specular highlight for glossy 3D look */
+    background: linear-gradient(180deg,
+        #ffffff 0%, #ffffff 2%,       /* thin white highlight at the very top */
+        #6fe3ff 2%, #6fe3ff 8%,       /* small cyan highlight under the white */
+        #28cf63 8%, #28cf63 48%,      /* vivid green band (dominant) */
+        #ffe35a 48%, #ffe35a 62%,     /* brighter, thinner yellow band */
+        #ff7f10 62%, #ff7a00 100%     /* warm orange to deep orange */
+    );
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent; /* show gradient as text fill */
+    -webkit-text-fill-color: transparent; /* ensure gradient shows in WebKit/Blink */
+    /* Subtle stroke around glyphs for crisp edges (WebKit-capable browsers) */
+    -webkit-text-stroke: 0.6px rgba(0,0,0,0.35);
+    /* Multi-layer shadow to simulate bevel + soft glow and drop + colored rims */
+    text-shadow:
+      0 -1px 0 rgba(255,255,255,0.95),   /* crisp top rim highlight */
+     -1px -1px 0 rgba(111,227,255,0.85), /* cyan rim top-left */
+      0 1px 0 rgba(0,0,0,0.28),          /* inner lower edge */
+      0 2px 2px rgba(0,0,0,0.28),        /* subtle depth */
+      0 4px 6px rgba(0,0,0,0.38),        /* drop shadow similar to logo */
+      0 0 6px rgba(255,165,0,0.22),      /* warm glow */
+      1px 1px 0 rgba(255,122,0,0.65);    /* orange rim bottom-right */
+}
 #film5-title { font-family: 'Anton', Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif; letter-spacing: 1px; }
 #film3-title, #film1-title { font-family: 'Cinzel', Georgia, 'Times New Roman', serif; }
 #serie1-title { font-family: 'Bevan', Georgia, serif; letter-spacing: 2px; text-transform: uppercase; }
@@ -656,7 +719,7 @@ html {
     .nav-links .search-link { padding: 10px; font-size: 16px; background: #434344 !important; border-radius: 5px; width: 44px; height: 44px; border: 1px solid #3a3a3b; box-shadow: 0 2px 6px rgba(0,0,0,0.25); } /* Darker grey button on mobile */
     .nav-links .search-link { text-indent: -9999px; overflow: hidden; position: relative; }
     /* Mobile: hide text and center the image icon */
-    .nav-links .search-link::before { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 24px; height: 24px; background: url('loupe.png') no-repeat center / contain; filter: none !important; opacity: 1 !important; }
+    .nav-links .search-link::before { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 24px; height: 24px; background: url('../../images/icones/loupe.png') no-repeat center / contain; filter: none !important; opacity: 1 !important; }
     .logo span { overflow: hidden; text-overflow: ellipsis; color: #2B22EE; }
 
     /* Show and enable carousel on mobile */
@@ -948,6 +1011,7 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     grid-auto-columns: clamp(180px, 18vw, 240px);
     gap: 18px;
     overflow-x: auto;
+    overflow-y: visible; /* allow hover lift without clipping */
     overscroll-behavior-x: contain;
 }
 /* Desktop-only: add side paddings + enable snapping */
@@ -1019,6 +1083,7 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
             gap: 18px;
             padding: 0 40px;
             overflow-x: auto;
+            overflow-y: visible; /* allow hover lift without clipping */
             overscroll-behavior-x: contain;
             scroll-snap-type: inline mandatory; /* desktop only */
         }
@@ -1138,8 +1203,8 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
      .footer .footer-inner > div:nth-child(2) > span { float: left; }
      .footer .footer-inner > div:nth-child(2)::after { content: ""; display: table; clear: both; }
 
-     /* Prevent top row cards from tucking under sticky nav when hovering up */
-    #top-rated .rail { padding-top: 10px; }
+     /* Prevent cards from being clipped on hover translateY in all sections */
+    .section .rail { padding-top: 10px; }
 
      /* Focus-visible ring */
      :where(a, button, .quick-btn, input, [tabindex]):focus-visible {
