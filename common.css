@@ -119,7 +119,7 @@ nav[aria-label="Navigation principale"] {
   position: relative;
   width: 100%;
   padding: 6px 12px;
-  padding-right: 100px; /* space for logo + margins */
+  padding-right: 12px; /* no reserved space for logo */
   display: flex;
   align-items: center;
   gap: 6px;
@@ -127,11 +127,8 @@ nav[aria-label="Navigation principale"] {
   background: transparent;
   text-align: left;
   white-space: nowrap;
-  /* Shared Clipsou logo as background on the info bar */
-  background-image: url('clipsoustudio.png');
-  background-repeat: no-repeat;
-  background-position: right 8px center;
-  background-size: 72px 72px; /* match reduced bar height */
+  /* Remove Clipsou logo background on cards */
+  background-image: none;
 }
 /* Default label + rating pattern */
 .card .card-info::before { content: 'Catégorie'; color: #fff; font-weight: 700; font-size: 16px; margin-right: 8px; }

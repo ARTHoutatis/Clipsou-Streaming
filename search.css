@@ -161,7 +161,8 @@
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
         gap: 12px;
     }
-    .genre-filters { gap: 8px; }
+    /* Hide genre filters on mobile to save vertical space */
+    .genre-filters { display: none !important; }
     .genre-chip { padding: 7px 10px; font-size: 13px; }
 }
 

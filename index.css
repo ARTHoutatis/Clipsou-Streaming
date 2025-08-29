@@ -848,10 +848,19 @@ html {
     }
     
     .fiche-content h3 { 
-        text-align: center; 
+        text-align: center !important; 
         margin: 0 0 12px 0;
         width: 100%;
         color: inherit; /* allow per-title colors */
+        display: block;            /* ensure full-width block for centering */
+        min-width: 0;              /* remove desktop min-width constraint */
+        margin-left: auto;         /* explicit center safety */
+        margin-right: auto;        /* explicit center safety */
+    }
+    /* Neutralize left-biased transforms on mobile to keep visual centering */
+    #film4-title { 
+        transform: none; 
+        transform-origin: center center; 
     }
     
     .fiche-content p { 
