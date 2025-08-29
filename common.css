@@ -118,12 +118,11 @@ nav[aria-label="Navigation principale"] {
 .card-info {
   position: relative;
   width: 100%;
-  padding: 6px 12px;
+  padding: 10px 10px; /* tighter vertical space, same text size */
   padding-right: 12px; /* no reserved space for logo */
   display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 72px; /* reduced height */
   background: transparent;
   text-align: left;
   white-space: nowrap;
@@ -131,15 +130,15 @@ nav[aria-label="Navigation principale"] {
   background-image: none;
 }
 /* Default label + rating pattern */
-.card .card-info::before { content: 'Catégorie'; color: #fff; font-weight: 700; font-size: 16px; margin-right: 8px; }
+.card .card-info::before { content: 'Catégorie'; color: #fff; font-weight: 700; font-size: 14px; margin-right: 6px; }
 .card .card-info[data-rating]::after {
   content: ' ⭐ ' attr(data-rating);
   color: #fff;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 14px;
   opacity: 1;
   display: inline-block;
-  padding: 2px 6px; /* small padding around the note */
+  padding: 1px 4px; /* keep small badge while preserving text size */
   background-color: rgba(255, 215, 0, 0.18); /* translucent yellow */
   border-radius: 5px; /* rounded corners */
 }

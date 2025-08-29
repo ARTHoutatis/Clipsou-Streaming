@@ -4,6 +4,40 @@
     --brand-1: #2B22EE;
     --brand-2: #6c5ce7;
 }
+/* Small black brand badge below popup titles */
+.brand-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.85);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 4px;
+    width: 64px;   /* smaller */
+    height: 36px;  /* smaller */
+    padding: 0;
+    margin-top: 6px; /* not used when overlayed */
+    overflow: hidden; /* ensure content stays within box */
+}
+.brand-badge img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* scale down to fit box, preserve aspect */
+    display: block;
+    transform: none;
+}
+
+/* Overlay placement on cards: anchor contains a .card-media wrapper */
+.card .card-media { position: relative; display: block; margin-bottom: 0; }
+.card .card-media .brand-badge {
+    position: absolute;
+    left: 2px; /* match bottom spacing */
+    bottom: 8px; /* nudged up slightly */
+    margin-top: 0;
+    z-index: 2;
+}
+
+/* Ensure no badge inside popups */
+.fiche-popup .brand-badge { display: none !important; }
 
 /* Ensure no parent color overrides the gradient fill */
 #film7 .fiche-right #film7-title .urbanos-grad {

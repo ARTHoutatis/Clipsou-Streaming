@@ -223,7 +223,22 @@ document.addEventListener('DOMContentLoaded', function () {
       info.className = 'card-info';
       info.setAttribute('data-type', item.type || 'film');
       if (typeof item.rating !== 'undefined') info.setAttribute('data-rating', String(item.rating));
-      a.appendChild(img);
+      // Media wrapper to overlay badge on the image only
+      const media = document.createElement('div');
+      media.className = 'card-media';
+      // Brand badge overlay (bottom-left of the image)
+      const badge = document.createElement('div');
+      badge.className = 'brand-badge';
+      const logo = document.createElement('img');
+      logo.src = 'clipsoustudio.png';
+      logo.alt = 'Clipsou Studio';
+      logo.setAttribute('loading', 'lazy');
+      logo.setAttribute('decoding', 'async');
+      badge.appendChild(logo);
+
+      media.appendChild(img);
+      media.appendChild(badge);
+      a.appendChild(media);
       a.appendChild(info);
       card.appendChild(a);
       return card;
@@ -329,6 +344,41 @@ document.addEventListener('DOMContentLoaded', function () {
       const cardCount = rail.querySelectorAll('.card').length;
       if (cardCount <= 1) {
         section.remove();
+      }
+    });
+  })();
+
+  // Ensure any pre-existing cards get a .card-media wrapper and a badge overlay on the image only
+  (function ensureCardBadges() {
+    document.querySelectorAll('.card a').forEach(a => {
+      let media = a.querySelector('.card-media');
+      let imgIn = a.querySelector(':scope > img');
+      if (!media) {
+        // If there is a direct img under <a>, wrap it in .card-media
+        if (imgIn) {
+          media = document.createElement('div');
+          media.className = 'card-media';
+          a.insertBefore(media, imgIn);
+          media.appendChild(imgIn);
+        }
+      }
+      // If still no media but there is an img somewhere, try to place badge relative to that structure
+      if (!media) {
+        media = a.querySelector('.card-media');
+      }
+      if (!media) return;
+
+      // Add badge if missing
+      if (!media.querySelector('.brand-badge')) {
+        const badge = document.createElement('div');
+        badge.className = 'brand-badge';
+        const logo = document.createElement('img');
+        logo.src = 'clipsoustudio.png';
+        logo.alt = 'Clipsou Studio';
+        logo.setAttribute('loading', 'lazy');
+        logo.setAttribute('decoding', 'async');
+        badge.appendChild(logo);
+        media.appendChild(badge);
       }
     });
   })();
