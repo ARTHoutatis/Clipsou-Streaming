@@ -6,34 +6,41 @@
 }
 /* Small black brand badge below popup titles */
 .brand-badge {
+    padding: 7px;
+    border-radius: 5px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     background: rgba(0,0,0,0.85);
     border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 4px;
-    width: 64px;   /* smaller */
-    height: 36px;  /* smaller */
-    padding: 0;
-    margin-top: 6px; /* not used when overlayed */
-    overflow: hidden; /* ensure content stays within box */
 }
+
 .brand-badge img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain; /* scale down to fit box, preserve aspect */
     display: block;
-    transform: none;
+    width: auto;
+    height: 10px; /* smaller */
+    object-fit: contain;
 }
+
 
 /* Overlay placement on cards: anchor contains a .card-media wrapper */
 .card .card-media { position: relative; display: block; margin-bottom: 0; }
 .card .card-media .brand-badge {
     position: absolute;
-    left: 2px; /* match bottom spacing */
-    bottom: 8px; /* nudged up slightly */
+    left: 2px; /* slightly closer to the left edge */
+    bottom: 8px; /* inset to avoid corner clipping */
     margin-top: 0;
     z-index: 2;
+    pointer-events: none; /* don't block clicks on the card */
+}
+
+/* Ensure the badge image does NOT inherit .card img cover/crop rules */
+.card .card-media .brand-badge img {
+    display: block;
+    width: auto !important;
+    height: 10px !important; /* smaller */
+    aspect-ratio: auto !important;
+    object-fit: contain !important;
 }
 
 /* Ensure no badge inside popups */
@@ -104,11 +111,12 @@ nav[aria-label="Navigation principale"] {
 
  /* Icône à gauche du texte dans la banderole */
  .logo img {
-     width: 28px;
-     height: 28px;
+     width: 14px;
+     height: 14px;
      margin-right: 10px;
      display: block;
      flex-shrink: 0;
+     object-fit: contain;
      filter: none !important;
      opacity: 1 !important;
  }
@@ -713,7 +721,7 @@ html {
     /* Banderole: logo + Discord sur la même ligne, sans débordement */
     nav { padding: 12px 16px; width: 100%; max-width: 100vw; overflow-x: hidden; display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap; column-gap: 8px; }
     .logo { flex: 1 1 0; min-width: 0; overflow: hidden; font-size: 20px; }
-    .logo img { width: 20px; height: 20px; }
+    .logo img { width: 14px; height: 14px; object-fit: contain; }
     .nav-links { display: flex; } /* Show search button on mobile */
     /* Hide partenariat button on mobile */
     .nav-links .partner-link { display: none; }

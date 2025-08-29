@@ -123,7 +123,12 @@ function displayResults(results) {
         return `
         <div class="card">
             <a href="index.html#${item.id}">
-                <img src="${initialSrc}" data-base="${base}" alt="Affiche de ${item.title}" loading="lazy" onerror="(function(img){var b=img.getAttribute('data-base'); if(!b){img.onerror=null; img.src='apercu.png'; return;} var i=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=i; var exts=['jpg','jpeg','png']; if(i<exts.length){ img.src=b+'.'+exts[i]; } else { img.onerror=null; img.src='apercu.png'; }})(this)">
+                <div class="card-media">
+                    <img src="${initialSrc}" data-base="${base}" alt="Affiche de ${item.title}" loading="lazy" onerror="(function(img){var b=img.getAttribute('data-base'); if(!b){img.onerror=null; img.src='apercu.png'; return;} var i=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=i; var exts=['jpg','jpeg','png']; if(i<exts.length){ img.src=b+'.'+exts[i]; } else { img.onerror=null; img.src='apercu.png'; }})(this)">
+                    <div class="brand-badge">
+                        <img src="clipsoustudio.png" alt="Clipsou Studio" loading="lazy" decoding="async">
+                    </div>
+                </div>
                 <div class="card-info" data-type="${typeAttr}"${ratingAttr}></div>
             </a>
         </div>`;
