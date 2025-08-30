@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function () {
     startAuto();
   }
 
-  // Auto-populate "Mieux notés" with all films rated >= 3
+  // Auto-populate "Mieux notés" with all films rated >= 3.5
   const topRatedSection = document.querySelector('#top-rated .rail');
   if (topRatedSection) {
     // Collect existing items in Top Rated (by link href) to avoid duplicates
@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .map(a => a.getAttribute('href') || '')
     );
 
-    // Find all film or series cards with rating >= 3 across the page (outside Top Rated)
+    // Find all film or series cards with rating >= 3.5 across the page (outside Top Rated)
     const allFilmCards = Array.from(document.querySelectorAll('.section .rail .card'))
       .filter(card => !card.closest('#top-rated'))
       .filter(card => {
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const ratingStr = info.getAttribute('data-rating');
         const rating = ratingStr ? parseFloat(ratingStr.replace(',', '.')) : NaN;
         const isFilmOrSerie = type === 'film' || type === 'serie' || type === 'série';
-        return isFilmOrSerie && !Number.isNaN(rating) && rating >= 3.0;
+        return isFilmOrSerie && !Number.isNaN(rating) && rating >= 3.5;
       });
 
     // Append missing ones to Top Rated
@@ -270,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const topRated = document.querySelector('#top-rated .rail');
     if (topRated) {
       const sorted = items
-        .filter(it => typeof it.rating === 'number' && it.rating >= 3.0)
+        .filter(it => typeof it.rating === 'number' && it.rating >= 3.5)
         .sort((a, b) => {
           const ra = (typeof a.rating === 'number') ? a.rating : -Infinity;
           const rb = (typeof b.rating === 'number') ? b.rating : -Infinity;
