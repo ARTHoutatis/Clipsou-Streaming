@@ -172,11 +172,33 @@ document.addEventListener('DOMContentLoaded', function () {
       const starsText = (popup.querySelector('.rating-genres .stars') || {}).textContent || '';
       const m = starsText.match(/([0-9]+(?:[\.,][0-9]+)?)/);
       const rating = m ? parseFloat(m[1].replace(',', '.')) : undefined;
+      // Detect category from popup image filename (basename without trailing digits/extension)
+      // Examples:
+      //  - Ur1.jpg -> base "ur" => Minecraft
+      //  - Bac1.png -> base "bac" => Minecraft
+      //  - Ja1.jpg -> base "ja" => Live-action (Jackson Goup)
+      //  - Ba1.jpg -> base "ba" => Live-action (Batman trailer)
+      const imgName = (image || '').split('/').pop();
+      const baseName = (imgName || '')
+        .replace(/\.(jpg|jpeg|png|webp)$/i, '')
+        .replace(/\d+$/g, '')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove accents
+        .toLowerCase();
+      let category = 'LEGO';
+      // Minecraft: Urbanos (ur), Backrooms Urbanos (bac), Batman trailer (ba), Dédoublement (de)
+      if (['ur', 'bac', 'ba', 'de'].includes(baseName)) {
+        category = 'Minecraft';
+      // Live-action: Jackson Goup (ja), Karma (ka)
+      } else if (['ja', 'ka'].includes(baseName)) {
+        category = 'Live-action';
+      }
       let type = 'film';
       if (/^serie/i.test(id)) type = 'série';
       else if (/trailer/i.test(title)) type = 'trailer';
-      items.push({ id, title, image, genres, rating, type });
+      items.push({ id, title, image, genres, rating, type, category });
     });
+
+    // Auto-annotation of descriptions disabled by request. Descriptions are managed directly in index.html.
 
     // Helper: derive thumbnail from popup image (remove trailing digits and prefer .jpg/.jpeg/.png)
     function deriveThumbnail(src) {
@@ -352,6 +374,57 @@ document.addEventListener('DOMContentLoaded', function () {
       if (cardCount <= 1) {
         section.remove();
       }
+    });
+
+    // Build requested category sections: LEGO, Minecraft, Live-action (always shown when >=1)
+    function categoryEmoji(name) {
+      const g = (name || '').toLowerCase();
+      const map = {
+        'lego': '🧱',
+        'minecraft': '⛏️',
+        'live-action': '🎬'
+      };
+      return map[g] || '🎞️';
+    }
+
+    function buildCategorySection(name, list) {
+      const id = 'category-' + slug(name);
+      let section = document.getElementById(id);
+      if (!section) {
+        section = document.createElement('div');
+        section.className = 'section';
+        section.id = id;
+        const h2 = document.createElement('h2');
+        h2.textContent = `${categoryEmoji(name)} ${name}`;
+        const rail = document.createElement('div');
+        rail.className = 'rail';
+        section.appendChild(h2);
+        section.appendChild(rail);
+        if (firstPopup && firstPopup.parentNode) firstPopup.parentNode.insertBefore(section, firstPopup);
+        else (document.querySelector('main') || document.body).appendChild(section);
+      }
+      const rail = section.querySelector('.rail');
+      rail.innerHTML = '';
+      const seen = new Set();
+      list.forEach(it => {
+        const href = `#${it.id}`;
+        if (seen.has(href)) return;
+        rail.appendChild(createCard(it));
+        seen.add(href);
+      });
+    }
+
+    const cats = ['LEGO', 'Minecraft', 'Live-action'];
+    const byCat = new Map();
+    cats.forEach(c => byCat.set(c, []));
+    items.forEach(it => {
+      const c = it.category || 'LEGO';
+      if (!byCat.has(c)) byCat.set(c, []);
+      byCat.get(c).push(it);
+    });
+    cats.forEach(c => {
+      const list = byCat.get(c) || [];
+      if (list.length >= 1) buildCategorySection(c, list);
     });
   })();
 
