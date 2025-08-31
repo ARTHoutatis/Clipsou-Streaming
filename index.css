@@ -322,11 +322,9 @@ nav[aria-label="Navigation principale"] {
     padding: 30px;
     overflow-y: auto;
     overflow-x: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.12);
     position: relative;
 }
-
-/* Layout dynamique basé sur l'orientation de l'image */
+/* ... */
 .fiche-content {
     grid-template-columns: 1fr 1.5fr; /* Layout par défaut pour images portrait */
 }
@@ -618,6 +616,14 @@ nav[aria-label="Navigation principale"] {
 .close-btn:hover { 
     background: #cc0000;
     box-shadow: none;
+}
+
+/* Position the close button at the top-right of popup content */
+.fiche-content .top-right-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
 }
 
 /* Style pour empêcher le scroll vers le haut lors de la fermeture */
