@@ -5,6 +5,11 @@
     --brand-2: #6c5ce7;
 }
 
+/* Ultra-small phones: tighten navbar further (moved to common.css) */
+@media (max-width: 360px) {
+  .nav-links .search-link { width: 40px; height: 40px; }
+}
+
 /* Extra-narrow phones: force-hide Partenariats title */
 @media (max-width: 600px) {
   #partenariats-title { display: none !important; }
@@ -50,41 +55,9 @@ body::before {
     z-index: -1;
 }
 
-/* Navigation */
-nav[aria-label="Navigation principale"] {
-    background: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0.65));
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    padding: 15px 40px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: none;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
+/* Navigation (desktop styles are unified in common.css) */
 
-.logo { 
-    font-size: 28px; 
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 8px;
- }
- 
- .logo span { white-space: nowrap; }
-
-/* Icône à gauche du texte dans la banderole: styles centralisés dans common.css */
-
-.logo span:nth-of-type(1) { 
-    font-weight: 800;
-}
-
-.logo span:nth-of-type(2) { 
-    margin-left: 6px; 
-    font-weight: 300;
-}
+/* .logo styles are centralized in common.css to keep title identical across pages */
 
 .nav-links { display: flex; gap: 15px; }
 .nav-links a { padding: 10px 20px; border-radius: 5px; font-weight: 600; color: #fff; text-decoration: none; transition: all .3s ease; white-space: nowrap; }
@@ -689,19 +662,41 @@ html {
         margin-left: 0 !important; /* remove extra gaps on first button per inline styles */
     }
 
-    /* Banderole: logo + Discord sur la même ligne, sans débordement */
-    nav { padding: 12px 16px; width: 100%; max-width: 100vw; overflow-x: hidden; display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap; column-gap: 8px; }
-    .logo { flex: 1 1 0; min-width: 0; overflow: hidden; font-size: 20px; }
-    .nav-links { display: flex; } /* Show search button on mobile */
+    /* Banderole (mobile layout unified in common.css) */
     /* Hide partenariat button on mobile */
     .nav-links .partner-link { display: none; }
     .nav-links a { padding: 8px 12px; font-size: 14px; width: auto; flex: 0 0 auto; }
     .nav-links a:not([href*="youtu"]) { padding: 6px 10px; }
-    .nav-links .search-link { padding: 10px; font-size: 16px; background: #434344 !important; border-radius: 5px; width: 44px; height: 44px; border: 1px solid #3a3a3b; box-shadow: 0 2px 6px rgba(0,0,0,0.25); } /* Darker grey button on mobile */
-    .nav-links .search-link { text-indent: -9999px; overflow: hidden; position: relative; }
+    .nav-links .search-link { 
+        padding: 10px; 
+        font-size: 16px; 
+        background: #434344 !important; 
+        border-radius: 5px; 
+        width: 44px; 
+        height: 44px; 
+        border: 1px solid #3a3a3b; 
+        box-shadow: 0 2px 6px rgba(0,0,0,0.25); 
+        margin-left: auto !important; 
+    } /* Darker grey button on mobile */
+    .nav-links .search-link { 
+        text-indent: -9999px; 
+        overflow: hidden; 
+        position: relative; 
+    }
     /* Mobile: hide text and center the image icon */
-    .nav-links .search-link::before { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 24px; height: 24px; background: url('loupe.png') no-repeat center / contain; filter: none !important; opacity: 1 !important; }
-    .logo span { overflow: hidden; text-overflow: ellipsis; color: #2B22EE; }
+    .nav-links .search-link::before { 
+        content: ''; 
+        position: absolute; 
+        left: 50%; 
+        top: 50%; 
+        transform: translate(-50%, -50%); 
+        width: 24px; 
+        height: 24px; 
+        background: url('loupe.png') no-repeat center / contain; 
+        filter: none !important; 
+        opacity: 1 !important; 
+    }
+    /* Title overflow rules are handled in common.css */
 
     /* Show and enable carousel on mobile */
     .carousel-section { display: block; margin: 0 0 40px; }
