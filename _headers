@@ -28,3 +28,7 @@
   X-Content-Type-Options: nosniff
   Vary: Accept-Encoding, User-Agent
   Content-Encoding: identity
+
+/sitemap_urls.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: no-cache

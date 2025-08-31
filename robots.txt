@@ -5,3 +5,4 @@ Allow: /
 # Sitemaps
 Sitemap: https://clipsoustreaming.netlify.app/sitemap_pages.xml
 Sitemap: https://clipsoustreaming.netlify.app/sitemap_images.xml
+Sitemap: https://clipsoustreaming.netlify.app/sitemap_urls.txt
