@@ -6,16 +6,16 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!img.getAttribute('alt')) img.setAttribute('alt', 'Image – Clipsou Streaming');
   });
 
-  // Carousel indicators: click/keyboard to navigate to a specific slide
-  const carousel = document.querySelector('.carousel-container');
-  if (carousel) {
+  // Helper to set up carousel controls once slides/indicators are built
+  function setupCarousel() {
+    const carousel = document.querySelector('.carousel-container');
+    if (!carousel) return;
     const slidesTrack = carousel.querySelector('.carousel-slides');
     const indicatorsWrap = carousel.querySelector('.carousel-indicators');
     const indicators = carousel.querySelectorAll('.carousel-indicator');
 
     const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
     let currentIndex = 0;
-    const slideCount = indicators.length || 5;
     let resumeTimeout = null;
     let autoInterval = null;
 
@@ -47,8 +47,12 @@ document.addEventListener('DOMContentLoaded', function () {
       slidesTrack.classList.add('manual');
       if (indicatorsWrap) indicatorsWrap.classList.add('manual');
 
-      currentIndex = clamp(index, 0, indicators.length - 1);
-      const offsetPercent = currentIndex * 20; // 5 slides => 20% per slide
+      const maxIndex = Math.max(0, indicators.length - 1);
+      currentIndex = clamp(index, 0, maxIndex);
+      // Translate based on slide count
+      const count = Math.max(1, indicators.length);
+      const step = 100 / count; // percentage per slide
+      const offsetPercent = currentIndex * step;
       slidesTrack.style.transform = `translateX(-${offsetPercent}%)`;
 
       // Update active indicator and aria-current
@@ -62,12 +66,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function nextSlide() {
-      const next = (currentIndex + 1) % slideCount;
+      const count = Math.max(1, indicators.length);
+      const next = (currentIndex + 1) % count;
       goToSlide(next);
     }
 
     function prevSlide() {
-      const prev = (currentIndex - 1 + slideCount) % slideCount;
+      const count = Math.max(1, indicators.length);
+      const prev = (currentIndex - 1 + count) % count;
       goToSlide(prev);
     }
 
@@ -104,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Initialize: disable CSS keyframes and start JS autoplay from slide 0
-    slidesTrack.classList.add('manual');
+    if (slidesTrack) slidesTrack.classList.add('manual');
     if (indicatorsWrap) indicatorsWrap.classList.add('manual');
     goToSlide(0);
     startAuto();
@@ -172,6 +178,10 @@ document.addEventListener('DOMContentLoaded', function () {
       const starsText = (popup.querySelector('.rating-genres .stars') || {}).textContent || '';
       const m = starsText.match(/([0-9]+(?:[\.,][0-9]+)?)/);
       const rating = m ? parseFloat(m[1].replace(',', '.')) : undefined;
+      // Extract a short description (first paragraph inside fiche-right)
+      let description = '';
+      const descEl = popup.querySelector('.fiche-right p');
+      if (descEl) description = descEl.textContent.trim();
       // Detect category from popup image filename (basename without trailing digits/extension)
       // Examples:
       //  - Ur1.jpg -> base "ur" => Minecraft
@@ -195,7 +205,7 @@ document.addEventListener('DOMContentLoaded', function () {
       let type = 'film';
       if (/^serie/i.test(id)) type = 'série';
       else if (/trailer/i.test(title)) type = 'trailer';
-      items.push({ id, title, image, genres, rating, type, category });
+      items.push({ id, title, image, genres, rating, type, category, description, baseName });
     });
 
     // Auto-annotation of descriptions disabled by request. Descriptions are managed directly in index.html.
@@ -217,6 +227,31 @@ document.addEventListener('DOMContentLoaded', function () {
         ];
         // Remove duplicates while preserving order
         return candidates.filter((v, i, a) => a.indexOf(v) === i);
+      } catch { return [src]; }
+    }
+
+    // Helper: derive preferred BACKGROUND poster list.
+    // Tries base+"1".(jpg|jpeg|png) first (e.g., Al1, Law1), then base.(jpg|jpeg|png), then original src.
+    function deriveBackgrounds(src) {
+      if (!src) return [];
+      try {
+        const m = src.match(/^(.*?)(\d+)?\.(jpg|jpeg|png|webp)$/i);
+        if (!m) return [src];
+        const base = m[1];
+        const originalExt = m[3].toLowerCase();
+        const withOne = [
+          base + '1.jpg',
+          base + '1.jpeg',
+          base + '1.png'
+        ];
+        const withoutOne = [
+          base + '.jpg',
+          base + '.jpeg',
+          base + '.png',
+          base + '.' + originalExt
+        ];
+        const seq = [...withOne, ...withoutOne, src];
+        return seq.filter((v, i, a) => a.indexOf(v) === i);
       } catch { return [src]; }
     }
 
@@ -426,6 +461,130 @@ document.addEventListener('DOMContentLoaded', function () {
       const list = byCat.get(c) || [];
       if (list.length >= 1) buildCategorySection(c, list);
     });
+
+    // Build carousel with 5 random films/séries (exclude trailers)
+    (function buildRandomCarousel() {
+      const container = document.querySelector('.carousel-container');
+      if (!container) return;
+      const slidesTrack = container.querySelector('.carousel-slides');
+      const indicatorsWrap = container.querySelector('.carousel-indicators');
+      if (!slidesTrack || !indicatorsWrap) return;
+
+      // Pool: films + séries only
+      const pool = items.filter(it => {
+        const t = (it.type || '').toLowerCase();
+        return t === 'film' || t === 'série' || t === 'serie';
+      });
+      if (pool.length === 0) return;
+
+      // Shuffle (Fisher-Yates)
+      const arr = pool.slice();
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      const chosen = arr.slice(0, Math.min(5, arr.length));
+
+      // Clear existing
+      slidesTrack.innerHTML = '';
+      indicatorsWrap.innerHTML = '';
+
+      // Build slide DOM for each chosen item
+      chosen.forEach((it, idx) => {
+        const slide = document.createElement('div');
+        slide.className = 'carousel-slide';
+        // Use an <img> as visual background to allow robust fallbacks
+        const bg = document.createElement('img');
+        bg.setAttribute('alt', '');
+        bg.setAttribute('aria-hidden', 'true');
+        bg.decoding = 'async';
+        bg.loading = 'lazy';
+        Object.assign(bg.style, {
+          position: 'absolute',
+          inset: '0',
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          zIndex: '0'
+        });
+        // For Backrooms Urbanos, keep top visible (crop bottom) instead of centering
+        if ((it.baseName || '').toLowerCase() === 'bac') {
+          bg.style.objectPosition = 'top center';
+        }
+        const backs = deriveBackgrounds(it.image || '');
+        let bIdx = 0;
+        bg.src = backs[bIdx] || (it.image || '');
+        bg.onerror = function () {
+          if (bIdx < backs.length - 1) {
+            bIdx += 1;
+            this.src = backs[bIdx];
+          }
+        };
+
+        const content = document.createElement('div');
+        content.className = 'carousel-content';
+
+        const h2 = document.createElement('h2');
+        h2.className = 'carousel-title';
+        h2.textContent = it.title || '';
+
+        const genresWrap = document.createElement('div');
+        genresWrap.className = 'carousel-genres';
+        // Rating inline with genres like on fiche: ★3/5 or ★3.5/5 (dot, no trailing .0)
+        if (typeof it.rating === 'number' && !Number.isNaN(it.rating)) {
+          const ratingSpan = document.createElement('span');
+          ratingSpan.className = 'carousel-rating';
+          const rounded = Math.round(it.rating * 10) / 10; // one decimal
+          let txt = rounded.toFixed(1);
+          if (txt.endsWith('.0')) txt = String(Math.round(rounded));
+          const star = document.createElement('span');
+          star.className = 'star';
+          star.textContent = '★';
+          star.setAttribute('aria-hidden', 'true');
+          ratingSpan.appendChild(star);
+          ratingSpan.appendChild(document.createTextNode(`${txt}/5`));
+          ratingSpan.setAttribute('aria-label', `Note ${txt} sur 5`);
+          ratingSpan.setAttribute('data-rating', String(it.rating));
+          genresWrap.appendChild(ratingSpan);
+        }
+        (it.genres || []).slice(0, 3).forEach(g => {
+          const tag = document.createElement('span');
+          tag.className = 'carousel-genre-tag';
+          tag.textContent = g;
+          genresWrap.appendChild(tag);
+        });
+
+        const p = document.createElement('p');
+        p.className = 'carousel-description';
+        p.textContent = it.description || '';
+
+        const link = document.createElement('a');
+        link.className = 'carousel-btn';
+        link.href = `#${it.id}`;
+        link.textContent = 'Voir la fiche';
+
+        content.appendChild(h2);
+        content.appendChild(genresWrap);
+        if (it.description) content.appendChild(p);
+        content.appendChild(link);
+        slide.appendChild(bg);
+        slide.appendChild(content);
+        slidesTrack.appendChild(slide);
+
+        // Indicator
+        const dot = document.createElement('div');
+        dot.className = 'carousel-indicator' + (idx === 0 ? ' active' : '');
+        dot.setAttribute('role', 'button');
+        dot.setAttribute('tabindex', '0');
+        dot.setAttribute('aria-label', `Aller à la diapositive ${idx + 1}`);
+        dot.setAttribute('data-index', String(idx));
+        if (idx === 0) dot.setAttribute('aria-current', 'true');
+        indicatorsWrap.appendChild(dot);
+      });
+
+      // After dynamic build, (re)setup the carousel controls
+      setupCarousel();
+    })();
   })();
 
   // Ensure any pre-existing cards get a .card-media wrapper and a badge overlay on the image only

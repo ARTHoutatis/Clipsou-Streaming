@@ -184,9 +184,24 @@ nav[aria-label="Navigation principale"] {
 
 .carousel-description { font-size: 1.1rem; color: rgba(255,255,255,.9); line-height: 1.5; margin: 0 0 20px; max-width: 600px; text-shadow: none; }
 
-.carousel-genres { display: flex; gap: 10px; margin: 15px 0 20px; flex-wrap: wrap; }
+.carousel-genres { display: flex; gap: 10px; margin: 15px 0 20px; flex-wrap: wrap; align-items: center; }
 
 .carousel-genre-tag { background: rgba(255,255,255,.06); color: #e6eef5; padding: 6px 14px; border-radius: 20px; font-size: .85rem; font-weight: 600; border: 1px solid rgba(255,255,255,.12); backdrop-filter: none; }
+
+/* Inline rating in carousel, placed before genre tags */
+.carousel-genres .carousel-rating {
+    display: inline-flex;
+    align-items: center;
+    font-size: 1.3rem; /* slightly larger for better emphasis */
+    line-height: 1; /* tight to avoid misalignment */
+    font-weight: 600; /* lighter like popup */
+    color: #ffffff; /* keep numbers white for readability */
+    margin-right: 8px;
+}
+.carousel-genres .carousel-rating .star {
+    color: #FFD54A; /* yellow star */
+    margin-right: 4px;
+}
 
 .carousel-btn { display: inline-flex; align-items: center; gap: 8px; background: #2B22EE; color: #fff; padding: 12px 24px; border-radius: 5px; text-decoration: none; font-weight: 600; font-size: .95rem; transition: all .3s ease; backdrop-filter: none; border: 1px solid #2B22EE; }
 
