@@ -1,8 +1,8 @@
 User-agent: *
-    # Allow all crawlers to access the entire site
-    Allow: /
-    
-    # Primary sitemap
-    Sitemap: https://clipsoustreaming.netlify.app/sitemap.xml
-    # Image sitemap to help index key visuals
-    Sitemap: https://clipsoustreaming.netlify.app/sitemap_images.xml
+# Allow all crawlers to access the entire site
+Allow: /
+
+# Primary sitemap
+Sitemap: https://clipsoustreaming.netlify.app/sitemap.xml
+# Image sitemap to help index key visuals
+Sitemap: https://clipsoustreaming.netlify.app/sitemap_images.xml
