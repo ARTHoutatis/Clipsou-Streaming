@@ -5,6 +5,11 @@
     --brand-2: #6c5ce7;
 }
 
+/* Extra-narrow phones: force-hide Partenariats title */
+@media (max-width: 600px) {
+  #partenariats-title { display: none !important; }
+}
+
 /* Ensure no parent color overrides the gradient fill */
 #film7 .fiche-right #film7-title .urbanos-grad {
     -webkit-background-clip: text !important;
@@ -738,8 +743,10 @@ html {
     }
     /* Neutralize desktop float that could affect footer text on mobile */
     .footer .footer-inner > div:nth-child(2) > span { float: none; }
-    .carousel-genres { gap: 8px; margin: 10px 0 12px; }
-    .carousel-genre-tag { padding: 4px 10px; font-size: 0.75rem; }
+    .carousel-genres { gap: 4px; margin: 8px 0 10px; }
+    /* Hide genres in carousel on mobile to save space, keep rating visible */
+    .carousel-genres .carousel-genre-tag { display: none !important; }
+    .carousel-genres .carousel-rating { font-size: 1.25rem; }
     /* Replace dots by arrows on mobile */
     .carousel-indicators { display: none !important; }
     .carousel-arrows { 
@@ -750,6 +757,11 @@ html {
         gap: 8px; 
         pointer-events: auto; 
     }
+    /* Phone/tablet: hide Partenariats title entirely and tighten spacing */
+    #partenariats-title { display: none !important; }
+    #partenariats .fiche-right > h3#partenariats-title { display: none !important; }
+    body.is-mobile #partenariats .fiche-right > h3#partenariats-title { display: none !important; }
+    #partenariats .fiche-right > p:first-of-type { margin-top: 0 !important; }
     .carousel-arrow { 
         width: 48px; 
         height: 48px; 

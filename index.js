@@ -156,6 +156,26 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Mobile tweak: hide Partenariats popup title on small screens (defensive in case CSS is overridden)
+  function syncMobileUI() {
+    const isMobile = window.innerWidth <= 768;
+    document.body.classList.toggle('is-mobile', isMobile);
+    const partTitle = document.getElementById('partenariats-title');
+    if (!partTitle) return;
+    if (isMobile) {
+      // Force-hide with inline !important in case external CSS overrides
+      try { partTitle.style.setProperty('display', 'none', 'important'); } catch {}
+      partTitle.setAttribute('aria-hidden', 'true');
+    } else {
+      try { partTitle.style.removeProperty('display'); } catch {}
+      partTitle.removeAttribute('aria-hidden');
+    }
+  }
+  const syncOnNav = () => syncMobileUI();
+  syncMobileUI();
+  window.addEventListener('resize', syncOnNav);
+  window.addEventListener('hashchange', syncOnNav);
+
   // Auto-build sections from popups so nothing depends on pre-existing cards
   (function buildFromPopups() {
     // Utility: slugify for ids
