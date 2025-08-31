@@ -463,5 +463,84 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   })();
 
+  // Popup closing behavior: make close buttons work even when landing directly via a hash URL
+  (function setupPopupClosing() {
+    let lastScrollY = null;
+    let lastOpener = null;
+
+    // Intercept clicks that open a popup to remember the current scroll position and opener
+    document.addEventListener('click', function (e) {
+      const a = e.target.closest('a[href^="#"]');
+      if (!a) return;
+      const href = a.getAttribute('href');
+      const id = href ? href.replace(/^#/, '') : '';
+      if (!id) return;
+      const target = document.getElementById(id);
+      if (!target || !target.classList.contains('fiche-popup')) return; // not a popup link
+
+      // Save state and open popup without causing an unwanted scroll jump
+      lastScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+      lastOpener = a;
+      e.preventDefault();
+      // Defer to allow event loop to finish before changing hash
+      setTimeout(() => { window.location.hash = '#' + id; }, 0);
+    }, { capture: true });
+
+    function clearHash() {
+      // Ensure CSS :target unmatches by actually changing the fragment
+      if (window.location.hash) {
+        window.location.hash = '';
+      }
+      // Optionally tidy the URL (remove stray #) without adding history entries
+      const url = window.location.pathname + window.location.search;
+      if (window.history && typeof window.history.replaceState === 'function') {
+        window.history.replaceState(null, document.title, url);
+      }
+    }
+
+    // Handle clicks on any .close-btn (override javascript:history.back())
+    document.addEventListener('click', function (e) {
+      const btn = e.target.closest('.close-btn');
+      if (!btn) return;
+      e.preventDefault();
+      clearHash();
+      // Restore scroll and focus if we know where the popup was opened
+      if (lastScrollY !== null) {
+        window.scrollTo({ top: lastScrollY, left: 0, behavior: 'auto' });
+      }
+      if (lastOpener && typeof lastOpener.focus === 'function') {
+        lastOpener.focus();
+      }
+    });
+
+    // Close when clicking the dark overlay outside the popup content
+    document.querySelectorAll('.fiche-popup').forEach(popup => {
+      popup.addEventListener('click', function (e) {
+        if (e.target === popup) {
+          clearHash();
+          if (lastScrollY !== null) {
+            window.scrollTo({ top: lastScrollY, left: 0, behavior: 'auto' });
+          }
+          if (lastOpener && typeof lastOpener.focus === 'function') {
+            lastOpener.focus();
+          }
+        }
+      });
+    });
+
+    // ESC key closes the currently targeted popup
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && window.location.hash) {
+        clearHash();
+        if (lastScrollY !== null) {
+          window.scrollTo({ top: lastScrollY, left: 0, behavior: 'auto' });
+        }
+        if (lastOpener && typeof lastOpener.focus === 'function') {
+          lastOpener.focus();
+        }
+      }
+    });
+  })();
+
   // removed scroll buttons logic
 });
