@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- v3: fresh ETag for sitemap.xml -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
@@ -7,6 +8,5 @@
 <url>
   <loc>https://clipsoustreaming.netlify.app/search.html</loc>
 </url>
-
 
 </urlset>
