@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- v3: fresh URL to bypass caches -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://clipsoustreaming.netlify.app/</loc>
+  </url>
+  <url>
+    <loc>https://clipsoustreaming.netlify.app/search.html</loc>
+  </url>
+</urlset>
