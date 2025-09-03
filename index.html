@@ -15,7 +15,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Preload critical hero background and UI icon -->
-<link rel="preload" as="image" href="La1.jpg" imagesrcset>
 <link rel="preload" as="image" href="loupe.png">
 <!-- Open Graph -->
 <meta property="og:locale" content="fr_FR">
@@ -69,6 +68,12 @@
  </head>
  <body>
   <nav aria-label="Navigation principale">
+    <button class="hamburger-btn" aria-label="Ouvrir le menu" aria-controls="side-menu" aria-expanded="false" type="button">
+      <span class="sr-only">Menu</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" width="28" height="28">
+        <path fill="currentColor" d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+      </svg>
+    </button>
      <div class="logo">
      
          <img src="favicon.png" alt="Logo Clipsou">
@@ -81,6 +86,36 @@
    </div>
 </nav>
 
+<!-- Side Drawer Menu -->
+<div id="side-menu" class="side-menu" role="navigation" aria-label="Menu latéral">
+  <div class="side-menu-header">
+    <img src="favicon.png" alt="Logo Clipsou" width="32" height="32">
+    <strong>Clipsou Streaming</strong>
+    <button class="side-close" aria-label="Fermer le menu" type="button">✕</button>
+  </div>
+  <div class="side-menu-content">
+    <ul class="side-links top">
+      <li><a href="#top-rated">⭐ Mieux notés</a></li>
+      <li><a href="#genre-comedie">😂 Comédie</a></li>
+      <li><a href="#genre-familial">👨‍👩‍👧 Familial</a></li>
+      <li><a href="#genre-aventure">🗺️ Aventure</a></li>
+      <li><a href="#genre-action">🔥 Action</a></li>
+      <li><a href="#genre-horreur">👻 Horreur</a></li>
+      <li><a href="#category-lego">🧱 LEGO</a></li>
+      <li><a href="#category-minecraft">⛏️ Minecraft</a></li>
+      <li><a href="#category-live-action">🎬 Live-action</a></li>
+    </ul>
+    <hr>
+    <ul class="side-links bottom">
+      <li><a href="#partenariats">🤝 Partenariats</a></li>
+      <li><a href="#submit-film">🎬 Ajouter des films</a></li>
+      <li><a href="https://discord.gg/9ekddx9Hqs" target="_blank" rel="noopener noreferrer">💬 Discord</a></li>
+      <li><a href="https://www.youtube.com/@clipsoustudio" target="_blank" rel="noopener noreferrer">▶ YouTube</a></li>
+    </ul>
+  </div>
+</div>
+<div class="side-overlay" hidden></div>
+
 <main id="contenu" tabindex="-1">
 
 <!-- CAROUSEL HERO SECTION -->
@@ -88,7 +123,7 @@
     <div class="carousel-container">
         <div class="carousel-slides">
             <!-- Slide 1: La vie au petit âge -->
-            <div class="carousel-slide" style="background-image: url('La1.jpg');">
+            <div class="carousel-slide">
                 <div class="carousel-content">
                     <h2 class="carousel-title">La vie au petit âge</h2>
                     <div class="carousel-genres">
@@ -104,7 +139,7 @@
             </div>
 
             <!-- Slide 2: Dédoublement -->
-            <div class="carousel-slide" style="background-image: url('Dé1.jpg');">
+            <div class="carousel-slide">
                 <div class="carousel-content">
                     <h2 class="carousel-title">Dédoublement</h2>
                     <div class="carousel-genres">
@@ -120,7 +155,7 @@
             </div>
 
             <!-- Slide 3: Jackson Goup -->
-            <div class="carousel-slide" style="background-image: url('Ja1.jpg');">
+            <div class="carousel-slide">
                 <div class="carousel-content">
                     <h2 class="carousel-title">Jackson Goup</h2>
                     <div class="carousel-genres">
@@ -136,7 +171,7 @@
             </div>
 
             <!-- Slide 4: Alex (Série) -->
-            <div class="carousel-slide" style="background-image: url('Al1.jpg');">
+            <div class="carousel-slide">
                 <div class="carousel-content">
                     <h2 class="carousel-title">Alex</h2>
                     <div class="carousel-genres">
@@ -152,7 +187,7 @@
             </div>
 
             <!-- Slide 5: Karma -->
-            <div class="carousel-slide" style="background-image: url('Ka1.jpg');">
+            <div class="carousel-slide">
                 <div class="carousel-content">
                     <h2 class="carousel-title">Karma</h2>
                     <div class="carousel-genres">

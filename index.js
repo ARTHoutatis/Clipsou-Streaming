@@ -518,7 +518,14 @@ document.addEventListener('DOMContentLoaded', function () {
         bg.setAttribute('alt', '');
         bg.setAttribute('aria-hidden', 'true');
         bg.decoding = 'async';
-        bg.loading = 'lazy';
+        // Prioritize the first slide image for better LCP, keep others lazy
+        if (idx === 0) {
+          bg.loading = 'eager';
+          try { bg.fetchPriority = 'high'; } catch {}
+        } else {
+          bg.loading = 'lazy';
+          try { bg.fetchPriority = 'low'; } catch {}
+        }
         Object.assign(bg.style, {
           position: 'absolute',
           inset: '0',
@@ -721,5 +728,104 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   })();
 
-  // removed scroll buttons logic
+  // Side menu (hamburger) behavior
+  (function setupSideMenu() {
+    const btn = document.querySelector('.hamburger-btn');
+    const menu = document.getElementById('side-menu');
+    const overlay = document.querySelector('.side-overlay');
+    const closeBtn = document.querySelector('.side-close');
+
+    if (!btn || !menu || !overlay || !closeBtn) return;
+
+    function openMenu() {
+      document.body.classList.add('menu-open');
+      menu.classList.add('open');
+      overlay.hidden = false;
+      btn.setAttribute('aria-expanded', 'true');
+      // Focus first link for accessibility
+      const firstLink = menu.querySelector('a, button');
+      if (firstLink && typeof firstLink.focus === 'function') {
+        setTimeout(() => firstLink.focus(), 0);
+      }
+    }
+
+    function closeMenu() {
+      document.body.classList.remove('menu-open');
+      menu.classList.remove('open');
+      overlay.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+      // Return focus to the hamburger button
+      if (typeof btn.focus === 'function') btn.focus();
+    }
+
+    btn.addEventListener('click', () => {
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      if (expanded) closeMenu(); else openMenu();
+    });
+    closeBtn.addEventListener('click', closeMenu);
+    overlay.addEventListener('click', closeMenu);
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && menu.classList.contains('open')) {
+        closeMenu();
+      }
+    });
+
+    // Handle menu link clicks: center-scroll to in-page sections
+    function centerScrollToId(id, updateHash = true) {
+      if (!id) return;
+      const el = document.getElementById(id);
+      if (!el) return;
+      try {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      } catch {
+        const rect = el.getBoundingClientRect();
+        const targetTop = (window.pageYOffset || document.documentElement.scrollTop || 0)
+          + rect.top - (window.innerHeight - rect.height) / 2;
+        window.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+      }
+      if (updateHash) {
+        if (window.history && typeof window.history.replaceState === 'function') {
+          window.history.replaceState(null, document.title, '#' + id);
+        } else {
+          window.location.hash = '#' + id;
+        }
+      }
+    }
+
+    menu.addEventListener('click', (e) => {
+      const a = e.target.closest('a');
+      if (!a) return;
+      const href = a.getAttribute('href') || '';
+      if (href.startsWith('#')) {
+        e.preventDefault();
+        const id = href.replace(/^#/, '');
+        closeMenu();
+        // Defer a tick to allow menu close animation to start
+        setTimeout(() => centerScrollToId(id), 10);
+        return;
+      }
+      // For external links, still close the menu
+      closeMenu();
+    });
+
+    // Center on existing hash after load
+    if (location.hash) {
+      const id = location.hash.replace(/^#/, '');
+      // Only center for our sections
+      if (/^(top-rated|genre-|category-)/.test(id)) {
+        setTimeout(() => centerScrollToId(id, false), 0);
+      }
+    }
+
+    // Center on future hash changes
+    window.addEventListener('hashchange', () => {
+      const id = location.hash.replace(/^#/, '');
+      if (/^(top-rated|genre-|category-)/.test(id)) {
+        centerScrollToId(id, false);
+      }
+    });
+  })();
+  
 });

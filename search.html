@@ -35,6 +35,12 @@
 <body>
 
 <nav aria-label="Navigation principale">
+    <button class="hamburger-btn" aria-label="Ouvrir le menu" aria-controls="side-menu" aria-expanded="false" type="button">
+      <span class="sr-only">Menu</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" width="28" height="28">
+        <path fill="currentColor" d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+      </svg>
+    </button>
     <div class="logo">
         <img src="favicon.png" alt="Logo Clipsou">
         <span>Clipsou</span>
@@ -44,7 +50,30 @@
     <div class="nav-links">
         <a href="index.html" class="home-link">Accueil</a>
     </div>
-</nav>
+ </nav>
+
+<!-- Side Drawer Menu (version allégée) -->
+<div id="side-menu" class="side-menu" role="navigation" aria-label="Menu latéral">
+  <div class="side-menu-header">
+    <img src="favicon.png" alt="Logo Clipsou" width="32" height="32">
+    <strong>Clipsou Streaming</strong>
+    <button class="side-close" aria-label="Fermer le menu" type="button">✕</button>
+  </div>
+  <div class="side-menu-content">
+    <ul class="side-links top">
+      <li><a href="index.html">🏠 Accueil</a></li>
+    </ul>
+    <hr>
+    <ul class="side-links bottom">
+      <li><a href="#partenariats">🤝 Partenariats</a></li>
+      <li><a href="#submit-film">🎬 Ajouter des films</a></li>
+      <li><a href="https://discord.gg/9ekddx9Hqs" target="_blank" rel="noopener noreferrer">💬 Discord</a></li>
+      <li><a href="https://www.youtube.com/@clipsoustudio" target="_blank" rel="noopener noreferrer">▶ YouTube</a></li>
+    </ul>
+  </div>
+  
+</div>
+<div class="side-overlay" hidden></div>
 
 <main class="search-container">
     <div class="search-header">
@@ -62,6 +91,71 @@
     
     <div id="search-results" class="search-results">
         <!-- Results will be populated by JavaScript -->
+    </div>
+
+    <!-- Popups: mêmes contenus que sur la home -->
+    <div id="partenariats" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="partenariats-title">
+      <div class="fiche-content">
+        <a href="javascript:history.back()" class="button close-btn top-right-close" aria-label="Fermer">❌ Fermer</a>
+        <div class="fiche-right" style="padding-left:0;">
+          <h3 id="partenariats-title">🤝 Partenariats</h3>
+          <p>
+            <img src="NOVA.PNG" alt="Logo Nova Stream" style="width:112px;height:112px;display:block;margin:0 0 8px 0;border-radius:4px;">🎬 Bienvenue sur NOVA – Le Meilleur du Streaming Gratuit en VF & VOSTFR ! 🌟
+          </p>
+          <p>
+            Vous cherchez LE site ultime pour regarder films, séries et animés sans limite, gratuitement et en qualité HD, Full HD, voire 4K ? Ne cherchez plus : NOVA est votre nouvelle destination streaming incontournable !
+          </p>
+          <p>
+            <a href="https://nova-stream.live/" target="_blank" rel="noopener noreferrer" class="button">🌐 Ouvrir Nova Stream</a>
+          </p>
+          <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 16px 0;">
+          <p>
+            <img src="CineHelp.png" alt="Logo CineHelp" style="width:128px;height:128px;display:block;margin:0 0 8px 0;border-radius:4px;">🎬 Bienvenue sur CineHelp – L’univers du cinéma collaboratif ! ⭐
+          </p>
+          <p>
+            Tu veux créer un film, échanger avec des passionnés ou trouver des partenaires de tournage ? CineHelp te permet de partager tes projets, apprendre l’audiovisuel et rejoindre une communauté dynamique, débutants comme pros.
+          </p>
+          <p>
+            <a href="https://discord.gg/qJ44ksPPQT" target="_blank" rel="noopener noreferrer" class="button">🌐 Rejoindre CineHelp</a>
+          </p>
+          <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 16px 0;">
+          <p>
+            <img src="Cineclub.png" alt="Logo Cinéclub" style="width:128px;height:128px;display:block;margin:0 0 8px 0;border-radius:4px;">🎬 Bienvenue sur Cinéclub – Le serveur des vrais passionnés de cinéma ! ⭐
+          </p>
+          <p>
+            Tu aimes le cinéma et veux échanger avec des cinéphiles qui connaissent leurs classiques (et leurs nanars) ? Rejoins Cinéclub pour débattre, partager tes critiques et participer à des événements réguliers : soirées films, jeux, concours, et plus encore !
+          </p>
+          <p>
+            <a href="https://discord.gg/KGtUwpc2yj" target="_blank" rel="noopener noreferrer" class="button">🌐 Rejoindre Cinéclub</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div id="submit-film" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="submit-film-title">
+      <div class="fiche-content">
+        <a href="javascript:history.back()" class="button close-btn top-right-close" aria-label="Fermer">❌ Fermer</a>
+        <div class="fiche-right" style="padding-left:0;">
+          <h3 id="submit-film-title">Proposez vos films sur notre site 🎬</h3>
+          <p>Vous souhaitez mettre en avant vos créations ? Rien de plus simple !</p>
+          <p>Il vous suffit de nous envoyer :</p>
+          <p>
+            ➤ Une affiche (format 9/12)<br>
+            ➤ Une image (format 16/9)<br>
+            ➤ si le film est tourné en prise de vue réelle, en LEGO ou réalisé dans un jeu vidéo<br>
+            ➤ le logo de votre studio (fond transparent si possible)<br>
+            ➤ 3 genres (exemple : Action, Comédie, Thriller)<br>
+            ➤ Le lien YouTube de votre film
+          </p>
+          <p>👉 C’est 100% gratuit !</p>
+          <p>En échange, nous vous demanderons simplement un petit coup de pouce : partager une pub de notre site sur vos réseaux sociaux 💙</p>
+          <p>📩 Intéressé(e) ? Contactez-moi sur Discord : <strong>arth.d.i.s.c.o.r.d</strong><br>
+          ou sinon par notre Email <a href="mailto:roxxormister@gmail.com">roxxormister@gmail.com</a></p>
+          <div class="button-group">
+            <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+          </div>
+        </div>
+      </div>
     </div>
 </main>
 <script src="search.js" defer></script>

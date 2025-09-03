@@ -124,7 +124,7 @@ function displayResults(results) {
         <div class="card">
             <a href="index.html#${item.id}">
                 <div class="card-media">
-                    <img src="${initialSrc}" data-base="${base}" alt="Affiche de ${item.title}" loading="lazy" onerror="(function(img){var b=img.getAttribute('data-base'); if(!b){img.onerror=null; img.src='apercu.png'; return;} var i=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=i; var exts=['jpg','jpeg','png']; if(i<exts.length){ img.src=b+'.'+exts[i]; } else { img.onerror=null; img.src='apercu.png'; }})(this)">
+                    <img src="${initialSrc}" data-base="${base}" alt="Affiche de ${item.title}" loading="lazy" decoding="async" onerror="(function(img){var b=img.getAttribute('data-base'); if(!b){img.onerror=null; img.src='apercu.png'; return;} var i=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=i; var exts=['jpg','jpeg','png']; if(i<exts.length){ img.src=b+'.'+exts[i]; } else { img.onerror=null; img.src='apercu.png'; }})(this)">
                     <div class="brand-badge">
                         <img src="clipsoustudio.png" alt="Clipsou Studio" loading="lazy" decoding="async">
                     </div>
@@ -216,4 +216,81 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Afficher tous les films par défaut (après build async)
         displayResults(searchMovies('', filters.getSelected()));
     }
+});
+
+// Side menu (hamburger) behavior for search page
+document.addEventListener('DOMContentLoaded', function () {
+    (function setupSideMenu() {
+        const btn = document.querySelector('.hamburger-btn');
+        const menu = document.getElementById('side-menu');
+        const overlay = document.querySelector('.side-overlay');
+        const closeBtn = document.querySelector('.side-close');
+
+        if (!btn || !menu || !overlay || !closeBtn) return;
+
+        function openMenu() {
+            document.body.classList.add('menu-open');
+            menu.classList.add('open');
+            overlay.hidden = false;
+            btn.setAttribute('aria-expanded', 'true');
+            const firstLink = menu.querySelector('a, button');
+            if (firstLink && typeof firstLink.focus === 'function') {
+                setTimeout(() => firstLink.focus(), 0);
+            }
+        }
+
+        function closeMenu() {
+            document.body.classList.remove('menu-open');
+            menu.classList.remove('open');
+            overlay.hidden = true;
+            btn.setAttribute('aria-expanded', 'false');
+            if (typeof btn.focus === 'function') btn.focus();
+        }
+
+        btn.addEventListener('click', () => {
+            const expanded = btn.getAttribute('aria-expanded') === 'true';
+            if (expanded) closeMenu(); else openMenu();
+        });
+        closeBtn.addEventListener('click', closeMenu);
+        overlay.addEventListener('click', closeMenu);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && menu.classList.contains('open')) {
+                closeMenu();
+            }
+        });
+
+        // Close menu on internal link clicks and handle popups via :target
+        menu.addEventListener('click', (e) => {
+            const a = e.target.closest('a');
+            if (!a) return;
+            const href = a.getAttribute('href') || '';
+            if (href.startsWith('#')) {
+                e.preventDefault();
+                const id = href.replace(/^#/, '');
+                closeMenu();
+                setTimeout(() => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        // If target is a popup, open it by updating the hash (triggers :target)
+                        if (el.classList && el.classList.contains('fiche-popup')) {
+                            try { window.location.hash = '#' + id; } catch {}
+                            return;
+                        }
+                        // Otherwise, smooth scroll to the section and update hash for consistency
+                        try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {}
+                        try {
+                            if (window.history && typeof window.history.replaceState === 'function') {
+                                window.history.replaceState(null, document.title, '#' + id);
+                            } else {
+                                window.location.hash = '#' + id;
+                            }
+                        } catch {}
+                    }
+                }, 10);
+                return;
+            }
+            closeMenu();
+        });
+    })();
 });
