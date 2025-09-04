@@ -94,6 +94,7 @@
     <button class="side-close" aria-label="Fermer le menu" type="button">✕</button>
   </div>
   <div class="side-menu-content">
+    <h3 class="side-section-title">Catégories</h3>
     <ul class="side-links top">
       <li><a href="#top-rated">⭐ Mieux notés</a></li>
       <li><a href="#genre-comedie">😂 Comédie</a></li>
@@ -106,6 +107,7 @@
       <li><a href="#category-live-action">🎬 Live-action</a></li>
     </ul>
     <hr>
+    <h3 class="side-section-title">Informations</h3>
     <ul class="side-links bottom">
       <li><a href="#partenariats">🤝 Partenariats</a></li>
       <li><a href="#submit-film">🎬 Ajouter des films</a></li>
@@ -553,29 +555,29 @@
 </main>
   <footer class="footer" role="contentinfo">
   <div class="footer-inner">
-    <div>
-      Clipsou Streaming depuis 2019<br><br>
-      <span>Créateur : Mroxxor</span><br>
+    <div class="footer-text" aria-label="Informations du site">
+      <span>Clipsou Streaming depuis 2019</span>
+      <span class="footer-sep" aria-hidden="true"> </span>
+      <span>Créateur : Mroxxor</span>
+      <span class="footer-sep" aria-hidden="true"> </span>
       <span>Développeur : ARTH</span>
     </div>
-    <div class="footer-actions">
-        <a href="#submit-film" class="button" style="margin-left: 12px; border-radius: 8px; padding: 10px 16px;">🎬 ajouter votre film</a>
-        <a href="#partenariats" class="button partner-link" style="margin-left: 12px; border-radius: 8px; padding: 10px 16px;">🤝 partenariats</a>
-        <a href="https://discord.gg/9ekddx9Hqs" target="_blank" rel="noopener noreferrer" class="button discord-btn" aria-label="Rejoindre notre Discord" style="margin-left: 12px; border-radius: 8px; padding: 10px 16px;">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor">
-            <path d="M20.317 4.369A19.791 19.791 0 0 0 16.558 3c-.2.36-.43.85-.59 1.23a18.27 18.27 0 0 0-4.936 0c-.17-.39-.4-.87-.6-1.23-1.37.25-2.73.68-3.997 1.27C3.76 8.053 3.06 11.64 3.3 15.18c1.67 1.25 3.29 2.01 4.87 2.51.39-.54.74-1.12 1.04-1.73-.57-.22-1.11-.49-1.63-.8.14-.1.27-.21.4-.32 3.14 1.47 6.54 1.47 9.65 0 .13.11.26.22.4.32-.52.31-1.07.58-1.64.8.3.61.65 1.19 1.04 1.73 1.58-.5 3.2-1.26 4.87-2.51.4-5.37-.67-8.9-2.98-10.81ZM9.68 13.86c-.94 0-1.7-.86-1.7-1.92 0-1.05.75-1.92 1.7-1.92.94 0 1.7.86 1.7 1.92 0 1.05-.76 1.92-1.7 1.92Zm4.64 0c-.94 0-1.7-.86-1.7-1.92 0-1.05.76-1.92 1.7-1.92s1.7.86 1.7 1.92c0 1.05-.76 1.92-1.7 1.92Z"/>
-          </svg>
-          <span class="sr-only">Discord</span>
-        </a>
-        <a href="https://www.youtube.com/@clipsoustudio" target="_blank" rel="noopener noreferrer" class="button youtube-btn" aria-label="Voir notre chaîne YouTube" style="margin-left: 12px; border-radius: 8px; padding: 10px 16px;">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor">
-            <path d="M23.498 6.186a3.002 3.002 0 0 0-2.116-2.125C19.516 3.5 12 3.5 12 3.5s-7.516 0-9.382.561A3.002 3.002 0 0 0 .502 6.186C0 8.06 0 12 0 12s0 3.94.502 5.814a3.002 3.002 0 0 0 2.116 2.125C4.484 20.5 12 20.5 12 20.5s7.516 0 9.382-.561a3.002 3.002 0 0 0 2.116-2.125C24 15.94 24 12 24 12s0-3.94-.502-5.814ZM9.75 15.5v-7l6 3.5-6 3.5Z"/>
-          </svg>
-          <span class="sr-only">YouTube</span>
-        </a>
-     </div>
-   </div>
- </footer>
+    <div class="footer-actions footer-actions--mini" aria-label="Liens secondaires">
+      <a href="#partenariats" class="btn-mini" aria-label="Partenariats">🤝 Partenariats</a>
+      <a href="#submit-film" class="btn-mini" aria-label="Ajouter un film">🎬 Ajouter un film</a>
+      <a href="https://discord.gg/9ekddx9Hqs" target="_blank" rel="noopener noreferrer" class="btn-mini btn-icon icon-discord" aria-label="Rejoindre notre Discord">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor">
+          <path d="M20.317 4.369A19.791 19.791 0 0 0 16.558 3c-.2.36-.43.85-.59 1.23a18.27 18.27 0 0 0-4.936 0c-.17-.39-.4-.87-.6-1.23-1.37.25-2.73.68-3.997 1.27C3.76 8.053 3.06 11.64 3.3 15.18c1.67 1.25 3.29 2.01 4.87 2.51.39-.54.74-1.12 1.04-1.73-.57-.22-1.11-.49-1.63-.8.14-.1.27-.21.4-.32 3.14 1.47 6.54 1.47 9.65 0 .13.11.26.22.4.32-.52.31-1.07.58-1.64.8.3.61.65 1.19 1.04 1.73 1.58-.5 3.2-1.26 4.87-2.51.4-5.37-.67-8.9-2.98-10.81ZM9.68 13.86c-.94 0-1.7-.86-1.7-1.92 0-1.05.75-1.92 1.7-1.92.94 0 1.7.86 1.7 1.92 0 1.05-.76 1.92-1.7 1.92Zm4.64 0c-.94 0-1.7-.86-1.7-1.92 0-1.05.76-1.92 1.7-1.92s1.7.86 1.7 1.92c0 1.05-.76 1.92-1.7 1.92Z"/>
+        </svg>
+      </a>
+      <a href="https://www.youtube.com/@clipsoustudio" target="_blank" rel="noopener noreferrer" class="btn-mini btn-icon icon-youtube" aria-label="Voir notre chaîne YouTube">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor">
+          <path d="M23.498 6.186a3.002 3.002 0 0 0-2.116-2.125C19.516 3.5 12 3.5 12 3.5s-7.516 0-9.382.561A3.002 3.002 0 0 0 .502 6.186C0 8.06 0 12 0 12s0 3.94.502 5.814a3.002 3.002 0 0 0 2.116 2.125C4.484 20.5 12 20.5 12 20.5s7.516 0 9.382-.561a3.002 3.002 0 0 0 2.116-2.125C24 15.94 24 12 24 12s0-3.94-.502-5.814ZM9.75 15.5v-7l6 3.5-6 3.5Z"/>
+        </svg>
+      </a>
+    </div>
+    </div>
+  </footer>
  <script src="index.js" defer></script>
  </body>
  </html>

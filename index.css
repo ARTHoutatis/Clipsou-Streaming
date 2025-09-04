@@ -64,7 +64,7 @@ nav[aria-label="Navigation principale"] .hamburger-btn:hover {
     position: fixed;
     top: 0;
     left: 0;
-    height: 100vh;
+    height: 100svh; /* use small viewport height for mobile chrome/safari */
     width: min(86vw, 320px);
     background: #0e141b;
     border-right: 1px solid rgba(255,255,255,0.12);
@@ -96,7 +96,7 @@ nav[aria-label="Navigation principale"] .hamburger-btn:hover {
 }
 .side-menu-header .side-close:hover { background: rgba(255,255,255,0.06); }
 
-.side-menu-content { padding: 10px 8px 20px; overflow-y: auto; }
+.side-menu-content { padding: 10px 8px 20px; overflow-y: auto; flex: 1 1 auto; min-height: 0; -webkit-overflow-scrolling: touch; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
 .side-menu .side-links { list-style: none; padding: 0; margin: 0; }
 .side-menu .side-links li { margin: 2px 0; }
 .side-menu .side-links a {
@@ -114,6 +114,17 @@ nav[aria-label="Navigation principale"] .hamburger-btn:hover {
     border-color: rgba(255,255,255,0.12);
 }
 .side-menu hr { border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 10px 8px; }
+
+/* Titles inside side menu sections */
+.side-section-title {
+    margin: 12px 8px 6px;
+    padding: 6px 12px;
+    font-size: 16px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: rgba(255,255,255,0.85);
+}
 
 /* Screen overlay */
 .side-overlay {
@@ -1086,13 +1097,78 @@ html {
     max-width: 1280px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr;
     gap: 16px;
-    align-items: center;
+    align-items: center;     /* vertical alignment of rows */
+    justify-items: center;   /* horizontal centering of each row */
+    text-align: center;      /* ensure text centers within */
 }
-.footer .footer-actions { justify-self: end; text-align: right; }
+.footer .footer-actions { display: none; }
 .footer a { color: #c8d4e0; text-decoration: none; }
 .footer a:hover { color: #fff; }
+
+/* Footer inline text layout */
+.footer .footer-text {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    text-align: center;
+}
+.footer .footer-text span { white-space: nowrap; }
+.footer .footer-text .footer-sep { opacity: 0.7; margin: 0 6px; }
+
+/* Footer compact buttons row */
+.footer .footer-actions.footer-actions--mini {
+    display: flex;              /* overrides the hidden default */
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+.footer .btn-mini {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+    line-height: 1;
+    padding: 8px 10px;
+    border-radius: 6px;
+    color: #c8d4e0;
+    text-decoration: none;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.12);
+    transition: background .2s ease, border-color .2s ease, color .2s ease, transform .15s ease;
+}
+.footer .btn-mini.btn-icon { 
+    padding: 0; 
+    background: transparent; 
+    border: none; 
+    line-height: 0;            /* tighter vertical alignment */
+    display: inline-flex;      /* ensure proper centering */
+    align-items: center;
+    justify-content: center;
+}
+.footer .btn-mini.btn-icon svg { width: 32px; height: 32px; display: block; }
+.footer .btn-mini.btn-icon:hover { 
+    background: transparent; 
+    border-color: transparent; 
+    transform: none; 
+    color: #ffffff; 
+}
+/* Slightly larger Discord icon vs YouTube */
+.footer .btn-mini.icon-discord svg { width: 24px; height: 24px; }
+/* YouTube base size (doubled) */
+.footer .btn-mini.icon-youtube svg { width: 22px; height: 22px; }
+.footer .btn-mini:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.2);
+    color: #ffffff;
+}
+.footer .btn-mini:active { transform: translateY(0); }
 
 /* Header extras (menu, search, avatar) */
 .search { display: none; }
