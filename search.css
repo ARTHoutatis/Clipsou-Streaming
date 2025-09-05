@@ -4,117 +4,12 @@
 
 /* Logo/nav base styles are in common.css */
 
-/* Match index navbar layout: logo left, links right (inherit from common.css) */
-nav[aria-label="Navigation principale"] { justify-content: space-between; }
-.logo { margin: 0; }
-.nav-links { position: static; right: auto; top: auto; transform: none; }
+/* Navbar layout and positioning are centralized in common.css */
 
-/* Left-align with hamburger like index: hamburger | logo | spacer */
-nav[aria-label="Navigation principale"] {
-  display: grid;
-  grid-template-columns: auto auto 1fr; /* hamburger | logo | spacer */
-  align-items: center;
-  column-gap: 10px;
-}
-nav[aria-label="Navigation principale"] .hamburger-btn { grid-column: 1; justify-self: start; }
-.logo { grid-column: 2; justify-self: start; margin: 0; }
-.nav-links { grid-column: 3; justify-self: end; }
-
-/* ===== Side Menu & Hamburger (search page) ===== */
+/* ===== Side Menu & Hamburger (centralized) ===== */
 /* Prevent scroll when menu open */
 body.menu-open { overflow: hidden; }
-
-/* Button at far left of navbar */
-nav[aria-label="Navigation principale"] .hamburger-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  margin-right: 10px;
-  /* Desktop: same translucent style as .home-link */
-  background: rgba(255,255,255,0.10);
-  border: 1px solid rgba(255,255,255,0.20);
-  border-radius: 8px;
-  color: #ffffff;
-  cursor: pointer;
-}
-nav[aria-label="Navigation principale"] .hamburger-btn:hover {
-  background: rgba(255,255,255,0.18);
-  border-color: rgba(255,255,255,0.28);
-}
-
-/* Side drawer container */
-.side-menu {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100svh;
-  width: min(86vw, 320px);
-  background: #0e141b;
-  border-right: 1px solid rgba(255,255,255,0.12);
-  transform: translateX(-100%);
-  transition: transform .3s ease;
-  z-index: 1100;
-  display: flex;
-  flex-direction: column;
-}
-.side-menu.open { transform: translateX(0); }
-
-.side-menu-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-.side-menu-header strong { font-size: 16px; }
-.side-menu-header .side-close {
-  margin-left: auto;
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.18);
-  color: #fff;
-  border-radius: 6px;
-  width: 36px;
-  height: 36px;
-  cursor: pointer;
-}
-.side-menu-header .side-close:hover { background: rgba(255,255,255,0.06); }
-
-.side-menu-content { padding: 10px 8px 20px; overflow-y: auto; flex: 1 1 auto; min-height: 0; -webkit-overflow-scrolling: touch; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
-.side-menu .side-links { list-style: none; padding: 0; margin: 0; }
-.side-menu .side-links li { margin: 2px 0; }
-.side-menu .side-links a {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 12px;
-  border-radius: 8px;
-  color: #e6eef5;
-  text-decoration: none;
-  border: 1px solid transparent;
-}
-.side-menu .side-links a:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); }
-.side-menu hr { border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 10px 8px; }
-
-/* Titles inside side menu sections */
-.side-section-title {
-  margin: 12px 8px 6px;
-  padding: 6px 12px;
-  font-size: 16px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: rgba(255,255,255,0.85);
-}
-
-/* Screen overlay */
-.side-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  z-index: 1095;
-}
+/* Hamburger button, side drawer, headers, links and overlay are centralized in common.css */
 
 /* Button-like links with icons */
 .home-link { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); }
@@ -232,24 +127,7 @@ nav[aria-label="Navigation principale"] .hamburger-btn:hover {
 
 /* Mobile styles */
 @media (max-width: 768px) {
-    /* Mobile: same three-column grid, smaller gap */
-    nav[aria-label="Navigation principale"] {
-        display: grid;
-        grid-template-columns: auto auto 1fr;
-        align-items: center;
-        justify-content: initial;
-        column-gap: 8px;
-    }
-    nav[aria-label="Navigation principale"] .hamburger-btn {
-        grid-column: 1;
-        /* Mobile: same dark gray style as .nav-links .home-link */
-        background: #434344 !important;
-        border: 1px solid #3a3a3b;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-        border-radius: 5px;
-    }
-    .logo { grid-column: 2; justify-self: start; margin: 0; }
-    .nav-links { grid-column: 3; justify-self: end; position: static; right: auto; top: auto; transform: none; }
+    /* Mobile navbar layout and hamburger button styles are centralized in common.css */
     .nav-links .home-link {
         padding: 10px;
         background: #434344 !important;
@@ -276,12 +154,7 @@ nav[aria-label="Navigation principale"] .hamburger-btn:hover {
     .search-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
     /* Hide genre filters on mobile to save vertical space */
     .genre-filters { display: none !important; }
-    .genre-chip { padding: 7px 10px; font-size: 13px; }
-}
-
-/* Neutralize system dark mode: keep site appearance unchanged in dark mode */
-@media (prefers-color-scheme: dark) {
-    :root { color-scheme: light; }
+  .genre-chip { padding: 7px 10px; font-size: 13px; }
 }
 
 /* ===== Visual Enhancements (Search) ===== */
@@ -294,12 +167,6 @@ body {
     linear-gradient(180deg, var(--bg-2), var(--bg-1));
 }
 
-/* Glassy nav with subtle blur */
-nav[aria-label="Navigation principale"] {
-  background: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0.65));
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
 
 /* Gradient title text */
 .search-header h1 {
@@ -320,10 +187,7 @@ nav[aria-label="Navigation principale"] {
   box-shadow: 0 14px 38px rgba(0,0,0,0.45);
 }
 .card img { will-change: transform; }
-
-/* Disable overlay watermark: place the logo inside the info bar */
-.card::after { content: none; }
-
+ 
 /* Info bar layout (logo, sizing) inherits from common.css */
 
 /* Keep type then rating side-by-side (handled in common.css) */
@@ -336,116 +200,11 @@ nav[aria-label="Navigation principale"] {
 
 /* A11y focus ring, transitions, reduced motion, and scrollbar styles are shared in common.css */
 
-/* ===== Popups (aligned with homepage index.css) ===== */
-/* Block background scroll when a popup is open */
-body:has(.fiche-popup:target) { overflow: hidden; height: 100vh; }
+/* Popups are fully styled in common.css to keep index and search consistent */
 
-.fiche-popup {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.9); /* opaque like index */
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  padding: clamp(12px, 3vw, 20px);
-  overscroll-behavior: contain;
-}
-
-.fiche-popup:target { display: flex; }
-
-.fiche-content {
-  width: 100%;
-  max-width: 2000px;
-  max-height: 95vh;
-  background: rgba(26, 35, 50, 0.95); /* same as index */
-  border-radius: 16px;
-  display: grid;
-  gap: 30px;
-  padding: 30px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  position: relative;
-  grid-template-columns: 1fr 1.5fr; /* default portrait layout */
-}
-
-.fiche-content.landscape-layout { grid-template-columns: 2fr 1fr; }
-
-.fiche-left { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
-.fiche-right { display: flex; flex-direction: column; justify-content: center; padding-left: 20px; }
-.fiche-content h3 { margin: 0 0 16px 0; font-size: 28px; font-weight: 700; }
-.fiche-content p { margin: 15px 0; font-size: 16px; line-height: 1.6; color: #fff; text-align: justify; }
-
-.rating-genres { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-.fiche-content .stars { font-size: 20px; margin: 0; color: #ffffff; }
-.genres { display: flex; gap: 8px; flex-wrap: wrap; justify-content: start; align-items: center; }
-.genre-tag { background: rgba(255,255,255,0.06); color: #e6eef5; padding: 4px 12px; border-radius: 16px; font-size: 14px; font-weight: 500; border: 1px solid rgba(255,255,255,0.12); white-space: nowrap; }
-
-.button-group { display: flex; gap: 16px; flex-wrap: wrap; margin-top: auto; position: sticky; bottom: 0; padding-top: 12px; margin-top: 16px; background: transparent; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
-
-/* Buttons (match index) */
-.button {
-  background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
-  border-radius: 5px;
-  padding: 12px 24px;
-  color: #fff;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255,255,255,0.14);
-  box-shadow: 0 10px 20px rgba(43,34,238,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
-  cursor: pointer;
-  font-size: 14px;
-  white-space: nowrap;
-  min-height: 44px;
-}
-.button:hover { transform: translateY(-1px); box-shadow: none; }
-.close-btn { background: linear-gradient(135deg, var(--brand-1), var(--brand-2)); }
-.close-btn:hover { background: #cc0000 !important; }
-.button.partner-link { background: #16a34a !important; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 10px 20px rgba(22,163,74,0.25), inset 0 1px 0 rgba(255,255,255,0.12); }
-.button.partner-link:hover { background: #15803d !important; filter: brightness(0.98); }
-
-/* Close button position */
-.fiche-content .top-right-close { position: absolute; top: 12px; right: 12px; z-index: 2; }
-
-/* Images inside popups */
-.fiche-content img { width: 100%; max-width: 100%; max-height: 80vh; height: auto; border-radius: 12px; margin-bottom: 20px; object-fit: contain; }
-.fiche-content img.landscape { max-height: 70vh; width: 100%; object-fit: cover; }
-
-/* Mobile adjustments */
-@media (max-width: 768px) {
-  .fiche-popup {
-    padding-left: max(12px, env(safe-area-inset-left));
-    padding-right: max(12px, env(safe-area-inset-right));
-    padding-top: max(12px, env(safe-area-inset-top));
-    padding-bottom: max(12px, env(safe-area-inset-bottom));
-    min-height: 100svh;
-    align-items: center;
-  }
-  .fiche-content {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "image"
-      "content";
-    width: 100%;
-    max-width: 95vw;
-    max-height: min(90svh, 90dvh);
-    padding: 20px;
-    justify-items: center;
-    align-items: start;
-    gap: 16px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    text-align: center;
-    -webkit-overflow-scrolling: touch;
-    overflow-x: hidden;
-  }
-  .fiche-left { align-items: center; width: 100%; display: flex; flex-direction: column; justify-content: center; }
-  .fiche-content img { display: block; margin: 0 auto 16px; max-width: 90%; max-height: 50svh; }
-  .fiche-right { padding-left: 0; text-align: center; width: 100%; max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-  .fiche-content h3 { text-align: center !important; margin: 0 0 12px 0; width: 100%; }
-  .fiche-content p { text-align: center; margin: 0 auto 16px; max-width: 400px; }
-  .button-group { justify-content: center; gap: 12px; }
+/* Match Trailer Batman typography with index (ensure 'Trailer' uses a distinct, legible font) */
+#film5-title .trailer-word {
+  text-transform: none !important;
+  font-family: Verdana, Tahoma, "Segoe UI", Arial, sans-serif;
+  letter-spacing: 0.3px;
 }

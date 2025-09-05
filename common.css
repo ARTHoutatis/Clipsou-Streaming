@@ -53,13 +53,110 @@ nav[aria-label="Navigation principale"] {
   backdrop-filter: blur(8px);
   border-bottom: 1px solid rgba(255,255,255,0.08);
   padding: 15px 40px;
-  display: flex;
-  justify-content: space-between;
+  /* Shared grid layout for both pages: hamburger | logo | spacer */
+  display: grid;
+  grid-template-columns: auto auto 1fr;
   align-items: center;
   box-shadow: none;
   position: sticky;
   top: 0;
   z-index: 1000;
+}
+
+/* Navbar slots */
+nav[aria-label="Navigation principale"] .hamburger-btn { grid-column: 1; justify-self: start; }
+.logo { grid-column: 2; justify-self: start; margin: 0; }
+.nav-links { grid-column: 3; justify-self: end; }
+
+/* Hamburger button (shared desktop styles) */
+nav[aria-label="Navigation principale"] .hamburger-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-right: 10px;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.20);
+  border-radius: 8px;
+  color: #ffffff;
+  cursor: pointer;
+}
+nav[aria-label="Navigation principale"] .hamburger-btn:hover {
+  background: rgba(255,255,255,0.18);
+  border-color: rgba(255,255,255,0.28);
+}
+
+/* Side drawer (shared) */
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100svh;
+  width: min(86vw, 320px);
+  background: #0e141b;
+  border-right: 1px solid rgba(255,255,255,0.12);
+  transform: translateX(-100%);
+  transition: transform .3s ease;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+}
+.side-menu.open { transform: translateX(0); }
+
+.side-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.side-menu-header strong { font-size: 16px; }
+.side-menu-header .side-close {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.18);
+  color: #fff;
+  border-radius: 6px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+}
+.side-menu-header .side-close:hover { background: rgba(255,255,255,0.06); }
+
+.side-menu-content { padding: 10px 8px 20px; overflow-y: auto; flex: 1 1 auto; min-height: 0; -webkit-overflow-scrolling: touch; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+.side-menu .side-links { list-style: none; padding: 0; margin: 0; }
+.side-menu .side-links li { margin: 2px 0; }
+.side-menu .side-links a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 12px;
+  border-radius: 8px;
+  color: #e6eef5;
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+.side-menu .side-links a:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); }
+.side-menu hr { border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 10px 8px; }
+
+/* Titles inside side menu sections */
+.side-section-title {
+  margin: 12px 8px 6px;
+  padding: 6px 12px;
+  font-size: 16px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: rgba(255,255,255,0.85);
+}
+
+/* Screen overlay */
+.side-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 1095;
 }
 
 .logo {
@@ -209,11 +306,18 @@ html { scrollbar-color: #615d5d #0a0a0a; scrollbar-width: thin; }
     width: 100%;
     max-width: 100vw;
     overflow-x: hidden;
-    display: flex;
+    display: grid;
+    grid-template-columns: auto auto 1fr;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: nowrap;
-    column-gap: 6px;
+    column-gap: 8px;
+  }
+  /* Mobile style for hamburger button */
+  nav[aria-label="Navigation principale"] .hamburger-btn {
+    background: #434344 !important;
+    border: 1px solid #3a3a3b;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    border-radius: 5px;
   }
   .logo {
     flex: 1 1 auto;
@@ -247,5 +351,440 @@ html { scrollbar-color: #615d5d #0a0a0a; scrollbar-width: thin; }
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ===== Shared Popup (fiche) styles used by index and search ===== */
+
+/* Lock background scroll when a popup is open */
+body:has(.fiche-popup:target) {
+  overflow: hidden;
+  height: 100vh;
+}
+
+.fiche-popup {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: clamp(12px, 3vw, 20px);
+  backdrop-filter: none;
+  overscroll-behavior: contain;
+}
+
+.fiche-popup:target {
+  display: flex;
+}
+
+.fiche-content {
+  width: 100%;
+  max-width: 2000px;
+  max-height: 95vh;
+  background: #1A2332; /* solid opaque background */
+  border-radius: 16px;
+  display: grid;
+  gap: 30px;
+  padding: 30px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  grid-template-columns: 1fr 1.5fr; /* default portrait */
+}
+
+/* Alternative: force landscape layout when needed */
+.fiche-content.landscape-layout {
+  grid-template-columns: 2fr 1fr;
+}
+
+.fiche-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.fiche-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 20px;
+}
+
+.fiche-content img {
+  width: 100%;
+  max-width: 100%;
+  max-height: 80vh;
+  height: auto;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  object-fit: contain;
+}
+
+.fiche-content img.landscape {
+  max-height: 70vh;
+  width: 100%;
+  object-fit: cover;
+}
+
+.fiche-content h3 {
+  margin: 0 0 16px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+  scroll-margin-top: 12px;
+}
+
+.rating-genres {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.fiche-content .stars {
+  font-size: 20px;
+  margin: 0;
+  color: #ffffff;
+  text-shadow: 0 0 8px rgba(255,213,74,0.25);
+}
+
+.fiche-content .stars::first-letter {
+  color: #FFD54A;
+}
+
+.genres {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: start;
+  align-items: center;
+}
+
+.genre-tag {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e6eef5;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 0 0 rgba(43,34,238,0);
+  transition: box-shadow .2s ease, filter .2s ease;
+}
+
+.genre-tag:hover {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 0 12px rgba(43,34,238,0.35);
+  filter: brightness(1.05);
+}
+
+.button-group {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: auto;
+  position: sticky;
+  bottom: 0;
+  padding-top: 12px;
+  margin-top: 16px;
+  background: transparent;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
+}
+
+/* Buttons (shared) */
+.button {
+  background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+  border-radius: 5px;
+  padding: 12px 24px;
+  color: #fff;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 10px 20px rgba(43,34,238,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+  min-height: 44px;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+  box-shadow: none;
+}
+
+/* Close button: blue by default, turns red on hover */
+.close-btn {
+  background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 10px 20px rgba(43,34,238,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+  color: #fff;
+}
+
+.close-btn:hover {
+  background: #cc0000 !important;
+  border-color: rgba(255,255,255,0.18);
+  box-shadow: 0 10px 22px rgba(204,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+
+/* Position the close button at the top-right of popup content */
+.fiche-content .top-right-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+}
+
+/* Mobile adjustments for popups */
+@media (max-width: 768px) {
+  .fiche-popup {
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    min-height: 100svh;
+    align-items: center;
+  }
+  .fiche-content {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "image"
+      "content";
+    width: 100%;
+    max-width: 95vw;
+    max-height: min(90svh, 90dvh);
+    padding: 20px;
+    justify-items: center;
+    align-items: start;
+    gap: 16px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
+    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
+  }
+  .fiche-left {
+    align-items: center;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .fiche-content img {
+    display: block;
+    margin: 0 auto 16px;
+    max-width: 90%;
+    max-height: 50svh;
+    height: auto;
+    border-radius: 12px;
+  }
+  .fiche-right {
+    padding-left: 0;
+    text-align: center;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .fiche-content h3 {
+    text-align: center !important;
+    margin: 0 0 12px 0;
+    width: 100%;
+    color: inherit;
+    display: block;
+    min-width: 0;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .fiche-content p {
+    text-align: center;
+    margin: 0 auto 16px;
+    max-width: 400px;
+    line-height: 1.5;
+  }
+  .rating-genres {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    width: 100%;
+    margin: 0 auto 16px;
+  }
+  .genres { justify-content: center; }
+  .genre-tag { font-size: 13px; padding: 4px 10px; white-space: nowrap; }
+  .button-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    margin: 16px auto 0;
+    padding-top: 16px;
+  }
+  .button {
+    flex: 1 1 auto;
+    max-width: 200px;
+    min-width: 120px;
+    text-align: center;
+    padding: 14px 20px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ===== Shared per-title typography for fiche popups ===== */
+/* Backrooms Urbanos base size */
+#film7-title { font-size: clamp(28px, 5vw, 44px); }
+/* Inline SVG sizing for URBANOS logo */
+#film7-title .urbanos-svg { display: inline-block; line-height: 1; }
+#film7-title .urbanos-logo { height: 1.10em; width: auto; vertical-align: -0.32em; display: inline-block; }
+/* Apply VHS pixel style ONLY to "Backrooms" */
+#film7-title .backrooms-vhs {
+  font-family: 'VT323', monospace;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #ffffff;
+  font-size: 1.08em;
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+}
+/* URBANOS gradient word treatment */
+#film7-title .urbanos-grad {
+  display: inline-block;
+  font-weight: 800;
+  font-family: 'Luckiest Guy', Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: linear-gradient(180deg,
+    #ffffff 0%, #ffffff 2%,
+    #6fe3ff 2%, #6fe3ff 8%,
+    #28cf63 8%, #28cf63 48%,
+    #ffe35a 48%, #ffe35a 62%,
+    #ff7f10 62%, #ff7a00 100%
+  );
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 0.6px rgba(0,0,0,0.35);
+  text-shadow:
+    0 -1px 0 rgba(255,255,255,0.95),
+    -1px -1px 0 rgba(111,227,255,0.85),
+    0 1px 0 rgba(0,0,0,0.28),
+    0 2px 2px rgba(0,0,0,0.28),
+    0 4px 6px rgba(0,0,0,0.38),
+    0 0 6px rgba(255,165,0,0.22),
+    1px 1px 0 rgba(255,122,0,0.65);
+}
+
+/* Batman trailer / Cinzel / Alex / Lawless / Karma / Urbanos City */
+#film5-title { font-family: 'Anton', Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif; letter-spacing: 1px; }
+#film3-title, #film1-title { font-family: 'Cinzel', Georgia, 'Times New Roman', serif; }
+#serie1-title { font-family: 'Bevan', Georgia, serif; letter-spacing: 2px; text-transform: uppercase; }
+#serie2-title { font-family: 'Rye', Georgia, serif; }
+
+/* Karma: bold and stretched */
+#film4-title {
+  font-family: 'Anton', Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  display: inline-block;
+  transform: scaleX(1.35);
+  transform-origin: left center;
+  text-transform: uppercase;
+}
+
+/* Urbanos City title styling */
+#film6-title { display: inline-block; line-height: 1; }
+#film6-title .urbanos {
+  display: inline-block;
+  font-family: 'Bevan', Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  text-transform: uppercase;
+  font-size: clamp(22px, 4vw, 40px);
+  letter-spacing: 1px;
+  color: #ffffff;
+  text-shadow: 0 2px 0 rgba(0,0,0,0.55), 0 6px 14px rgba(0,0,0,0.55);
+}
+#film6-title .city {
+  display: inline-block;
+  font-family: 'Baloo 2', 'Shrikhand', system-ui, sans-serif;
+  font-weight: 800;
+  text-transform: lowercase;
+  font-size: clamp(22px, 3.8vw, 36px);
+  color: #ffffff;
+  margin-left: 8px;
+  letter-spacing: -0.2px;
+  font-variant-ligatures: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "liga" 0, "dlig" 0, "clig" 0, "calt" 0, "swsh" 0, "kern" 1;
+  font-synthesis: none;
+  line-height: 1;
+  transform: scale(0.86);
+  transform-origin: left bottom;
+  will-change: transform;
+}
+
+/* Alex: AL green, EX pink */
+#serie1-title .al { color: #9CFF00; }
+#serie1-title .ex { color: #ff69b4; }
+/* Trailer Batman: 'Trailer' white, 'Batman' red */
+#film5-title .trailer-word { color: #ffffff; }
+#film5-title .batman-word { color: #ff2a2a; font-weight: 800; }
+
+/* ===== Specific title colors/shadows requested ===== */
+/* La vie au petit âge: dark red with shadow (match index) */
+#film1-title {
+  color: #8B0000; /* dark red */
+  text-shadow: 0 2px 0 rgba(0,0,0,0.35), 0 4px 12px rgba(0,0,0,0.5);
+}
+/* Lawless Legend: dark red */
+#serie2-title { color: #6E0000; }
+/* Dédoublement: keep blueish glow only on this title */
+#film2-title {
+  color: #ffffff;
+  text-transform: uppercase;
+  text-shadow:
+    0 8px 18px rgba(11, 61, 145, 0.55),
+    0 2px 4px rgba(11, 61, 145, 0.45),
+    0 0 14px rgba(11, 61, 145, 0.30);
+}
+
+/* Per-title sizes consistency */
+#film1-title,
+#film2-title,
+#film3-title,
+#film4-title,
+#film5-title,
+#film6-title,
+#serie1-title,
+#serie2-title {
+  font-size: clamp(28px, 5vw, 40px);
+  line-height: 1.1;
+  display: inline-block;
+  min-width: 12ch;
+  text-align: left;
+}
+
+/* Mobile adjustments for special transforms */
+@media (max-width: 768px) {
+  #film4-title { 
+    transform: none; 
+    transform-origin: center center; 
   }
 }

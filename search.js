@@ -1,5 +1,7 @@
 // Base dynamique (remplie en parsant index.html au chargement). Un fallback local est utilisé si le fetch échoue (ex: ouverture en file://)
 let moviesDatabase = [];
+// Cache des templates de popups (clé = id, valeur = HTML string)
+const popupTemplates = new Map();
 
 // Fallback minimal (s'active seulement si on ne peut pas lire index.html)
 const LOCAL_FALLBACK_DB = [
@@ -29,6 +31,10 @@ async function buildDatabaseFromIndex() {
             const id = popup.getAttribute('id');
             // ignorer les popups non contenus (ex: partenariat, submit)
             if (!/^film\d+|^serie\d+/i.test(id)) return;
+            // Stocker le template HTML de la popup pour injection côté recherche
+            try {
+                popupTemplates.set(id, popup.outerHTML);
+            } catch {}
             const titleEl = popup.querySelector('h3');
             let title = titleEl ? titleEl.textContent.trim() : '';
             title = title.replace(/\s+/g, ' ').trim();
@@ -39,10 +45,20 @@ async function buildDatabaseFromIndex() {
             const starsText = (popup.querySelector('.rating-genres .stars') || {}).textContent || '';
             const m = starsText.match(/([0-9]+(?:[\.,][0-9]+)?)/);
             const rating = m ? parseFloat(m[1].replace(',', '.')) : undefined;
+            // Extraire description et URL Regarder pour fallback
+            const descEl = popup.querySelector('.fiche-right p');
+            const description = descEl ? descEl.textContent.trim() : '';
+            let watchUrl = '';
+            const btnLinks = popup.querySelectorAll('.button-group a');
+            for (const a of btnLinks) {
+                const href = a.getAttribute('href') || '';
+                const isClose = (a.classList && a.classList.contains('close-btn')) || href.startsWith('javascript:history.back');
+                if (!isClose && href) { watchUrl = href; break; }
+            }
             let type = 'film';
             if (/^serie/i.test(id)) type = 'série';
             else if (/trailer/i.test(title)) type = 'trailer';
-            items.push({ id, title, type, rating, genres, image });
+            items.push({ id, title, type, rating, genres, image, description, watchUrl });
         });
 
         if (items.length > 0) {
@@ -122,7 +138,7 @@ function displayResults(results) {
         const initialSrc = base ? `${base}.jpg` : (item.image || 'apercu.png');
         return `
         <div class="card">
-            <a href="index.html#${item.id}">
+            <a href="#${item.id}">
                 <div class="card-media">
                     <img src="${initialSrc}" data-base="${base}" alt="Affiche de ${item.title}" loading="lazy" decoding="async" onerror="(function(img){var b=img.getAttribute('data-base'); if(!b){img.onerror=null; img.src='apercu.png'; return;} var i=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=i; var exts=['jpg','jpeg','png']; if(i<exts.length){ img.src=b+'.'+exts[i]; } else { img.onerror=null; img.src='apercu.png'; }})(this)">
                     <div class="brand-badge">
@@ -173,6 +189,61 @@ document.addEventListener('DOMContentLoaded', async function() {
         displayResults(searchMovies(q, filters.getSelected()));
     });
     
+    // Helpers pour gérer l'ouverture de popups sans quitter la page de recherche
+    function buildFallbackPopupHTML(item) {
+        if (!item) return '';
+        const title = item.title || '';
+        const img = item.image || 'apercu.png';
+        const rating = (typeof item.rating !== 'undefined' && item.rating !== null) ? `★${item.rating}/5` : '';
+        const genres = (item.genres || []).map(g => `<span class="genre-tag">${g}</span>`).join('');
+        const description = (item.description && item.description.trim().length > 0) ? item.description : 'Description indisponible.';
+        const watchBtn = (item.watchUrl && item.watchUrl.startsWith('http'))
+          ? `<a href="${item.watchUrl}" target="_blank" rel="noopener noreferrer" class="button">▶ Regarder</a>`
+          : '';
+        return `
+<div id="${item.id}" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="${item.id}-title">
+  <div class="fiche-content landscape-layout">
+    <div class="fiche-left">
+      <img src="${img}" alt="Image de ${title}" class="landscape" decoding="async" loading="lazy">
+    </div>
+    <div class="fiche-right">
+      <h3 id="${item.id}-title">${title}</h3>
+      <div class="rating-genres">
+        ${rating ? `<div class="stars">${rating}</div>` : ''}
+        <div class="genres">${genres}</div>
+      </div>
+      <p>${description}</p>
+      <div class="button-group">
+        ${watchBtn}
+        <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+      </div>
+    </div>
+  </div>
+</div>`;
+    }
+
+    function ensurePopupInjected(id) {
+        if (!id) return false;
+        if (document.getElementById(id)) return true;
+        let tpl = popupTemplates.get(id);
+        if (!tpl) {
+            // Construire un fallback à partir de la base locale si disponible
+            const item = (moviesDatabase || []).find(m => m.id === id);
+            tpl = buildFallbackPopupHTML(item);
+            if (!tpl) return false;
+        }
+        const container = document.querySelector('main.search-container') || document.body;
+        container.insertAdjacentHTML('beforeend', tpl);
+        return true;
+    }
+    
+    function openPopupById(id) {
+        if (!id) return;
+        if (ensurePopupInjected(id)) {
+            try { window.location.hash = '#' + id; } catch {}
+        }
+    }
+    
     if (searchInput) {
         // Placeholders pour desktop et mobile + switch auto selon taille d'écran
         const desktopPlaceholder = 'Recherchez un genre, un film ou une série...';
@@ -215,6 +286,32 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // Afficher tous les films par défaut (après build async)
         displayResults(searchMovies('', filters.getSelected()));
+        
+        // Délégation: clic sur une carte -> injecter la popup et ouvrir via hash local
+        const resultsContainer = document.getElementById('search-results');
+        if (resultsContainer) {
+            resultsContainer.addEventListener('click', function(e) {
+                const a = e.target.closest('a[href^="#"]');
+                if (!a) return;
+                const href = a.getAttribute('href') || '';
+                const id = href.replace(/^#/, '');
+                if (!id) return;
+                e.preventDefault();
+                openPopupById(id);
+            });
+        }
+        
+        // Si on arrive avec un hash (ex: lien partagé), injecter la popup correspondante
+        if (window.location.hash) {
+            const id = window.location.hash.replace(/^#/, '');
+            ensurePopupInjected(id);
+        }
+
+        // Assurer l'injection même si le hash change par d'autres interactions
+        window.addEventListener('hashchange', function() {
+            const id = window.location.hash.replace(/^#/, '');
+            if (id) ensurePopupInjected(id);
+        });
     }
 });
 
@@ -268,6 +365,10 @@ document.addEventListener('DOMContentLoaded', function () {
             if (href.startsWith('#')) {
                 e.preventDefault();
                 const id = href.replace(/^#/, '');
+                // Injecter la popup si elle correspond à un film/série et n'est pas encore présente
+                if (!document.getElementById(id)) {
+                    ensurePopupInjected(id);
+                }
                 closeMenu();
                 setTimeout(() => {
                     const el = document.getElementById(id);
@@ -293,4 +394,6 @@ document.addEventListener('DOMContentLoaded', function () {
             closeMenu();
         });
     })();
+    
+    // Comportement de fermeture: s'aligne sur index via href="javascript:history.back()"
 });
