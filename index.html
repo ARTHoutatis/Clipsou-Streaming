@@ -57,18 +57,18 @@
 }
 </script>
 <!-- Fonts for styled popup titles (trimmed to only used families) -->
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Cinzel:wght@700&family=Rye&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Bevan:ital@0;1&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Shrikhand&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
 <!-- Font Awesome for brand icons (YouTube, Discord) -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="stylesheet" href="common.css">
 <link rel="stylesheet" href="index.css">
+<link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
+  <a href="#contenu" class="skip-link sr-only">Aller au contenu</a>
   <nav aria-label="Navigation principale">
     <button class="hamburger-btn" aria-label="Ouvrir le menu" aria-controls="side-menu" aria-expanded="false" type="button">
       <span class="sr-only">Menu</span>
@@ -581,5 +581,12 @@
     </div>
   </footer>
  <script src="index.js" defer></script>
+ <script>
+   if ('serviceWorker' in navigator) {
+     window.addEventListener('load', function() {
+       navigator.serviceWorker.register('/sw.js').catch(function(){});
+     });
+   }
+ </script>
  </body>
  </html>

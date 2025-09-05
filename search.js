@@ -112,9 +112,21 @@ function searchMovies(query, selectedGenres = []) {
 // Afficher les résultats
 function displayResults(results) {
     const resultsContainer = document.getElementById('search-results');
-    
+    // Trier: note décroissante, puis titre
+    try {
+        results = results.slice().sort((a, b) => {
+            const ra = (typeof a.rating === 'number') ? a.rating : -Infinity;
+            const rb = (typeof b.rating === 'number') ? b.rating : -Infinity;
+            if (rb !== ra) return rb - ra;
+            return (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' });
+        });
+    } catch {}
+
     if (results.length === 0) {
         resultsContainer.innerHTML = '<div class="no-results"><p>Aucun résultat trouvé</p></div>';
+        // Annoncer le résultat pour les technologies d'assistance
+        const announcer = document.getElementById('results-announcer');
+        if (announcer) announcer.textContent = 'Aucun résultat.';
         return;
     }
     
@@ -151,6 +163,9 @@ function displayResults(results) {
     }).join('');
     
     resultsContainer.innerHTML = `<div class="search-grid">${resultsHTML}</div>`;
+    // Mettre à jour l'annonce du nombre de résultats
+    const announcer = document.getElementById('results-announcer');
+    if (announcer) announcer.textContent = `${results.length} résultat${results.length>1?'s':''}`;
 }
 
 // Récupère tous les genres uniques depuis la base
@@ -180,6 +195,29 @@ function renderGenreFilters(onChange) {
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', async function() {
+    // Gestion du scroll lock et du focus lors des popups
+    let lastScrollY = null;
+    let lastOpener = null;
+    function lockScroll() {
+        if (lastScrollY === null) {
+            lastScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+        }
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${lastScrollY}px`;
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.style.width = '100%';
+    }
+    function unlockScroll() {
+        const y = lastScrollY || 0;
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.width = '';
+        window.scrollTo({ top: y, left: 0, behavior: 'auto' });
+        lastScrollY = y;
+    }
     const searchInput = document.getElementById('search-input');
     // Met à jour la base depuis l'accueil (nouvelles entrées et genres pris en compte)
     await buildDatabaseFromIndex();
@@ -240,7 +278,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     function openPopupById(id) {
         if (!id) return;
         if (ensurePopupInjected(id)) {
-            try { window.location.hash = '#' + id; } catch {}
+            try {
+                lockScroll();
+                window.location.hash = '#' + id;
+                // Corriger tout défilement auto déclenché par le hash
+                setTimeout(() => {
+                    const y = (lastScrollY == null)
+                      ? (window.pageYOffset || document.documentElement.scrollTop || 0)
+                      : lastScrollY;
+                    window.scrollTo({ top: y, left: 0, behavior: 'auto' });
+                }, 0);
+            } catch {}
         }
     }
     
@@ -297,6 +345,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const id = href.replace(/^#/, '');
                 if (!id) return;
                 e.preventDefault();
+                lastOpener = a;
                 openPopupById(id);
             });
         }
@@ -305,14 +354,92 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (window.location.hash) {
             const id = window.location.hash.replace(/^#/, '');
             ensurePopupInjected(id);
+            // Si on atterrit directement sur une fiche, verrouiller le scroll
+            const target = document.getElementById(id);
+            if (target && target.classList && target.classList.contains('fiche-popup')) {
+                lockScroll();
+                // Maintenir la position
+                setTimeout(() => {
+                    const y = (lastScrollY == null)
+                      ? (window.pageYOffset || document.documentElement.scrollTop || 0)
+                      : lastScrollY;
+                    window.scrollTo({ top: y, left: 0, behavior: 'auto' });
+                }, 0);
+            }
         }
 
         // Assurer l'injection même si le hash change par d'autres interactions
         window.addEventListener('hashchange', function() {
             const id = window.location.hash.replace(/^#/, '');
-            if (id) ensurePopupInjected(id);
+            if (id) {
+                ensurePopupInjected(id);
+                const target = document.getElementById(id);
+                if (target && target.classList && target.classList.contains('fiche-popup')) {
+                    lockScroll();
+                    // Corriger tout défilement auto déclenché par :target
+                    setTimeout(() => {
+                        const y = (lastScrollY == null)
+                          ? (window.pageYOffset || document.documentElement.scrollTop || 0)
+                          : lastScrollY;
+                        window.scrollTo({ top: y, left: 0, behavior: 'auto' });
+                    }, 0);
+                }
+            }
         });
     }
+
+    // Intercepter les clics sur les boutons de fermeture et overlay des popups (mêmes comportements qu'index)
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.close-btn');
+        if (!btn) return;
+        e.preventDefault();
+        // Désactiver :target en vidant d'abord le hash, puis nettoyer l'URL
+        if (window.location.hash) {
+            try { window.location.hash = ''; } catch {}
+            const url = window.location.pathname + window.location.search;
+            if (window.history && typeof window.history.replaceState === 'function') {
+                window.history.replaceState(null, document.title, url);
+            }
+        }
+        unlockScroll();
+        if (lastOpener && typeof lastOpener.focus === 'function') {
+            lastOpener.focus();
+        }
+    });
+
+    // Click sur l'overlay (fond sombre) pour fermer
+    document.addEventListener('click', function (e) {
+        const popup = e.target.closest('.fiche-popup');
+        if (popup && e.target === popup) {
+            // Effacer le hash pour désactiver :target puis nettoyer l'URL
+            if (window.location.hash) {
+                try { window.location.hash = ''; } catch {}
+                const url = window.location.pathname + window.location.search;
+                if (window.history && typeof window.history.replaceState === 'function') {
+                    window.history.replaceState(null, document.title, url);
+                }
+            }
+            unlockScroll();
+            if (lastOpener && typeof lastOpener.focus === 'function') {
+                lastOpener.focus();
+            }
+        }
+    });
+
+    // ESC pour fermer
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && window.location.hash) {
+            try { window.location.hash = ''; } catch {}
+            const url = window.location.pathname + window.location.search;
+            if (window.history && typeof window.history.replaceState === 'function') {
+                window.history.replaceState(null, document.title, url);
+            }
+            unlockScroll();
+            if (lastOpener && typeof lastOpener.focus === 'function') {
+                lastOpener.focus();
+            }
+        }
+    });
 });
 
 // Side menu (hamburger) behavior for search page

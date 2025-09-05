@@ -30,16 +30,16 @@
 <meta name="twitter:description" content="Recherchez des brickfilms et animations sur Clipsou Streaming.">
 <meta name="twitter:image" content="https://clipsoustreaming.netlify.app/apercu.png">
 <!-- Fonts for styled popup titles (same as index) -->
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Cinzel:wght@700&family=Rye&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Bevan:ital@0;1&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Shrikhand&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="common.css">
 <link rel="stylesheet" href="search.css">
+<link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
+<a href="#contenu" class="skip-link sr-only">Aller au contenu</a>
 
 <nav aria-label="Navigation principale">
     <button class="hamburger-btn" aria-label="Ouvrir le menu" aria-controls="side-menu" aria-expanded="false" type="button">
@@ -83,7 +83,7 @@
 </div>
 <div class="side-overlay" hidden></div>
 
-<main class="search-container">
+<main id="contenu" class="search-container">
     <div class="search-header">
         <h1>Recherche de films et séries</h1>
     </div>
@@ -97,6 +97,7 @@
         <!-- Genre chips rendered by search.js -->
     </div>
     
+    <div id="results-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
     <div id="search-results" class="search-results">
         <!-- Results will be populated by JavaScript -->
     </div>
@@ -409,5 +410,12 @@
     </div>
 </main>
 <script src="search.js" defer></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/sw.js').catch(function(){});
+    });
+  }
+ </script>
 </body>
 </html>

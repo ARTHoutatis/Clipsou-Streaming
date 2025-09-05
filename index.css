@@ -129,6 +129,15 @@ body::before {
     transform: translateZ(0); /* GPU compositing */
 }
 
+/* Image interne insérée par JS: effet de zoom subtil lorsque la slide est active */
+.carousel-slide > img {
+    transform: scale(1);
+    transition: transform 10s linear;
+}
+.carousel-slide.active > img {
+    transform: scale(1.03);
+}
+
 .carousel-slide.alex-focus {
     /* Responsive vertical focus using percentage for desktop/tablet */
     background-position: center 12%;

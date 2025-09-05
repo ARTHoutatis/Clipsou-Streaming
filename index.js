@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const carousel = document.querySelector('.carousel-container');
     if (!carousel) return;
     const slidesTrack = carousel.querySelector('.carousel-slides');
+    const slides = slidesTrack ? Array.from(slidesTrack.children) : [];
     const indicatorsWrap = carousel.querySelector('.carousel-indicators');
     const indicators = carousel.querySelectorAll('.carousel-indicator');
 
@@ -60,6 +61,11 @@ document.addEventListener('DOMContentLoaded', function () {
         dot.classList.toggle('active', i === currentIndex);
         dot.setAttribute('aria-current', i === currentIndex ? 'true' : 'false');
       });
+
+      // Update active slide class for CSS effects
+      if (slides && slides.length) {
+        slides.forEach((s, i) => s.classList.toggle('active', i === currentIndex));
+      }
 
       // Schedule auto-resume after inactivity
       scheduleResume();
@@ -654,6 +660,29 @@ document.addEventListener('DOMContentLoaded', function () {
     let lastScrollY = null;
     let lastOpener = null;
 
+    function lockScroll() {
+      // memorize current scrollY and lock body
+      if (lastScrollY === null) {
+        lastScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+      }
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${lastScrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.width = '100%';
+    }
+
+    function unlockScroll() {
+      const y = lastScrollY || 0;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.width = '';
+      window.scrollTo({ top: y, left: 0, behavior: 'auto' });
+      lastScrollY = y;
+    }
+
     // Intercept clicks that open a popup to remember the current scroll position and opener
     document.addEventListener('click', function (e) {
       const a = e.target.closest('a[href^="#"]');
@@ -668,6 +697,8 @@ document.addEventListener('DOMContentLoaded', function () {
       lastScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
       lastOpener = a;
       e.preventDefault();
+      // Lock background scroll immediately, then open via hash
+      lockScroll();
       // Defer to allow event loop to finish before changing hash
       setTimeout(() => { window.location.hash = '#' + id; }, 0);
     }, { capture: true });
@@ -691,9 +722,7 @@ document.addEventListener('DOMContentLoaded', function () {
       e.preventDefault();
       clearHash();
       // Restore scroll and focus if we know where the popup was opened
-      if (lastScrollY !== null) {
-        window.scrollTo({ top: lastScrollY, left: 0, behavior: 'auto' });
-      }
+      unlockScroll();
       if (lastOpener && typeof lastOpener.focus === 'function') {
         lastOpener.focus();
       }
@@ -704,9 +733,7 @@ document.addEventListener('DOMContentLoaded', function () {
       popup.addEventListener('click', function (e) {
         if (e.target === popup) {
           clearHash();
-          if (lastScrollY !== null) {
-            window.scrollTo({ top: lastScrollY, left: 0, behavior: 'auto' });
-          }
+          unlockScroll();
           if (lastOpener && typeof lastOpener.focus === 'function') {
             lastOpener.focus();
           }
@@ -718,14 +745,31 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && window.location.hash) {
         clearHash();
-        if (lastScrollY !== null) {
-          window.scrollTo({ top: lastScrollY, left: 0, behavior: 'auto' });
-        }
+        unlockScroll();
         if (lastOpener && typeof lastOpener.focus === 'function') {
           lastOpener.focus();
         }
       }
     });
+
+    // If a popup is opened via direct hash or future hash changes, lock scroll
+    function maybeLockOnHash() {
+      const id = (window.location.hash || '').replace(/^#/, '');
+      if (!id) return;
+      const target = document.getElementById(id);
+      if (target && target.classList && target.classList.contains('fiche-popup')) {
+        // Capture current scroll if not captured yet
+        if (lastScrollY === null) {
+          lastScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+        }
+        lockScroll();
+      }
+    }
+    // On load (if landing on a fiche), and on hash changes
+    if (window.location.hash) {
+      setTimeout(maybeLockOnHash, 0);
+    }
+    window.addEventListener('hashchange', maybeLockOnHash);
   })();
 
   // Side menu (hamburger) behavior
