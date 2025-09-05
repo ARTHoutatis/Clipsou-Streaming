@@ -552,6 +552,21 @@ html {
     justify-content: center;
 }
 .footer .btn-mini.btn-icon svg { width: 32px; height: 32px; display: block; }
+/* Support image-based icons too (preserve aspect ratio) */
+.footer .btn-mini.btn-icon img {
+    display: block;
+    max-width: 32px;
+    max-height: 32px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+/* Support Font Awesome <i> icons */
+.footer .btn-mini.btn-icon i {
+    font-size: 24px; /* default size: match Discord */
+    line-height: 1;
+    display: block;
+}
 .footer .btn-mini.btn-icon:hover { 
     background: transparent; 
     border-color: transparent; 
@@ -559,9 +574,26 @@ html {
     color: #ffffff; 
 }
 /* Slightly larger Discord icon vs YouTube */
+/* Discord icon sizing (preserve proportions) */
 .footer .btn-mini.icon-discord svg { width: 24px; height: 24px; }
-/* YouTube base size (doubled) */
-.footer .btn-mini.icon-youtube svg { width: 22px; height: 22px; }
+.footer .btn-mini.icon-discord img {
+    max-width: 24px;
+    max-height: 24px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+.footer .btn-mini.icon-discord i { font-size: 24px; }
+/* YouTube base size (match Discord 24x24) */
+.footer .btn-mini.icon-youtube svg { width: 24px; height: 24px; }
+.footer .btn-mini.icon-youtube img {
+    max-width: 24px;
+    max-height: 24px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+.footer .btn-mini.icon-youtube i { font-size: 24px; }
 .footer .btn-mini:hover {
     background: rgba(255,255,255,0.08);
     border-color: rgba(255,255,255,0.2);
