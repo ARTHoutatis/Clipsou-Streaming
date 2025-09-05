@@ -665,6 +665,11 @@ document.addEventListener('DOMContentLoaded', function () {
       if (lastScrollY === null) {
         lastScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
       }
+      // compensate scrollbar width to avoid layout shift
+      const scrollbar = window.innerWidth - document.documentElement.clientWidth;
+      if (scrollbar > 0) {
+        document.body.style.paddingRight = scrollbar + 'px';
+      }
       document.body.style.position = 'fixed';
       document.body.style.top = `-${lastScrollY}px`;
       document.body.style.left = '0';
@@ -679,8 +684,13 @@ document.addEventListener('DOMContentLoaded', function () {
       document.body.style.left = '';
       document.body.style.right = '';
       document.body.style.width = '';
-      window.scrollTo({ top: y, left: 0, behavior: 'auto' });
-      lastScrollY = y;
+      // remove scrollbar compensation
+      document.body.style.paddingRight = '';
+      // restore scroll on the next frame to ensure styles are applied
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: y, left: 0, behavior: 'auto' });
+        lastScrollY = y;
+      });
     }
 
     // Intercept clicks that open a popup to remember the current scroll position and opener
