@@ -282,7 +282,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       <p>${description}</p>
       <div class="button-group">
         ${watchBtn}
-        <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+        <a href="#" class="button close-btn">❌ Fermer</a>
       </div>
     </div>
   </div>
