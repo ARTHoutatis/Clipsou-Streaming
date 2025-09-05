@@ -202,6 +202,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (lastScrollY === null) {
             lastScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
         }
+        // Compense la largeur de la barre de défilement pour éviter un shift
+        const scrollbar = window.innerWidth - document.documentElement.clientWidth;
+        if (scrollbar > 0) {
+            document.body.style.paddingRight = scrollbar + 'px';
+        }
         document.body.style.position = 'fixed';
         document.body.style.top = `-${lastScrollY}px`;
         document.body.style.left = '0';
@@ -209,15 +214,39 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.body.style.width = '100%';
     }
     function unlockScroll() {
-        const y = lastScrollY || 0;
+        const y = (lastScrollY == null)
+          ? (window.pageYOffset || document.documentElement.scrollTop || 0)
+          : lastScrollY;
         document.body.style.position = '';
         document.body.style.top = '';
         document.body.style.left = '';
         document.body.style.right = '';
         document.body.style.width = '';
-        window.scrollTo({ top: y, left: 0, behavior: 'auto' });
-        lastScrollY = y;
+        // Supprime la compensation
+        document.body.style.paddingRight = '';
+        // Restaure au frame suivant pour éviter un léger saut
+        requestAnimationFrame(() => {
+            window.scrollTo({ top: y, left: 0, behavior: 'auto' });
+            lastScrollY = y;
+        });
+        // Fallback supplémentaire juste après
+        setTimeout(() => {
+            window.scrollTo({ top: y, left: 0, behavior: 'auto' });
+        }, 0);
     }
+
+    function restoreScrollPrecisely(y) {
+        const top = (typeof y === 'number') ? y : ((lastScrollY == null)
+          ? (window.pageYOffset || document.documentElement.scrollTop || 0)
+          : lastScrollY);
+        requestAnimationFrame(() => {
+            window.scrollTo({ top, left: 0, behavior: 'auto' });
+            setTimeout(() => {
+                window.scrollTo({ top, left: 0, behavior: 'auto' });
+            }, 0);
+        });
+    }
+    
     const searchInput = document.getElementById('search-input');
     // Met à jour la base depuis l'accueil (nouvelles entrées et genres pris en compte)
     await buildDatabaseFromIndex();
@@ -393,6 +422,17 @@ document.addEventListener('DOMContentLoaded', async function() {
         const btn = e.target.closest('.close-btn');
         if (!btn) return;
         e.preventDefault();
+        // Position exacte au moment de la fermeture
+        const currentY = (function(){
+            // Lorsque le body est en fixed, scrollY correspond à -parseInt(top)
+            const topStr = (document.body.style.top || '0').replace('px','');
+            const locked = document.body.style.position === 'fixed';
+            if (locked) {
+                const n = parseFloat(topStr) || 0;
+                return Math.abs(n);
+            }
+            return window.pageYOffset || document.documentElement.scrollTop || 0;
+        })();
         // Désactiver :target en vidant d'abord le hash, puis nettoyer l'URL
         if (window.location.hash) {
             try { window.location.hash = ''; } catch {}
@@ -401,16 +441,26 @@ document.addEventListener('DOMContentLoaded', async function() {
                 window.history.replaceState(null, document.title, url);
             }
         }
+        // Utiliser la position exacte et l'imposer pendant et après l'unlock
+        lastScrollY = currentY;
         unlockScroll();
         if (lastOpener && typeof lastOpener.focus === 'function') {
-            lastOpener.focus();
+            try { lastOpener.focus({ preventScroll: true }); }
+            catch { try { lastOpener.focus(); } catch {} }
         }
+        restoreScrollPrecisely(currentY);
     });
 
     // Click sur l'overlay (fond sombre) pour fermer
     document.addEventListener('click', function (e) {
         const popup = e.target.closest('.fiche-popup');
         if (popup && e.target === popup) {
+            const currentY = (function(){
+                const topStr = (document.body.style.top || '0').replace('px','');
+                const locked = document.body.style.position === 'fixed';
+                if (locked) { const n = parseFloat(topStr) || 0; return Math.abs(n); }
+                return window.pageYOffset || document.documentElement.scrollTop || 0;
+            })();
             // Effacer le hash pour désactiver :target puis nettoyer l'URL
             if (window.location.hash) {
                 try { window.location.hash = ''; } catch {}
@@ -419,25 +469,39 @@ document.addEventListener('DOMContentLoaded', async function() {
                     window.history.replaceState(null, document.title, url);
                 }
             }
+            lastScrollY = currentY;
             unlockScroll();
-            if (lastOpener && typeof lastOpener.focus === 'function') {
-                lastOpener.focus();
-            }
+            requestAnimationFrame(() => {
+                restoreScrollPrecisely(currentY);
+            });
+            setTimeout(() => {
+                restoreScrollPrecisely(currentY);
+            }, 0);
+            return;
         }
     });
 
     // ESC pour fermer
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && window.location.hash) {
+            const currentY = (function(){
+                const topStr = (document.body.style.top || '0').replace('px','');
+                const locked = document.body.style.position === 'fixed';
+                if (locked) { const n = parseFloat(topStr) || 0; return Math.abs(n); }
+                return window.pageYOffset || document.documentElement.scrollTop || 0;
+            })();
             try { window.location.hash = ''; } catch {}
             const url = window.location.pathname + window.location.search;
             if (window.history && typeof window.history.replaceState === 'function') {
                 window.history.replaceState(null, document.title, url);
             }
+            lastScrollY = currentY;
             unlockScroll();
             if (lastOpener && typeof lastOpener.focus === 'function') {
-                lastOpener.focus();
+                try { lastOpener.focus({ preventScroll: true }); }
+                catch { try { lastOpener.focus(); } catch {} }
             }
+            restoreScrollPrecisely(currentY);
         }
     });
 });
