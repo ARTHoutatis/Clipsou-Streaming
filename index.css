@@ -647,7 +647,7 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
 .rail::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
 @media (min-width: 769px) {
   .rail > .card { scroll-snap-align: start; }
-}
+  }
 
   /* Global scrollbar styles provided by common.css */
 
@@ -678,41 +678,6 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     }
     /* Ensure any yt link in nav stays hidden if present */
     nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
-
-    /* Rails (rows like Netflix) - desktop only duplication */
-    @media (min-width: 769px) {
-        .rail {
-            display: grid;
-            grid-auto-flow: column;
-            grid-auto-columns: clamp(180px, 18vw, 240px);
-            gap: 18px;
-            padding: 0 40px;
-            overflow-x: auto;
-            overflow-y: visible; /* allow hover lift without clipping */
-            overscroll-behavior-x: contain;
-            scroll-snap-type: inline mandatory; /* desktop only */
-        }
-        .rail::-webkit-scrollbar { height: 10px; }
-        .rail::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
-        .rail > .card { scroll-snap-align: start; }
-    }
-
-    /* Card hover actions */
-    .card { position: relative; }
-    .card-actions {
-        position: absolute;
-        inset: 0;
-        display: grid;
-        place-items: center;
-        background: linear-gradient(180deg, rgba(0,0,0,0) 20%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.75) 100%);
-        opacity: 0;
-        transition: opacity .25s ease;
-    }
-    .card:hover .card-actions { opacity: 1; }
-    .quick-btn:hover { background: #241DE0; }
-
-    /* Mobile overrides for rails (use grid like before) */
- 
 
      /* Subtle animated gradient background */
      body {
