@@ -289,19 +289,22 @@ nav[aria-label="Navigation principale"] .hamburger-btn:hover {
   box-shadow: 0 0 0 6px rgba(99,102,241,0.25);
 }
 
-/* Selected/active buttons use brand blue (same as card outline) */
+/* Selected buttons use brand blue (same as card outline) */
 :where(.button, .btn-mini, .quick-btn, .nav-links a).is-selected,
-:where(.button, .btn-mini, .quick-btn, .nav-links a):focus-visible,
-:where(.button, .btn-mini, .quick-btn, .nav-links a):active {
+:where(.button, .btn-mini, .quick-btn, .nav-links a):focus-visible {
   background: var(--brand-1) !important;
   border-color: var(--brand-1) !important;
   color: #ffffff !important;
 }
 
-/* Icon-only buttons: tint icon to brand blue when selected/active/focus */
+/* Icon-only buttons: tint icon to brand blue when selected/focus */
 .btn-mini.btn-icon.is-selected i,
-.btn-mini.btn-icon:focus-visible i,
-.btn-mini.btn-icon:active i {
+.btn-mini.btn-icon:focus-visible i {
+  color: var(--brand-1) !important;
+}
+
+/* Icon-only buttons: turn blue on hover (pointed) */
+.btn-mini.btn-icon:hover i {
   color: var(--brand-1) !important;
 }
 
