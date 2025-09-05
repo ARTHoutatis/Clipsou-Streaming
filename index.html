@@ -581,12 +581,6 @@
     </div>
   </footer>
  <script src="index.js" defer></script>
- <script>
-   if ('serviceWorker' in navigator) {
-     window.addEventListener('load', function() {
-       navigator.serviceWorker.register('/sw.js').catch(function(){});
-     });
-   }
- </script>
+ <!-- Service Worker disabled to prevent Netlify caching side-effects -->
  </body>
  </html>
