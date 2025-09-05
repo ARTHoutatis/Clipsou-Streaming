@@ -3,10 +3,10 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
-  <loc>https://clipsoustreaming.netlify.app/</loc>
+  <loc>/</loc>
 </url>
 <url>
-  <loc>https://clipsoustreaming.netlify.app/search.html</loc>
+  <loc>/search.html</loc>
 </url>
 
 </urlset>
