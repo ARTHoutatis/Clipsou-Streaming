@@ -1,7 +1,0 @@
-User-agent: *
-# Allow all crawlers to access the entire site
-Allow: /
-
-# Sitemaps
-Sitemap: /sitemap_images.xml
-Sitemap: /sitemap.xml
