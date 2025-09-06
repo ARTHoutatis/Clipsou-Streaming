@@ -59,6 +59,42 @@
 </script>
 <!-- Google Fonts (consolidated) -->
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Cinzel:wght@700&family=Bevan:ital@0;1&family=VT323&family=Luckiest+Guy&family=Baloo+2:wght@400;700&family=Rye&display=swap" rel="stylesheet">
+<style>
+  /* Force le chargement des polices pour éviter le FOUT */
+  .font-loading {
+    font-display: swap;
+  }
+  
+  /* Préchargement des polices critiques */
+  @font-face {
+    font-family: 'Anton';
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Cinzel';
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Bevan';
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'VT323';
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Luckiest Guy';
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Baloo 2';
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Rye';
+    font-display: swap;
+  }
+</style>
 <!-- Font Awesome for brand icons (YouTube, Discord) -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="stylesheet" href="optimized.css?v=20250905-2034">
@@ -579,7 +615,26 @@
     </div>
     </div>
   </footer>
- <script src="simple-scroll-fix.js?v=20250905-2034"></script>
+ <script>
+  // Force le chargement des polices Google Fonts
+  if ('fonts' in document) {
+    Promise.all([
+      document.fonts.load('400 16px Anton'),
+      document.fonts.load('700 16px Cinzel'),
+      document.fonts.load('400 16px Bevan'),
+      document.fonts.load('400 16px VT323'),
+      document.fonts.load('400 16px Luckiest Guy'),
+      document.fonts.load('400 16px Baloo 2'),
+      document.fonts.load('400 16px Rye')
+    ]).then(() => {
+      console.log('✅ Toutes les polices Google Fonts sont chargées');
+      document.body.classList.add('fonts-loaded');
+    }).catch(err => {
+      console.warn('⚠️ Erreur de chargement des polices:', err);
+    });
+  }
+</script>
+<script src="simple-scroll-fix.js?v=20250905-2034"></script>
  <script src="complete-fix-simple.js?v=20250905-2034"></script>
  <script src="config.js?v=20250905-2034"></script>
  <script src="index.js?v=20250905-2034" defer></script>
