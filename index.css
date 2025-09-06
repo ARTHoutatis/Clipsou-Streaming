@@ -1,9 +1,4 @@
-:root {
-    --bg-1: #0b1117;
-    --bg-2: #0e141b;
-    --brand-1: #2B22EE;
-    --brand-2: #6c5ce7;
-}
+/* Variables CSS consolidées dans common.css */
 
 /* Ultra-small phones: tighten navbar further (moved to common.css) */
 @media (max-width: 360px) {
@@ -23,61 +18,15 @@
     -webkit-text-fill-color: transparent !important;
 }
 
-/* box-sizing reset moved to common.css */
-
-body {
-    margin: 0;
-    background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
-    min-height: 100vh;
-    color: #fff;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
-    -webkit-tap-highlight-color: transparent;
-}
+/* Styles de base consolidés dans common.css */
 
 /* ===== Side Menu & Hamburger ===== */
 /* Prevent scroll when menu open */
 body.menu-open { overflow: hidden; }
 
-/* Hamburger button styles are centralized in common.css */
+/* Styles de menu centralisés dans common.css */
 
-/* Side menu, headers, links and overlay are centralized in common.css */
-
-/* .sr-only moved to common.css */
-
-/* Popup scroll lock moved to common.css */
-
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: none;
-    pointer-events: none;
-    z-index: -1;
-}
-
-/* Navbar grid layout is centralized in common.css */
-
-/* .logo styles are centralized in common.css to keep title identical across pages */
-
-.nav-links { display: flex; gap: 15px; }
-.nav-links a { padding: 10px 20px; border-radius: 5px; font-weight: 600; color: #fff; text-decoration: none; transition: all .3s ease; white-space: nowrap; }
-
-.discord-link { background: #2B22EE; }
-.discord-link:hover { background: #241DE0; }
-
-.yt-link { background: #FF0000; display: none !important; }
-.yt-link:hover { background: #CC0000; }
-
-/* Partenariat button in navbar */
-.partner-link { background: #16a34a; }
-.partner-link:hover { background: #15803d; }
-
-.search-link { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); }
-.search-link:hover { background: rgba(255,255,255,.2); }
+/* Styles de navigation centralisés dans common.css */
 
 /* Desktop/tablet: show loupe.png before the text */
 .nav-links .search-link { display: inline-flex; align-items: center; gap: 8px; position: relative; }

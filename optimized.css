@@ -1,0 +1,388 @@
+/* Clipsou Streaming - CSS Optimisé et Stable */
+/* Version consolidée pour une compatibilité maximale entre hébergeurs */
+
+/* ===== RESET ET BASE ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  color-scheme: light;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: var(--text-primary, #ffffff);
+  background: linear-gradient(180deg, var(--bg-1, #0b1117) 0%, var(--bg-2, #0e141b) 100%);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ===== VARIABLES CSS ===== */
+:root {
+  --bg-1: #0b1117;
+  --bg-2: #0e141b;
+  --brand-1: #2B22EE;
+  --brand-2: #6c5ce7;
+  --text-primary: #ffffff;
+  --text-secondary: #e6eef5;
+  --text-muted: #8fa3b8;
+  --border-light: rgba(255,255,255,0.12);
+  --border-medium: rgba(255,255,255,0.18);
+  --shadow-light: rgba(0,0,0,0.35);
+  --shadow-medium: rgba(0,0,0,0.45);
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --border-radius: 8px;
+  --border-radius-lg: 12px;
+}
+
+/* ===== NAVIGATION ===== */
+nav[aria-label="Navigation principale"] {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0.65));
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border-light);
+  padding: 15px 40px;
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 15px;
+}
+
+.hamburger-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--border-radius);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.hamburger-btn:hover {
+  background: rgba(255,255,255,0.18);
+  border-color: rgba(255,255,255,0.28);
+}
+
+.logo {
+  font-size: 28px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo img {
+  width: 35px;
+  height: 35px;
+  object-fit: contain;
+}
+
+.logo span:nth-of-type(1) {
+  color: var(--brand-1);
+  font-weight: 800;
+}
+
+.logo span:nth-of-type(2) {
+  color: var(--brand-1);
+  font-weight: 300;
+  margin-left: 6px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 15px;
+  justify-self: end;
+}
+
+.nav-links a {
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: var(--transition-normal);
+  white-space: nowrap;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid var(--border-medium);
+}
+
+.nav-links a:hover {
+  background: rgba(255,255,255,0.2);
+  transform: translateY(-1px);
+}
+
+/* ===== CARDS ===== */
+.card {
+  background: linear-gradient(180deg, rgba(26,35,50,0.65), rgba(26,35,50,0.85));
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  transition: var(--transition-normal);
+  border: 1px solid var(--border-light);
+  cursor: pointer;
+  position: relative;
+  box-shadow: 0 10px 30px var(--shadow-light);
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  border-color: var(--brand-1);
+  box-shadow: 0 14px 38px var(--shadow-medium);
+}
+
+.card img {
+  width: 100%;
+  aspect-ratio: 9/12;
+  object-fit: cover;
+  transition: var(--transition-normal);
+}
+
+.card:hover img {
+  transform: scale(1.02);
+}
+
+.card-info {
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+}
+
+.card-info::before {
+  content: 'Film';
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.card-info[data-type="série"]::before {
+  content: 'Série';
+}
+
+.card-info[data-type="trailer"]::before {
+  content: 'Trailer';
+}
+
+.card-info[data-rating]::after {
+  content: ' ⭐ ' attr(data-rating);
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 14px;
+  background-color: rgba(255, 215, 0, 0.18);
+  border-radius: 5px;
+  padding: 1px 4px;
+  margin-left: 6px;
+}
+
+/* ===== BOUTONS ===== */
+.button {
+  background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+  border: 1px solid var(--border-medium);
+  border-radius: 5px;
+  padding: 12px 24px;
+  color: var(--text-primary);
+  font-weight: 600;
+  transition: var(--transition-normal);
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+  min-height: 44px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 20px rgba(43,34,238,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+
+.button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(43,34,238,0.35);
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.close-btn:hover {
+  background: #cc0000 !important;
+  border-color: rgba(255,255,255,0.18);
+  box-shadow: 0 10px 22px rgba(204,0,0,0.30);
+}
+
+/* ===== SECTIONS ===== */
+.section {
+  margin: 50px 0;
+}
+
+.section h2 {
+  margin: 0 40px 30px;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.rail {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: clamp(180px, 18vw, 240px);
+  gap: 18px;
+  overflow-x: auto;
+  overflow-y: visible;
+  overscroll-behavior-x: contain;
+  padding: 0 40px;
+}
+
+.rail::-webkit-scrollbar {
+  height: 10px;
+}
+
+.rail::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 8px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  nav[aria-label="Navigation principale"] {
+    padding: 6px 8px;
+    grid-template-columns: auto auto 1fr;
+    gap: 8px;
+  }
+  
+  .logo {
+    font-size: clamp(18px, 5.5vw, 22px);
+    gap: 4px;
+  }
+  
+  .logo img {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .nav-links {
+    gap: 6px;
+  }
+  
+  .nav-links a {
+    padding: 10px;
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0;
+  }
+  
+  .section h2 {
+    margin: 0 20px 20px;
+    font-size: 24px;
+  }
+  
+  .rail {
+    padding: 0 20px;
+    grid-auto-columns: clamp(120px, 25vw, 180px);
+    gap: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  nav[aria-label="Navigation principale"] {
+    padding: 10px 12px;
+  }
+  
+  .logo {
+    gap: 4px;
+  }
+  
+  .logo img {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* ===== ACCESSIBILITÉ ===== */
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link:focus {
+  position: fixed !important;
+  top: 12px !important;
+  left: 12px !important;
+  z-index: 2000 !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 10px 14px !important;
+  clip: auto !important;
+  overflow: visible !important;
+  border-radius: 6px;
+  background: var(--brand-1);
+  color: var(--text-primary);
+  border: 1px solid var(--border-medium);
+  box-shadow: 0 8px 20px rgba(43,34,238,0.35);
+}
+
+:where(a, button, input, [tabindex]):focus-visible {
+  outline: 2px solid rgba(99,102,241,0.9);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px rgba(99,102,241,0.25);
+}
+
+/* ===== PERFORMANCES ===== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ===== SCROLLBARS ===== */
+html {
+  scrollbar-color: #615d5d #0a0a0a;
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #000000;
+  border-radius: 8px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #000000;
+}

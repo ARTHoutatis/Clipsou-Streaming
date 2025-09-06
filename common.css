@@ -54,22 +54,32 @@ a { text-decoration: none; color: inherit; }
   box-shadow: 0 8px 20px rgba(43,34,238,0.35);
 }
 
-/* Theme variables (can be overridden per page) */
+/* Theme variables - version consolidée et stable */
 :root {
   --bg-1: #0b1117;
   --bg-2: #0e141b;
   --brand-1: #2B22EE;
   --brand-2: #6c5ce7;
+  --text-primary: #ffffff;
+  --text-secondary: #e6eef5;
+  --text-muted: #8fa3b8;
+  --border-light: rgba(255,255,255,0.12);
+  --border-medium: rgba(255,255,255,0.18);
+  --shadow-light: rgba(0,0,0,0.35);
+  --shadow-medium: rgba(0,0,0,0.45);
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  color: #fff;
+  background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+  color: var(--text-primary);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.6;
   font-synthesis: none; /* avoid synthetic bold/italic differences across hosts */
   -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Navigation (banderole) */

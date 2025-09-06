@@ -1,24 +1,32 @@
 document.addEventListener('DOMContentLoaded', function () {
-  // Ensure lazy/async attrs on all images
-  document.querySelectorAll('img').forEach(function (img) {
-    if (!img.hasAttribute('loading')) img.setAttribute('loading', 'lazy');
-    if (!img.hasAttribute('decoding')) img.setAttribute('decoding', 'async');
-    if (!img.getAttribute('alt')) img.setAttribute('alt', 'Image – Clipsou Streaming');
-  });
+  // Optimisation des images - version stable
+  function optimizeImages() {
+    document.querySelectorAll('img').forEach(function (img) {
+      if (!img.hasAttribute('loading')) img.setAttribute('loading', 'lazy');
+      if (!img.hasAttribute('decoding')) img.setAttribute('decoding', 'async');
+      if (!img.getAttribute('alt')) img.setAttribute('alt', 'Image – Clipsou Streaming');
+    });
+  }
+  
+  optimizeImages();
 
-  // Helper to set up carousel controls once slides/indicators are built
+  // Configuration du carousel - version stable et robuste
   function setupCarousel() {
     const carousel = document.querySelector('.carousel-container');
     if (!carousel) return;
+    
     const slidesTrack = carousel.querySelector('.carousel-slides');
     const slides = slidesTrack ? Array.from(slidesTrack.children) : [];
     const indicatorsWrap = carousel.querySelector('.carousel-indicators');
     const indicators = carousel.querySelectorAll('.carousel-indicator');
 
+    if (!slidesTrack || !indicatorsWrap || indicators.length === 0) return;
+
     const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
     let currentIndex = 0;
     let resumeTimeout = null;
     let autoInterval = null;
+    let isUserInteracting = false;
 
     function clearResumeTimer() {
       if (resumeTimeout) { clearTimeout(resumeTimeout); resumeTimeout = null; }
@@ -29,14 +37,18 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function startAuto() {
+      if (isUserInteracting) return;
       stopAuto();
       autoInterval = setInterval(() => {
-        nextSlide();
+        if (!isUserInteracting) {
+          nextSlide();
+        }
       }, 5000); // 5s per slide
     }
 
     function scheduleResume() {
       clearResumeTimer();
+      isUserInteracting = false;
       resumeTimeout = setTimeout(() => {
         startAuto();
       }, 10000); // 10s
@@ -85,6 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     indicators.forEach((dot) => {
       dot.addEventListener('click', () => {
+        isUserInteracting = true;
         const idx = parseInt(dot.getAttribute('data-index') || '0', 10);
         stopAuto();
         goToSlide(idx);
@@ -92,6 +105,7 @@ document.addEventListener('DOMContentLoaded', function () {
       dot.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
+          isUserInteracting = true;
           const idx = parseInt(dot.getAttribute('data-index') || '0', 10);
           stopAuto();
           goToSlide(idx);
@@ -104,12 +118,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const nextBtn = carousel.querySelector('.carousel-arrow.next');
     if (prevBtn) {
       prevBtn.addEventListener('click', () => {
+        isUserInteracting = true;
         stopAuto();
         prevSlide();
       });
     }
     if (nextBtn) {
       nextBtn.addEventListener('click', () => {
+        isUserInteracting = true;
         stopAuto();
         nextSlide();
       });
@@ -655,132 +671,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   })();
 
-  // Popup closing behavior: make close buttons work even when landing directly via a hash URL
-  (function setupPopupClosing() {
-    let lastScrollY = null;
-    let lastOpener = null;
-
-    function lockScroll() {
-      // memorize current scrollY and lock body
-      if (lastScrollY === null) {
-        lastScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
-      }
-      // compensate scrollbar width to avoid layout shift
-      const scrollbar = window.innerWidth - document.documentElement.clientWidth;
-      if (scrollbar > 0) {
-        document.body.style.paddingRight = scrollbar + 'px';
-      }
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${lastScrollY}px`;
-      document.body.style.left = '0';
-      document.body.style.right = '0';
-      document.body.style.width = '100%';
-    }
-
-    function unlockScroll() {
-      const y = lastScrollY || 0;
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
-      document.body.style.right = '';
-      document.body.style.width = '';
-      // remove scrollbar compensation
-      document.body.style.paddingRight = '';
-      // restore scroll on the next frame to ensure styles are applied
-      requestAnimationFrame(() => {
-        window.scrollTo({ top: y, left: 0, behavior: 'auto' });
-        lastScrollY = y;
-      });
-    }
-
-    // Intercept clicks that open a popup to remember the current scroll position and opener
-    document.addEventListener('click', function (e) {
-      const a = e.target.closest('a[href^="#"]');
-      if (!a) return;
-      const href = a.getAttribute('href');
-      const id = href ? href.replace(/^#/, '') : '';
-      if (!id) return;
-      const target = document.getElementById(id);
-      if (!target || !target.classList.contains('fiche-popup')) return; // not a popup link
-
-      // Save state and open popup without causing an unwanted scroll jump
-      lastScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
-      lastOpener = a;
-      e.preventDefault();
-      // Lock background scroll immediately, then open via hash
-      lockScroll();
-      // Defer to allow event loop to finish before changing hash
-      setTimeout(() => { window.location.hash = '#' + id; }, 0);
-    }, { capture: true });
-
-    function clearHash() {
-      // Ensure CSS :target unmatches by actually changing the fragment
-      if (window.location.hash) {
-        window.location.hash = '';
-      }
-      // Optionally tidy the URL (remove stray #) without adding history entries
-      const url = window.location.pathname + window.location.search;
-      if (window.history && typeof window.history.replaceState === 'function') {
-        window.history.replaceState(null, document.title, url);
-      }
-    }
-
-    // Handle clicks on any .close-btn (override javascript:history.back())
-    document.addEventListener('click', function (e) {
-      const btn = e.target.closest('.close-btn');
-      if (!btn) return;
-      e.preventDefault();
-      clearHash();
-      // Restore scroll and focus if we know where the popup was opened
-      unlockScroll();
-      if (lastOpener && typeof lastOpener.focus === 'function') {
-        lastOpener.focus();
-      }
-    });
-
-    // Close when clicking the dark overlay outside the popup content
-    document.querySelectorAll('.fiche-popup').forEach(popup => {
-      popup.addEventListener('click', function (e) {
-        if (e.target === popup) {
-          clearHash();
-          unlockScroll();
-          if (lastOpener && typeof lastOpener.focus === 'function') {
-            lastOpener.focus();
-          }
-        }
-      });
-    });
-
-    // ESC key closes the currently targeted popup
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && window.location.hash) {
-        clearHash();
-        unlockScroll();
-        if (lastOpener && typeof lastOpener.focus === 'function') {
-          lastOpener.focus();
-        }
-      }
-    });
-
-    // If a popup is opened via direct hash or future hash changes, lock scroll
-    function maybeLockOnHash() {
-      const id = (window.location.hash || '').replace(/^#/, '');
-      if (!id) return;
-      const target = document.getElementById(id);
-      if (target && target.classList && target.classList.contains('fiche-popup')) {
-        // Capture current scroll if not captured yet
-        if (lastScrollY === null) {
-          lastScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
-        }
-        lockScroll();
-      }
-    }
-    // On load (if landing on a fiche), and on hash changes
-    if (window.location.hash) {
-      setTimeout(maybeLockOnHash, 0);
-    }
-    window.addEventListener('hashchange', maybeLockOnHash);
-  })();
+  // La gestion du scroll est maintenant entièrement déléguée à simple-scroll-fix.js
 
   // Side menu (hamburger) behavior
   (function setupSideMenu() {
@@ -832,12 +723,12 @@ document.addEventListener('DOMContentLoaded', function () {
       const el = document.getElementById(id);
       if (!el) return;
       try {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        el.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'nearest' });
       } catch {
         const rect = el.getBoundingClientRect();
         const targetTop = (window.pageYOffset || document.documentElement.scrollTop || 0)
           + rect.top - (window.innerHeight - rect.height) / 2;
-        window.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+        window.scrollTo({ top: Math.max(0, targetTop), behavior: 'auto' });
       }
       if (updateHash) {
         if (window.history && typeof window.history.replaceState === 'function') {

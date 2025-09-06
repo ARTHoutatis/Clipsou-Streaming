@@ -16,60 +16,62 @@ const LOCAL_FALLBACK_DB = [
     { id: 'film7',  title: 'Backrooms Urbanos',   type: 'film',  rating: 3,   genres: ['Horreur','Mystère','Ambience'], image: 'Bac.jpg' }
 ];
 
-// Construit dynamiquement la base à partir de index.html (cartes + popups)
-async function buildDatabaseFromIndex() {
-    try {
-        const res = await fetch('index.html', { credentials: 'same-origin', cache: 'no-store' });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const html = await res.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-
-        // Construit directement depuis les popups (aucune dépendance aux cartes générées dynamiquement)
-        const items = [];
-        doc.querySelectorAll('.fiche-popup[id]').forEach(popup => {
-            const id = popup.getAttribute('id');
-            // ignorer les popups non contenus (ex: partenariat, submit)
-            if (!/^film\d+|^serie\d+/i.test(id)) return;
-            // Stocker le template HTML de la popup pour injection côté recherche
-            try {
-                popupTemplates.set(id, popup.outerHTML);
-            } catch {}
-            const titleEl = popup.querySelector('h3');
-            let title = titleEl ? titleEl.textContent.trim() : '';
-            title = title.replace(/\s+/g, ' ').trim();
-            const img = popup.querySelector('.fiche-left img');
-            const image = img ? img.getAttribute('src') : '';
-            const genreEls = popup.querySelectorAll('.rating-genres .genres .genre-tag');
-            const genres = Array.from(genreEls).map(g => g.textContent.trim()).filter(Boolean);
-            const starsText = (popup.querySelector('.rating-genres .stars') || {}).textContent || '';
-            const m = starsText.match(/([0-9]+(?:[\.,][0-9]+)?)/);
-            const rating = m ? parseFloat(m[1].replace(',', '.')) : undefined;
-            // Extraire description et URL Regarder pour fallback
-            const descEl = popup.querySelector('.fiche-right p');
-            const description = descEl ? descEl.textContent.trim() : '';
-            let watchUrl = '';
-            const btnLinks = popup.querySelectorAll('.button-group a');
-            for (const a of btnLinks) {
-                const href = a.getAttribute('href') || '';
-                const isClose = (a.classList && a.classList.contains('close-btn')) || href.startsWith('javascript:history.back');
-                if (!isClose && href) { watchUrl = href; break; }
-            }
-            let type = 'film';
-            if (/^serie/i.test(id)) type = 'série';
-            else if (/trailer/i.test(title)) type = 'trailer';
-            items.push({ id, title, type, rating, genres, image, description, watchUrl });
-        });
-
-        if (items.length > 0) {
-            moviesDatabase = items;
-        } else {
-            // Aucun item trouvé (ex: ouverture sans serveur) -> fallback local
-            moviesDatabase = LOCAL_FALLBACK_DB;
+// Construit la base à partir des popups déjà présents dans search.html
+function buildDatabaseFromCurrentPage() {
+    console.log('📚 Construction de la base depuis la page actuelle...');
+    
+    // Construit directement depuis les popups présents dans search.html
+    const items = [];
+    document.querySelectorAll('.fiche-popup[id]').forEach(popup => {
+        const id = popup.getAttribute('id');
+        // ignorer les popups non contenus (ex: partenariat, submit)
+        if (!/^film\d+|^serie\d+/i.test(id)) return;
+        
+        // Stocker le template HTML de la popup pour injection côté recherche
+        try {
+            popupTemplates.set(id, popup.outerHTML);
+        } catch {}
+        
+        const titleEl = popup.querySelector('h3');
+        let title = titleEl ? titleEl.textContent.trim() : '';
+        title = title.replace(/\s+/g, ' ').trim();
+        
+        const img = popup.querySelector('.fiche-left img');
+        const image = img ? img.getAttribute('src') : '';
+        
+        const genreEls = popup.querySelectorAll('.rating-genres .genres .genre-tag');
+        const genres = Array.from(genreEls).map(g => g.textContent.trim()).filter(Boolean);
+        
+        const starsText = (popup.querySelector('.rating-genres .stars') || {}).textContent || '';
+        const m = starsText.match(/([0-9]+(?:[\.,][0-9]+)?)/);
+        const rating = m ? parseFloat(m[1].replace(',', '.')) : undefined;
+        
+        // Extraire description et URL Regarder
+        const descEl = popup.querySelector('.fiche-right p');
+        const description = descEl ? descEl.textContent.trim() : '';
+        
+        let watchUrl = '';
+        const btnLinks = popup.querySelectorAll('.button-group a');
+        for (const a of btnLinks) {
+            const href = a.getAttribute('href') || '';
+            const isClose = (a.classList && a.classList.contains('close-btn')) || href.startsWith('javascript:history.back');
+            if (!isClose && href) { watchUrl = href; break; }
         }
-    } catch (e) {
-        console.warn('Impossible de charger index.html pour la recherche.', e);
+        
+        let type = 'film';
+        if (/^serie/i.test(id)) type = 'série';
+        else if (/trailer/i.test(title)) type = 'trailer';
+        
+        items.push({ id, title, type, rating, genres, image, description, watchUrl });
+    });
+
+    if (items.length > 0) {
+        moviesDatabase = items;
+        console.log(`✅ Base construite avec ${items.length} éléments`);
+    } else {
+        // Aucun item trouvé -> fallback local
         moviesDatabase = LOCAL_FALLBACK_DB;
+        console.log('⚠️ Aucun popup trouvé, utilisation du fallback local');
     }
 }
 
@@ -195,61 +197,12 @@ function renderGenreFilters(onChange) {
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', async function() {
-    // Gestion du scroll lock et du focus lors des popups
-    let lastScrollY = null;
+    // La gestion du scroll est maintenant entièrement déléguée à simple-scroll-fix.js
     let lastOpener = null;
-    function lockScroll() {
-        if (lastScrollY === null) {
-            lastScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
-        }
-        // Compense la largeur de la barre de défilement pour éviter un shift
-        const scrollbar = window.innerWidth - document.documentElement.clientWidth;
-        if (scrollbar > 0) {
-            document.body.style.paddingRight = scrollbar + 'px';
-        }
-        document.body.style.position = 'fixed';
-        document.body.style.top = `-${lastScrollY}px`;
-        document.body.style.left = '0';
-        document.body.style.right = '0';
-        document.body.style.width = '100%';
-    }
-    function unlockScroll() {
-        const y = (lastScrollY == null)
-          ? (window.pageYOffset || document.documentElement.scrollTop || 0)
-          : lastScrollY;
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.left = '';
-        document.body.style.right = '';
-        document.body.style.width = '';
-        // Supprime la compensation
-        document.body.style.paddingRight = '';
-        // Restaure au frame suivant pour éviter un léger saut
-        requestAnimationFrame(() => {
-            window.scrollTo({ top: y, left: 0, behavior: 'auto' });
-            lastScrollY = y;
-        });
-        // Fallback supplémentaire juste après
-        setTimeout(() => {
-            window.scrollTo({ top: y, left: 0, behavior: 'auto' });
-        }, 0);
-    }
-
-    function restoreScrollPrecisely(y) {
-        const top = (typeof y === 'number') ? y : ((lastScrollY == null)
-          ? (window.pageYOffset || document.documentElement.scrollTop || 0)
-          : lastScrollY);
-        requestAnimationFrame(() => {
-            window.scrollTo({ top, left: 0, behavior: 'auto' });
-            setTimeout(() => {
-                window.scrollTo({ top, left: 0, behavior: 'auto' });
-            }, 0);
-        });
-    }
     
     const searchInput = document.getElementById('search-input');
-    // Met à jour la base depuis l'accueil (nouvelles entrées et genres pris en compte)
-    await buildDatabaseFromIndex();
+    // Construire la base depuis les popups présents dans la page actuelle
+    buildDatabaseFromCurrentPage();
     // Construire les filtres de genres dynamiques
     const filters = renderGenreFilters(() => {
         const q = searchInput ? searchInput.value : '';
@@ -308,15 +261,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (!id) return;
         if (ensurePopupInjected(id)) {
             try {
-                lockScroll();
                 window.location.hash = '#' + id;
-                // Corriger tout défilement auto déclenché par le hash
-                setTimeout(() => {
-                    const y = (lastScrollY == null)
-                      ? (window.pageYOffset || document.documentElement.scrollTop || 0)
-                      : lastScrollY;
-                    window.scrollTo({ top: y, left: 0, behavior: 'auto' });
-                }, 0);
             } catch {}
         }
     }
@@ -383,18 +328,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (window.location.hash) {
             const id = window.location.hash.replace(/^#/, '');
             ensurePopupInjected(id);
-            // Si on atterrit directement sur une fiche, verrouiller le scroll
-            const target = document.getElementById(id);
-            if (target && target.classList && target.classList.contains('fiche-popup')) {
-                lockScroll();
-                // Maintenir la position
-                setTimeout(() => {
-                    const y = (lastScrollY == null)
-                      ? (window.pageYOffset || document.documentElement.scrollTop || 0)
-                      : lastScrollY;
-                    window.scrollTo({ top: y, left: 0, behavior: 'auto' });
-                }, 0);
-            }
         }
 
         // Assurer l'injection même si le hash change par d'autres interactions
@@ -402,108 +335,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             const id = window.location.hash.replace(/^#/, '');
             if (id) {
                 ensurePopupInjected(id);
-                const target = document.getElementById(id);
-                if (target && target.classList && target.classList.contains('fiche-popup')) {
-                    lockScroll();
-                    // Corriger tout défilement auto déclenché par :target
-                    setTimeout(() => {
-                        const y = (lastScrollY == null)
-                          ? (window.pageYOffset || document.documentElement.scrollTop || 0)
-                          : lastScrollY;
-                        window.scrollTo({ top: y, left: 0, behavior: 'auto' });
-                    }, 0);
-                }
             }
         });
     }
 
-    // Intercepter les clics sur les boutons de fermeture et overlay des popups (mêmes comportements qu'index)
-    document.addEventListener('click', function (e) {
-        const btn = e.target.closest('.close-btn');
-        if (!btn) return;
-        e.preventDefault();
-        // Position exacte au moment de la fermeture
-        const currentY = (function(){
-            // Lorsque le body est en fixed, scrollY correspond à -parseInt(top)
-            const topStr = (document.body.style.top || '0').replace('px','');
-            const locked = document.body.style.position === 'fixed';
-            if (locked) {
-                const n = parseFloat(topStr) || 0;
-                return Math.abs(n);
-            }
-            return window.pageYOffset || document.documentElement.scrollTop || 0;
-        })();
-        // Désactiver :target en vidant d'abord le hash, puis nettoyer l'URL
-        if (window.location.hash) {
-            try { window.location.hash = ''; } catch {}
-            const url = window.location.pathname + window.location.search;
-            if (window.history && typeof window.history.replaceState === 'function') {
-                window.history.replaceState(null, document.title, url);
-            }
-        }
-        // Utiliser la position exacte et l'imposer pendant et après l'unlock
-        lastScrollY = currentY;
-        unlockScroll();
-        if (lastOpener && typeof lastOpener.focus === 'function') {
-            try { lastOpener.focus({ preventScroll: true }); }
-            catch { try { lastOpener.focus(); } catch {} }
-        }
-        restoreScrollPrecisely(currentY);
-    });
-
-    // Click sur l'overlay (fond sombre) pour fermer
-    document.addEventListener('click', function (e) {
-        const popup = e.target.closest('.fiche-popup');
-        if (popup && e.target === popup) {
-            const currentY = (function(){
-                const topStr = (document.body.style.top || '0').replace('px','');
-                const locked = document.body.style.position === 'fixed';
-                if (locked) { const n = parseFloat(topStr) || 0; return Math.abs(n); }
-                return window.pageYOffset || document.documentElement.scrollTop || 0;
-            })();
-            // Effacer le hash pour désactiver :target puis nettoyer l'URL
-            if (window.location.hash) {
-                try { window.location.hash = ''; } catch {}
-                const url = window.location.pathname + window.location.search;
-                if (window.history && typeof window.history.replaceState === 'function') {
-                    window.history.replaceState(null, document.title, url);
-                }
-            }
-            lastScrollY = currentY;
-            unlockScroll();
-            requestAnimationFrame(() => {
-                restoreScrollPrecisely(currentY);
-            });
-            setTimeout(() => {
-                restoreScrollPrecisely(currentY);
-            }, 0);
-            return;
-        }
-    });
-
-    // ESC pour fermer
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && window.location.hash) {
-            const currentY = (function(){
-                const topStr = (document.body.style.top || '0').replace('px','');
-                const locked = document.body.style.position === 'fixed';
-                if (locked) { const n = parseFloat(topStr) || 0; return Math.abs(n); }
-                return window.pageYOffset || document.documentElement.scrollTop || 0;
-            })();
-            try { window.location.hash = ''; } catch {}
-            const url = window.location.pathname + window.location.search;
-            if (window.history && typeof window.history.replaceState === 'function') {
-                window.history.replaceState(null, document.title, url);
-            }
-            lastScrollY = currentY;
-            unlockScroll();
-            if (lastOpener && typeof lastOpener.focus === 'function') {
-                try { lastOpener.focus({ preventScroll: true }); }
-                catch { try { lastOpener.focus(); } catch {} }
-            }
-            restoreScrollPrecisely(currentY);
-        }
-    });
+    // La gestion du scroll est maintenant entièrement déléguée à simple-scroll-fix.js
 });
 
 // Side menu (hamburger) behavior for search page
@@ -569,8 +405,8 @@ document.addEventListener('DOMContentLoaded', function () {
                             try { window.location.hash = '#' + id; } catch {}
                             return;
                         }
-                        // Otherwise, smooth scroll to the section and update hash for consistency
-                        try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {}
+                        // Otherwise, scroll to the section and update hash for consistency
+                        try { el.scrollIntoView({ behavior: 'auto', block: 'center' }); } catch {}
                         try {
                             if (window.history && typeof window.history.replaceState === 'function') {
                                 window.history.replaceState(null, document.title, '#' + id);
