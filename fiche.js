@@ -160,13 +160,17 @@ function renderFiche(container, item) {
 
   const left = document.createElement('div');
   left.className = 'fiche-left';
+  // Wrap media so overlay can be positioned relative to the image bounds
+  const mediaWrap = document.createElement('div');
+  mediaWrap.className = 'fiche-media-wrap';
   const img = document.createElement('img');
   img.src = item.image || 'apercu.png';
   img.alt = 'Image de ' + (item.title || 'la fiche');
   img.loading = 'lazy';
   img.decoding = 'async';
   img.className = 'landscape';
-  left.appendChild(img);
+  mediaWrap.appendChild(img);
+  left.appendChild(mediaWrap);
 
   const right = document.createElement('div');
   right.className = 'fiche-right';
@@ -198,6 +202,21 @@ function renderFiche(container, item) {
   const p = document.createElement('p');
   p.textContent = item.description || '';
 
+  // Mobile overlay: clone title + rating/genres into an overlay inside the image container
+  try {
+    const overlay = document.createElement('div');
+    overlay.className = 'fiche-overlay';
+    const overlayTitle = h3.cloneNode(true);
+    overlayTitle.classList.add('overlay-title');
+    const overlayMeta = rg.cloneNode(true);
+    overlayMeta.classList.add('overlay-meta');
+    overlay.appendChild(overlayTitle);
+    overlay.appendChild(overlayMeta);
+    mediaWrap.appendChild(overlay);
+  } catch (e) {
+    // no-op if cloning fails
+  }
+
   const buttons = document.createElement('div');
   buttons.className = 'button-group';
   if (item.watchUrl) {
@@ -213,7 +232,33 @@ function renderFiche(container, item) {
   right.appendChild(h3);
   right.appendChild(rg);
   if (item.description) right.appendChild(p);
-  right.appendChild(buttons);
+  // Place buttons under the image on mobile so they visually follow the media
+  // and switch automatically when the viewport changes (no refresh required)
+  try {
+    const mq = window.matchMedia ? window.matchMedia('(max-width: 768px)') : null;
+    const placeButtons = () => {
+      if (mq && mq.matches) {
+        left.appendChild(buttons);
+      } else {
+        right.appendChild(buttons);
+      }
+    };
+    placeButtons();
+    if (mq) {
+      if (typeof mq.addEventListener === 'function') {
+        mq.addEventListener('change', placeButtons);
+      } else if (typeof mq.addListener === 'function') {
+        // Fallback for older browsers
+        mq.addListener(placeButtons);
+      }
+    } else {
+      // Ultimate fallback on resize
+      window.addEventListener('resize', placeButtons);
+      window.addEventListener('orientationchange', placeButtons);
+    }
+  } catch (e) {
+    right.appendChild(buttons);
+  }
 
   wrap.appendChild(left);
   wrap.appendChild(right);
@@ -293,7 +338,43 @@ function renderSimilarSection(rootEl, similarItems) {
   });
 
   section.appendChild(rail);
-  rootEl.appendChild(section);
+
+  // Dynamically place the similar section depending on viewport, like the Watch button
+  const mq = window.matchMedia ? window.matchMedia('(max-width: 768px)') : null;
+  const placeSimilar = () => {
+    try {
+      const wrapEl = rootEl.querySelector('.fiche-content');
+      const buttonGroup = rootEl.querySelector('.button-group');
+      if (mq && mq.matches) {
+        // Mobile: place right after the buttons if present, otherwise after the fiche content
+        if (buttonGroup && buttonGroup.parentElement) {
+          buttonGroup.insertAdjacentElement('afterend', section);
+        } else if (wrapEl && wrapEl.parentElement) {
+          wrapEl.insertAdjacentElement('afterend', section);
+        } else {
+          rootEl.appendChild(section);
+        }
+      } else {
+        // Desktop/tablet: keep as a normal section inside root (after fiche)
+        rootEl.appendChild(section);
+      }
+    } catch (e) {
+      // Fallback: append to root
+      rootEl.appendChild(section);
+    }
+  };
+
+  placeSimilar();
+  if (mq) {
+    if (typeof mq.addEventListener === 'function') {
+      mq.addEventListener('change', placeSimilar);
+    } else if (typeof mq.addListener === 'function') {
+      mq.addListener(placeSimilar);
+    }
+  } else {
+    window.addEventListener('resize', placeSimilar);
+    window.addEventListener('orientationchange', placeSimilar);
+  }
 }
 
 function renderList(container, items, titleText) {

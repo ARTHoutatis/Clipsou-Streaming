@@ -5,6 +5,9 @@
     --brand-2: #6c5ce7;
 }
 
+/* Desktop/tablet: ensure mobile-only overlay stays hidden */
+.fiche-left .fiche-overlay { display: none; }
+
 /* Ultra-small phones: tighten navbar further (moved to common.css) */
 @media (max-width: 360px) {
   .nav-links .search-link { width: 40px; height: 40px; }
@@ -353,6 +356,11 @@ body::before {
     max-height: 72vh;
     object-fit: contain;
     display: block;
+}
+
+/* Desktop/tablet: rounded corners for fiche images */
+@media (min-width: 769px) {
+  .fiche-content img.landscape { border-radius: 8px; }
 }
 
 .fiche-right {
@@ -753,7 +761,7 @@ html {
         position: absolute; 
         bottom: calc(8px + env(safe-area-inset-bottom)); 
         right: 12px; 
-        gap: 8px; 
+        gap: 6px; 
         pointer-events: auto; 
     }
     /* Phone/tablet: hide Partenariats title entirely and tighten spacing */
@@ -822,10 +830,10 @@ html {
         width: 100%;
         max-width: 95vw;
         max-height: min(90svh, 90dvh);
-        padding: 20px;
+        padding: 0 12px 8px; /* no top padding: image hugs the top */
         justify-items: center;
         align-items: start;
-        gap: 16px;
+        gap: 2px; /* ultra-tight rhythm between image and content */
         margin: 0 auto;
         display: flex;
         flex-direction: column;
@@ -834,6 +842,7 @@ html {
         text-align: center;
         -webkit-overflow-scrolling: touch;
         overflow-x: hidden;
+        margin-bottom: 8px; /* ensure small space before the next section */
     }
     
     .fiche-left { 
@@ -841,16 +850,18 @@ html {
         width: 100%; 
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: flex-start; /* pin image to the top */
     }
     
     .fiche-content img { 
         display: block; 
-        margin: 0 auto 16px; 
-        max-width: 90%;
-        max-height: 50svh; 
+        margin: 0 auto; /* remove bottom margin, rely on container gap */
+        max-width: 100%; /* use full width to avoid side gaps */
+        max-height: 34svh; /* avoid very tall image pushing text down */
         height: auto;
         border-radius: 12px;
+        position: relative; /* create stacking context */
+        z-index: 0;
     }
     
     .fiche-right {
@@ -858,16 +869,17 @@ html {
         text-align: center;
         width: 100%;
         max-width: 500px;
-        margin: 0 auto;
+        margin: 0 auto; /* keep same distance from image via parent gap */
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 12px;
+        justify-content: flex-start; /* anchor text at the top (override desktop center) */
+        gap: 2px; /* bring inner elements even closer */
     }
     
     .fiche-content h3 { 
         text-align: center !important; 
-        margin: 0 0 12px 0;
+        margin: 0 0 2px 0; /* title closer to elements above */
         width: 100%;
         color: inherit; /* allow per-title colors */
         display: block;            /* ensure full-width block for centering */
@@ -883,19 +895,22 @@ html {
     
     .fiche-content p { 
         text-align: center; 
-        margin: 0 auto 16px;
+        margin: 0 auto 2px; /* minimal spacing under description */
         max-width: 400px;
         line-height: 1.5;
     }
+    
+    /* Kill any stray top margins inside the text block */
+    .fiche-right > *:first-child { margin-top: 0 !important; }
     
     .rating-genres { 
         display: flex; 
         align-items: center; 
         justify-content: center; 
-        gap: 12px; 
+        gap: 4px; 
         flex-wrap: wrap;
         width: 100%;
-        margin: 0 auto 16px;
+        margin: 0 auto 2px; /* closer to title and description */
     }
     
     .rating-genres .stars { 
@@ -918,17 +933,67 @@ html {
         padding: 4px 10px;
         white-space: nowrap;
     }
+
+    /* Overlay on image for title + rating + genres (MOBILE ONLY) */
+    .fiche-left { position: static; }
+    .fiche-media-wrap { position: relative; overflow: hidden; border-radius: 12px; }
+    .fiche-media-wrap .fiche-overlay {
+        position: absolute;
+        left: 0; right: 0; bottom: 0;
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.75) 100%);
+        color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 6px;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+        z-index: 2; /* sit above the image */
+        pointer-events: none; /* let taps go to underlying image/buttons */
+    }
+    .fiche-media-wrap .fiche-overlay .overlay-title { font-size: 1.4rem; margin: 0; }
+    .fiche-media-wrap .fiche-overlay .overlay-meta { justify-content: center; }
+    /* Rating: white text, yellow star (mobile overlay) */
+    .fiche-media-wrap .fiche-overlay .overlay-meta .stars { color: #ffffff !important; }
+    .fiche-media-wrap .fiche-overlay .overlay-meta .stars::first-letter { color: #FFD54A !important; }
+
+    /* Hide duplicated blocks on the right on mobile (overlay replaces them) */
+    .fiche-right > h3,
+    .fiche-right > .rating-genres,
+    .fiche-right > p { display: none !important; }
     
     .button-group { 
         display: flex; 
-        gap: 12px; 
+        gap: 10px; 
         flex-wrap: wrap;
         justify-content: center; 
         width: 100%;
-        margin: 16px auto 0;
-        padding-top: 16px;
+        margin: 8px auto 0; /* tighter gap under image */
+        padding-top: 8px;   /* reduce internal spacing */
+        position: static !important; /* override desktop sticky to avoid reserved space */
+        bottom: auto !important;
+        padding-bottom: 8px; /* small, fixed padding */
     }
-    
+
+    /* Reduce spacing before next content (e.g., HR + similar content) */
+    .section { margin: 12px 0; }
+    body.fiche-page-view hr { margin: 8px 0; }
+    /* When the similar section follows the fiche content, keep it close */
+    #fiche .fiche-content + .section { margin-top: 8px !important; }
+    /* Also ensure any section directly after the image/buttons stays close */
+    #fiche .button-group + .section { margin-top: 8px !important; }
+
+    /* Mobile: left-align 'Contenu similaire' and show a subtle top separator */
+    #fiche .section {
+        padding: 8px 12px; /* align with page side padding */
+        text-align: left;  /* do NOT center */
+        border-top: 1px solid rgba(255,255,255,0.12); /* thin separator like desktop */
+    }
+    #fiche .section h2 { text-align: left; margin: 0 0 12px 0; }
+
     .button { 
         flex: 1 1 auto;
         max-width: 200px;
@@ -941,7 +1006,6 @@ html {
         justify-content: center;
     }
 }
-
 /* Neutralize system dark mode: keep site appearance unchanged in dark mode */
 @media (prefers-color-scheme: dark) {
     :root { color-scheme: light; }

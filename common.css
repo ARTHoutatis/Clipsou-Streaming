@@ -100,8 +100,57 @@ nav[aria-label="Navigation principale"] {
   white-space: nowrap;
 }
 
+/* Ensure the Recherche button is visible on all pages (desktop/tablet) */
+.nav-links .search-link { display: inline-flex; align-items: center; gap: 8px; position: relative; }
+.nav-links .search-link::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background: url('loupe.png') no-repeat center / contain;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+/* Desktop/tablet: ensure search link text is visible (override mobile text-indent rules) */
+@media (min-width: 769px) {
+  .nav-links .search-link {
+    text-indent: 0 !important;
+    overflow: visible !important;
+    width: auto !important;
+    height: auto !important;
+    padding: 10px 20px !important;
+    position: relative !important;
+  }
+  .nav-links .search-link::before {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
+  /* Keep actions aligned to the far right */
+  nav[aria-label="Navigation principale"] .nav-links {
+    display: flex !important;
+    gap: 15px !important;
+    margin-left: auto !important;
+    visibility: visible !important;
+  }
+  nav[aria-label="Navigation principale"] .nav-links .search-link {
+    display: inline-flex !important;
+    visibility: visible !important;
+  }
+  /* Fiche pages: harden visibility in case of cascade conflicts */
+  body.fiche-page-view nav[aria-label="Navigation principale"] .nav-links .search-link {
+    display: inline-flex !important;
+    visibility: visible !important;
+    color: #ffffff !important;
+  }
+}
+
 /* When Accueil is placed next to the logo, keep a small gap and slight offset */
-.logo .home-link { margin-left: 12px; position: relative; top: 3px; left: 60px; }
+.logo .home-link { margin-left: 12px; position: relative; top: 2.5px; left: 60px; }
 
 /* Accueil visual style: slightly bigger and bolder with leading icon */
 .home-link {
@@ -229,6 +278,15 @@ html { scrollbar-color: #615d5d #0a0a0a; scrollbar-width: thin; }
 
 /* Mobile common rules */
 @media (max-width: 768px) {
+  /* Fiche pages (mobile): ensure the search icon appears at top-right */
+  body.fiche-page-view nav[aria-label="Navigation principale"] .nav-links {
+    display: flex !important;
+    margin-left: auto !important; /* push to right */
+    gap: 6px;
+  }
+  body.fiche-page-view nav[aria-label="Navigation principale"] .nav-links .search-link {
+    display: inline-flex !important; /* visible on mobile */
+  }
   /* Tight mobile layout: logo left, actions right, no overflow */
   nav[aria-label="Navigation principale"] {
     padding: 6px 8px !important;
