@@ -1,0 +1,7 @@
+User-agent: *
+# Allow all crawlers to access the entire site
+Allow: /
+
+# Sitemaps
+Sitemap: https://clipsoustreaming.netlify.app/sitemap_images.xml
+Sitemap: https://clipsoustreaming.netlify.app/sitemap.xml

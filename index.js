@@ -1,32 +1,33 @@
 document.addEventListener('DOMContentLoaded', function () {
-  // Optimisation des images - version stable
-  function optimizeImages() {
-    document.querySelectorAll('img').forEach(function (img) {
-      if (!img.hasAttribute('loading')) img.setAttribute('loading', 'lazy');
-      if (!img.hasAttribute('decoding')) img.setAttribute('decoding', 'async');
-      if (!img.getAttribute('alt')) img.setAttribute('alt', 'Image – Clipsou Streaming');
-    });
-  }
-  
-  optimizeImages();
+  // Redirect old hash-based fiche links to the new dedicated page for backward compatibility
+  try {
+    const m = (window.location.hash || '').match(/^#(film\d+|serie\d+)$/i);
+    if (m && m[1]) {
+      const id = m[1];
+      const url = `fiche.html?id=${encodeURIComponent(id)}`;
+      window.location.replace(url);
+      return; // stop executing the rest on this page load
+    }
+  } catch {}
+  // Ensure lazy/async attrs on all images
+  document.querySelectorAll('img').forEach(function (img) {
+    if (!img.hasAttribute('loading')) img.setAttribute('loading', 'lazy');
+    if (!img.hasAttribute('decoding')) img.setAttribute('decoding', 'async');
+    if (!img.getAttribute('alt')) img.setAttribute('alt', 'Image – Clipsou Streaming');
+  });
 
-  // Configuration du carousel - version stable et robuste
+  // Helper to set up carousel controls once slides/indicators are built
   function setupCarousel() {
     const carousel = document.querySelector('.carousel-container');
     if (!carousel) return;
-    
     const slidesTrack = carousel.querySelector('.carousel-slides');
-    const slides = slidesTrack ? Array.from(slidesTrack.children) : [];
     const indicatorsWrap = carousel.querySelector('.carousel-indicators');
     const indicators = carousel.querySelectorAll('.carousel-indicator');
-
-    if (!slidesTrack || !indicatorsWrap || indicators.length === 0) return;
 
     const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
     let currentIndex = 0;
     let resumeTimeout = null;
     let autoInterval = null;
-    let isUserInteracting = false;
 
     function clearResumeTimer() {
       if (resumeTimeout) { clearTimeout(resumeTimeout); resumeTimeout = null; }
@@ -37,18 +38,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function startAuto() {
-      if (isUserInteracting) return;
       stopAuto();
       autoInterval = setInterval(() => {
-        if (!isUserInteracting) {
-          nextSlide();
-        }
+        nextSlide();
       }, 5000); // 5s per slide
     }
 
     function scheduleResume() {
       clearResumeTimer();
-      isUserInteracting = false;
       resumeTimeout = setTimeout(() => {
         startAuto();
       }, 10000); // 10s
@@ -74,11 +71,6 @@ document.addEventListener('DOMContentLoaded', function () {
         dot.setAttribute('aria-current', i === currentIndex ? 'true' : 'false');
       });
 
-      // Update active slide class for CSS effects
-      if (slides && slides.length) {
-        slides.forEach((s, i) => s.classList.toggle('active', i === currentIndex));
-      }
-
       // Schedule auto-resume after inactivity
       scheduleResume();
     }
@@ -97,7 +89,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     indicators.forEach((dot) => {
       dot.addEventListener('click', () => {
-        isUserInteracting = true;
         const idx = parseInt(dot.getAttribute('data-index') || '0', 10);
         stopAuto();
         goToSlide(idx);
@@ -105,7 +96,6 @@ document.addEventListener('DOMContentLoaded', function () {
       dot.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          isUserInteracting = true;
           const idx = parseInt(dot.getAttribute('data-index') || '0', 10);
           stopAuto();
           goToSlide(idx);
@@ -118,14 +108,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const nextBtn = carousel.querySelector('.carousel-arrow.next');
     if (prevBtn) {
       prevBtn.addEventListener('click', () => {
-        isUserInteracting = true;
         stopAuto();
         prevSlide();
       });
     }
     if (nextBtn) {
       nextBtn.addEventListener('click', () => {
-        isUserInteracting = true;
         stopAuto();
         nextSlide();
       });
@@ -302,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const card = document.createElement('div');
       card.className = 'card';
       const a = document.createElement('a');
-      a.setAttribute('href', `#${item.id}`);
+      a.setAttribute('href', `fiche.html?id=${item.id}`);
       const img = document.createElement('img');
       const thumbs = deriveThumbnail(item.image);
       let idx = 0;
@@ -609,7 +597,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const link = document.createElement('a');
         link.className = 'carousel-btn';
-        link.href = `#${it.id}`;
+        link.href = `fiche.html?id=${it.id}`;
         link.textContent = 'Voir la fiche';
 
         content.appendChild(h2);
@@ -671,106 +659,84 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   })();
 
-  // La gestion du scroll est maintenant entièrement déléguée à simple-scroll-fix.js
+  // Popup closing behavior: make close buttons work even when landing directly via a hash URL
+  (function setupPopupClosing() {
+    let lastScrollY = null;
+    let lastOpener = null;
 
-  // Side menu (hamburger) behavior
-  (function setupSideMenu() {
-    const btn = document.querySelector('.hamburger-btn');
-    const menu = document.getElementById('side-menu');
-    const overlay = document.querySelector('.side-overlay');
-    const closeBtn = document.querySelector('.side-close');
-
-    if (!btn || !menu || !overlay || !closeBtn) return;
-
-    function openMenu() {
-      document.body.classList.add('menu-open');
-      menu.classList.add('open');
-      overlay.hidden = false;
-      btn.setAttribute('aria-expanded', 'true');
-      // Focus first link for accessibility
-      const firstLink = menu.querySelector('a, button');
-      if (firstLink && typeof firstLink.focus === 'function') {
-        setTimeout(() => firstLink.focus(), 0);
-      }
-    }
-
-    function closeMenu() {
-      document.body.classList.remove('menu-open');
-      menu.classList.remove('open');
-      overlay.hidden = true;
-      btn.setAttribute('aria-expanded', 'false');
-      // Return focus to the hamburger button
-      if (typeof btn.focus === 'function') btn.focus();
-    }
-
-    btn.addEventListener('click', () => {
-      const expanded = btn.getAttribute('aria-expanded') === 'true';
-      if (expanded) closeMenu(); else openMenu();
-    });
-    closeBtn.addEventListener('click', closeMenu);
-    overlay.addEventListener('click', closeMenu);
-
-    // Close on Escape
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && menu.classList.contains('open')) {
-        closeMenu();
-      }
-    });
-
-    // Handle menu link clicks: center-scroll to in-page sections
-    function centerScrollToId(id, updateHash = true) {
-      if (!id) return;
-      const el = document.getElementById(id);
-      if (!el) return;
-      try {
-        el.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'nearest' });
-      } catch {
-        const rect = el.getBoundingClientRect();
-        const targetTop = (window.pageYOffset || document.documentElement.scrollTop || 0)
-          + rect.top - (window.innerHeight - rect.height) / 2;
-        window.scrollTo({ top: Math.max(0, targetTop), behavior: 'auto' });
-      }
-      if (updateHash) {
-        if (window.history && typeof window.history.replaceState === 'function') {
-          window.history.replaceState(null, document.title, '#' + id);
-        } else {
-          window.location.hash = '#' + id;
-        }
-      }
-    }
-
-    menu.addEventListener('click', (e) => {
-      const a = e.target.closest('a');
+    // Intercept clicks that open a popup to remember the current scroll position and opener
+    document.addEventListener('click', function (e) {
+      const a = e.target.closest('a[href^="#"]');
       if (!a) return;
-      const href = a.getAttribute('href') || '';
-      if (href.startsWith('#')) {
-        e.preventDefault();
-        const id = href.replace(/^#/, '');
-        closeMenu();
-        // Defer a tick to allow menu close animation to start
-        setTimeout(() => centerScrollToId(id), 10);
-        return;
-      }
-      // For external links, still close the menu
-      closeMenu();
-    });
+      const href = a.getAttribute('href');
+      const id = href ? href.replace(/^#/, '') : '';
+      if (!id) return;
+      const target = document.getElementById(id);
+      if (!target || !target.classList.contains('fiche-popup')) return; // not a popup link
 
-    // Center on existing hash after load
-    if (location.hash) {
-      const id = location.hash.replace(/^#/, '');
-      // Only center for our sections
-      if (/^(top-rated|genre-|category-)/.test(id)) {
-        setTimeout(() => centerScrollToId(id, false), 0);
+      // Save state and open popup without causing an unwanted scroll jump
+      lastScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+      lastOpener = a;
+      e.preventDefault();
+      // Defer to allow event loop to finish before changing hash
+      setTimeout(() => { window.location.hash = '#' + id; }, 0);
+    }, { capture: true });
+
+    function clearHash() {
+      // Ensure CSS :target unmatches by actually changing the fragment
+      if (window.location.hash) {
+        window.location.hash = '';
+      }
+      // Optionally tidy the URL (remove stray #) without adding history entries
+      const url = window.location.pathname + window.location.search;
+      if (window.history && typeof window.history.replaceState === 'function') {
+        window.history.replaceState(null, document.title, url);
       }
     }
 
-    // Center on future hash changes
-    window.addEventListener('hashchange', () => {
-      const id = location.hash.replace(/^#/, '');
-      if (/^(top-rated|genre-|category-)/.test(id)) {
-        centerScrollToId(id, false);
+    // Handle clicks on any .close-btn (override javascript:history.back())
+    document.addEventListener('click', function (e) {
+      const btn = e.target.closest('.close-btn');
+      if (!btn) return;
+      e.preventDefault();
+      clearHash();
+      // Restore scroll and focus if we know where the popup was opened
+      if (lastScrollY !== null) {
+        window.scrollTo({ top: lastScrollY, left: 0, behavior: 'auto' });
+      }
+      if (lastOpener && typeof lastOpener.focus === 'function') {
+        lastOpener.focus();
+      }
+    });
+
+    // Close when clicking the dark overlay outside the popup content
+    document.querySelectorAll('.fiche-popup').forEach(popup => {
+      popup.addEventListener('click', function (e) {
+        if (e.target === popup) {
+          clearHash();
+          if (lastScrollY !== null) {
+            window.scrollTo({ top: lastScrollY, left: 0, behavior: 'auto' });
+          }
+          if (lastOpener && typeof lastOpener.focus === 'function') {
+            lastOpener.focus();
+          }
+        }
+      });
+    });
+
+    // ESC key closes the currently targeted popup
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && window.location.hash) {
+        clearHash();
+        if (lastScrollY !== null) {
+          window.scrollTo({ top: lastScrollY, left: 0, behavior: 'auto' });
+        }
+        if (lastOpener && typeof lastOpener.focus === 'function') {
+          lastOpener.focus();
+        }
       }
     });
   })();
-  
+
+  // removed scroll buttons logic
 });

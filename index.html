@@ -4,15 +4,13 @@
 <meta name="google-site-verification" content="XclXrRNOuNrsDcZjhcADvDdzKN24w63Eja0JB0Xl2jU" />
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; worker-src 'self';">
 <meta name="theme-color" content="#0b1117">
-<!-- Maintenance mode disabled -->
 <title>Clipsou Streaming</title>
 <meta name="description" content="Regardez des films et séries comme La vie au petit âge, Dédoublement, Jackson Goup, Karma et Alex. Gratuit, rapide et sans inscription.">
 <link rel="icon" href="favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="favicon.png">
-<link rel="canonical" href="/">
-<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://clipsoustreaming.netlify.app/">
+<meta name="robots" content="index, follow, max-image-preview:large">
 <!-- Preconnects for faster Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,23 +22,23 @@
 <meta property="og:site_name" content="Clipsou Streaming">
 <meta property="og:title" content="Clipsou Streaming – Brickfilms et animations en streaming français">
 <meta property="og:description" content="Streaming français de brickfilms et animations. Découvrez La vie au petit âge, Dédoublement, Jackson Goup, Karma, Alex et plus.">
-<meta property="og:url" content="/">
-<meta property="og:image" content="/apercu.png">
+<meta property="og:url" content="https://clipsoustreaming.netlify.app/">
+<meta property="og:image" content="https://clipsoustreaming.netlify.app/apercu.png">
 <meta property="og:image:alt" content="Clipsou Streaming – sélection de brickfilms et animations">
 <meta property="og:image:type" content="image/png">
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Clipsou Streaming – Brickfilms et animations en streaming français">
 <meta name="twitter:description" content="Streaming français de brickfilms et animations. Gratuit, rapide et sans inscription.">
-<meta name="twitter:image" content="/apercu.png">
+<meta name="twitter:image" content="https://clipsoustreaming.netlify.app/apercu.png">
 <!-- JSON-LD Organization + WebSite -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "Organization",
   "name": "Clipsou Streaming",
-  "url": "/",
-  "logo": "/favicon.png",
+  "url": "https://clipsoustreaming.netlify.app/",
+  "logo": "https://clipsoustreaming.netlify.app/favicon.png",
   "sameAs": [
   ]
 }
@@ -50,115 +48,39 @@
   "@context": "https://schema.org",
   "@type": "WebSite",
   "name": "Clipsou Streaming",
-  "url": "/",
+  "url": "https://clipsoustreaming.netlify.app/",
   "potentialAction": {
     "@type": "SearchAction",
-    "target": "/search.html?q={search_term_string}",
+    "target": "https://clipsoustreaming.netlify.app/search.html?q={search_term_string}",
     "query-input": "required name=search_term_string"
   }
 }
 </script>
-<!-- Google Fonts (consolidated) -->
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Cinzel:wght@700&family=Bevan:ital@0;1&family=VT323&family=Luckiest+Guy&family=Baloo+2:wght@400;700&family=Rye&display=swap" rel="stylesheet">
-<style>
-  /* Force le chargement des polices pour éviter le FOUT */
-  .font-loading {
-    font-display: swap;
-  }
-  
-  /* Préchargement des polices critiques */
-  @font-face {
-    font-family: 'Anton';
-    font-display: swap;
-  }
-  @font-face {
-    font-family: 'Cinzel';
-    font-display: swap;
-  }
-  @font-face {
-    font-family: 'Bevan';
-    font-display: swap;
-  }
-  @font-face {
-    font-family: 'VT323';
-    font-display: swap;
-  }
-  @font-face {
-    font-family: 'Luckiest Guy';
-    font-display: swap;
-  }
-  @font-face {
-    font-family: 'Baloo 2';
-    font-display: swap;
-  }
-  @font-face {
-    font-family: 'Rye';
-    font-display: swap;
-  }
-</style>
-<!-- Font Awesome for brand icons (YouTube, Discord) -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-<link rel="stylesheet" href="optimized.css?v=20250905-2034">
-<link rel="stylesheet" href="common.css?v=20250905-2034">
-<link rel="stylesheet" href="index.css?v=20250905-2034">
-<link rel="manifest" href="manifest.webmanifest">
-</head>
-<body>
-  <a href="#contenu" class="skip-link sr-only">Aller au contenu</a>
+<!-- Fonts for styled popup titles (trimmed to only used families) -->
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Cinzel:wght@700&family=Rye&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bevan:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Shrikhand&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
+ <link rel="stylesheet" href="common.css">
+ <link rel="stylesheet" href="index.css">
+ </head>
+ <body>
   <nav aria-label="Navigation principale">
-    <button class="hamburger-btn" aria-label="Ouvrir le menu" aria-controls="side-menu" aria-expanded="false" type="button">
-      <span class="sr-only">Menu</span>
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" width="28" height="28">
-        <path fill="currentColor" d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
-      </svg>
-    </button>
      <div class="logo">
-     
+       <a href="index.html" aria-label="Accueil Clipsou Streaming" style="display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none">
          <img src="favicon.png" alt="Logo Clipsou">
          <span>Clipsou</span>
          <span>Streaming</span>
+       </a>
+       <a href="index.html" class="home-link">Accueil</a>
      </div>
 
     <div class="nav-links">
        <a href="search.html" class="search-link">Recherche</a>
    </div>
 </nav>
-
-<!-- Side Drawer Menu -->
-<div id="side-menu" class="side-menu" role="navigation" aria-label="Menu latéral">
-  <div class="side-menu-header">
-    <img src="favicon.png" alt="Logo Clipsou" width="32" height="32">
-    <strong>Clipsou Streaming</strong>
-    <button class="side-close" aria-label="Fermer le menu" type="button">✕</button>
-  </div>
-  <div class="side-menu-content">
-    <ul class="side-links top">
-      <li><a href="search.html">🔍 Recherche</a></li>
-    </ul>
-    <hr>
-    <h3 class="side-section-title">Catégories</h3>
-    <ul class="side-links top">
-      <li><a href="#top-rated">⭐ Mieux notés</a></li>
-      <li><a href="#genre-comedie">😂 Comédie</a></li>
-      <li><a href="#genre-familial">👨‍👩‍👧 Familial</a></li>
-      <li><a href="#genre-aventure">🗺️ Aventure</a></li>
-      <li><a href="#genre-action">🔥 Action</a></li>
-      <li><a href="#genre-horreur">👻 Horreur</a></li>
-      <li><a href="#category-lego">🧱 LEGO</a></li>
-      <li><a href="#category-minecraft">⛏️ Minecraft</a></li>
-      <li><a href="#category-live-action">🎬 Live-action</a></li>
-    </ul>
-    <hr>
-    <h3 class="side-section-title">Informations</h3>
-    <ul class="side-links bottom">
-      <li><a href="#partenariats">🤝 Partenariats</a></li>
-      <li><a href="#submit-film">🎬 Ajouter des films</a></li>
-      <li><a href="https://discord.gg/9ekddx9Hqs" target="_blank" rel="noopener noreferrer">💬 Discord</a></li>
-      <li><a href="https://www.youtube.com/@clipsoustudio" target="_blank" rel="noopener noreferrer">▶ YouTube</a></li>
-    </ul>
-  </div>
-</div>
-<div class="side-overlay" hidden></div>
 
 <main id="contenu" tabindex="-1">
 
@@ -178,7 +100,7 @@
                     <p class="carousel-description">
                         Timmy, un enfant espiègle, nous fait visiter son village dans un monde entièrement construit en briques LEGO. Une aventure familiale pleine d'humour et de tendresse.
                     </p>
-                    <a href="#film1" class="carousel-btn">Voir la fiche</a>
+                    <a href="fiche.html?id=film1" class="carousel-btn">Voir la fiche</a>
                 </div>
             </div>
 
@@ -194,7 +116,7 @@
                     <p class="carousel-description">
                         Deux frères identiques, l'un vêtu de blanc et l'autre de noir, s'entendent à merveille… jusqu'à ce que l'un finisse en prison. Un thriller haletant mêlant suspense et moments hilarants.
                     </p>
-                    <a href="#film2" class="carousel-btn">Voir la fiche</a>
+                    <a href="fiche.html?id=film2" class="carousel-btn">Voir la fiche</a>
                 </div>
             </div>
 
@@ -210,7 +132,7 @@
                     <p class="carousel-description">
                         Un aventurier un peu maladroit traverse des contrées hostiles remplies de créatures féroces. Une aventure épique mêlant humour et fantastique.
                     </p>
-                    <a href="#film3" class="carousel-btn">Voir la fiche</a>
+                    <a href="fiche.html?id=film3" class="carousel-btn">Voir la fiche</a>
                 </div>
             </div>
 
@@ -226,7 +148,7 @@
                     <p class="carousel-description">
                         Suivez les aventures captivantes d'Alex dans un univers en briques LEGO. Cette série brickfilm innovante mêle action, humour et émotion.
                     </p>
-                    <a href="#serie1" class="carousel-btn">Voir la fiche</a>
+                    <a href="fiche.html?id=serie1" class="carousel-btn">Voir la fiche</a>
                 </div>
             </div>
 
@@ -242,7 +164,7 @@
                     <p class="carousel-description">
                         Une adolescente victime de harcèlement revient hanter son bourreau. Une spirale de terreur psychologique et de phénomènes paranormaux terrifiants.
                     </p>
-                    <a href="#film4" class="carousel-btn">Voir la fiche</a>
+                    <a href="fiche.html?id=film4" class="carousel-btn">Voir la fiche</a>
                 </div>
             </div>
         </div>
@@ -289,7 +211,7 @@
 
 <div id="partenariats" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="partenariats-title">
   <div class="fiche-content">
-    <a href="#" class="button close-btn top-right-close" aria-label="Fermer">❌ Fermer</a>
+    <a href="javascript:history.back()" class="button close-btn top-right-close" aria-label="Fermer">❌ Fermer</a>
     <div class="fiche-right" style="padding-left:0;">
       <h3 id="partenariats-title">🤝 Partenariats</h3>
       <p>
@@ -344,7 +266,7 @@
             <p>Timmy, un enfant espiègle, nous fait visiter son village dans un monde entièrement construit en briques LEGO. Mais chaque coin de rue réserve son lot de gags et de surprises ! Une aventure familiale pleine d'humour et de tendresse qui ravira petits et grands.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=XtqzuhtuH2E" target="_blank" rel="noopener noreferrer" class="button">▶ Regarder</a>
-                <a href="#" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
             </div>
         </div>
     </div>
@@ -368,7 +290,7 @@
             <p>Deux frères identiques, l'un vêtu de blanc et l'autre de noir, s'entendent à merveille… jusqu'à ce que l'un finisse en prison. Dans l'univers de Minecraft, ce thriller haletant mêle comédie, suspense et évasion.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=gfbiTpqQDY0" target="_blank" rel="noopener noreferrer" class="button">▶ Regarder</a>
-                <a href="#" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
             </div>
         </div>
     </div>
@@ -392,7 +314,7 @@
             <p>Un aventurier un peu maladroit traverse des contrées hostiles remplies de créatures féroces. Tourné en prise de vue réelle (live action), ce périple épique mêle humour et fantastique pour un voyage plein de surprises.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=VUqwvqQ51sg" target="_blank" rel="noopener noreferrer" class="button">▶ Regarder</a>
-                <a href="#" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
             </div>
         </div>
     </div>
@@ -416,7 +338,7 @@
             <p>Suivez les aventures captivantes d'Alex, un personnage attachant dans un univers en briques LEGO. Cette série brickfilm innovante mêle action, humour et émotion dans des épisodes soigneusement réalisés qui plairont à tous les âges.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/playlist?list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf" target="_blank" rel="noopener noreferrer" class="button">▶ Regarder la série</a>
-                <a href="#" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
             </div>
         </div>
     </div>
@@ -440,7 +362,7 @@
             <p>Plongez dans l'univers du Far West à travers cette série brickfilm unique ! Cowboys en briques LEGO, duels au soleil couchant et esthétique VHS nostalgique : cette série réinvente le western avec humour dans un style rétro irrésistible.</p>
             <div class="button-group">
                 <a href="https://youtube.com/playlist?list=PLljfI9MJr5K2Li687G4dOxjfyDQkIfJn3&si=FQ0ImMc9j-6wvtRk" target="_blank" rel="noopener noreferrer" class="button">▶ Regarder la série</a>
-                <a href="#" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
             </div>
         </div>
     </div>
@@ -464,7 +386,7 @@
             <p>Victime de harcèlement scolaire, une adolescente met fin à ses jours. Réalisé en prise de vue réelle, ce récit surnaturel suit le retour d'un esprit tourmenté qui hante son bourreau et le plonge dans une spirale de terreur.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=p79g08Igceo" target="_blank" rel="noopener noreferrer" class="button">▶ Regarder</a>
-                <a href="#" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
             </div>
         </div>
     </div>
@@ -487,7 +409,7 @@
             <p>Un nouveau trailer de Batman, sombre et intense, réimaginé dans l'univers Minecraft. Découvrez des premières images qui redéfinissent le chevalier noir avec une approche moderne et spectaculaire.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=SzbqZNObLNU" target="_blank" rel="noopener noreferrer" class="button">▶ Regarder</a>
-                <a href="#" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
             </div>
         </div>
     </div>
@@ -511,7 +433,7 @@
             <p>Le Noob vous présente, avec humour, la ville d'Urbanos créée sur Minecraft.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=ZcnWsRXHLic" target="_blank" rel="noopener noreferrer" class="button">▶ Regarder</a>
-                <a href="#" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
             </div>
         </div>
     </div>
@@ -547,7 +469,7 @@
                     </filter>
                   </defs>
                   <g filter="url(#urbShadow)">
-                    <text x="50%" y="72%" text-anchor="middle" font-family="'Luckiest Guy', Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif" font-size="180" font-weight="400" fill="url(#urbGradient)" stroke="rgba(0,0,0,0.35)" stroke-width="6" paint-order="stroke" letter-spacing="2">URBANOS</text>
+                    <text x="50%" y="72%" text-anchor="middle" font-family="'Luckiest Guy', Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif" font-size="180" font-weight="800" fill="url(#urbGradient)" stroke="rgba(0,0,0,0.35)" stroke-width="6" paint-order="stroke" letter-spacing="2">URBANOS</text>
                   </g>
                 </svg>
             </span></h3>
@@ -562,7 +484,7 @@
             <p>Après avoir chuté à travers le sol, Noob se retrouve piégé dans les Backrooms : un dédale sans fin de couloirs jaunâtres où bourdonnent les néons et où rôdent d’étranges présences. Entre zones instables, anomalies hostiles et rencontres inattendues, chaque pas le rapproche d’une vérité inquiétante. Court-métrage réalisé à l’occasion d’une mise à jour du serveur Minecraft Urbanos.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=b1BSjegjM_s" target="_blank" rel="noopener noreferrer" class="button">▶ Regarder</a>
-                <a href="#" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
             </div>
         </div>
     </div>
@@ -588,7 +510,7 @@
       <p>📩 Intéressé(e) ? Contactez-moi sur Discord : <strong>arth.d.i.s.c.o.r.d</strong><br>
       ou sinon par notre Email <a href="mailto:roxxormister@gmail.com">roxxormister@gmail.com</a></p>
       <div class="button-group">
-        <a href="#" class="button close-btn">❌ Fermer</a>
+        <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
       </div>
     </div>
   </div>
@@ -597,48 +519,29 @@
 </main>
   <footer class="footer" role="contentinfo">
   <div class="footer-inner">
-    <div class="footer-text" aria-label="Informations du site">
-      <span>Clipsou Streaming depuis 2019</span>
-      <span class="footer-sep" aria-hidden="true"> </span>
-      <span>Créateur : Mroxxor</span>
-      <span class="footer-sep" aria-hidden="true"> </span>
+    <div>
+      Clipsou Streaming depuis 2019<br><br>
+      <span>Créateur : Mroxxor</span><br>
       <span>Développeur : ARTH</span>
     </div>
-    <div class="footer-actions footer-actions--mini" aria-label="Liens secondaires">
-      <a href="#partenariats" class="btn-mini" aria-label="Partenariats">🤝 Partenariats</a>
-      <a href="#submit-film" class="btn-mini" aria-label="Ajouter un film">🎬 Ajouter un film</a>
-      <a href="https://discord.gg/9ekddx9Hqs" target="_blank" rel="noopener noreferrer" class="btn-mini btn-icon icon-discord" aria-label="Rejoindre notre Discord">
-        <i class="fa-brands fa-discord" style="color: #bababa;"></i>
-      </a>
-      <a href="https://www.youtube.com/@clipsoustudio" target="_blank" rel="noopener noreferrer" class="btn-mini btn-icon icon-youtube" aria-label="Voir notre chaîne YouTube">
-        <i class="fa-brands fa-youtube" style="color: #bababa;"></i>
-      </a>
-    </div>
-    </div>
-  </footer>
- <script>
-  // Force le chargement des polices Google Fonts
-  if ('fonts' in document) {
-    Promise.all([
-      document.fonts.load('400 16px Anton'),
-      document.fonts.load('700 16px Cinzel'),
-      document.fonts.load('400 16px Bevan'),
-      document.fonts.load('400 16px VT323'),
-      document.fonts.load('400 16px Luckiest Guy'),
-      document.fonts.load('400 16px Baloo 2'),
-      document.fonts.load('400 16px Rye')
-    ]).then(() => {
-      console.log('✅ Toutes les polices Google Fonts sont chargées');
-      document.body.classList.add('fonts-loaded');
-    }).catch(err => {
-      console.warn('⚠️ Erreur de chargement des polices:', err);
-    });
-  }
-</script>
-<script src="simple-scroll-fix.js?v=20250905-2034"></script>
- <script src="complete-fix-simple.js?v=20250905-2034"></script>
- <script src="config.js?v=20250905-2034"></script>
- <script src="index.js?v=20250905-2034" defer></script>
- <!-- Service Worker disabled to prevent Netlify caching side-effects -->
+    <div class="footer-actions">
+        <a href="#submit-film" class="button" style="margin-left: 12px; border-radius: 8px; padding: 10px 16px;">🎬 ajouter votre film</a>
+        <a href="#partenariats" class="button partner-link" style="margin-left: 12px; border-radius: 8px; padding: 10px 16px;">🤝 partenariats</a>
+        <a href="https://discord.gg/9ekddx9Hqs" target="_blank" rel="noopener noreferrer" class="button discord-btn" aria-label="Rejoindre notre Discord" style="margin-left: 12px; border-radius: 8px; padding: 10px 16px;">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor">
+            <path d="M20.317 4.369A19.791 19.791 0 0 0 16.558 3c-.2.36-.43.85-.59 1.23a18.27 18.27 0 0 0-4.936 0c-.17-.39-.4-.87-.6-1.23-1.37.25-2.73.68-3.997 1.27C3.76 8.053 3.06 11.64 3.3 15.18c1.67 1.25 3.29 2.01 4.87 2.51.39-.54.74-1.12 1.04-1.73-.57-.22-1.11-.49-1.63-.8.14-.1.27-.21.4-.32 3.14 1.47 6.54 1.47 9.65 0 .13.11.26.22.4.32-.52.31-1.07.58-1.64.8.3.61.65 1.19 1.04 1.73 1.58-.5 3.2-1.26 4.87-2.51.4-5.37-.67-8.9-2.98-10.81ZM9.68 13.86c-.94 0-1.7-.86-1.7-1.92 0-1.05.75-1.92 1.7-1.92.94 0 1.7.86 1.7 1.92 0 1.05-.76 1.92-1.7 1.92Zm4.64 0c-.94 0-1.7-.86-1.7-1.92 0-1.05.76-1.92 1.7-1.92s1.7.86 1.7 1.92c0 1.05-.76 1.92-1.7 1.92Z"/>
+          </svg>
+          <span class="sr-only">Discord</span>
+        </a>
+        <a href="https://www.youtube.com/@clipsoustudio" target="_blank" rel="noopener noreferrer" class="button youtube-btn" aria-label="Voir notre chaîne YouTube" style="margin-left: 12px; border-radius: 8px; padding: 10px 16px;">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor">
+            <path d="M23.498 6.186a3.002 3.002 0 0 0-2.116-2.125C19.516 3.5 12 3.5 12 3.5s-7.516 0-9.382.561A3.002 3.002 0 0 0 .502 6.186C0 8.06 0 12 0 12s0 3.94.502 5.814a3.002 3.002 0 0 0 2.116 2.125C4.484 20.5 12 20.5 12 20.5s7.516 0 9.382-.561a3.002 3.002 0 0 0 2.116-2.125C24 15.94 24 12 24 12s0-3.94-.502-5.814ZM9.75 15.5v-7l6 3.5-6 3.5Z"/>
+          </svg>
+          <span class="sr-only">YouTube</span>
+        </a>
+     </div>
+   </div>
+ </footer>
+ <script src="index.js" defer></script>
  </body>
  </html>

@@ -1,4 +1,9 @@
-/* Variables CSS consolidées dans common.css */
+:root {
+    --bg-1: #0b1117;
+    --bg-2: #0e141b;
+    --brand-1: #2B22EE;
+    --brand-2: #6c5ce7;
+}
 
 /* Ultra-small phones: tighten navbar further (moved to common.css) */
 @media (max-width: 360px) {
@@ -18,15 +23,57 @@
     -webkit-text-fill-color: transparent !important;
 }
 
-/* Styles de base consolidés dans common.css */
+/* box-sizing reset moved to common.css */
 
-/* ===== Side Menu & Hamburger ===== */
-/* Prevent scroll when menu open */
-body.menu-open { overflow: hidden; }
+body {
+    margin: 0;
+    background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+    min-height: 100vh;
+    color: #fff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    -webkit-tap-highlight-color: transparent;
+}
 
-/* Styles de menu centralisés dans common.css */
+/* .sr-only moved to common.css */
 
-/* Styles de navigation centralisés dans common.css */
+/* SOLUTION : Bloquer le scroll quand une popup est active */
+body:has(.fiche-popup:target) {
+    overflow: hidden;
+    height: 100vh;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: none;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Navigation (desktop styles are unified in common.css) */
+
+/* .logo styles are centralized in common.css to keep title identical across pages */
+
+.nav-links { display: flex; gap: 15px; }
+.nav-links a { padding: 10px 20px; border-radius: 5px; font-weight: 600; color: #fff; text-decoration: none; transition: all .3s ease; white-space: nowrap; }
+
+.discord-link { background: #2B22EE; }
+.discord-link:hover { background: #241DE0; }
+
+.yt-link { background: #FF0000; display: none !important; }
+.yt-link:hover { background: #CC0000; }
+
+/* Partenariat button in navbar */
+.partner-link { background: #16a34a; }
+.partner-link:hover { background: #15803d; }
+
+.search-link { background: transparent; border: 0; color: #fff; }
+.search-link:hover { background: transparent; }
 
 /* Desktop/tablet: show loupe.png before the text */
 .nav-links .search-link { display: inline-flex; align-items: center; gap: 8px; position: relative; }
@@ -39,6 +86,18 @@ body.menu-open { overflow: hidden; }
     filter: none !important;
     opacity: 1 !important;
 }
+
+/* Lower the Recherche link slightly on desktop/tablet */
+@media (min-width: 769px) {
+  .nav-links .search-link { top: 2.5px; }
+}
+
+/* Index-only: raise Accueil by 1px (global is 3px, set to 2px here) */
+@media (min-width: 769px) {
+  body:not(.fiche-page-view) nav[aria-label="Navigation principale"] .logo .home-link { top: 2.5px; }
+}
+
+/* Accueil alignment is handled globally in common.css (top: 3px) */
 
 /* Carousel */
 .carousel-section { margin: 0 0 60px; overflow: hidden; }
@@ -76,15 +135,6 @@ body.menu-open { overflow: hidden; }
     background-repeat: no-repeat;
     aspect-ratio: 2.26 / 1;
     transform: translateZ(0); /* GPU compositing */
-}
-
-/* Image interne insérée par JS: effet de zoom subtil lorsque la slide est active */
-.carousel-slide > img {
-    transform: scale(1);
-    transition: transform 10s linear;
-}
-.carousel-slide.active > img {
-    transform: scale(1.03);
 }
 
 .carousel-slide.alex-focus {
@@ -248,11 +298,183 @@ body.menu-open { overflow: hidden; }
 
 /* Base link styles are defined in common.css */
 
-/* Popup base layout moved to common.css */
+/* Popups avec position fixe et conservation du scroll */
+.fiche-popup {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: clamp(12px, 3vw, 20px);
+    backdrop-filter: none;
+    overscroll-behavior: contain; /* empêche le scroll de fond sur mobile */
+}
+
+.fiche-popup:target { 
+    display: flex; 
+}
+
+.fiche-content {
+    width: 100%;
+    max-width: 2000px;
+    max-height: 95vh;
+    background: rgba(26, 35, 50, 0.95);
+    border-radius: 16px;
+    display: grid;
+    gap: 30px;
+    padding: 30px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+}
+/* ... */
+.fiche-content {
+    grid-template-columns: 1fr 1.5fr; /* Layout par défaut pour images portrait */
+}
+
+/* Alternative : class CSS pour forcer le layout paysage */
+.fiche-content.landscape-layout {
+    grid-template-columns: 2fr 1fr;
+}
+
+.fiche-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/* Style spécifique pour les images paysage */
+.fiche-content img.landscape {
+    width: 100%;
+    height: auto;
+    max-height: 72vh;
+    object-fit: contain;
+    display: block;
+}
+
+.fiche-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 20px; /* Décalage supplémentaire du texte vers la droite */
+}
+
+.fiche-content h3 { 
+    margin: 0 0 16px 0; 
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+    scroll-margin-top: 12px;
+}
 
 /* Per-title font styles */
 #film2-title { font-family: inherit; font-size: inherit; }
 
+/* Backrooms Urbanos title base size */
+#film7-title {
+    font-size: clamp(28px, 5vw, 44px);
+}
+
+/* Inline SVG sizing for URBANOS logo */
+#film7-title .urbanos-svg { display: inline-block; line-height: 1; }
+#film7-title .urbanos-logo { height: 1.10em; width: auto; vertical-align: -0.32em; display: inline-block; }
+
+/* Apply VHS pixel style ONLY to "Backrooms" */
+#film7-title .backrooms-vhs {
+    font-family: 'VT323', monospace;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #ffffff;
+    font-size: 1.08em; /* légèrement plus grand */
+    /* Pas de contour */
+    -webkit-text-stroke: 0; 
+    text-shadow: none; 
+}
+
+#film7-title .urbanos-grad {
+    display: inline-block;
+    font-weight: 800; /* bold look for the second word */
+    font-family: 'Luckiest Guy', Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif; /* rounded bubbly logo style */
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    /* Three clear bands with top specular highlight for glossy 3D look */
+    background: linear-gradient(180deg,
+        #ffffff 0%, #ffffff 2%,       /* thin white highlight at the very top */
+        #6fe3ff 2%, #6fe3ff 8%,       /* small cyan highlight under the white */
+        #28cf63 8%, #28cf63 48%,      /* vivid green band (dominant) */
+        #ffe35a 48%, #ffe35a 62%,     /* brighter, thinner yellow band */
+        #ff7f10 62%, #ff7a00 100%     /* warm orange to deep orange */
+    );
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent; /* show gradient as text fill */
+    -webkit-text-fill-color: transparent; /* ensure gradient shows in WebKit/Blink */
+    /* Subtle stroke around glyphs for crisp edges (WebKit-capable browsers) */
+    -webkit-text-stroke: 0.6px rgba(0,0,0,0.35);
+    /* Multi-layer shadow to simulate bevel + soft glow and drop + colored rims */
+    text-shadow:
+      0 -1px 0 rgba(255,255,255,0.95),   /* crisp top rim highlight */
+     -1px -1px 0 rgba(111,227,255,0.85), /* cyan rim top-left */
+      0 1px 0 rgba(0,0,0,0.28),          /* inner lower edge */
+      0 2px 2px rgba(0,0,0,0.28),        /* subtle depth */
+      0 4px 6px rgba(0,0,0,0.38),        /* drop shadow similar to logo */
+      0 0 6px rgba(255,165,0,0.22),      /* warm glow */
+      1px 1px 0 rgba(255,122,0,0.65);    /* orange rim bottom-right */
+}
+#film5-title { font-family: 'Anton', Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif; letter-spacing: 1px; }
+#film3-title, #film1-title { font-family: 'Cinzel', Georgia, 'Times New Roman', serif; }
+#serie1-title { font-family: 'Bevan', Georgia, serif; letter-spacing: 2px; text-transform: uppercase; }
+#serie2-title { font-family: 'Rye', Georgia, serif; }
+/* Karma: bold and stretched */
+#film4-title {
+    font-family: 'Anton', Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    display: inline-block; /* allow transform scaling */
+    transform: scaleX(1.35);
+    transform-origin: left center;
+    text-transform: uppercase;
+}
+
+/* Urbanos City: chunky white slab for URBANOS + stylized "city" below */
+#film6-title { display: inline-block; line-height: 1; }
+#film6-title .urbanos {
+    display: inline-block;
+    font-family: 'Bevan', Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    text-transform: uppercase;
+    font-size: clamp(22px, 4vw, 40px);
+    letter-spacing: 1px;
+    color: #ffffff;
+    /* bold outline/shadow look */
+    text-shadow:
+      0 2px 0 rgba(0,0,0,0.55),
+      0 6px 14px rgba(0,0,0,0.55);
+}
+#film6-title .city {
+    display: inline-block;
+    font-family: 'Baloo 2', 'Shrikhand', system-ui, sans-serif;
+    font-weight: 800;
+    text-transform: lowercase;
+    font-size: clamp(22px, 3.8vw, 36px); /* render larger to reduce hinting spikes */
+    color: #ffffff;
+    margin-left: 8px;
+    letter-spacing: -0.2px;
+    font-variant-ligatures: none;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "liga" 0, "dlig" 0, "clig" 0, "calt" 0, "swsh" 0, "kern" 1;
+    font-synthesis: none;
+    line-height: 1;
+    transform: scale(0.86); /* scale down for smoother edges */
+    transform-origin: left bottom;
+    will-change: transform;
+}
 
 /* ===== Specific color treatments ===== */
 /* La vie au petit âge: dark red with shadow */
@@ -307,16 +529,418 @@ body.menu-open { overflow: hidden; }
 
 /* Card title styles removed per request */
 
-/* Popup inner typographic styles moved to common.css */
+.fiche-content p { 
+    margin: 15px 0; 
+    font-size: 16px;
+    line-height: 1.6;
+    color: #fff;
+    text-align: justify;
+}
 
-/* Popup buttons and groups moved to common.css */
+.rating-genres {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.fiche-content .stars { 
+    font-size: 20px;
+    margin: 0;
+    color: #ffffff;
+}
+
+.fiche-content .stars::first-letter {
+    color: #FFD54A; /* warm yellow */
+}
+
+.genres {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: start;
+    align-items: center;
+}
+
+.genre-tag {
+    background: rgba(255, 255, 255, 0.06);
+    color: #e6eef5;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    white-space: nowrap;
+}
+
+.button-group {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: auto;
+    position: sticky;
+    bottom: 0;
+    padding-top: 12px;
+    margin-top: 16px;
+    background: transparent;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+}
+
+.button {
+    background: #2B22EE;
+    border-radius: 5px;
+    padding: 12px 24px;
+    color: #fff;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    white-space: nowrap;
+    min-height: 44px;
+}
+
+.button:hover { 
+    transform: translateY(-1px);
+    box-shadow: none;
+}
+
+.close-btn { 
+    background: #ff4444;
+}
+
+.close-btn:hover { 
+    background: #cc0000;
+    box-shadow: none;
+}
+
+/* Position the close button at the top-right of popup content */
+.fiche-content .top-right-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+}
 
 /* Style pour empêcher le scroll vers le haut lors de la fermeture */
 html {
     scroll-behavior: auto; /* disable smooth to avoid animated jump after closing popup */
 }
 
-/* Mobile popup rules moved to common.css; keep other mobile layout rules below intact */
+/* Responsive mobile */
+@media (max-width: 768px) {
+    /* Footer on mobile: visible, stacked lines, left aligned, tight padding */
+    .footer { 
+        display: block; 
+        padding: 16px; 
+        margin-top: 30px; 
+        background: #000; 
+        padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    }
+    .footer .footer-inner {
+        display: grid;
+        grid-template-columns: 1fr; /* one column */
+        row-gap: 10px;
+        align-items: start;
+        max-width: 100%;
+        margin: 0; /* stick to edges */
+    }
+    .footer .footer-inner > div:first-child {
+        justify-self: start;
+        text-align: left; /* first line: text */
+    }
+    .footer .footer-actions {
+        justify-self: start;
+        text-align: left; /* second line: buttons */
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .footer .footer-actions a {
+        margin-left: 0 !important; /* override inline margins */
+    }
+    .footer .footer-actions .button {
+        padding: 10px 14px;
+        border-radius: 8px;
+        margin-left: 0 !important; /* remove extra gaps on first button per inline styles */
+    }
+
+    /* Banderole (mobile layout unified in common.css) */
+    /* Hide partenariat button on mobile */
+    .nav-links .partner-link { display: none; }
+    .nav-links a { padding: 8px 12px; font-size: 14px; width: auto; flex: 0 0 auto; }
+    .nav-links a:not([href*="youtu"]) { padding: 6px 10px; }
+    .nav-links .search-link { 
+        padding: 10px; 
+        font-size: 16px; 
+        background: transparent !important; 
+        border-radius: 5px; 
+        width: 44px; 
+        height: 44px; 
+        border: 0; 
+        box-shadow: none; 
+        margin-left: auto !important; 
+    } /* Transparent button on mobile, icon-only */
+    .nav-links .search-link { 
+        text-indent: -9999px; 
+        overflow: hidden; 
+        position: relative; 
+    }
+    /* Mobile: hide text and center the image icon */
+    .nav-links .search-link::before { 
+        content: ''; 
+        position: absolute; 
+        left: 50%; 
+        top: 50%; 
+        transform: translate(-50%, -50%); 
+        width: 24px; 
+        height: 24px; 
+        background: url('loupe.png') no-repeat center / contain; 
+        filter: none !important; 
+        opacity: 1 !important; 
+    }
+    /* Title overflow rules are handled in common.css */
+
+    /* Show and enable carousel on mobile */
+    .carousel-section { display: block; margin: 0 0 40px; }
+    .carousel-container { overflow: hidden; }
+    .carousel-slides { animation: carousel-auto 25s infinite; will-change: transform; backface-visibility: hidden; transform: translate3d(0,0,0); }
+    .carousel-slide { transform: translateZ(0); background-image: initial; }
+    /* Alex slide mobile tweak: keep head/torso visible on small screens */
+    .carousel-slide.alex-focus { background-position: center 22%; }
+    /* Prevent subpixel gaps/rounding on some mobile browsers */
+    .carousel-slides, .carousel-slide { 
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+    }
+
+    .carousel-container { min-height: 220px; }
+    .carousel-content { padding: 16px; }
+    .carousel-title { font-size: 1.4rem; }
+    .carousel-description { display: none; }
+
+    /* Footer: stack actions under text on mobile (one column) */
+    .footer .footer-inner {
+        display: grid;
+        grid-template-columns: 1fr;
+        row-gap: 10px;
+        align-items: start;
+    }
+    .footer .footer-actions {
+        justify-self: stretch;
+        text-align: left;
+        display: flex;
+        flex-direction: column; /* force buttons below each other */
+        gap: 8px;
+        width: 100%;
+        margin-left: 0 !important;
+    }
+    .footer .footer-actions .button {
+        width: 100%; /* full width buttons on mobile */
+        margin-left: 0 !important;
+    }
+    /* Neutralize desktop float that could affect footer text on mobile */
+    .footer .footer-inner > div:nth-child(2) > span { float: none; }
+    .carousel-genres { gap: 4px; margin: 8px 0 10px; }
+    /* Hide genres in carousel on mobile to save space, keep rating visible */
+    .carousel-genres .carousel-genre-tag { display: none !important; }
+    .carousel-genres .carousel-rating { font-size: 1.25rem; }
+    /* Replace dots by arrows on mobile */
+    .carousel-indicators { display: none !important; }
+    .carousel-arrows { 
+        display: inline-flex; 
+        position: absolute; 
+        bottom: calc(8px + env(safe-area-inset-bottom)); 
+        right: 12px; 
+        gap: 8px; 
+        pointer-events: auto; 
+    }
+    /* Phone/tablet: hide Partenariats title entirely and tighten spacing */
+    #partenariats-title { display: none !important; }
+    #partenariats .fiche-right > h3#partenariats-title { display: none !important; }
+    body.is-mobile #partenariats .fiche-right > h3#partenariats-title { display: none !important; }
+    #partenariats .fiche-right > p:first-of-type { margin-top: 0 !important; }
+    .carousel-arrow { 
+        width: 48px; 
+        height: 48px; 
+        display: inline-flex; 
+        align-items: center; 
+        justify-content: center; 
+        background: rgba(0, 0, 0, 0.5); /* fond translucide noir */
+        color: #ffffff; /* flèches blanches via currentColor */
+        border-radius: 5px; 
+        border: 1px solid rgba(255,255,255,0.18);
+        -webkit-tap-highlight-color: transparent; 
+    }
+    /* Remove blue outline on mobile tap/click */
+    .carousel-arrow:focus,
+    .carousel-arrow:focus-visible,
+    .carousel-arrow:active { outline: none !important; box-shadow: none !important; }
+
+    .section { margin: 30px 0; }
+    .section h2 { margin: 0 16px 16px; font-size: 24px; color: #2B22EE; }
+    /* Smaller cards on mobile grids */
+    .grid { padding: 0 16px; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+    /* Rails padding on mobile */
+    .rail { 
+        padding: 0; 
+        /* Smaller cards in rails on mobile */
+        grid-auto-columns: clamp(120px, 42vw, 180px);
+        gap: 12px;
+        scroll-snap-type: none !important;   /* force disable snapping on mobile */
+        scroll-padding-left: 0 !important;   /* ensure first card aligns exactly at left */
+        scroll-padding-inline-start: 0 !important;
+    }
+    /* Also disable snap alignment on children for mobile */
+    .rail > .card, .rail > * {
+        scroll-snap-align: none !important;
+        scroll-margin: 0 !important;
+        scroll-margin-inline-start: 0 !important;
+    }
+    /* Keep consistent alignment for all sections: no extra left padding on mobile */
+
+    /* Ensure rating text (including /5) stays white on mobile */
+    .rating-genres .stars,
+    .fiche-content .stars { color: #ffffff !important; }
+
+    .fiche-popup { 
+        padding-left: max(12px, env(safe-area-inset-left)); 
+        padding-right: max(12px, env(safe-area-inset-right)); 
+        padding-top: max(12px, env(safe-area-inset-top));
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+        min-height: 100svh; /* compat meilleurs barres d'adresse mobiles */
+        align-items: center;
+    }
+
+    /* Popup: centrage strict du conteneur */
+    .fiche-content {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "image"
+            "content";
+        width: 100%;
+        max-width: 95vw;
+        max-height: min(90svh, 90dvh);
+        padding: 20px;
+        justify-items: center;
+        align-items: start;
+        gap: 16px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        text-align: center;
+        -webkit-overflow-scrolling: touch;
+        overflow-x: hidden;
+    }
+    
+    .fiche-left { 
+        align-items: center; 
+        width: 100%; 
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .fiche-content img { 
+        display: block; 
+        margin: 0 auto 16px; 
+        max-width: 90%;
+        max-height: 50svh; 
+        height: auto;
+        border-radius: 12px;
+    }
+    
+    .fiche-right {
+        padding-left: 0;
+        text-align: center;
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .fiche-content h3 { 
+        text-align: center !important; 
+        margin: 0 0 12px 0;
+        width: 100%;
+        color: inherit; /* allow per-title colors */
+        display: block;            /* ensure full-width block for centering */
+        min-width: 0;              /* remove desktop min-width constraint */
+        margin-left: auto;         /* explicit center safety */
+        margin-right: auto;        /* explicit center safety */
+    }
+    /* Neutralize left-biased transforms on mobile to keep visual centering */
+    #film4-title { 
+        transform: none; 
+        transform-origin: center center; 
+    }
+    
+    .fiche-content p { 
+        text-align: center; 
+        margin: 0 auto 16px;
+        max-width: 400px;
+        line-height: 1.5;
+    }
+    
+    .rating-genres { 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 12px; 
+        flex-wrap: wrap;
+        width: 100%;
+        margin: 0 auto 16px;
+    }
+    
+    .rating-genres .stars { 
+        display: inline-block; 
+        font-size: 18px;
+        margin: 0;
+        color: #2B22EE;
+    }
+    
+    .genres { 
+        display: flex; 
+        gap: 8px; 
+        justify-content: center; 
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    
+    .genre-tag { 
+        font-size: 13px; 
+        padding: 4px 10px;
+        white-space: nowrap;
+    }
+    
+    .button-group { 
+        display: flex; 
+        gap: 12px; 
+        flex-wrap: wrap;
+        justify-content: center; 
+        width: 100%;
+        margin: 16px auto 0;
+        padding-top: 16px;
+    }
+    
+    .button { 
+        flex: 1 1 auto;
+        max-width: 200px;
+        min-width: 120px;
+        text-align: center; 
+        padding: 14px 20px; 
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
 
 /* Neutralize system dark mode: keep site appearance unchanged in dark mode */
 @media (prefers-color-scheme: dark) {
@@ -344,7 +968,7 @@ html {
 .footer {
     margin-top: 60px;
     padding: 32px 40px;
-    background: #0E141B;
+    background: #000;
     color: #8fa3b8;
     border-top: 1px solid rgba(255,255,255,0.16); /* thin white delimiter */
 }
@@ -352,110 +976,13 @@ html {
     max-width: 1280px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr auto;
     gap: 16px;
-    align-items: center;     /* vertical alignment of rows */
-    justify-items: center;   /* horizontal centering of each row */
-    text-align: center;      /* ensure text centers within */
+    align-items: center;
 }
-.footer .footer-actions { display: none; }
+.footer .footer-actions { justify-self: end; text-align: right; }
 .footer a { color: #c8d4e0; text-decoration: none; }
 .footer a:hover { color: #fff; }
-
-/* Footer inline text layout */
-.footer .footer-text {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    justify-content: center;
-    text-align: center;
-}
-.footer .footer-text span { white-space: nowrap; }
-.footer .footer-text .footer-sep { opacity: 0.7; margin: 0 6px; }
-
-/* Footer compact buttons row */
-.footer .footer-actions.footer-actions--mini {
-    display: flex;              /* overrides the hidden default */
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 10px;
-}
-.footer .btn-mini {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    font-size: 12px;
-    line-height: 1;
-    padding: 8px 10px;
-    border-radius: 6px;
-    color: #c8d4e0;
-    text-decoration: none;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.12);
-    transition: background .2s ease, border-color .2s ease, color .2s ease, transform .15s ease;
-}
-.footer .btn-mini.btn-icon { 
-    padding: 0; 
-    background: transparent; 
-    border: none; 
-    line-height: 0;            /* tighter vertical alignment */
-    display: inline-flex;      /* ensure proper centering */
-    align-items: center;
-    justify-content: center;
-}
-.footer .btn-mini.btn-icon svg { width: 32px; height: 32px; display: block; }
-/* Support image-based icons too (preserve aspect ratio) */
-.footer .btn-mini.btn-icon img {
-    display: block;
-    max-width: 32px;
-    max-height: 32px;
-    width: auto;
-    height: auto;
-    object-fit: contain;
-}
-/* Support Font Awesome <i> icons */
-.footer .btn-mini.btn-icon i {
-    font-size: 24px; /* default size: match Discord */
-    line-height: 1;
-    display: block;
-}
-.footer .btn-mini.btn-icon:hover { 
-    background: transparent; 
-    border-color: transparent; 
-    transform: none; 
-    color: #ffffff; 
-}
-/* Slightly larger Discord icon vs YouTube */
-/* Discord icon sizing (preserve proportions) */
-.footer .btn-mini.icon-discord svg { width: 24px; height: 24px; }
-.footer .btn-mini.icon-discord img {
-    max-width: 24px;
-    max-height: 24px;
-    width: auto;
-    height: auto;
-    object-fit: contain;
-}
-.footer .btn-mini.icon-discord i { font-size: 24px; }
-/* YouTube base size (match Discord 24x24) */
-.footer .btn-mini.icon-youtube svg { width: 24px; height: 24px; }
-.footer .btn-mini.icon-youtube img {
-    max-width: 24px;
-    max-height: 24px;
-    width: auto;
-    height: auto;
-    object-fit: contain;
-}
-.footer .btn-mini.icon-youtube i { font-size: 24px; }
-.footer .btn-mini:hover {
-    background: rgba(255,255,255,0.08);
-    border-color: rgba(255,255,255,0.2);
-    color: #ffffff;
-}
-.footer .btn-mini:active { transform: translateY(0); }
 
 /* Header extras (menu, search, avatar) */
 .search { display: none; }
@@ -494,7 +1021,7 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
 .rail::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
 @media (min-width: 769px) {
   .rail > .card { scroll-snap-align: start; }
-  }
+}
 
   /* Global scrollbar styles provided by common.css */
 
@@ -525,6 +1052,41 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     }
     /* Ensure any yt link in nav stays hidden if present */
     nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
+
+    /* Rails (rows like Netflix) - desktop only duplication */
+    @media (min-width: 769px) {
+        .rail {
+            display: grid;
+            grid-auto-flow: column;
+            grid-auto-columns: clamp(180px, 18vw, 240px);
+            gap: 18px;
+            padding: 0 40px;
+            overflow-x: auto;
+            overflow-y: visible; /* allow hover lift without clipping */
+            overscroll-behavior-x: contain;
+            scroll-snap-type: inline mandatory; /* desktop only */
+        }
+        .rail::-webkit-scrollbar { height: 10px; }
+        .rail::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
+        .rail > .card { scroll-snap-align: start; }
+    }
+
+    /* Card hover actions */
+    .card { position: relative; }
+    .card-actions {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(180deg, rgba(0,0,0,0) 20%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.75) 100%);
+        opacity: 0;
+        transition: opacity .25s ease;
+    }
+    .card:hover .card-actions { opacity: 1; }
+    .quick-btn:hover { background: #241DE0; }
+
+    /* Mobile overrides for rails (use grid like before) */
+ 
 
      /* Subtle animated gradient background */
      body {
@@ -646,3 +1208,54 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
         letter-spacing: 0.3px;
     }
 
+    /* ===== Fiche page specific overrides ===== */
+    body.fiche-page-view .fiche-content {
+        /* Revert to transparent background to avoid double background */
+        background: transparent !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        max-height: none !important;
+        padding: 16px !important; /* keep a bit more breathing room */
+        margin: 0 auto 28px !important; /* space before similar section */
+        max-width: 1320px; /* allow room for columns + gap so nothing is cut */
+        width: 100%;
+        display: flex !important;            /* use flex to avoid grid side-effects */
+        justify-content: center;              /* center the two columns */
+        align-items: flex-start;              /* align to top */
+        gap: 32px;                            /* space between image and text */
+    }
+    /* Subtle top separator before similar section on fiche pages */
+    #fiche > .section {
+        border-top: 1px solid rgba(255,255,255,0.16);
+        padding-top: 20px;
+        margin-top: 12px;
+    }
+    body.fiche-page-view .fiche-content.landscape-layout { display: flex !important; }
+    /* Responsive, non-cutting columns using clamp() so they adapt to viewport */
+    body.fiche-page-view .fiche-left {
+        align-items: stretch !important;
+        flex: 1 1 clamp(520px, 44vw, 640px);
+        min-width: 0; /* allow shrink without overflow */
+    }
+    body.fiche-page-view .fiche-right {
+        padding-left: 0 !important;
+        flex: 1 1 clamp(480px, 36vw, 560px);
+        min-width: 0; /* allow text to shrink inside */
+        max-width: 100%;
+    }
+    /* Ensure inner content can wrap instead of overflowing out of the container */
+    body.fiche-page-view .fiche-right, 
+    body.fiche-page-view .fiche-right > * { max-width: 100%; overflow-wrap: anywhere; word-break: break-word; }
+
+    /* Medium screens: relax gaps and bases a bit so nothing touches edges */
+    @media (max-width: 1100px) {
+        body.fiche-page-view .fiche-content { gap: 20px; }
+        body.fiche-page-view .fiche-left  { flex-basis: clamp(460px, 48vw, 600px); }
+        body.fiche-page-view .fiche-right { flex-basis: clamp(420px, 44vw, 540px); }
+    }
+    
+    /* Hide the top-right search button on fiche pages */
+    body.fiche-page-view .nav-links .search-link { display: none !important; }
+    
+    

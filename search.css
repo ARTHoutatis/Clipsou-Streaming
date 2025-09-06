@@ -4,29 +4,18 @@
 
 /* Logo/nav base styles are in common.css */
 
-/* Navbar layout and positioning are centralized in common.css */
+/* Accueil link on search page: plain white text next to the logo */
+.home-link { background: transparent; border: 0; color: #fff; box-shadow: none; }
 
-/* ===== Side Menu & Hamburger (centralized) ===== */
-/* Prevent scroll when menu open */
-body.menu-open { overflow: hidden; }
-/* Hamburger button, side drawer, headers, links and overlay are centralized in common.css */
-
-/* Button-like links with icons */
-.home-link { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); }
-
-/* Ultra-small phones: extra tightening is in common.css; keep icon size */
+/* Ultra-small phones: keep text natural size */
 @media (max-width: 360px) {
-  .nav-links .home-link { width: 40px; height: 40px; }
+  .nav-links .home-link { width: auto; height: auto; padding: 0; }
 }
-.home-link:hover { background: rgba(255,255,255,.2); }
-.nav-links .home-link { display: inline-flex; align-items: center; gap: 8px; position: relative; }
-.nav-links .home-link::before {
-  content: '';
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  background: url('Accueil.png') no-repeat center / contain;
-}
+.home-link:hover { background: transparent; }
+.home-link { display: inline-flex; align-items: center; gap: 8px; position: relative; }
+
+/* Spacing between logo text and Accueil */
+.logo .home-link { margin-left: 12px; }
 
 /* Page de recherche */
 .search-container {
@@ -127,23 +116,25 @@ body.menu-open { overflow: hidden; }
 
 /* Mobile styles */
 @media (max-width: 768px) {
-    /* Mobile navbar layout and hamburger button styles are centralized in common.css */
-    .nav-links .home-link {
-        padding: 10px;
-        background: #434344 !important;
-        border-radius: 5px;
-        width: 44px;
-        height: 44px;
-        border: 1px solid #3a3a3b;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    /* Mobile: keep Accueil next to the logo on the left with text visible */
+    .logo .home-link, .home-link {
+        padding: 0;
+        background: transparent !important;
+        border-radius: 0;
+        width: auto;
+        height: auto;
+        border: 0;
+        box-shadow: none;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 0; /* hide text visually, keep accessible name */
-        gap: 0;
-        margin-left: auto; /* push to the far right */
+        font-size: inherit; /* keep text visible */
+        gap: 8px;
+        margin-left: 8px; /* small spacing after the logo */
+        color: #fff;
     }
-    .nav-links .home-link::before { width: 20px; height: 20px; }
+    .home-link::before { width: 20px; height: 20px; }
+
     .search-container { padding: 0 16px; margin: 20px auto; }
     .search-header h1 { font-size: 1.8rem; color: #2B22EE; }
     .search-input-container { flex-direction: row; gap: 10px; align-items: center; }
@@ -154,7 +145,12 @@ body.menu-open { overflow: hidden; }
     .search-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
     /* Hide genre filters on mobile to save vertical space */
     .genre-filters { display: none !important; }
-  .genre-chip { padding: 7px 10px; font-size: 13px; }
+    .genre-chip { padding: 7px 10px; font-size: 13px; }
+}
+
+/* Neutralize system dark mode: keep site appearance unchanged in dark mode */
+@media (prefers-color-scheme: dark) {
+    :root { color-scheme: light; }
 }
 
 /* ===== Visual Enhancements (Search) ===== */
@@ -167,6 +163,15 @@ body {
     linear-gradient(180deg, var(--bg-2), var(--bg-1));
 }
 
+/* Glassy nav with subtle blur */
+nav[aria-label="Navigation principale"] {
+  background: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0.65));
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  /* On the search page, align everything to the left so Accueil sits near the logo */
+  justify-content: flex-start;
+  column-gap: 16px;
+}
 
 /* Gradient title text */
 .search-header h1 {
@@ -187,7 +192,10 @@ body {
   box-shadow: 0 14px 38px rgba(0,0,0,0.45);
 }
 .card img { will-change: transform; }
- 
+
+/* Disable overlay watermark: place the logo inside the info bar */
+.card::after { content: none; }
+
 /* Info bar layout (logo, sizing) inherits from common.css */
 
 /* Keep type then rating side-by-side (handled in common.css) */
@@ -199,12 +207,3 @@ body {
 }
 
 /* A11y focus ring, transitions, reduced motion, and scrollbar styles are shared in common.css */
-
-/* Popups are fully styled in common.css to keep index and search consistent */
-
-/* Match Trailer Batman typography with index (ensure 'Trailer' uses a distinct, legible font) */
-#film5-title .trailer-word {
-  text-transform: none !important;
-  font-family: Verdana, Tahoma, "Segoe UI", Arial, sans-serif;
-  letter-spacing: 0.3px;
-}
