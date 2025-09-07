@@ -20,7 +20,7 @@
 /* Page de recherche */
 .search-container {
     max-width: 1200px;
-    margin: 40px auto;
+    margin: 0 auto; /* remove extra top gap under navbar */
     padding: 0 20px;
 }
 
@@ -116,26 +116,17 @@
 
 /* Mobile styles */
 @media (max-width: 768px) {
-    /* Mobile: keep Accueil next to the logo on the left with text visible */
-    .logo .home-link, .home-link {
-        padding: 0;
-        background: transparent !important;
-        border-radius: 0;
-        width: auto;
-        height: auto;
-        border: 0;
-        box-shadow: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: inherit; /* keep text visible */
-        gap: 8px;
-        margin-left: 8px; /* small spacing after the logo */
-        color: #fff;
+    /* Ensure same navbar height/padding as other pages (without showing the loupe) */
+    nav[aria-label="Navigation principale"] {
+        padding: 10px 12px !important;
+        min-height: 60px !important;
+        align-items: center !important;
     }
+    /* Align with other pages: hide Accueil on mobile to keep navbar same height */
+    .logo .home-link, .home-link { display: none !important; }
     .home-link::before { width: 20px; height: 20px; }
 
-    .search-container { padding: 0 16px; margin: 20px auto; }
+    .search-container { padding: 0 16px; margin: 0 auto; }
     .search-header h1 { font-size: 1.8rem; color: #2B22EE; }
     .search-input-container { flex-direction: row; gap: 10px; align-items: center; }
     .search-icon { width: 24px; height: 24px; opacity: .95; }
@@ -168,9 +159,7 @@ nav[aria-label="Navigation principale"] {
   background: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0.65));
   backdrop-filter: blur(8px);
   border-bottom: 1px solid rgba(255,255,255,0.08);
-  /* On the search page, align everything to the left so Accueil sits near the logo */
-  justify-content: flex-start;
-  column-gap: 16px;
+  /* Use default spacing/alignment from common.css to keep consistency */
 }
 
 /* Gradient title text */
@@ -180,21 +169,13 @@ nav[aria-label="Navigation principale"] {
 }
 
 /* Card polish */
-.card {
-  background: linear-gradient(180deg, rgba(26,35,50,0.65), rgba(26,35,50,0.85));
-  box-shadow:
-    0 10px 30px rgba(0,0,0,0.35),
-    inset 0 1px 0 rgba(255,255,255,0.06);
-  position: relative; /* enable overlay watermark */
-}
-.card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 14px 38px rgba(0,0,0,0.45);
-}
-.card img { will-change: transform; }
+/* Card visuals are centralized in common.css to keep consistency across pages */
+/* .card and hover styles removed here to avoid duplication */
+/* Keep only page-specific layout/behavior below */
 
 /* Disable overlay watermark: place the logo inside the info bar */
-.card::after { content: none; }
+/* Watermark already disabled globally */
+/* .card::after { content: none; } */
 
 /* Info bar layout (logo, sizing) inherits from common.css */
 

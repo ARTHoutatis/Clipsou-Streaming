@@ -289,31 +289,24 @@ body::before {
 
 /* Cartes */
 .card {
-    background: rgba(26,35,50,0.8);
+    background: linear-gradient(180deg, rgba(26,35,50,0.65), rgba(26,35,50,0.9));
     border-radius: 12px;
     overflow: hidden;
     transition: all 0.3s ease;
     border: 1px solid rgba(255, 255, 255, 0.12);
     cursor: pointer;
     position: relative; /* enable overlay watermark */
+    box-shadow:
+      0 10px 30px rgba(0,0,0,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
 .card:hover { 
-    transform: scale(1.03);
-    border-color: #2B22EE;
-    box-shadow: none;
+    transform: translateY(-6px);
+    box-shadow: 0 14px 38px rgba(0,0,0,0.45);
 }
 
-.card img { 
-    width: 100%; 
-    aspect-ratio: 9/12; 
-    object-fit: cover; 
-    transition: transform 0.3s ease;
-}
-
-.card:hover img {
-    transform: none;
-}
+/* Card image rules centralized in common.css to avoid duplication */
 
 /* Hide film title text on index cards as requested */
 .card .card-info span { display: none; }
@@ -704,12 +697,12 @@ html {
     .nav-links a { padding: 8px 12px; font-size: 14px; width: auto; flex: 0 0 auto; }
     .nav-links a:not([href*="youtu"]) { padding: 6px 10px; }
     .nav-links .search-link { 
-        padding: 10px; 
+        padding: 0; 
         font-size: 16px; 
         background: transparent !important; 
         border-radius: 5px; 
-        width: 44px; 
-        height: 44px; 
+        width: 40px; 
+        height: 40px; 
         border: 0; 
         box-shadow: none; 
         margin-left: auto !important; 
@@ -881,11 +874,33 @@ html {
         display: block; 
         margin: 0 auto; /* remove bottom margin, rely on container gap */
         max-width: 100%; /* use full width to avoid side gaps */
-        max-height: 34svh; /* avoid very tall image pushing text down */
+        max-height: 34svh; /* default for any image inside fiche-content */
         height: auto;
         border-radius: 12px;
         position: relative; /* create stacking context */
         z-index: 0;
+    }
+
+    /* Make only the main fiche image full-bleed (edge-to-edge) on mobile */
+    body.fiche-page-view #fiche .fiche-content { 
+        padding-left: 0 !important; 
+        padding-right: 0 !important; 
+        padding-top: 0 !important; /* remove space under navbar */
+        margin-top: 0 !important;
+    }
+    body.fiche-page-view #fiche .fiche-left { 
+        width: 100vw; 
+        max-width: 100vw; 
+        margin-left: 50%; 
+        transform: translateX(-50%); 
+    }
+    body.fiche-page-view #fiche .fiche-left img { 
+        width: 100vw; 
+        max-width: 100vw; 
+        height: auto; 
+        max-height: 55svh; /* enlarged only for the main fiche image */
+        /* remove corner rounding to truly reach screen edges */
+        border-radius: 0 !important; 
     }
     
     .fiche-right {
@@ -961,6 +976,8 @@ html {
     /* Overlay on image for title + rating + genres (MOBILE ONLY) */
     .fiche-left { position: static; }
     .fiche-media-wrap { position: relative; overflow: hidden; border-radius: 12px; }
+    /* Fiche page: remove rounded corners on the main image wrapper */
+    body.fiche-page-view #fiche .fiche-media-wrap { border-radius: 0 !important; }
     .fiche-media-wrap .fiche-overlay {
         position: absolute;
         left: 0; right: 0; bottom: 0;
@@ -973,8 +990,8 @@ html {
         align-items: center;
         text-align: center;
         gap: 6px;
-        border-bottom-left-radius: 12px;
-        border-bottom-right-radius: 12px;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
         z-index: 2; /* sit above the image */
         pointer-events: none; /* let taps go to underlying image/buttons */
     }
@@ -1044,12 +1061,35 @@ html {
     }
     
     /* Mobile: left-align 'Contenu similaire' and show a subtle top separator */
+    /* Make fiche similar section use same horizontal rhythm as index/search */
     #fiche .section {
-        padding: 8px 12px; /* align with page side padding */
+        padding: 0; /* let inner .grid/.rail carry the 16px side padding like index/search */
         text-align: left;  /* do NOT center */
         border-top: 1px solid rgba(255,255,255,0.12); /* thin separator like desktop */
     }
-    #fiche .section h2 { text-align: left; margin: 0 0 12px 0; }
+    #fiche .section h2 { 
+        text-align: left; 
+        margin: 0 0 12px 0; 
+        padding: 0 16px; /* keep same side gutters as grids so text isn't cut */
+        box-sizing: border-box;
+    }
+    /* Ensure same mobile paddings as index/search inside the section content */
+    #fiche .section .grid { padding: 0 16px !important; gap: 12px !important; }
+    #fiche .section .rail { padding: 0 16px !important; gap: 12px !important; }
+    /* Enforce same card sizing model as index/search */
+    body.fiche-page-view #fiche .section .grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+    }
+    body.fiche-page-view #fiche .section .rail {
+        grid-auto-columns: clamp(120px, 42vw, 180px) !important;
+    }
+    body.fiche-page-view #fiche .section .card .card-media > img {
+        width: 100% !important;
+        height: auto !important;
+        aspect-ratio: 9/12 !important;
+        object-fit: cover !important;
+    }
+    /* Badge sizing/position centralized in common.css */
 
     .button { 
         flex: 1 1 auto;

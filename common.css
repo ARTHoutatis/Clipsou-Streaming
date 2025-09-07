@@ -172,26 +172,32 @@ nav[aria-label="Navigation principale"] {
 
 /* Cards (base) */
 .card {
-  background: rgba(26,35,50,0.8);
+  background: linear-gradient(180deg, rgba(26,35,50,0.65), rgba(26,35,50,0.9));
   border-radius: 12px;
   overflow: hidden;
   transition: all 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 0.12);
   cursor: pointer;
   position: relative;
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.06);
 }
-.card:hover { transform: scale(1.03); border-color: var(--brand-1); box-shadow: none; }
+.card:hover { 
+  transform: translateY(-6px);
+  box-shadow: 0 14px 38px rgba(0,0,0,0.45);
+}
 
 /* Disable any old overlay watermark: logo now lives in the info bar */
 .card::after { content: none; }
 
-.card img {
+.card .card-media > img {
   width: 100%;
-  aspect-ratio: 9/12;
+  height: 100%;
   object-fit: cover;
   transition: transform 0.3s ease;
 }
-.card:hover img { transform: none; }
+.card:hover .card-media > img { transform: none; }
 
 /* Brand badge (shared across pages) */
 .brand-badge {
@@ -211,11 +217,17 @@ nav[aria-label="Navigation principale"] {
 }
 
 /* Overlay placement on cards: anchor contains a .card-media wrapper */
-.card .card-media { position: relative; display: block; margin-bottom: 0; }
+.card .card-media { 
+  position: relative; 
+  display: block; 
+  margin-bottom: 0; 
+  aspect-ratio: 9/12; /* lock poster ratio consistently */
+  overflow: hidden; /* clip image to rounded card */
+}
 .card .card-media .brand-badge {
   position: absolute;
-  left: 2px; /* slightly closer to the left edge */
-  bottom: 8px; /* inset to avoid corner clipping */
+  left: 6px; /* match index/search */
+  bottom: 8px; /* match index/search */
   margin-top: 0;
   z-index: 2;
   pointer-events: none; /* don't block clicks on the card */
@@ -227,6 +239,7 @@ nav[aria-label="Navigation principale"] {
   height: 10px !important;
   aspect-ratio: auto !important;
   object-fit: contain !important;
+  max-width: none !important; /* prevent stretching */
 }
 
 /* Ensure no badge inside popups */
@@ -287,9 +300,20 @@ html { scrollbar-color: #615d5d #0a0a0a; scrollbar-width: thin; }
   body.fiche-page-view nav[aria-label="Navigation principale"] .nav-links .search-link {
     display: inline-flex !important; /* visible on mobile */
   }
+  /* Reduce Clipsou badge size on cards for mobile */
+  .card .card-media .brand-badge {
+    padding: 4px; /* was 7px */
+    border-radius: 4px; /* slightly tighter */
+  }
+  .card .card-media .brand-badge img {
+    width: auto !important;
+    height: 8px !important; /* was 10px */
+    max-width: none !important;
+  }
   /* Tight mobile layout: logo left, actions right, no overflow */
   nav[aria-label="Navigation principale"] {
-    padding: 6px 8px !important;
+    padding: 10px 12px 12px 12px !important; /* slight extra bottom padding to avoid text clipping */
+    min-height: 60px; /* allow auto height to avoid clipping */
     width: 100%;
     max-width: 100vw;
     overflow-x: hidden;
@@ -302,27 +326,80 @@ html { scrollbar-color: #615d5d #0a0a0a; scrollbar-width: thin; }
   .logo {
     flex: 1 1 auto;
     min-width: 0;
-    overflow: hidden;
+    overflow: visible; /* allow descenders like 'g' to render fully */
     font-size: clamp(18px, 5.5vw, 22px);
     gap: 4px;
+    min-height: 42px; /* slight bump to prevent clipping across devices */
+    line-height: 1.2; /* more breathing room for glyphs */
+    padding-top: 1px; /* micro offset to center vertically */
+    padding-bottom: 4px; /* prevent bottom clipping of letters like 'g' */
   }
   .logo img { width: 18px; height: 18px; flex: 0 0 auto; }
+  /* Double the logo size on mobile */
+  .logo img { width: 36px; height: 36px; }
   .logo span {
-    overflow: hidden;
+    display: inline-block; /* ensure proper line box for descenders */
+    overflow-x: hidden;
+    overflow-y: visible; /* let descenders show */
     text-overflow: ellipsis;
     color: var(--brand-1);
     max-width: 75vw;
+    line-height: 1.2; /* align with container line-height */
+    padding-bottom: 1px; /* micro offset to avoid visual clipping */
+  }
+
+  /* Hide any accidental scrollbars on the logo or its text without touching page scrollbars */
+  .logo, .logo span {
+    -ms-overflow-style: none;     /* IE/Edge */
+    scrollbar-width: none;        /* Firefox */
+  }
+  .logo::-webkit-scrollbar,
+  .logo span::-webkit-scrollbar { /* Chrome/Safari */
+    display: none;
+    width: 0; height: 0;
   }
   .nav-links { display: flex; margin-left: auto !important; gap: 6px; }
   /* Hide Accueil on mobile anywhere in the nav: use the logo to go home */
   .home-link { display: none !important; }
+
+  /* Mobile: make the search link an icon-only 44x44 button without extra padding */
+  .nav-links .search-link {
+    padding: 0 !important;
+    font-size: 16px;
+    background: transparent !important;
+    border-radius: 5px;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    box-shadow: none;
+    margin-left: auto !important;
+    text-indent: -9999px; /* hide text label on mobile */
+    overflow: hidden;
+    position: relative;
+    display: inline-flex; /* ensure proper centering box */
+    align-items: center;
+    justify-content: center;
+  }
+  .nav-links .search-link::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px;
+    height: 24px;
+    background: url('loupe.png') no-repeat center / contain;
+    filter: none !important;
+    opacity: 1 !important;
+  }
 }
 
 /* Ultra-small phones: extra tightening */
 @media (max-width: 360px) {
-  nav[aria-label="Navigation principale"] { padding: 10px 12px !important; }
+  nav[aria-label="Navigation principale"] { padding: 10px 12px !important; min-height: 60px; }
   .logo { gap: 4px; }
-  .logo img { width: 20px; height: 20px; }
+  /* Double the logo size on very small mobiles as well */
+  .logo img { width: 40px; height: 40px; }
   .logo span { max-width: 72vw; font-size: 0.95em; }
 }
 
