@@ -543,5 +543,18 @@
    </div>
  </footer>
  <script src="index.js" defer></script>
+ <script>
+   // Normalize homepage URL to root (remove /index.html) without reload
+   (function(){
+     try {
+       var p = location.pathname;
+       if (/\/index\.html$/i.test(p)) {
+         var newPath = p.replace(/index\.html$/i, '');
+         if (!newPath.endsWith('/')) newPath += '/';
+         history.replaceState(null, '', newPath + location.search + location.hash);
+       }
+     } catch(e) { /* noop */ }
+   })();
+ </script>
  </body>
  </html>
