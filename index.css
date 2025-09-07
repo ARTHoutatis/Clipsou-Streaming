@@ -5,6 +5,30 @@
     --brand-2: #6c5ce7;
 }
 
+/* Partner logos: contain inside their fixed box and support simple position codes */
+.partner-logo {
+  display: block;
+  width: auto; /* width/height are set inline in HTML for exact box size */
+  height: auto;
+  object-fit: contain;
+  object-position: center center;
+  background: transparent;
+}
+.partner-logo[data-pos="center"],
+.partner-logo:not([data-pos]) { object-position: center center; }
+.partner-logo[data-pos="top"] { object-position: top center; }
+.partner-logo[data-pos="bottom"] { object-position: bottom center; }
+.partner-logo[data-pos="left"] { object-position: center left; }
+.partner-logo[data-pos="right"] { object-position: center right; }
+.partner-logo[data-pos="top-left"],
+.partner-logo[data-pos="tl"] { object-position: top left; }
+.partner-logo[data-pos="top-right"],
+.partner-logo[data-pos="tr"] { object-position: top right; }
+.partner-logo[data-pos="bottom-left"],
+.partner-logo[data-pos="bl"] { object-position: bottom left; }
+.partner-logo[data-pos="bottom-right"],
+.partner-logo[data-pos="br"] { object-position: bottom right; }
+
 /* Desktop/tablet: ensure mobile-only overlay stays hidden */
 .fiche-left .fiche-overlay { display: none; }
 
