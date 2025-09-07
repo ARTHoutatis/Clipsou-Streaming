@@ -181,7 +181,7 @@ const ACTOR_DB = {
 
 function getActorImageBase(name) {
   // Base du chemin sans extension; on essaiera plusieurs extensions ensuite
-  const baseDir = 'acteurs... image/';
+  const baseDir = '';
   const clean = String(name || '').trim();
   // IMPORTANT: ne pas encoder ici pour éviter le double-encodage.
   // On renvoie la base brute et on encoder(a) l'URL complète au moment de l'affectation du src.
@@ -536,7 +536,7 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       // Fallback automatique multi-extensions puis Unknown
       img.onerror = function(){
         var b = this.getAttribute('data-base');
-        if (!b) { this.onerror = null; this.src = encodeURI('acteurs... image/Unknown.jpeg'); return; }
+        if (!b) { this.onerror = null; this.src = encodeURI('Unknown.jpeg'); return; }
         var i = (parseInt(this.dataset.i || '0', 10) || 0) + 1;
         this.dataset.i = i;
         var exts = ['jpeg','jpg','png','webp','JPEG','JPG','PNG','WEBP'];
@@ -544,7 +544,7 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
           this.src = encodeURI(b + '.' + exts[i]);
         } else {
           this.onerror = null;
-          this.src = encodeURI('acteurs... image/Unknown.jpeg');
+          this.src = encodeURI('Unknown.jpeg');
         }
       };
       imgWrap.appendChild(img);
