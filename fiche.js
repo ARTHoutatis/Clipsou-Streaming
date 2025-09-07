@@ -179,6 +179,30 @@ const ACTOR_DB = {
   ]
 };
 
+// Normalize titles to match regardless of accents/case/spaces
+function normalizeTitleKey(s) {
+  try {
+    return String(s || '')
+      .normalize('NFD')                     // split accents
+      .replace(/[\u0300-\u036f]/g, '')    // remove diacritics
+      .toLowerCase()
+      .replace(/\s+/g, ' ')                // collapse spaces
+      .trim();
+  } catch(_) {
+    // Fallback if normalize isn't supported
+    return String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  }
+}
+
+// Build a normalized lookup for actor lists
+const ACTOR_DB_NORM = (() => {
+  const m = Object.create(null);
+  Object.keys(ACTOR_DB).forEach(k => {
+    m[normalizeTitleKey(k)] = ACTOR_DB[k];
+  });
+  return m;
+})();
+
 function getActorImageBase(name) {
   // Base du chemin sans extension; on essaiera plusieurs extensions ensuite
   const baseDir = './';
@@ -502,7 +526,8 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   function populateActors() {
     actorsGrid.innerHTML = '';
     const title = (currentItem && currentItem.title) || '';
-    const list = ACTOR_DB[title] || [];
+    const norm = normalizeTitleKey(title);
+    const list = ACTOR_DB[title] || ACTOR_DB_NORM[norm] || [];
     if (!list.length) {
       const empty = document.createElement('p');
       empty.className = 'actors-empty';
