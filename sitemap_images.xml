@@ -5,65 +5,65 @@
   <!-- Image sitemap to improve image discovery and rich results -->
 
   <url>
-    <loc>https://clipsoustreaming.netlify.app/</loc>
+    <loc>https://clipsoustreaming.com/</loc>
     <image:image>
-      <image:loc>https://clipsoustreaming.netlify.app/apercu.png</image:loc>
+      <image:loc>https://clipsoustreaming.com/apercu.png</image:loc>
       <image:title>Clipsou Streaming – Aperçu</image:title>
     </image:image>
     <image:image>
-      <image:loc>https://clipsoustreaming.netlify.app/Al1.jpg</image:loc>
+      <image:loc>https://clipsoustreaming.com/Al1.jpg</image:loc>
       <image:title>Alex – Série brickfilm</image:title>
     </image:image>
     <image:image>
-      <image:loc>https://clipsoustreaming.netlify.app/Ja1.jpg</image:loc>
+      <image:loc>https://clipsoustreaming.com/Ja1.jpg</image:loc>
       <image:title>Jackson Goup – Film d'aventure</image:title>
     </image:image>
     <image:image>
-      <image:loc>https://clipsoustreaming.netlify.app/Ka1.jpg</image:loc>
+      <image:loc>https://clipsoustreaming.com/Ka1.jpg</image:loc>
       <image:title>Karma – Film d'horreur</image:title>
     </image:image>
     <image:image>
-      <image:loc>https://clipsoustreaming.netlify.app/La1.jpg</image:loc>
+      <image:loc>https://clipsoustreaming.com/La1.jpg</image:loc>
       <image:title>La vie au petit âge – Comédie familiale</image:title>
     </image:image>
     <image:image>
-      <image:loc>https://clipsoustreaming.netlify.app/Law.jpg</image:loc>
+      <image:loc>https://clipsoustreaming.com/Law1.jpg</image:loc>
       <image:title>Lawless Legend – Western rétro</image:title>
     </image:image>
     <image:image>
-      <image:loc>https://clipsoustreaming.netlify.app/Ur1.jpg</image:loc>
+      <image:loc>https://clipsoustreaming.com/Ur1.jpg</image:loc>
       <image:title>Urbanos City – Film comique</image:title>
     </image:image>
     <image:image>
-      <image:loc>https://clipsoustreaming.netlify.app/Ba1.jpg</image:loc>
+      <image:loc>https://clipsoustreaming.com/Ba1.jpg</image:loc>
       <image:title>Trailer Batman – Super-héros</image:title>
     </image:image>
     <image:image>
-      <image:loc>https://clipsoustreaming.netlify.app/Bac1.png</image:loc>
+      <image:loc>https://clipsoustreaming.com/Bac1.png</image:loc>
       <image:title>Backrooms Urbanos – Horreur</image:title>
     </image:image>
   </url>
 
   <url>
-    <loc>https://clipsoustreaming.netlify.app/search.html</loc>
+    <loc>https://clipsoustreaming.com/search.html</loc>
     <image:image>
-      <image:loc>https://clipsoustreaming.netlify.app/Al.jpg</image:loc>
+      <image:loc>https://clipsoustreaming.com/Al.jpg</image:loc>
       <image:title>Alex – Affiche</image:title>
     </image:image>
     <image:image>
-      <image:loc>https://clipsoustreaming.netlify.app/Ja.jpg</image:loc>
+      <image:loc>https://clipsoustreaming.com/Ja.jpg</image:loc>
       <image:title>Jackson Goup – Affiche</image:title>
     </image:image>
     <image:image>
-      <image:loc>https://clipsoustreaming.netlify.app/Ka.jpeg</image:loc>
+      <image:loc>https://clipsoustreaming.com/Ka.jpeg</image:loc>
       <image:title>Karma – Affiche</image:title>
     </image:image>
     <image:image>
-      <image:loc>https://clipsoustreaming.netlify.app/La.jpeg</image:loc>
+      <image:loc>https://clipsoustreaming.com/La.jpeg</image:loc>
       <image:title>La vie au petit âge – Affiche</image:title>
     </image:image>
     <image:image>
-      <image:loc>https://clipsoustreaming.netlify.app/Ur.jpg</image:loc>
+      <image:loc>https://clipsoustreaming.com/Ur.jpg</image:loc>
       <image:title>Urbanos City – Affiche</image:title>
     </image:image>
   </url>
