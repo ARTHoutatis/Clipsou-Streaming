@@ -52,7 +52,8 @@ nav[aria-label="Navigation principale"] {
   background: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0.65));
   backdrop-filter: blur(8px);
   border-bottom: 1px solid rgba(255,255,255,0.08);
-  padding: 15px 40px;
+  padding: 0 40px; /* horizontal only on desktop to lock bar height */
+  height: 70px; /* fixed desktop height for consistency */
   display: flex;
   justify-content: space-between;
   align-items: center;
