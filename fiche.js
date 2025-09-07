@@ -181,7 +181,7 @@ const ACTOR_DB = {
 
 function getActorImageBase(name) {
   // Base du chemin sans extension; on essaiera plusieurs extensions ensuite
-  const baseDir = '';
+  const baseDir = './';
   const clean = String(name || '').trim();
   // IMPORTANT: ne pas encoder ici pour éviter le double-encodage.
   // On renvoie la base brute et on encoder(a) l'URL complète au moment de l'affectation du src.
@@ -520,9 +520,12 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       imgWrap.style.alignItems = 'center';
       imgWrap.style.justifyContent = 'center';
       const img = document.createElement('img');
-      const base = getActorImageBase(a.name);
-      img.src = encodeURI(base + '.jpeg');
-      img.setAttribute('data-base', base);
+      const nameRaw = String(a.name || '').trim();
+      const encodedName = encodeURIComponent(nameRaw);
+      // Build './<encodedName>.<ext>' so only the filename is encoded
+      img.src = './' + encodedName + '.jpeg';
+      // Keep original raw name for retries with other extensions
+      img.setAttribute('data-name', nameRaw);
       img.alt = a.name;
       // Strong inline sizing to win against any external CSS and prevent cropping
       img.style.width = 'auto';
@@ -535,16 +538,16 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       img.decoding = 'async';
       // Fallback automatique multi-extensions puis Unknown
       img.onerror = function(){
-        var b = this.getAttribute('data-base');
-        if (!b) { this.onerror = null; this.src = encodeURI('Unknown.jpeg'); return; }
+        var nameRaw = this.getAttribute('data-name');
+        if (!nameRaw) { this.onerror = null; this.src = './Unknown.jpeg'; return; }
         var i = (parseInt(this.dataset.i || '0', 10) || 0) + 1;
         this.dataset.i = i;
         var exts = ['jpeg','jpg','png','webp','JPEG','JPG','PNG','WEBP'];
         if (i < exts.length) {
-          this.src = encodeURI(b + '.' + exts[i]);
+          this.src = './' + encodeURIComponent(nameRaw) + '.' + exts[i];
         } else {
           this.onerror = null;
-          this.src = encodeURI('Unknown.jpeg');
+          this.src = './Unknown.jpeg';
         }
       };
       imgWrap.appendChild(img);
