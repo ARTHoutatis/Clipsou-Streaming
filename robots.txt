@@ -3,5 +3,5 @@ User-agent: *
 Allow: /
 
 # Sitemaps
-Sitemap: https://clipsoustreaming.netlify.app/sitemap_images.xml
-Sitemap: https://clipsoustreaming.netlify.app/sitemap.xml
+Sitemap: https://clipsoustreaming.com/sitemap_images.xml
+Sitemap: https://clipsoustreaming.com/sitemap.xml
