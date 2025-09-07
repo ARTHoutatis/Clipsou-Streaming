@@ -292,6 +292,22 @@ html { scrollbar-color: #615d5d #0a0a0a; scrollbar-width: thin; }
 
 /* Mobile common rules */
 @media (max-width: 768px) {
+  /* Remove artificial extra height on mobile so page ends exactly at content */
+  html, body {
+    min-height: 0 !important;
+    height: auto !important;
+  }
+  body { min-height: auto !important; }
+  /* Be defensive: ensure last sections/containers don't add bottom gap */
+  main, #contenu, #fiche, #fiche-container {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  .section:last-child,
+  .section:last-of-type {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
   /* Fiche pages (mobile): ensure the search icon appears at top-right */
   body.fiche-page-view nav[aria-label="Navigation principale"] .nav-links {
     display: flex !important;

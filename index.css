@@ -284,6 +284,120 @@ body::before {
 
 .section h2 { margin: 0 40px 30px; font-size: 32px; font-weight: 700; color: #ffffff; display: inline-block; padding-bottom: 0; border: none; }
 
+/* Section header with right-aligned button (e.g., Acteurs) */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  margin: 0 40px 16px;
+}
+
+/* Secondary button style for header actions */
+.button.secondary {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.22);
+  color: #ffffff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  min-height: 40px;
+}
+.button.secondary:hover { 
+  background: rgba(255,255,255,0.08); 
+}
+.button.secondary.active {
+  background: #2B22EE;
+  border-color: #2B22EE;
+}
+
+/* Actors panel */
+.actors-panel {
+  margin: 0 40px 24px;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(26,35,50,0.65);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+.section.actors-open .rail { display: none !important; }
+.section.actors-open .actors-panel { display: block !important; }
+.section:not(.actors-open) .actors-panel { display: none !important; }
+.actors-panel > h3 {
+  margin: 0 0 12px 0;
+  font-size: 22px;
+}
+
+.actors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.actor-card {
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+}
+
+.actor-photo {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;  /* square */
+  overflow: hidden;
+  border-radius: 0; /* container not rounded, only the image */
+  background: transparent; /* remove inner black frame */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px; /* force visible area on mobile even if aspect-ratio is buggy */
+}
+.actor-photo img {
+  position: static;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  object-position: center center;
+  display: block;
+  border-radius: 8px; /* only the image has rounded corners */
+  opacity: 1 !important;
+}
+
+/* Stronger override inside actors panel to avoid any cropping on mobile */
+.actors-panel .actor-photo img {
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  border-radius: 8px !important; /* ensure roundness even with overrides */
+}
+/* Fiche page: strongest rule to prevent any global overrides on mobile */
+body.fiche-page-view #fiche .actors-panel .actor-photo img {
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  border-radius: 8px !important;
+}
+
+.actor-name {
+  margin-top: 6px;
+  font-weight: 700;
+}
+
+.actor-role {
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+.actors-empty { margin: 8px 0; opacity: 0.85; }
+
 /* Grille */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 24px; padding: 0 40px; }
 
@@ -655,6 +769,26 @@ html {
 
 /* Responsive mobile */
 @media (max-width: 768px) {
+    /* Kill 100vh on mobile to avoid extra blank space below content */
+    html, body { height: auto !important; }
+    body { min-height: auto !important; }
+    /* Ensure no extra spacing after the last visible block */
+    body > :last-child { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+    main#contenu { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+    #fiche, #fiche .section:last-child, #fiche .section:last-of-type { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+    #fiche .actors-panel:last-child { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+    /* Fiche page: reduce spacing between sections and remove any trailing gap */
+    body.fiche-page-view #fiche .section { margin: 16px 0 !important; padding-bottom: 0 !important; }
+    body.fiche-page-view #fiche .section:last-child,
+    body.fiche-page-view #fiche .section:last-of-type { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+    body.fiche-page-view #fiche .actors-panel { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+    /* Generic guard: no bottom gap on the last child inside #fiche */
+    body.fiche-page-view #fiche > :last-child { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+    body.fiche-page-view main#contenu { padding-bottom: 0 !important; margin-bottom: 0 !important; }
+    body.fiche-page-view #fiche { padding-bottom: 0 !important; margin-bottom: 0 !important; }
+    body.fiche-page-view #fiche .section > :last-child { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+    body.fiche-page-view #fiche .section-header + .actors-panel:last-child { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+    
     /* Footer on mobile: visible, stacked lines, left aligned, tight padding */
     .footer { 
         display: block; 
@@ -803,8 +937,27 @@ html {
     .carousel-arrow:focus-visible,
     .carousel-arrow:active { outline: none !important; box-shadow: none !important; }
 
-    .section { margin: 30px 0; }
+    .section { margin: 30px 0; padding-top: 12px !important; }
     .section h2 { margin: 0 16px 16px; font-size: 24px; color: #2B22EE; }
+    .section-header { margin: 28px 16px 36px !important; }
+    .actors-panel { margin: 0 16px 12px; padding: 12px; }
+    .actors-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
+    /* Ensure space between the fiche content block and the toggle section */
+    #fiche .fiche-content + .section { margin-top: 18px !important; }
+    /* Keep a bit of extra room if the button group is the last element inside fiche-content */
+    .button-group { margin-bottom: 12px; }
+    /* Ensure space between the header buttons and the next block (actors panel or rail) */
+    .section-header + .actors-panel { margin-top: 14px !important; }
+    .section-header + .rail { margin-top: 14px !important; }
+    /* Safety: keep actor photo visible on mobile with a fixed minimum height */
+    .actors-panel .actor-photo { min-height: 140px; }
+
+    /* Stop scrolling into empty space after the last section */
+    html, body { height: auto; overflow-x: hidden; overscroll-behavior-y: contain; }
+    #fiche > .section:last-child { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+    main#contenu > .section:last-child { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+    .footer { margin-top: 24px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+
     /* Smaller cards on mobile grids */
     .grid { padding: 0 16px; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
     /* Rails padding on mobile */

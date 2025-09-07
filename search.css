@@ -137,6 +137,14 @@
     /* Hide genre filters on mobile to save vertical space */
     .genre-filters { display: none !important; }
     .genre-chip { padding: 7px 10px; font-size: 13px; }
+    /* Prevent animated gradient background from repeating on mobile */
+    body {
+        background-repeat: no-repeat, no-repeat, no-repeat !important;
+        background-attachment: scroll, scroll, scroll !important;
+        /* Make radial gradients large enough and the linear fill the page */
+        background-size: 180% 80%, 180% 90%, 100% 100% !important;
+        background-position: 10% -10%, 100% 0%, center top !important;
+    }
 }
 
 /* Neutralize system dark mode: keep site appearance unchanged in dark mode */
@@ -147,6 +155,7 @@
 /* ===== Visual Enhancements (Search) ===== */
 
 /* Animated gradient background */
+html, body { background-color: #0B1117; }
 body {
   background:
     radial-gradient(1200px 600px at 10% -10%, rgba(43,34,238,0.18), transparent 60%),

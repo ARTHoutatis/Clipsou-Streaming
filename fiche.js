@@ -1,5 +1,21 @@
 'use strict';
 
+// Force revenir en haut de la page au chargement / rafraîchissement
+// et désactiver la restauration automatique de position par le navigateur
+(function ensureTopOnLoad(){
+  try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch(_) {}
+  function toTop(){ try { window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); } catch(_) { window.scrollTo(0,0); } }
+  // DOM prêt, on remonte
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', toTop, { once: true });
+  } else {
+    toTop();
+  }
+  // Au chargement complet et lors du retour via bfcache
+  window.addEventListener('load', function(){ setTimeout(toTop, 0); }, { once: true });
+  window.addEventListener('pageshow', function(e){ if (e && e.persisted) toTop(); else toTop(); });
+})();
+
 // Fallback local complet pour usage hors serveur (file://) ou si index.html est inaccessible
 const LOCAL_FALLBACK_DB = [
   {
@@ -92,6 +108,85 @@ const LOCAL_FALLBACK_DB = [
     watchUrl: 'https://www.youtube.com/watch?v=b1BSjegjM_s'
   }
 ];
+
+// ===== Cast / Actors support =====
+// Liste des images d'acteurs disponibles (sans extension)
+const AVAILABLE_ACTOR_IMAGES = new Set([
+  'Arth',
+  'Beat Vortex',
+  'Clone prod',
+  'Cocodu',
+  'Ferrisbu',
+  'Kassielator',
+  'Liam Roxxor',
+  'Maxou',
+  'Raiback',
+  'Sam Attali',
+  'Steve Animation',
+  "Le Zebre'ifique",
+  'Unknown'
+]);
+
+// Base d'acteurs par titre (clé = item.title tel qu'affiché)
+// Note: si un acteur n'a pas d'image, on affichera 'acteurs... image/Unknown.jpeg'
+const ACTOR_DB = {
+  'Jackson Goup': [
+    { name: 'Kassielator', role: 'Magicien' },
+    { name: 'Kassielator', role: 'Rodolf' },
+    { name: 'Liam Roxxor', role: 'Jackson goup' }
+  ],
+  'La vie au petit âge': [
+    { name: 'Liam Roxxor', role: 'Timmy' },
+    { name: 'Cocodu', role: 'Le Roi' }
+  ],
+  'Dédoublement': [
+    { name: 'Beat Vortex', role: 'Boucher' },
+    { name: 'Arth', role: 'Juge' },
+    { name: 'Raiback', role: 'Policier' },
+    { name: 'Ferrisbu', role: 'Axel' },
+    { name: 'Clone prod', role: 'Noah' },
+    { name: 'Liam Roxxor', role: 'Rytan le chauffeur' }
+  ],
+  'Karma': [
+    { name: 'Liam Roxxor', role: 'James' },
+    { name: 'Stranger Art', role: 'Louise' }
+  ],
+  'Jean Michel Content': [
+    { name: 'Kassielator', role: 'Jean michel content' },
+    { name: 'Liam Roxxor', role: 'Sebastien' }
+  ],
+  'URBANOS city': [
+    { name: 'Arth', role: 'Noob' }
+  ],
+  'Backrooms URBANOS': [
+    { name: 'Arth', role: 'Arth' }
+  ],
+  'Alex': [
+    { name: 'Ferrisbu', role: 'Alex' }
+  ],
+  'Lawless Legend': [
+    { name: "Le Zebre'ifique", role: 'Bill Boker' },
+    { name: 'Maxou', role: 'Jesse Mercer' },
+    { name: 'Steve Animation', role: 'Policier' },
+    { name: 'Calvlego', role: 'Sam Crowley' },
+    { name: 'Atrochtiraptor', role: 'Jed Polt' },
+    { name: 'Mordecai', role: 'Royce Colter' },
+    { name: 'Paleo Brick', role: 'Sherrif brown' },
+    { name: 'Brickmaniak', role: 'Royce Coler' },
+    { name: 'Clone prod', role: 'Myro Tasty' },
+    { name: 'Liam Roxxor', role: 'Banquier' },
+    { name: 'Ferrisbu', role: 'Bourgeois' }
+  ]
+};
+
+function getActorImageBase(name) {
+  // Base du chemin sans extension; on essaiera plusieurs extensions ensuite
+  const baseDir = 'acteurs... image/';
+  const clean = String(name || '').trim();
+  // IMPORTANT: ne pas encoder ici pour éviter le double-encodage.
+  // On renvoie la base brute et on encoder(a) l'URL complète au moment de l'affectation du src.
+  return baseDir + clean;
+}
 
 // Construit la base des fiches depuis index.html
 async function buildItemsFromIndex() {
@@ -281,16 +376,47 @@ function computeSimilar(allItems, current, minOverlap = 2, maxCount = 10) {
   return scored.slice(0, maxCount).map(s => s.item);
 }
 
-function renderSimilarSection(rootEl, similarItems) {
-  if (!rootEl || !Array.isArray(similarItems) || similarItems.length === 0) return;
+function renderSimilarSection(rootEl, similarItems, currentItem) {
+  if (!rootEl) return;
+  if (!Array.isArray(similarItems)) similarItems = [];
   const section = document.createElement('section');
   section.className = 'section';
-  const h2 = document.createElement('h2');
-  h2.textContent = 'Contenu similaire';
-  section.appendChild(h2);
+  // Header avec boutons de bascule (Contenu similaire / Acteurs)
+  const header = document.createElement('div');
+  header.className = 'section-header';
+  const similarBtn = document.createElement('button');
+  similarBtn.type = 'button';
+  similarBtn.className = 'button secondary similar-toggle active';
+  similarBtn.textContent = 'Contenu similaire';
+  similarBtn.setAttribute('aria-expanded', 'true');
+  header.appendChild(similarBtn);
+  const actorsBtn = document.createElement('button');
+  actorsBtn.type = 'button';
+  actorsBtn.className = 'button secondary actors-toggle';
+  actorsBtn.textContent = 'Acteurs';
+  actorsBtn.setAttribute('aria-expanded', 'false');
+  header.appendChild(actorsBtn);
+  section.appendChild(header);
+
+  // Panneau des acteurs (caché par défaut)
+  const actorsPanel = document.createElement('div');
+  actorsPanel.className = 'actors-panel';
+  actorsPanel.hidden = true;
+  actorsPanel.style.display = 'none';
+  actorsPanel.setAttribute('aria-hidden', 'true');
+  const actorsTitle = document.createElement('h3');
+  actorsTitle.textContent = 'Acteurs';
+  actorsPanel.appendChild(actorsTitle);
+  const actorsGrid = document.createElement('div');
+  actorsGrid.className = 'actors-grid';
+  actorsPanel.appendChild(actorsGrid);
+  section.appendChild(actorsPanel);
 
   const rail = document.createElement('div');
   rail.className = 'rail';
+  rail.hidden = false;
+  rail.style.display = '';
+  rail.setAttribute('aria-hidden', 'false');
   const currentFrom = new URLSearchParams(location.search).get('from');
   // helper to strip trailing number and force portrait like 'La', 'Ur', 'Ka', 'Law', 'Al'
   function deriveBase(src) {
@@ -299,43 +425,50 @@ function renderSimilarSection(rootEl, similarItems) {
     return m ? m[1] : src.replace(/\.(jpg|jpeg|png|webp)$/i, '');
   }
 
-  similarItems.forEach(it => {
-    const card = document.createElement('div');
-    card.className = 'card';
-    const a = document.createElement('a');
-    const extra = currentFrom ? `&from=${encodeURIComponent(currentFrom)}` : '';
-    a.href = `fiche.html?id=${encodeURIComponent(it.id)}${extra}`;
-    const media = document.createElement('div');
-    media.className = 'card-media';
-    const img = document.createElement('img');
-    const base = deriveBase(it.image);
-    const initialSrc = base ? `${base}.jpg` : (it.image || 'apercu.png');
-    img.src = initialSrc;
-    img.setAttribute('data-base', base);
-    img.alt = 'Affiche de ' + (it.title || '');
-    img.loading = 'lazy';
-    img.decoding = 'async';
-    // try jpg -> jpeg -> png then fallback to apercu
-    img.setAttribute('onerror', `(function(img){var b=img.getAttribute('data-base'); if(!b){img.onerror=null; img.src='apercu.png'; return;} var i=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=i; var exts=['jpg','jpeg','png']; if(i<exts.length){ img.src=b+'.'+exts[i]; } else { img.onerror=null; img.src='apercu.png'; }})(this)`);
-    const badge = document.createElement('div');
-    badge.className = 'brand-badge';
-    const logo = document.createElement('img');
-    logo.src = 'clipsoustudio.png';
-    logo.alt = 'Clipsou Studio';
-    logo.loading = 'lazy';
-    logo.decoding = 'async';
-    badge.appendChild(logo);
-    media.appendChild(img);
-    media.appendChild(badge);
-    const info = document.createElement('div');
-    info.className = 'card-info';
-    info.setAttribute('data-type', it.type || 'film');
-    if (typeof it.rating === 'number') info.setAttribute('data-rating', String(it.rating));
-    a.appendChild(media);
-    a.appendChild(info);
-    card.appendChild(a);
-    rail.appendChild(card);
-  });
+  if (similarItems.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'actors-empty';
+    empty.textContent = "Aucun contenu similaire trouvé.";
+    rail.appendChild(empty);
+  } else {
+    similarItems.forEach(it => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      const a = document.createElement('a');
+      const extra = currentFrom ? `&from=${encodeURIComponent(currentFrom)}` : '';
+      a.href = `fiche.html?id=${encodeURIComponent(it.id)}${extra}`;
+      const media = document.createElement('div');
+      media.className = 'card-media';
+      const img = document.createElement('img');
+      const base = deriveBase(it.image);
+      const initialSrc = base ? `${base}.jpg` : (it.image || 'apercu.png');
+      img.src = initialSrc;
+      img.setAttribute('data-base', base);
+      img.alt = 'Affiche de ' + (it.title || '');
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      // try jpg -> jpeg -> png then fallback to apercu
+      img.setAttribute('onerror', `(function(img){var b=img.getAttribute('data-base'); if(!b){img.onerror=null; img.src='apercu.png'; return;} var i=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=i; var exts=['jpg','jpeg','png']; if(i<exts.length){ img.src=b+'.'+exts[i]; } else { img.onerror=null; img.src='apercu.png'; }})(this)`);
+      const badge = document.createElement('div');
+      badge.className = 'brand-badge';
+      const logo = document.createElement('img');
+      logo.src = 'clipsoustudio.png';
+      logo.alt = 'Clipsou Studio';
+      logo.loading = 'lazy';
+      logo.decoding = 'async';
+      badge.appendChild(logo);
+      media.appendChild(img);
+      media.appendChild(badge);
+      const info = document.createElement('div');
+      info.className = 'card-info';
+      info.setAttribute('data-type', it.type || 'film');
+      if (typeof it.rating === 'number') info.setAttribute('data-rating', String(it.rating));
+      a.appendChild(media);
+      a.appendChild(info);
+      card.appendChild(a);
+      rail.appendChild(card);
+    });
+  }
 
   section.appendChild(rail);
 
@@ -365,6 +498,100 @@ function renderSimilarSection(rootEl, similarItems) {
   };
 
   placeSimilar();
+  // Gestion du bouton Acteurs
+  function populateActors() {
+    actorsGrid.innerHTML = '';
+    const title = (currentItem && currentItem.title) || '';
+    const list = ACTOR_DB[title] || [];
+    if (!list.length) {
+      const empty = document.createElement('p');
+      empty.className = 'actors-empty';
+      empty.textContent = "Aucun acteur renseigné pour cette fiche pour le moment.";
+      actorsGrid.appendChild(empty);
+      return;
+    }
+    list.forEach(a => {
+      const card = document.createElement('div');
+      card.className = 'actor-card';
+      const imgWrap = document.createElement('div');
+      imgWrap.className = 'actor-photo';
+      // Center content inside photo box to avoid any cropping issues on mobile
+      imgWrap.style.display = 'flex';
+      imgWrap.style.alignItems = 'center';
+      imgWrap.style.justifyContent = 'center';
+      const img = document.createElement('img');
+      const base = getActorImageBase(a.name);
+      img.src = encodeURI(base + '.jpeg');
+      img.setAttribute('data-base', base);
+      img.alt = a.name;
+      // Strong inline sizing to win against any external CSS and prevent cropping
+      img.style.width = 'auto';
+      img.style.height = '100%';
+      img.style.maxWidth = '100%';
+      img.style.maxHeight = '100%';
+      img.style.objectFit = 'contain';
+      img.style.objectPosition = 'center center';
+      img.style.display = 'block';
+      img.decoding = 'async';
+      // Fallback automatique multi-extensions puis Unknown
+      img.onerror = function(){
+        var b = this.getAttribute('data-base');
+        if (!b) { this.onerror = null; this.src = encodeURI('acteurs... image/Unknown.jpeg'); return; }
+        var i = (parseInt(this.dataset.i || '0', 10) || 0) + 1;
+        this.dataset.i = i;
+        var exts = ['jpeg','jpg','png','webp','JPEG','JPG','PNG','WEBP'];
+        if (i < exts.length) {
+          this.src = encodeURI(b + '.' + exts[i]);
+        } else {
+          this.onerror = null;
+          this.src = encodeURI('acteurs... image/Unknown.jpeg');
+        }
+      };
+      imgWrap.appendChild(img);
+      const nameEl = document.createElement('div');
+      nameEl.className = 'actor-name';
+      nameEl.textContent = a.name;
+      const roleEl = document.createElement('div');
+      roleEl.className = 'actor-role';
+      roleEl.textContent = a.role || '';
+      card.appendChild(imgWrap);
+      card.appendChild(nameEl);
+      card.appendChild(roleEl);
+      actorsGrid.appendChild(card);
+    });
+  }
+
+  function showSimilar() {
+    // Afficher uniquement le rail similaire et masquer le panneau des acteurs
+    rail.hidden = false;
+    rail.style.display = '';
+    rail.setAttribute('aria-hidden', 'false');
+    actorsPanel.hidden = true;
+    actorsPanel.style.display = 'none';
+    actorsPanel.setAttribute('aria-hidden', 'true');
+    section.classList.remove('actors-open');
+    similarBtn.classList.add('active');
+    actorsBtn.classList.remove('active');
+    similarBtn.setAttribute('aria-expanded', 'true');
+    actorsBtn.setAttribute('aria-expanded', 'false');
+  }
+  function showActors() {
+    populateActors();
+    // Afficher uniquement le panneau acteurs et masquer le rail similaire
+    rail.hidden = true;
+    rail.style.display = 'none';
+    rail.setAttribute('aria-hidden', 'true');
+    actorsPanel.hidden = false;
+    actorsPanel.style.display = '';
+    actorsPanel.setAttribute('aria-hidden', 'false');
+    section.classList.add('actors-open');
+    actorsBtn.classList.add('active');
+    similarBtn.classList.remove('active');
+    actorsBtn.setAttribute('aria-expanded', 'true');
+    similarBtn.setAttribute('aria-expanded', 'false');
+  }
+  actorsBtn.addEventListener('click', showActors);
+  similarBtn.addEventListener('click', showSimilar);
   if (mq) {
     if (typeof mq.addEventListener === 'function') {
       mq.addEventListener('change', placeSimilar);
@@ -463,7 +690,7 @@ const container = document.getElementById('fiche-container');
   try {
     const similar = computeSimilar(items, item, 2, 10);
     const root = document.getElementById('fiche');
-    renderSimilarSection(root, similar);
+    renderSimilarSection(root, similar, item);
   } catch (e) {
     console.warn('Impossible de générer le contenu similaire', e);
   }
