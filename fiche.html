@@ -41,7 +41,24 @@
     </div>
   </main>
 
-  
+  <script>
+    // Local dev helper: make Accueil links point to index.html when served as file:// or localhost
+    (function(){
+      var isLocal = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+      if (!isLocal) return;
+      function fixHomeLinks(){
+        try {
+          document.querySelectorAll('nav .logo > a[aria-label], nav .home-link')
+            .forEach(function(a){ a.setAttribute('href','index.html'); });
+        } catch(e) {}
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fixHomeLinks);
+      } else {
+        fixHomeLinks();
+      }
+    })();
+  </script>
   <script src="fiche.js" defer></script>
 </body>
 </html>
