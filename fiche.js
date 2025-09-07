@@ -186,11 +186,11 @@ function normalizeTitleKey(s) {
       .normalize('NFD')                     // split accents
       .replace(/[\u0300-\u036f]/g, '')    // remove diacritics
       .toLowerCase()
-      .replace(/\s+/g, ' ')                // collapse spaces
+      .replace(/[^a-z0-9]+/g, '')          // remove all non-alphanumeric
       .trim();
   } catch(_) {
     // Fallback if normalize isn't supported
-    return String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+    return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '').trim();
   }
 }
 
