@@ -984,10 +984,10 @@ html {
     .fiche-media-wrap .fiche-overlay .overlay-meta .stars { color: #ffffff !important; }
     .fiche-media-wrap .fiche-overlay .overlay-meta .stars::first-letter { color: #FFD54A !important; }
 
-    /* Hide duplicated blocks on the right on mobile (overlay replaces them) */
-    .fiche-right > h3,
-    .fiche-right > .rating-genres,
-    .fiche-right > p { display: none !important; }
+    /* Hide duplicated blocks ONLY on the fiche page (not in popups / index) */
+    body.fiche-page-view #fiche .fiche-right > h3,
+    body.fiche-page-view #fiche .fiche-right > .rating-genres,
+    body.fiche-page-view #fiche .fiche-right > p { display: none !important; }
     
     .button-group { 
         display: flex; 
@@ -1010,6 +1010,39 @@ html {
     /* Also ensure any section directly after the image/buttons stays close */
     #fiche .button-group + .section { margin-top: 8px !important; }
 
+    /* POPUPS: make sure content is visible on mobile and left-aligned */
+    .fiche-popup .fiche-content {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 16px;
+        max-height: min(92svh, 92dvh);
+        overflow-y: auto;
+    }
+    .fiche-popup .fiche-right {
+        padding-left: 0 !important;
+        text-align: left !important; /* do not center popup text on mobile */
+        align-items: flex-start !important;
+        gap: 10px;
+    }
+    /* Force left alignment for titles and paragraphs within popups */
+    .fiche-popup .fiche-right > h3,
+    .fiche-popup .fiche-right > p { 
+        display: block !important; 
+        text-align: left !important;
+        margin-left: 0;
+        margin-right: 0;
+    }
+    .fiche-popup .fiche-right .button-group { justify-content: flex-start; }
+
+    /* Keep thin grey separators inside Partenariats popup on mobile */
+    .fiche-popup hr { 
+        border: 0; 
+        border-top: 1px solid rgba(255,255,255,0.12); 
+        margin: 12px 0; 
+        width: 100%;
+    }
+    
     /* Mobile: left-align 'Contenu similaire' and show a subtle top separator */
     #fiche .section {
         padding: 8px 12px; /* align with page side padding */
