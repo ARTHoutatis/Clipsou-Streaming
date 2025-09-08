@@ -739,4 +739,58 @@ document.addEventListener('DOMContentLoaded', function () {
   })();
 
   // removed scroll buttons logic
+  
+  // Intro Netflix-like: play intro.mp4 before opening external watch links (popups on index page)
+  (function setupIntroOverlay(){
+    function showIntroThenNavigate(url, target){
+      if (document.getElementById('intro-overlay')) return;
+      const overlay = document.createElement('div');
+      overlay.id = 'intro-overlay';
+      Object.assign(overlay.style, {
+        position: 'fixed', inset: '0', background: 'rgba(0,0,0,0.95)', zIndex: '9999',
+        display: 'flex', alignItems: 'center', justifyContent: 'center'
+      });
+      const box = document.createElement('div');
+      Object.assign(box.style, {
+        position: 'relative', width: 'min(900px, 95vw)', height: 'min(506px, 54vw)',
+        background: '#000', boxShadow: '0 10px 40px rgba(0,0,0,0.6)', borderRadius: '8px', overflow: 'hidden'
+      });
+      const video = document.createElement('video');
+      video.src = 'intro.mp4';
+      video.autoplay = true;
+      video.playsInline = true;
+      video.controls = false;
+      video.muted = false;
+      video.preload = 'auto';
+      Object.assign(video.style, { width: '100%', height: '100%', objectFit: 'cover', display: 'block' });
+      const skip = document.createElement('button');
+      skip.type = 'button';
+      skip.textContent = 'Passer l\'intro';
+      skip.setAttribute('aria-label', "Passer l'intro");
+      Object.assign(skip.style, {
+        position: 'absolute', right: '12px', top: '12px', zIndex: '2',
+        background: 'rgba(0,0,0,0.6)', color: '#fff', border: '1px solid rgba(255,255,255,0.25)',
+        padding: '8px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600'
+      });
+      function cleanupAndGo(){
+        try { overlay.remove(); } catch{}
+        if (target === '_blank') window.open(url, '_blank'); else window.location.href = url;
+      }
+      skip.addEventListener('click', cleanupAndGo);
+      video.addEventListener('ended', cleanupAndGo);
+      video.addEventListener('error', cleanupAndGo);
+      box.appendChild(video);
+      box.appendChild(skip);
+      overlay.appendChild(box);
+      document.body.appendChild(overlay);
+      try { video.play().catch(()=>{}); } catch {}
+    }
+    document.addEventListener('click', function(e){
+      const a = e.target && e.target.closest('.fiche-popup .button-group a[href^="http"]');
+      if (!a) return;
+      if (e.button !== 0 && e.type === 'click') return;
+      e.preventDefault();
+      showIntroThenNavigate(a.href, a.getAttribute('target') || '');
+    }, { capture: true });
+  })();
 });
