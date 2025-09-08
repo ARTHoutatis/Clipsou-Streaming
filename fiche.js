@@ -740,7 +740,9 @@ const container = document.getElementById('fiche-container');
       const video = document.createElement('video');
       video.src = 'intro.mp4?v=1';
       video.autoplay = true;
-      video.playsInline = true;
+      video.playsInline = true; // standard
+      video.setAttribute('playsinline', ''); // iOS Safari hint
+      video.setAttribute('webkit-playsinline', ''); // legacy iOS
       video.controls = false;
       video.muted = false;
       video.preload = 'auto';
@@ -765,20 +767,108 @@ const container = document.getElementById('fiche-container');
       box.appendChild(skip);
       overlay.appendChild(box);
       document.body.appendChild(overlay);
-      // Play intro robustly across browsers: if autoplay with sound is blocked, retry muted
-      (async function(){
-        try {
-          await video.play();
-        } catch (_e1) {
-          try {
-            video.muted = true; // iOS/Safari often requires muted for autoplay
-            await video.play();
-          } catch (_e2) {
-            // If both attempts fail, go directly to the target
-            return cleanupAndGo();
-          }
+      // Play intro robustly and synchronously: if play() rejects, retry muted immediately
+      let started = false;
+      try {
+        const p = video.play();
+        if (p && typeof p.then === 'function') {
+          p.catch(function(){
+            try {
+              video.muted = true;
+              const p2 = video.play();
+              if (p2 && typeof p2.then === 'function') {
+                p2.catch(function(){ 
+                  // Offer manual playback button as a last resort
+                  const manual = document.createElement('button');
+                  manual.type = 'button';
+                  manual.textContent = '▶ Lire l\'intro';
+                  manual.setAttribute('aria-label', "Lire l'intro");
+                  Object.assign(manual.style, {
+                    position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
+                    zIndex: '2', background: '#e50914', color: '#fff', border: '0',
+                    padding: '12px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: '700',
+                    boxShadow: '0 6px 18px rgba(0,0,0,0.5)'
+                  });
+                  manual.addEventListener('click', function(){
+                    try {
+                      video.muted = false; // let browser decide; click is a gesture
+                      const p3 = video.play();
+                      if (p3 && typeof p3.then === 'function') {
+                        p3.catch(function(){ cleanupAndGo(); });
+                      }
+                      manual.remove();
+                    } catch { cleanupAndGo(); }
+                  });
+                  box.appendChild(manual);
+                });
+              }
+            } catch { cleanupAndGo(); }
+          });
+          p.then(function(){ started = true; }).catch(function(){});
         }
-      })();
+      } catch (_e) {
+        // Immediate failure
+        try {
+          video.muted = true;
+          const p2 = video.play();
+          if (p2 && typeof p2.then === 'function') {
+            p2.catch(function(){
+              const manual = document.createElement('button');
+              manual.type = 'button';
+              manual.textContent = '▶ Lire l\'intro';
+              manual.setAttribute('aria-label', "Lire l'intro");
+              Object.assign(manual.style, {
+                position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
+                zIndex: '2', background: '#e50914', color: '#fff', border: '0',
+                padding: '12px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: '700',
+                boxShadow: '0 6px 18px rgba(0,0,0,0.5)'
+              });
+              manual.addEventListener('click', function(){
+                try {
+                  video.muted = false;
+                  const p3 = video.play();
+                  if (p3 && typeof p3.then === 'function') {
+                    p3.catch(function(){ cleanupAndGo(); });
+                  }
+                  manual.remove();
+                } catch { cleanupAndGo(); }
+              });
+              box.appendChild(manual);
+            });
+          }
+        } catch { cleanupAndGo(); }
+      }
+      // Watchdog: if not started within 2s, propose manual play
+      setTimeout(function(){
+        try {
+          if (!started && (video.paused || video.currentTime === 0)) {
+            const existing = box.querySelector('button[aria-label="Lire l\'intro"]');
+            if (!existing) {
+              const manual = document.createElement('button');
+              manual.type = 'button';
+              manual.textContent = '▶ Lire l\'intro';
+              manual.setAttribute('aria-label', "Lire l'intro");
+              Object.assign(manual.style, {
+                position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
+                zIndex: '2', background: '#e50914', color: '#fff', border: '0',
+                padding: '12px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: '700',
+                boxShadow: '0 6px 18px rgba(0,0,0,0.5)'
+              });
+              manual.addEventListener('click', function(){
+                try {
+                  video.muted = false;
+                  const p3 = video.play();
+                  if (p3 && typeof p3.then === 'function') {
+                    p3.catch(function(){ cleanupAndGo(); });
+                  }
+                  manual.remove();
+                } catch { cleanupAndGo(); }
+              });
+              box.appendChild(manual);
+            }
+          }
+        } catch (e) { console.warn('intro watchdog error', e); }
+      }, 2000);
     }
     // Intercept clicks on external watch buttons
     document.addEventListener('click', function(e){
