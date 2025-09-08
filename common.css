@@ -106,8 +106,7 @@ nav[aria-label="Navigation principale"] {
 .nav-links .search-link::before {
   content: '';
   display: inline-block;
-  width: 20px;
-  height: 20px;
+  width: 20px; height: 20px;
   background: url('loupe.png') no-repeat center / contain;
   filter: none !important;
   opacity: 1 !important;

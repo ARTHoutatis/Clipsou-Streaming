@@ -109,24 +109,6 @@ const LOCAL_FALLBACK_DB = [
   }
 ];
 
-// ===== Cast / Actors support =====
-// Liste des images d'acteurs disponibles (sans extension)
-const AVAILABLE_ACTOR_IMAGES = new Set([
-  'Arth',
-  'Beat Vortex',
-  'Clone prod',
-  'Cocodu',
-  'Ferrisbu',
-  'Kassielator',
-  'Liam Roxxor',
-  'Maxou',
-  'Raiback',
-  'Sam Attali',
-  'Steve Animation',
-  "Le Zebre'ifique",
-  'Unknown'
-]);
-
 // Base d'acteurs par titre (clé = item.title tel qu'affiché)
 // Note: si un acteur n'a pas d'image, on affichera 'acteurs... image/Unknown.jpeg'
 const ACTOR_DB = {
@@ -177,6 +159,22 @@ const ACTOR_DB = {
     { name: 'Liam Roxxor', role: 'Banquier' },
     { name: 'Ferrisbu', role: 'Bourgeois' }
   ]
+};
+
+// Clean filename map (kebab-case basenames without extension) for each actor
+const ACTOR_IMAGE_MAP = {
+  'Arth': 'arth',
+  'Beat Vortex': 'beat-vortex',
+  'Clone prod': 'clone-prod',
+  'Cocodu': 'cocodu',
+  'Ferrisbu': 'ferrisbu',
+  'Kassielator': 'kassielator',
+  'Liam Roxxor': 'liam-roxxor',
+  'Maxou': 'maxou',
+  'Raiback': 'raiback',
+  'Steve Animation': 'steve-animation',
+  "Le Zebre'ifique": 'le-zebre-ifique',
+  'Unknown': 'unknown'
 };
 
 // Normalize titles to match regardless of accents/case/spaces
@@ -463,16 +461,16 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       a.href = `fiche.html?id=${encodeURIComponent(it.id)}${extra}`;
       const media = document.createElement('div');
       media.className = 'card-media';
-      const img = document.createElement('img');
       const base = deriveBase(it.image);
+      const img = document.createElement('img');
       const initialSrc = base ? `${base}.jpg` : (it.image || 'apercu.png');
       img.src = initialSrc;
-      img.setAttribute('data-base', base);
+      if (base) img.setAttribute('data-base', base);
       img.alt = 'Affiche de ' + (it.title || '');
       img.loading = 'lazy';
       img.decoding = 'async';
-      // try jpg -> jpeg -> png then fallback to apercu
       img.setAttribute('onerror', `(function(img){var b=img.getAttribute('data-base'); if(!b){img.onerror=null; img.src='apercu.png'; return;} var i=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=i; var exts=['jpg','jpeg','png']; if(i<exts.length){ img.src=b+'.'+exts[i]; } else { img.onerror=null; img.src='apercu.png'; }})(this)`);
+      
       const badge = document.createElement('div');
       badge.className = 'brand-badge';
       const logo = document.createElement('img');
@@ -546,11 +544,11 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       imgWrap.style.justifyContent = 'center';
       const img = document.createElement('img');
       const nameRaw = String(a.name || '').trim();
-      const encodedName = encodeURIComponent(nameRaw);
-      // Build './<encodedName>.<ext>' so only the filename is encoded
-      img.src = './' + encodedName + '.jpeg';
-      // Keep original raw name for retries with other extensions
-      img.setAttribute('data-name', nameRaw);
+      const baseSlug = ACTOR_IMAGE_MAP[nameRaw] || ACTOR_IMAGE_MAP['Unknown'];
+      // Start with jpeg, then try other extensions
+      img.src = './' + baseSlug + '.jpeg';
+      // Keep slug for retries with other extensions
+      img.setAttribute('data-slug', baseSlug);
       img.alt = a.name;
       // Strong inline sizing to win against any external CSS and prevent cropping
       img.style.width = 'auto';
@@ -563,16 +561,16 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       img.decoding = 'async';
       // Fallback automatique multi-extensions puis Unknown
       img.onerror = function(){
-        var nameRaw = this.getAttribute('data-name');
-        if (!nameRaw) { this.onerror = null; this.src = './Unknown.jpeg'; return; }
+        var slug = this.getAttribute('data-slug');
+        if (!slug) { this.onerror = null; this.src = './unknown.jpeg'; return; }
         var i = (parseInt(this.dataset.i || '0', 10) || 0) + 1;
         this.dataset.i = i;
-        var exts = ['jpeg','jpg','png','webp','JPEG','JPG','PNG','WEBP'];
+        var exts = ['jpeg','jpg','png','webp'];
         if (i < exts.length) {
-          this.src = './' + encodeURIComponent(nameRaw) + '.' + exts[i];
+          this.src = './' + slug + '.' + exts[i];
         } else {
           this.onerror = null;
-          this.src = './Unknown.jpeg';
+          this.src = './unknown.jpeg';
         }
       };
       imgWrap.appendChild(img);

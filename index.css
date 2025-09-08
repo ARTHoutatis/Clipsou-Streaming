@@ -102,18 +102,6 @@ body::before {
 .search-link { background: transparent; border: 0; color: #fff; }
 .search-link:hover { background: transparent; }
 
-/* Desktop/tablet: show loupe.png before the text */
-.nav-links .search-link { display: inline-flex; align-items: center; gap: 8px; position: relative; }
-.nav-links .search-link::before {
-    content: '';
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    background: url('loupe.png') no-repeat center / contain;
-    filter: none !important;
-    opacity: 1 !important;
-}
-
 /* Lower the Recherche link slightly on desktop/tablet */
 @media (min-width: 769px) {
   .nav-links .search-link { top: 2.5px; }
@@ -846,19 +834,7 @@ html {
         overflow: hidden; 
         position: relative; 
     }
-    /* Mobile: hide text and center the image icon */
-    .nav-links .search-link::before { 
-        content: ''; 
-        position: absolute; 
-        left: 50%; 
-        top: 50%; 
-        transform: translate(-50%, -50%); 
-        width: 24px; 
-        height: 24px; 
-        background: url('loupe.png') no-repeat center / contain; 
-        filter: none !important; 
-        opacity: 1 !important; 
-    }
+    /* Icon and mobile centering are defined in common.css */
     /* Title overflow rules are handled in common.css */
 
     /* Show and enable carousel on mobile */
