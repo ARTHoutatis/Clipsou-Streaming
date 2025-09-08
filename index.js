@@ -756,7 +756,7 @@ document.addEventListener('DOMContentLoaded', function () {
         background: '#000', boxShadow: '0 10px 40px rgba(0,0,0,0.6)', borderRadius: '8px', overflow: 'hidden'
       });
       const video = document.createElement('video');
-      video.src = 'intro.mp4';
+      video.src = 'intro.mp4?v=1';
       video.autoplay = true;
       video.playsInline = true;
       video.controls = false;
@@ -783,7 +783,18 @@ document.addEventListener('DOMContentLoaded', function () {
       box.appendChild(skip);
       overlay.appendChild(box);
       document.body.appendChild(overlay);
-      try { video.play().catch(()=>{}); } catch {}
+      (async function(){
+        try {
+          await video.play();
+        } catch (_e1) {
+          try {
+            video.muted = true;
+            await video.play();
+          } catch (_e2) {
+            return cleanupAndGo();
+          }
+        }
+      })();
     }
     document.addEventListener('click', function(e){
       const a = e.target && e.target.closest('.fiche-popup .button-group a[href^="http"]');

@@ -738,7 +738,7 @@ const container = document.getElementById('fiche-container');
         background: '#000', boxShadow: '0 10px 40px rgba(0,0,0,0.6)', borderRadius: '8px', overflow: 'hidden'
       });
       const video = document.createElement('video');
-      video.src = 'intro.mp4';
+      video.src = 'intro.mp4?v=1';
       video.autoplay = true;
       video.playsInline = true;
       video.controls = false;
@@ -765,8 +765,20 @@ const container = document.getElementById('fiche-container');
       box.appendChild(skip);
       overlay.appendChild(box);
       document.body.appendChild(overlay);
-      // Play intro without forcing fullscreen
-      try { video.play().catch(()=>{}); } catch {}
+      // Play intro robustly across browsers: if autoplay with sound is blocked, retry muted
+      (async function(){
+        try {
+          await video.play();
+        } catch (_e1) {
+          try {
+            video.muted = true; // iOS/Safari often requires muted for autoplay
+            await video.play();
+          } catch (_e2) {
+            // If both attempts fail, go directly to the target
+            return cleanupAndGo();
+          }
+        }
+      })();
     }
     // Intercept clicks on external watch buttons
     document.addEventListener('click', function(e){
