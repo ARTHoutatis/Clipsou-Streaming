@@ -1,4 +1,40 @@
 document.addEventListener('DOMContentLoaded', function () {
+  // Audio unlocker: primes WebAudio on first user gesture so autoplay with sound is allowed later
+  (function installAudioUnlocker(){
+    try {
+      const KEY = 'clipsou_audio_ok';
+      if (localStorage.getItem(KEY) === '1') return; // already unlocked
+      let ctx = null;
+      const unlock = async () => {
+        try {
+          if (!ctx) {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) { cleanup(); return; }
+            ctx = new AC();
+          }
+          if (ctx.state === 'suspended') {
+            await ctx.resume();
+          }
+          // play ultra-short silent buffer to satisfy engagement policies
+          const buffer = ctx.createBuffer(1, 1, 22050);
+          const source = ctx.createBufferSource();
+          source.buffer = buffer;
+          source.connect(ctx.destination);
+          try { source.start(0); } catch {}
+          localStorage.setItem(KEY, '1');
+        } catch {}
+        cleanup();
+      };
+      const cleanup = () => {
+        try { document.removeEventListener('pointerdown', unlock); } catch {}
+        try { document.removeEventListener('touchstart', unlock, { passive: true }); } catch {}
+        try { document.removeEventListener('keydown', unlock); } catch {}
+      };
+      try { document.addEventListener('pointerdown', unlock, { once: true }); } catch {}
+      try { document.addEventListener('touchstart', unlock, { once: true, passive: true }); } catch {}
+      try { document.addEventListener('keydown', unlock, { once: true }); } catch {}
+    } catch {}
+  })();
   // Redirect old hash-based fiche links to the new dedicated page for backward compatibility
   try {
     const m = (window.location.hash || '').match(/^#(film\d+|serie\d+)$/i);
