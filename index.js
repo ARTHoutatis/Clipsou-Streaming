@@ -35,16 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
       try { document.addEventListener('keydown', unlock, { once: true }); } catch {}
     } catch {}
   })();
-  // Redirect old hash-based fiche links to the new dedicated page for backward compatibility
-  try {
-    const m = (window.location.hash || '').match(/^#(film\d+|serie\d+)$/i);
-    if (m && m[1]) {
-      const id = m[1];
-      const url = `fiche.html?id=${encodeURIComponent(id)}`;
-      window.location.replace(url);
-      return; // stop executing the rest on this page load
-    }
-  } catch {}
+  // Backward-compatibility handling for old hash links removed intentionally.
   // Ensure lazy/async attrs on all images
   document.querySelectorAll('img').forEach(function (img) {
     if (!img.hasAttribute('loading')) img.setAttribute('loading', 'lazy');
@@ -776,6 +767,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // removed scroll buttons logic
   
-  // Note: watch links now directly use redirect.html with target="_blank" in the markup.
-  // No click interception is needed here to avoid any accidental same-tab navigation.
+  // Note: watch links now open directly to external URLs (YouTube, playlists, etc.).
+  // No intro interstitial or click interception is used anymore.
 });

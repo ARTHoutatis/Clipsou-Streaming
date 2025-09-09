@@ -265,7 +265,7 @@ async function buildItemsFromIndex() {
       const descEl = popup.querySelector('.fiche-right p');
       if (descEl) description = descEl.textContent.trim();
       let watchUrl = '';
-      // Accept either direct http(s) links or redirect.html?to=...
+      // Accept only direct http(s) links (no interstitial)
       const btn = popup.querySelector('.button-group a');
       if (btn) {
         const href = btn.getAttribute('href') || '';
@@ -273,17 +273,9 @@ async function buildItemsFromIndex() {
           if (/^https?:/i.test(href)) {
             // direct link
             watchUrl = href;
-          } else if (/^redirect\.html\?/i.test(href)) {
-            const u = new URL(href, window.location.href);
-            const to = u.searchParams.get('to');
-            if (to) watchUrl = to;
           }
         } catch {
-          // Fallback simple parse if URL() fails for some reason
-          const m = href.match(/\bto=([^&#]+)/i);
-          if (m) {
-            try { watchUrl = decodeURIComponent(m[1]); } catch { watchUrl = m[1]; }
-          }
+          // No interstitial support; ignore non-http links
         }
       }
       items.push({ id, title, image, genres, rating, type, description, watchUrl });
@@ -384,9 +376,9 @@ function renderFiche(container, item) {
   if (item.watchUrl) {
     const a = document.createElement('a');
     try {
-      a.href = 'redirect.html?to=' + encodeURIComponent(item.watchUrl);
+      a.href = item.watchUrl;
     } catch {
-      a.href = 'redirect.html?to=' + (item.watchUrl || '');
+      a.href = item.watchUrl || '';
     }
     a.target = '_blank';
     a.rel = 'noopener noreferrer';
@@ -805,27 +797,5 @@ const container = document.getElementById('fiche-container');
   } catch (e) {
     console.warn('Impossible de générer le contenu similaire', e);
   }
-  
-  // Intro via interstitial page: navigate immediately on click to redirect.html (same tab)
-  (function setupIntroRedirect(){
-    function goToRedirect(url){
-      const interstitial = 'redirect.html?to=' + encodeURIComponent(url);
-      // Try opening a new tab synchronously during user gesture
-      try {
-        const w = window.open(interstitial, '_blank', 'noopener');
-        if (w && !w.closed) { try { w.opener = null; } catch {} return; }
-      } catch {}
-      // Fallback: same-tab
-      try { window.location.href = interstitial; } catch { window.location.href = url; }
-    }
-    // Intercept clicks on external watch buttons
-    document.addEventListener('click', function(e){
-      const a = e.target && e.target.closest('.button-group a[href^="http"]');
-      if (!a) return;
-      // Only intercept left-clicks or keyboard activations
-      if (e.button !== 0 && e.type === 'click') return;
-      e.preventDefault();
-      goToRedirect(a.href);
-    }, { capture: true });
-  })();
+
 });
