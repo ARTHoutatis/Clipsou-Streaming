@@ -161,6 +161,32 @@ const ACTOR_DB = {
   ]
 };
 
+// Custom display order for specific titles. Names are matched case-insensitively.
+// Any actors not listed will be appended after in their original order.
+const CUSTOM_ACTOR_ORDER = {
+  'Lawless Legend': [
+    'Calvlego',
+    'Atrochtiraptor',
+    'Mordecai',
+    'Maxou',
+    'Brickmaniak',
+    "Le Zebre'ifique",
+    'Clone prod',
+    'Paleo Brick',
+    'Steve Animation',
+    'Liam Roxxor',
+    'Ferrisbu'
+  ],
+  'Dédoublement': [
+    'Ferrisbu',
+    'Clone prod',
+    'Raiback',
+    'Arth',
+    'Beat Vortex',
+    'Liam Roxxor'
+  ]
+};
+
 // Clean filename map (kebab-case basenames without extension) for each actor
 const ACTOR_IMAGE_MAP = {
   'Arth': 'arth',
@@ -556,22 +582,43 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       actorsGrid.appendChild(empty);
       return;
     }
-    // Sort order rules (for films, séries, and trailers):
-    // 1) 'Liam Roxxor' first if present
-    // 2) Then actors who have a profile image (mapped slug not 'unknown')
-    // 3) Then actors without profile image (Unknown)
-    const sorted = list.slice().map((a, idx) => {
-      const nameRaw = String(a.name || '').trim();
-      const slug = ACTOR_IMAGE_MAP[nameRaw] || ACTOR_IMAGE_MAP['Unknown'];
-      const hasImage = !!slug && slug !== 'unknown';
-      const isLiam = nameRaw.toLowerCase() === 'liam roxxor';
-      // rank: lower is earlier
-      let rank = 1;
-      if (hasImage) rank = 0; else rank = 2; // image (0) before unknown (2)
-      if (isLiam) rank = -1; // Liam first on all types
-      return { a, idx, rank };
-    }).sort((x, y) => (x.rank - y.rank) || (x.idx - y.idx));
-    sorted.forEach(({ a }) => {
+    // Apply custom order if specified for this title; fallback to generic ordering otherwise
+    const desired = CUSTOM_ACTOR_ORDER[title];
+    let orderedActors;
+    if (Array.isArray(desired) && desired.length) {
+      const byKey = new Map();
+      list.forEach(a => byKey.set(normalizeTitleKey(a.name || ''), a));
+      orderedActors = [];
+      // add in specified order if present
+      desired.forEach(name => {
+        const key = normalizeTitleKey(name);
+        if (byKey.has(key)) {
+          orderedActors.push(byKey.get(key));
+          byKey.delete(key);
+        }
+      });
+      // append the remaining (not specified) preserving original appearance order
+      list.forEach(a => {
+        const key = normalizeTitleKey(a.name || '');
+        if (byKey.has(key)) {
+          orderedActors.push(a);
+          byKey.delete(key);
+        }
+      });
+    } else {
+      // Generic ordering fallback
+      orderedActors = list.slice().map((a, idx) => {
+        const nameRaw = String(a.name || '').trim();
+        const slug = ACTOR_IMAGE_MAP[nameRaw] || ACTOR_IMAGE_MAP['Unknown'];
+        const hasImage = !!slug && slug !== 'unknown';
+        const isLiam = nameRaw.toLowerCase() === 'liam roxxor';
+        let rank = 1;
+        if (hasImage) rank = 0; else rank = 2;
+        if (isLiam) rank = -1;
+        return { a, idx, rank };
+      }).sort((x, y) => (x.rank - y.rank) || (x.idx - y.idx)).map(x => x.a);
+    }
+    orderedActors.forEach((a) => {
       const card = document.createElement('div');
       card.className = 'actor-card';
       const imgWrap = document.createElement('div');

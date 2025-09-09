@@ -69,7 +69,7 @@
     // Bind skip
     try { skipBtn.addEventListener('click', cleanupAndGo); } catch {}
 
-    // Autoplay the intro with sound if allowed; fallback to muted if blocked.
+    // Autoplay the intro prioritized: always start muted to guarantee playback across browsers.
     (async function(){
       if (!video) return;
       // Diagnostics: log basic info to help detect why audio might be missing
@@ -87,48 +87,13 @@
           } catch {}
         }, { once: true });
       } catch {}
-      function startUnmuteAttempts() {
-        // Try several times in a short window to enable audio on the video element
-        let tries = 0;
-        const maxTries = 40; // ~8s at 200ms
-        const iv = setInterval(async () => {
-          tries += 1;
-          try {
-            if (!video) { clearInterval(iv); return; }
-            if (!video.muted) { clearInterval(iv); return; }
-            video.defaultMuted = false;
-            video.muted = false;
-            try { video.removeAttribute('muted'); } catch {}
-            video.volume = 1.0;
-            await video.play();
-            if (!video.muted) { clearInterval(iv); }
-          } catch {
-            // ignore
-          }
-          if (tries >= maxTries) { clearInterval(iv); }
-        }, 200);
-        // Also try on playback lifecycle
-        const tryOnce = async () => {
-          try {
-            if (!video) return;
-            if (!video.muted) return;
-            video.defaultMuted = false;
-            video.muted = false;
-            try { video.removeAttribute('muted'); } catch {}
-            video.volume = 1.0;
-            await video.play();
-          } catch {}
-        };
-        try { video.addEventListener('playing', tryOnce, { once: true }); } catch {}
-        try { video.addEventListener('timeupdate', tryOnce, { once: true }); } catch {}
-      }
-      // Try autoplay with sound first
+      // Always start muted to guarantee autoplay
       try {
         video.autoplay = true;
         video.playsInline = true;
-        video.defaultMuted = false;
-        video.muted = false;
-        try { video.removeAttribute('muted'); } catch {}
+        video.defaultMuted = true;
+        video.muted = true;
+        try { video.setAttribute('muted', ''); } catch {}
         // Ensure source is set and loaded
         try {
           if (!video.currentSrc || video.readyState === 0) {
@@ -138,18 +103,8 @@
             if (typeof video.load === 'function') video.load();
           }
         } catch {}
-        video.volume = 1.0;
         await video.play();
-      } catch (_e1) {
-        // Fallback: start muted to guarantee autoplay, then escalate to sound
-        try {
-          video.defaultMuted = true;
-          video.muted = true;
-          try { video.setAttribute('muted', ''); } catch {}
-          await video.play();
-        } catch {}
-        startUnmuteAttempts();
-      }
+      } catch {}
       // If still paused, try again when data is ready or when tab becomes visible
       try {
         const ensurePlay = async () => { try { if (video.paused) await video.play(); } catch {} };
@@ -163,7 +118,7 @@
         setTimeout(ensurePlay, 150);
         setTimeout(ensurePlay, 600);
       } catch {}
-      // If audio is still blocked due to policy, unmute on first user gesture (no UI)
+      // Optional: allow user to enable sound with first gesture (no UI). If you want perma-muted, remove this block.
       const onceUnmute = async () => {
         try {
           video.defaultMuted = false;
