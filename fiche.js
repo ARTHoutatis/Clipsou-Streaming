@@ -187,6 +187,15 @@ const CUSTOM_ACTOR_ORDER = {
   ]
 };
 
+// Build a normalized lookup for the desired custom order by title
+const CUSTOM_ACTOR_ORDER_NORM = (() => {
+  const m = Object.create(null);
+  Object.keys(CUSTOM_ACTOR_ORDER).forEach(k => {
+    m[normalizeTitleKey(k)] = CUSTOM_ACTOR_ORDER[k];
+  });
+  return m;
+})();
+
 // Clean filename map (kebab-case basenames without extension) for each actor
 const ACTOR_IMAGE_MAP = {
   'Arth': 'arth',
@@ -575,7 +584,7 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       return;
     }
     // Apply custom order if specified for this title; fallback to generic ordering otherwise
-    const desired = CUSTOM_ACTOR_ORDER[title];
+    const desired = CUSTOM_ACTOR_ORDER[title] || CUSTOM_ACTOR_ORDER_NORM[norm];
     let orderedActors;
     if (Array.isArray(desired) && desired.length) {
       const byKey = new Map();
