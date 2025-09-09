@@ -465,7 +465,7 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   const actorsBtn = document.createElement('button');
   actorsBtn.type = 'button';
   actorsBtn.className = 'button secondary actors-toggle';
-  actorsBtn.textContent = 'Acteurs/Doubleurs';
+  actorsBtn.textContent = 'Acteurs & Doubleurs';
   actorsBtn.setAttribute('aria-expanded', 'false');
   header.appendChild(actorsBtn);
   section.appendChild(header);
@@ -477,7 +477,7 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   actorsPanel.style.display = 'none';
   actorsPanel.setAttribute('aria-hidden', 'true');
   const actorsTitle = document.createElement('h3');
-  actorsTitle.textContent = 'Acteurs/Doubleurs';
+  actorsTitle.textContent = 'Acteurs & Doubleurs';
   actorsPanel.appendChild(actorsTitle);
   const actorsGrid = document.createElement('div');
   actorsGrid.className = 'actors-grid';
