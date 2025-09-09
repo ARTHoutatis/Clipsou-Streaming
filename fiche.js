@@ -338,7 +338,11 @@ function renderFiche(container, item) {
   buttons.className = 'button-group';
   if (item.watchUrl) {
     const a = document.createElement('a');
-    a.href = item.watchUrl;
+    try {
+      a.href = 'redirect.html?to=' + encodeURIComponent(item.watchUrl);
+    } catch {
+      a.href = 'redirect.html?to=' + (item.watchUrl || '');
+    }
     a.target = '_blank';
     a.rel = 'noopener noreferrer';
     a.className = 'button';
@@ -533,7 +537,22 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       actorsGrid.appendChild(empty);
       return;
     }
-    list.forEach(a => {
+    // Sort order rules (for films, séries, and trailers):
+    // 1) 'Liam Roxxor' first if present
+    // 2) Then actors who have a profile image (mapped slug not 'unknown')
+    // 3) Then actors without profile image (Unknown)
+    const sorted = list.slice().map((a, idx) => {
+      const nameRaw = String(a.name || '').trim();
+      const slug = ACTOR_IMAGE_MAP[nameRaw] || ACTOR_IMAGE_MAP['Unknown'];
+      const hasImage = !!slug && slug !== 'unknown';
+      const isLiam = nameRaw.toLowerCase() === 'liam roxxor';
+      // rank: lower is earlier
+      let rank = 1;
+      if (hasImage) rank = 0; else rank = 2; // image (0) before unknown (2)
+      if (isLiam) rank = -1; // Liam first on all types
+      return { a, idx, rank };
+    }).sort((x, y) => (x.rank - y.rank) || (x.idx - y.idx));
+    sorted.forEach(({ a }) => {
       const card = document.createElement('div');
       card.className = 'actor-card';
       const imgWrap = document.createElement('div');
@@ -721,154 +740,17 @@ const container = document.getElementById('fiche-container');
     console.warn('Impossible de générer le contenu similaire', e);
   }
   
-  // Intro Netflix-like: play intro.mp4 before opening external watch links
-  (function setupIntroOverlay(){
-    function showIntroThenNavigate(url, target){
-      // Avoid multiple overlays
-      if (document.getElementById('intro-overlay')) return;
-      const overlay = document.createElement('div');
-      overlay.id = 'intro-overlay';
-      Object.assign(overlay.style, {
-        position: 'fixed', inset: '0', background: 'rgba(0,0,0,0.95)', zIndex: '9999',
-        display: 'flex', alignItems: 'center', justifyContent: 'center'
-      });
-      const box = document.createElement('div');
-      Object.assign(box.style, {
-        position: 'relative', width: 'min(900px, 95vw)', height: 'min(506px, 54vw)',
-        background: '#000', boxShadow: '0 10px 40px rgba(0,0,0,0.6)', borderRadius: '8px', overflow: 'hidden'
-      });
-      const video = document.createElement('video');
-      video.src = 'intro.mp4?v=1';
-      video.autoplay = true;
-      video.playsInline = true; // standard
-      video.setAttribute('playsinline', ''); // iOS Safari hint
-      video.setAttribute('webkit-playsinline', ''); // legacy iOS
-      video.controls = false;
-      video.muted = false;
-      video.preload = 'auto';
-      Object.assign(video.style, { width: '100%', height: '100%', objectFit: 'cover', display: 'block' });
-      const skip = document.createElement('button');
-      skip.type = 'button';
-      skip.textContent = 'Passer l\'intro';
-      skip.setAttribute('aria-label', "Passer l'intro");
-      Object.assign(skip.style, {
-        position: 'absolute', right: '12px', top: '12px', zIndex: '2',
-        background: 'rgba(0,0,0,0.6)', color: '#fff', border: '1px solid rgba(255,255,255,0.25)',
-        padding: '8px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600'
-      });
-      function cleanupAndGo(){
-        try { overlay.remove(); } catch{}
-        if (target === '_blank') window.open(url, '_blank'); else window.location.href = url;
-      }
-      skip.addEventListener('click', cleanupAndGo);
-      video.addEventListener('ended', cleanupAndGo);
-      video.addEventListener('error', cleanupAndGo);
-      box.appendChild(video);
-      box.appendChild(skip);
-      overlay.appendChild(box);
-      document.body.appendChild(overlay);
-      // Play intro robustly and synchronously: if play() rejects, retry muted immediately
-      let started = false;
+  // Intro via interstitial page: navigate immediately on click to redirect.html (same tab)
+  (function setupIntroRedirect(){
+    function goToRedirect(url){
+      const interstitial = 'redirect.html?to=' + encodeURIComponent(url);
+      // Try opening a new tab synchronously during user gesture
       try {
-        const p = video.play();
-        if (p && typeof p.then === 'function') {
-          p.catch(function(){
-            try {
-              video.muted = true;
-              const p2 = video.play();
-              if (p2 && typeof p2.then === 'function') {
-                p2.catch(function(){ 
-                  // Offer manual playback button as a last resort
-                  const manual = document.createElement('button');
-                  manual.type = 'button';
-                  manual.textContent = '▶ Lire l\'intro';
-                  manual.setAttribute('aria-label', "Lire l'intro");
-                  Object.assign(manual.style, {
-                    position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
-                    zIndex: '2', background: '#e50914', color: '#fff', border: '0',
-                    padding: '12px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: '700',
-                    boxShadow: '0 6px 18px rgba(0,0,0,0.5)'
-                  });
-                  manual.addEventListener('click', function(){
-                    try {
-                      video.muted = false; // let browser decide; click is a gesture
-                      const p3 = video.play();
-                      if (p3 && typeof p3.then === 'function') {
-                        p3.catch(function(){ cleanupAndGo(); });
-                      }
-                      manual.remove();
-                    } catch { cleanupAndGo(); }
-                  });
-                  box.appendChild(manual);
-                });
-              }
-            } catch { cleanupAndGo(); }
-          });
-          p.then(function(){ started = true; }).catch(function(){});
-        }
-      } catch (_e) {
-        // Immediate failure
-        try {
-          video.muted = true;
-          const p2 = video.play();
-          if (p2 && typeof p2.then === 'function') {
-            p2.catch(function(){
-              const manual = document.createElement('button');
-              manual.type = 'button';
-              manual.textContent = '▶ Lire l\'intro';
-              manual.setAttribute('aria-label', "Lire l'intro");
-              Object.assign(manual.style, {
-                position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
-                zIndex: '2', background: '#e50914', color: '#fff', border: '0',
-                padding: '12px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: '700',
-                boxShadow: '0 6px 18px rgba(0,0,0,0.5)'
-              });
-              manual.addEventListener('click', function(){
-                try {
-                  video.muted = false;
-                  const p3 = video.play();
-                  if (p3 && typeof p3.then === 'function') {
-                    p3.catch(function(){ cleanupAndGo(); });
-                  }
-                  manual.remove();
-                } catch { cleanupAndGo(); }
-              });
-              box.appendChild(manual);
-            });
-          }
-        } catch { cleanupAndGo(); }
-      }
-      // Watchdog: if not started within 2s, propose manual play
-      setTimeout(function(){
-        try {
-          if (!started && (video.paused || video.currentTime === 0)) {
-            const existing = box.querySelector('button[aria-label="Lire l\'intro"]');
-            if (!existing) {
-              const manual = document.createElement('button');
-              manual.type = 'button';
-              manual.textContent = '▶ Lire l\'intro';
-              manual.setAttribute('aria-label', "Lire l'intro");
-              Object.assign(manual.style, {
-                position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
-                zIndex: '2', background: '#e50914', color: '#fff', border: '0',
-                padding: '12px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: '700',
-                boxShadow: '0 6px 18px rgba(0,0,0,0.5)'
-              });
-              manual.addEventListener('click', function(){
-                try {
-                  video.muted = false;
-                  const p3 = video.play();
-                  if (p3 && typeof p3.then === 'function') {
-                    p3.catch(function(){ cleanupAndGo(); });
-                  }
-                  manual.remove();
-                } catch { cleanupAndGo(); }
-              });
-              box.appendChild(manual);
-            }
-          }
-        } catch (e) { console.warn('intro watchdog error', e); }
-      }, 2000);
+        const w = window.open(interstitial, '_blank', 'noopener');
+        if (w && !w.closed) { try { w.opener = null; } catch {} return; }
+      } catch {}
+      // Fallback: same-tab
+      try { window.location.href = interstitial; } catch { window.location.href = url; }
     }
     // Intercept clicks on external watch buttons
     document.addEventListener('click', function(e){
@@ -877,7 +759,7 @@ const container = document.getElementById('fiche-container');
       // Only intercept left-clicks or keyboard activations
       if (e.button !== 0 && e.type === 'click') return;
       e.preventDefault();
-      showIntroThenNavigate(a.href, a.getAttribute('target') || '');
+      goToRedirect(a.href);
     }, { capture: true });
   })();
 });
