@@ -239,8 +239,27 @@ async function buildItemsFromIndex() {
       const descEl = popup.querySelector('.fiche-right p');
       if (descEl) description = descEl.textContent.trim();
       let watchUrl = '';
-      const btn = popup.querySelector('.button-group a[href^="http"]');
-      if (btn) watchUrl = btn.getAttribute('href');
+      // Accept either direct http(s) links or redirect.html?to=...
+      const btn = popup.querySelector('.button-group a');
+      if (btn) {
+        const href = btn.getAttribute('href') || '';
+        try {
+          if (/^https?:/i.test(href)) {
+            // direct link
+            watchUrl = href;
+          } else if (/^redirect\.html\?/i.test(href)) {
+            const u = new URL(href, window.location.href);
+            const to = u.searchParams.get('to');
+            if (to) watchUrl = to;
+          }
+        } catch {
+          // Fallback simple parse if URL() fails for some reason
+          const m = href.match(/\bto=([^&#]+)/i);
+          if (m) {
+            try { watchUrl = decodeURIComponent(m[1]); } catch { watchUrl = m[1]; }
+          }
+        }
+      }
       items.push({ id, title, image, genres, rating, type, description, watchUrl });
     });
 
