@@ -6,7 +6,7 @@
   <loc>https://clipsoustreaming.com/</loc>
   <changefreq>daily</changefreq>
   <priority>1.0</priority>
-  <lastmod>2025-09-07</lastmod>
+  <lastmod>2025-09-10</lastmod>
  </url>
 
  <!-- Fiche detail pages -->
@@ -14,61 +14,67 @@
   <loc>https://clipsoustreaming.com/fiche.html?id=film1</loc>
   <changefreq>weekly</changefreq>
   <priority>0.7</priority>
-  <lastmod>2025-09-07</lastmod>
+  <lastmod>2025-09-10</lastmod>
  </url>
  <url>
   <loc>https://clipsoustreaming.com/fiche.html?id=film2</loc>
   <changefreq>weekly</changefreq>
   <priority>0.7</priority>
-  <lastmod>2025-09-07</lastmod>
+  <lastmod>2025-09-10</lastmod>
  </url>
  <url>
   <loc>https://clipsoustreaming.com/fiche.html?id=film3</loc>
   <changefreq>weekly</changefreq>
   <priority>0.7</priority>
-  <lastmod>2025-09-07</lastmod>
+  <lastmod>2025-09-10</lastmod>
  </url>
  <url>
   <loc>https://clipsoustreaming.com/fiche.html?id=film4</loc>
   <changefreq>weekly</changefreq>
   <priority>0.7</priority>
-  <lastmod>2025-09-07</lastmod>
+  <lastmod>2025-09-10</lastmod>
  </url>
  <url>
   <loc>https://clipsoustreaming.com/fiche.html?id=film5</loc>
   <changefreq>weekly</changefreq>
   <priority>0.7</priority>
-  <lastmod>2025-09-07</lastmod>
+  <lastmod>2025-09-10</lastmod>
  </url>
  <url>
   <loc>https://clipsoustreaming.com/fiche.html?id=film6</loc>
   <changefreq>weekly</changefreq>
   <priority>0.7</priority>
-  <lastmod>2025-09-07</lastmod>
+  <lastmod>2025-09-10</lastmod>
  </url>
  <url>
   <loc>https://clipsoustreaming.com/fiche.html?id=film7</loc>
   <changefreq>weekly</changefreq>
   <priority>0.7</priority>
-  <lastmod>2025-09-07</lastmod>
+  <lastmod>2025-09-10</lastmod>
  </url>
  <url>
   <loc>https://clipsoustreaming.com/fiche.html?id=serie1</loc>
   <changefreq>weekly</changefreq>
   <priority>0.7</priority>
-  <lastmod>2025-09-07</lastmod>
+  <lastmod>2025-09-10</lastmod>
  </url>
  <url>
   <loc>https://clipsoustreaming.com/fiche.html?id=serie2</loc>
   <changefreq>weekly</changefreq>
   <priority>0.7</priority>
-  <lastmod>2025-09-07</lastmod>
+  <lastmod>2025-09-10</lastmod>
  </url>
-<url>
+ <url>
+  <loc>https://clipsoustreaming.com/fiche.html?id=serie3</loc>
+  <changefreq>weekly</changefreq>
+  <priority>0.7</priority>
+  <lastmod>2025-09-10</lastmod>
+ </url>
+ <url>
   <loc>https://clipsoustreaming.com/search.html</loc>
   <changefreq>weekly</changefreq>
   <priority>0.6</priority>
-  <lastmod>2025-09-07</lastmod>
+  <lastmod>2025-09-10</lastmod>
  </url>
 
 </urlset>

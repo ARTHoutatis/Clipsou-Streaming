@@ -9,6 +9,7 @@ const LOCAL_FALLBACK_DB = [
     { id: 'film4',  title: 'Karma',               type: 'film',  rating: 2.5, genres: ['Horreur','Mystère','Psychologique'], image: 'Ka.jpeg' },
     { id: 'serie1', title: 'Alex',                type: 'série', rating: 3,   genres: ['Action','Comédie','Familial'], image: 'Al.jpg' },
     { id: 'serie2', title: 'Lawless Legend',      type: 'série', rating: 3,   genres: ['Western','Comédie','Action'], image: 'Law.jpg' },
+    { id: 'serie3', title: 'Les Aventures de Jean‑Michel Content', type: 'série', rating: 3.5, genres: ['Familial','Aventure','Comédie'], image: 'Je.webp' },
     { id: 'film5',  title: 'Trailer Batman',      type: 'trailer',            genres: ['Action','Drame','Super-héros'], image: 'Ba.jpg' },
     { id: 'film6',  title: 'Urbanos City',        type: 'film',  rating: 2,   genres: ['Comédie','Familial','Enfants'], image: 'Ur.jpg' },
     { id: 'film7',  title: 'Backrooms Urbanos',   type: 'film',  rating: 3,   genres: ['Horreur','Mystère','Ambience'], image: 'Bac.jpg' }
@@ -44,6 +45,24 @@ async function buildDatabaseFromIndex() {
             else if (/trailer/i.test(title)) type = 'trailer';
             items.push({ id, title, type, rating, genres, image });
         });
+
+        // Merge approved admin items from localStorage
+        try {
+            const raw = localStorage.getItem('clipsou_items_approved_v1');
+            if (raw) {
+                const approved = JSON.parse(raw);
+                if (Array.isArray(approved)) {
+                    approved.forEach(c => {
+                        if (!c || !c.id || !c.title) return;
+                        const type = c.type || 'film';
+                        const rating = (typeof c.rating === 'number') ? c.rating : undefined;
+                        const genres = Array.isArray(c.genres) ? c.genres.filter(Boolean) : [];
+                        const image = c.portraitImage || c.image || '';
+                        items.push({ id: c.id, title: c.title, type, rating, genres, image });
+                    });
+                }
+            }
+        } catch {}
 
         if (items.length > 0) {
             moviesDatabase = items;
@@ -119,7 +138,13 @@ function displayResults(results) {
         }
         const ratingAttr = (typeof item.rating !== 'undefined' && item.rating !== null) ? ` data-rating="${item.rating}"` : '';
         const base = deriveBase(item.image);
-        const initialSrc = base ? `${base}.jpg` : (item.image || 'apercu.png');
+        let initialSrc;
+        if (base) {
+            const originalIsWebp = /\.webp$/i.test(item.image || '');
+            initialSrc = originalIsWebp ? `${base}.webp` : `${base}.jpg`;
+        } else {
+            initialSrc = item.image || 'apercu.png';
+        }
         return `
         <div class="card">
             <a href="fiche.html?id=${encodeURIComponent(item.id)}&from=search">

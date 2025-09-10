@@ -16,6 +16,17 @@
   window.addEventListener('pageshow', function(e){ if (e && e.persisted) toTop(); else toTop(); });
 })();
 
+// Cache index.html in-session to avoid repeated network/file reads
+let __INDEX_HTML_CACHE = null;
+async function fetchIndexHtmlCached() {
+  if (__INDEX_HTML_CACHE && typeof __INDEX_HTML_CACHE === 'string') return __INDEX_HTML_CACHE;
+  const res = await fetch('index.html', { credentials: 'same-origin', cache: 'no-store' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const html = await res.text();
+  __INDEX_HTML_CACHE = html;
+  return html;
+}
+
 // Fallback local complet pour usage hors serveur (file://) ou si index.html est inaccessible
 const LOCAL_FALLBACK_DB = [
   {
@@ -106,6 +117,16 @@ const LOCAL_FALLBACK_DB = [
     type: 'film',
     description: "Après avoir chuté à travers le sol, Noob se retrouve piégé dans les Backrooms : un dédale sans fin de couloirs jaunâtres où bourdonnent les néons et où rôdent d’étranges présences...",
     watchUrl: 'https://www.youtube.com/watch?v=b1BSjegjM_s'
+  },
+  {
+    id: 'serie3',
+    title: 'Les Aventures de Jean‑Michel Content',
+    image: 'Je1.webp',
+    genres: ['Familial','Aventure','Comédie'],
+    rating: 3.5,
+    type: 'série',
+    description: "Jean‑Michel Content est un homme toujours heureux, quoi qu’il arrive. Avec son esprit enfantin, il multiplie les bêtises et adore déranger les autres. Agaçant mais attachant, il transforme chaque situation en moment absurde.",
+    watchUrl: 'https://youtube.com/playlist?list=PLljfI9MJr5K17MmHDsdU6QqSFwZJ_Tn-5&si=lVyJvllZ6dkb94gq'
   }
 ];
 
@@ -132,6 +153,10 @@ const ACTOR_DB = {
   'Karma': [
     { name: 'Liam Roxxor', role: 'James' },
     { name: 'Stranger Art', role: 'Louise' }
+  ],
+  'Les Aventures de Jean‑Michel Content': [
+    { name: 'Kassielator', role: 'Jean‑Michel Content' },
+    { name: 'Liam Roxxor', role: 'Sébastien' }
   ],
   'Jean Michel Content': [
     { name: 'Kassielator', role: 'Jean michel content' },
@@ -248,12 +273,9 @@ function getActorImageBase(name) {
 // Construit la base des fiches depuis index.html
 async function buildItemsFromIndex() {
   try {
-    const res = await fetch('index.html', { credentials: 'same-origin', cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const html = await res.text();
+    const html = await fetchIndexHtmlCached();
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
-
     const items = [];
     doc.querySelectorAll('.fiche-popup[id]').forEach(popup => {
       const id = popup.getAttribute('id');
@@ -274,23 +296,37 @@ async function buildItemsFromIndex() {
       const descEl = popup.querySelector('.fiche-right p');
       if (descEl) description = descEl.textContent.trim();
       let watchUrl = '';
-      // Accept only direct http(s) links (no interstitial)
       const btn = popup.querySelector('.button-group a');
       if (btn) {
         const href = btn.getAttribute('href') || '';
-        try {
-          if (/^https?:/i.test(href)) {
-            // direct link
-            watchUrl = href;
-          }
-        } catch {
-          // No interstitial support; ignore non-http links
-        }
+        try { if (/^https?:/i.test(href)) watchUrl = href; } catch {}
       }
       items.push({ id, title, image, genres, rating, type, description, watchUrl });
     });
 
-    // Si aucun item n'est trouvé, utiliser le fallback local
+    // Merge approved admin items from localStorage
+    try {
+      const raw = localStorage.getItem('clipsou_items_approved_v1');
+      if (raw) {
+        const approved = JSON.parse(raw);
+        if (Array.isArray(approved)) {
+          approved.forEach(c => {
+            if (!c || !c.id || !c.title) return;
+            const type = c.type || 'film';
+            const rating = (typeof c.rating === 'number') ? c.rating : undefined;
+            const genres = Array.isArray(c.genres)
+              ? c.genres.map(g => String(g || '').trim()).filter(Boolean)
+              : [];
+            const image = c.landscapeImage || c.image || c.portraitImage || '';
+            const description = c.description || '';
+            const watchUrl = c.watchUrl || '';
+            const actors = Array.isArray(c.actors) ? c.actors.filter(a=>a && a.name) : [];
+            items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '' });
+          });
+        }
+      }
+    } catch {}
+
     return items.length > 0 ? items : LOCAL_FALLBACK_DB;
   } catch (e) {
     console.warn('Impossible de construire la base depuis index.html', e);
@@ -435,11 +471,23 @@ function renderFiche(container, item) {
 // ===== Similar content (by shared genres) =====
 function computeSimilar(allItems, current, minOverlap = 2, maxCount = 10) {
   if (!current) return [];
-  const curGenres = new Set((current.genres || []).map(g => (g || '').toLowerCase()));
+  // Normalize genre: trim, lowercase, remove accents for robust matching
+  const norm = (s) => {
+    try {
+      return String(s || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim();
+    } catch {
+      return String(s || '').toLowerCase().trim();
+    }
+  };
+  const curGenres = new Set((current.genres || []).map(g => norm(g)).filter(Boolean));
   const scored = [];
   for (const it of allItems) {
     if (!it || it.id === current.id) continue;
-    const gset = new Set((it.genres || []).map(x => (x || '').toLowerCase()));
+    const gset = new Set((it.genres || []).map(x => norm(x)).filter(Boolean));
     let overlap = 0;
     for (const g of gset) if (curGenres.has(g)) overlap++;
     if (overlap >= minOverlap) scored.push({ item: it, overlap });
@@ -511,15 +559,59 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       a.href = `fiche.html?id=${encodeURIComponent(it.id)}${extra}`;
       const media = document.createElement('div');
       media.className = 'card-media';
-      const base = deriveBase(it.image);
+      // Robust thumbnail loader: portrait -> landscape -> image -> derived exts -> apercu
       const img = document.createElement('img');
-      const initialSrc = base ? `${base}.jpg` : (it.image || 'apercu.png');
-      img.src = initialSrc;
-      if (base) img.setAttribute('data-base', base);
+      let candidates = [];
+      // Helpers
+      function isDerivable(src){ return /\.(jpg|jpeg|png|webp)$/i.test(src || ''); }
+      function derivedList(src){
+        const list = [];
+        const m = (src || '').match(/^(.*?)(\d+)?\.(jpg|jpeg|png|webp)$/i);
+        if (!m) return list;
+        const base = m[1];
+        const ext = (m[3] || '').toLowerCase();
+        const order = ext === 'webp' ? ['webp','jpg','jpeg','png'] : ['jpg','jpeg','png'];
+        order.forEach(e => list.push(base + '.' + e));
+        return list;
+      }
+      function dedupe(arr){
+        const seen = new Set();
+        const out = [];
+        for (const s of arr) { if (s && !seen.has(s)) { seen.add(s); out.push(s); } }
+        return out;
+      }
+      // Build ordered candidates:
+      // 1) portraitImage
+      if (it.portraitImage) candidates.push(it.portraitImage);
+      // 2) derived-from image (to target portrait base like Al.jpg before Al1.jpg)
+      if (it.image && isDerivable(it.image)) candidates.push(...derivedList(it.image));
+      // 3) derived-from landscapeImage if provided
+      if (it.landscapeImage && isDerivable(it.landscapeImage)) candidates.push(...derivedList(it.landscapeImage));
+      // 4) original image, then landscapeImage
+      if (it.image) candidates.push(it.image);
+      if (it.landscapeImage) candidates.push(it.landscapeImage);
+      candidates = dedupe(candidates);
+      // Helper to safely apply src (encode local paths with spaces)
+      function applySrc(c){
+        if (!c) return 'apercu.png';
+        if (/^(data:|https?:)/i.test(c)) return c;
+        try { return encodeURI(c); } catch { return c; }
+      }
+      let cIdx = 0;
+      img.src = applySrc(candidates[cIdx]) || 'apercu.png';
+      img.onerror = function(){
+        cIdx += 1;
+        if (cIdx < candidates.length) {
+          this.src = applySrc(candidates[cIdx]);
+        } else {
+          this.onerror = null;
+          this.src = 'apercu.png';
+        }
+      };
       img.alt = 'Affiche de ' + (it.title || '');
       img.loading = 'lazy';
       img.decoding = 'async';
-      img.setAttribute('onerror', `(function(img){var b=img.getAttribute('data-base'); if(!b){img.onerror=null; img.src='apercu.png'; return;} var i=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=i; var exts=['jpg','jpeg','png']; if(i<exts.length){ img.src=b+'.'+exts[i]; } else { img.onerror=null; img.src='apercu.png'; }})(this)`);
+      // onerror handler already set above (multi-candidate)
       
       const badge = document.createElement('div');
       badge.className = 'brand-badge';
@@ -575,7 +667,10 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     actorsGrid.innerHTML = '';
     const title = (currentItem && currentItem.title) || '';
     const norm = normalizeTitleKey(title);
-    const list = ACTOR_DB[title] || ACTOR_DB_NORM[norm] || [];
+    // Prefer actors attached to the current item (from admin-approved data)
+    const list = (currentItem && Array.isArray(currentItem.actors) && currentItem.actors.length)
+      ? currentItem.actors
+      : (ACTOR_DB[title] || ACTOR_DB_NORM[norm] || []);
     if (!list.length) {
       const empty = document.createElement('p');
       empty.className = 'actors-empty';
@@ -791,6 +886,35 @@ const container = document.getElementById('fiche-container');
   }
 
   if (!item) {
+    // Fallback: try to load approved items directly by id
+    try {
+      const raw = localStorage.getItem('clipsou_items_approved_v1');
+      if (raw) {
+        const apr = JSON.parse(raw);
+        if (Array.isArray(apr)) {
+          const alt = apr.find(it => it && it.id === id);
+          if (alt) {
+            const type = alt.type || 'film';
+            const rating = (typeof alt.rating === 'number') ? alt.rating : undefined;
+            const genres = Array.isArray(alt.genres) ? alt.genres.filter(Boolean) : [];
+            const image = alt.landscapeImage || alt.image || alt.portraitImage || '';
+            const description = alt.description || '';
+            const watchUrl = alt.watchUrl || '';
+            const actors = Array.isArray(alt.actors) ? alt.actors.filter(a=>a && a.name) : [];
+            const altItem = { id: alt.id, title: alt.title, type, rating, genres, image, description, watchUrl, actors };
+            updateHeadSEO(altItem);
+            renderFiche(container, altItem);
+            try {
+              const similar = computeSimilar(items.concat([altItem]), altItem, 2, 10);
+              const root = document.getElementById('fiche');
+              renderSimilarSection(root, similar, altItem);
+            } catch {}
+            return;
+          }
+        }
+      }
+    } catch {}
+
     document.title = 'Fiche introuvable – Clipsou Streaming';
     renderList(container, items, 'Fiche introuvable – choisissez parmi la liste');
     return;
@@ -798,11 +922,54 @@ const container = document.getElementById('fiche-container');
 
   updateHeadSEO(item);
   renderFiche(container, item);
-  // Render similar content below the fiche
+  // Render similar content below the fiche (require at least 2 shared genres)
   try {
-    const similar = computeSimilar(items, item, 2, 10);
-    const root = document.getElementById('fiche');
-    renderSimilarSection(root, similar, item);
+    const renderSimilarNow = async () => {
+      let similar = computeSimilar(items, item, 2, 12);
+      // Also ensure admin-approved items that match are included
+      try {
+      const raw = localStorage.getItem('clipsou_items_approved_v1');
+      if (raw) {
+        const apr = JSON.parse(raw);
+        if (Array.isArray(apr)) {
+          const norm = (s) => {
+            try { return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(); }
+            catch { return String(s||'').toLowerCase().trim(); }
+          };
+          const cur = new Set((item.genres||[]).map(g=>norm(g)).filter(Boolean));
+          const matches = apr
+            .filter(it => it && it.id && it.id !== item.id)
+            .map(it => ({
+              it,
+              gset: new Set((Array.isArray(it.genres) ? it.genres : []).map(g=>norm(g)).filter(Boolean))
+            }))
+            .map(x => ({ item: {
+                id: x.it.id,
+                title: x.it.title,
+                type: x.it.type || 'film',
+                rating: (typeof x.it.rating==='number')?x.it.rating:undefined,
+                genres: Array.isArray(x.it.genres)?x.it.genres:[],
+                image: x.it.landscapeImage || x.it.image || x.it.portraitImage || '',
+                portraitImage: x.it.portraitImage || '',
+                landscapeImage: x.it.landscapeImage || ''
+              },
+              overlap: Array.from(x.gset).reduce((n,g)=>n + (cur.has(g)?1:0), 0)
+            }))
+            .filter(x => x.overlap >= 2)
+            .sort((a,b)=>(b.overlap-a.overlap)||((b.item.rating||0)-(a.item.rating||0)))
+            .map(x=>x.item);
+          // Merge and dedupe by id
+          const byId = new Map();
+          similar.forEach(s => byId.set(s.id, s));
+          matches.forEach(s => byId.set(s.id, s));
+          similar = Array.from(byId.values()).filter(s => s.id !== item.id).slice(0, 12);
+        }
+      }
+    } catch {}
+      const root = document.getElementById('fiche');
+      renderSimilarSection(root, similar, item);
+    };
+    if (window.requestIdleCallback) requestIdleCallback(() => { renderSimilarNow(); }); else setTimeout(renderSimilarNow, 0);
   } catch (e) {
     console.warn('Impossible de générer le contenu similaire', e);
   }

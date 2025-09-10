@@ -267,6 +267,41 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Auto-annotation of descriptions disabled by request. Descriptions are managed directly in index.html.
 
+    // Merge approved custom items from admin (localStorage)
+    try {
+      const approvedRaw = localStorage.getItem('clipsou_items_approved_v1');
+      if (approvedRaw) {
+        const approved = JSON.parse(approvedRaw);
+        if (Array.isArray(approved)) {
+          approved.forEach(c => {
+            if (!c || !c.id || !c.title) return;
+            const type = c.type || 'film';
+            const portraitImage = c.portraitImage || c.image || '';
+            const landscapeImage = c.landscapeImage || c.image || '';
+            const imgName = (landscapeImage || portraitImage || '').split('/').pop();
+            const baseName = (imgName || '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/\d+$/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            // Category heuristic: keep default LEGO unless otherwise specified
+            const category = c.category || 'LEGO';
+            const rating = (typeof c.rating === 'number') ? c.rating : undefined;
+            items.push({
+              id: c.id,
+              title: c.title,
+              image: landscapeImage || portraitImage || 'apercu.png',
+              portraitImage,
+              landscapeImage,
+              genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [],
+              rating,
+              type,
+              category,
+              description: c.description || '',
+              baseName,
+              watchUrl: c.watchUrl || ''
+            });
+          });
+        }
+      }
+    } catch {}
+
     // Helper: derive thumbnail from popup image (remove trailing digits and prefer .jpg/.jpeg/.png)
     function deriveThumbnail(src) {
       if (!src) return '';
@@ -319,7 +354,9 @@ document.addEventListener('DOMContentLoaded', function () {
       const a = document.createElement('a');
       a.setAttribute('href', `fiche.html?id=${item.id}`);
       const img = document.createElement('img');
-      const thumbs = deriveThumbnail(item.image);
+      // Prefer explicit portraitImage if available (custom items), fallback to derived from item.image
+      const primaryPortrait = item.portraitImage || '';
+      const thumbs = primaryPortrait ? [primaryPortrait] : deriveThumbnail(item.image);
       let idx = 0;
       img.src = (thumbs && thumbs[0]) || item.image || 'apercu.png';
       img.onerror = function () {
@@ -575,7 +612,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if ((it.baseName || '').toLowerCase() === 'bac') {
           bg.style.objectPosition = 'top center';
         }
-        const backs = deriveBackgrounds(it.image || '');
+        // Prefer explicit landscapeImage if available
+        const backs = it.landscapeImage ? [it.landscapeImage, ...(deriveBackgrounds(it.image || ''))] : deriveBackgrounds(it.image || '');
         let bIdx = 0;
         bg.src = backs[bIdx] || (it.image || '');
         bg.onerror = function () {

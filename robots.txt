@@ -1,7 +1,9 @@
 User-agent: *
 # Allow all crawlers to access the entire site
 Allow: /
+Disallow: /admin/
 
 # Sitemaps
+Sitemap: https://clipsoustreaming.com/sitemap_index.xml
 Sitemap: https://clipsoustreaming.com/sitemap_images.xml
 Sitemap: https://clipsoustreaming.com/sitemap.xml

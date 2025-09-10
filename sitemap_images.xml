@@ -6,6 +6,7 @@
 
   <url>
     <loc>https://clipsoustreaming.com/</loc>
+    <lastmod>2025-09-10</lastmod>
     <image:image>
       <image:loc>https://clipsoustreaming.com/apercu.png</image:loc>
       <image:title>Clipsou Streaming – Aperçu</image:title>
@@ -46,6 +47,7 @@
 
   <url>
     <loc>https://clipsoustreaming.com/search.html</loc>
+    <lastmod>2025-09-10</lastmod>
     <image:image>
       <image:loc>https://clipsoustreaming.com/Al.jpg</image:loc>
       <image:title>Alex – Affiche</image:title>
@@ -67,5 +69,19 @@
       <image:title>Urbanos City – Affiche</image:title>
     </image:image>
   </url>
+  
+  <url>
+    <loc>https://clipsoustreaming.com/fiche.html?id=serie3</loc>
+    <lastmod>2025-09-10</lastmod>
+    <image:image>
+      <image:loc>https://clipsoustreaming.com/Je1.webp</image:loc>
+      <image:title>Les Aventures de Jean‑Michel Content – Image paysage</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://clipsoustreaming.com/Je.webp</image:loc>
+      <image:title>Les Aventures de Jean‑Michel Content – Affiche</image:title>
+    </image:image>
+  </url>
 </urlset>
+
 
