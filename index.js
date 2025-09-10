@@ -612,8 +612,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if ((it.baseName || '').toLowerCase() === 'bac') {
           bg.style.objectPosition = 'top center';
         }
-        // Prefer explicit landscapeImage if available
-        const backs = it.landscapeImage ? [it.landscapeImage, ...(deriveBackgrounds(it.image || ''))] : deriveBackgrounds(it.image || '');
+        // Prefer the exact provided image first (landscapeImage or image)
+        // This ensures items like Jean‑Michel use Je1.webp before any derivation
+        const primaryBg = it.landscapeImage || (it.image || '');
+        const backs = primaryBg ? [primaryBg, ...deriveBackgrounds(primaryBg)] : deriveBackgrounds(it.image || '');
         let bIdx = 0;
         bg.src = backs[bIdx] || (it.image || '');
         bg.onerror = function () {
