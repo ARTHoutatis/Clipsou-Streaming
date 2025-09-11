@@ -267,8 +267,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Auto-annotation of descriptions disabled by request. Descriptions are managed directly in index.html.
 
-    // Collect approved items from shared JSON (visible to all users)
-    const sharedApproved = [];
+    // Merge approved items from shared JSON (visible to all users)
     try {
       const res = await fetch('data/approved.json?v=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' });
       if (res && res.ok) {
@@ -282,7 +281,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             const imgName = (landscapeImage || portraitImage || '').split('/').pop();
             const baseName = (imgName || '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/\d+$/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
             const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-            sharedApproved.push({
+            items.push({
               id: c.id,
               title: c.title,
               image: landscapeImage || portraitImage || 'apercu.png',
@@ -301,35 +300,54 @@ document.addEventListener('DOMContentLoaded', async function () {
       }
     } catch {}
 
-    // If we have shared approved items, use them as the sole source of truth (ignore local approved)
-    if (Array.isArray(sharedApproved) && sharedApproved.length) {
-      const map = new Map();
-      // Seed with items parsed from popups (static content)
-      for (const it of items) { if (it && it.id) map.set(it.id, it); }
-      // Overlay shared approved
+    // De-duplicate items by id (shared JSON + localStorage may produce duplicates)
+    {
+      const seen = new Set();
+      const dedup = [];
+      for (const it of items) {
+        if (!it || !it.id) continue;
+        if (seen.has(it.id)) continue;
+        seen.add(it.id);
+        dedup.push(it);
+      }
       items.length = 0;
-      items.push(...sharedApproved);
-    } else {
-      // Merge approved custom items from admin (localStorage, only on this device)
-      try {
-        const approvedRaw = localStorage.getItem('clipsou_items_approved_v1');
-        if (approvedRaw) {
-          const approved = JSON.parse(approvedRaw);
-          if (Array.isArray(approved)) {
-            approved.forEach(c => {
-              if (!c || !c.id || !c.title) return;
-              const type = c.type || 'film';
-              const portraitImage = c.portraitImage || c.image || '';
-              const landscapeImage = c.landscapeImage || c.image || '';
-              const imgName = (landscapeImage || portraitImage || '').split('/').pop();
-              const baseName = (imgName || '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/\d+$/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-              const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-              items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || 'apercu.png', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '' });
-            });
-          }
-        }
-      } catch {}
+      items.push(...dedup);
     }
+
+    // Merge approved custom items from admin (localStorage, only on this device)
+    try {
+      const approvedRaw = localStorage.getItem('clipsou_items_approved_v1');
+      if (approvedRaw) {
+        const approved = JSON.parse(approvedRaw);
+        if (Array.isArray(approved)) {
+          approved.forEach(c => {
+            if (!c || !c.id || !c.title) return;
+            const type = c.type || 'film';
+            const portraitImage = c.portraitImage || c.image || '';
+            const landscapeImage = c.landscapeImage || c.image || '';
+            const imgName = (landscapeImage || portraitImage || '').split('/').pop();
+            const baseName = (imgName || '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/\d+$/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            // Category heuristic: keep default LEGO unless otherwise specified
+            const category = c.category || 'LEGO';
+            const rating = (typeof c.rating === 'number') ? c.rating : undefined;
+            items.push({
+              id: c.id,
+              title: c.title,
+              image: landscapeImage || portraitImage || 'apercu.png',
+              portraitImage,
+              landscapeImage,
+              genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [],
+              rating,
+              type,
+              category,
+              description: c.description || '',
+              baseName,
+              watchUrl: c.watchUrl || ''
+            });
+          });
+        }
+      }
+    } catch {}
 
     // Helper: derive thumbnail from popup image (remove trailing digits and prefer .jpg/.jpeg/.png)
     function deriveThumbnail(src) {
