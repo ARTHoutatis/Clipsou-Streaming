@@ -121,7 +121,7 @@
     }
     return cfg;
   }
-  async function publishApproved(item){
+  async function publishApproved(item, action='upsert'){
     const cfg = await ensurePublishConfig();
     if (!cfg || !cfg.url || !cfg.secret) return;
     try {
@@ -131,7 +131,11 @@
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + cfg.secret
         },
-        body: JSON.stringify({ action: 'upsert', item })
+        body: JSON.stringify(
+          action === 'delete'
+            ? { action: 'delete', id: item && item.id ? item.id : item }
+            : { action: 'upsert', item }
+        )
       });
       if (!res.ok) {
         const text = await res.text().catch(()=>String(res.status));
@@ -145,6 +149,10 @@
       console.error(e);
       alert('Publication API: erreur réseau.');
     }
+  }
+
+  async function deleteApproved(id){
+    return publishApproved(id, 'delete');
   }
 
   function renderActors(list){
@@ -320,6 +328,8 @@
           setRequests(list);
           const apr = getApproved().filter(x=>x.id!==found.data.id);
           setApproved(apr);
+          // Remove from shared approved.json
+          deleteApproved(found.data.id);
         } else {
           found.status = 'approved';
           setRequests(list);
