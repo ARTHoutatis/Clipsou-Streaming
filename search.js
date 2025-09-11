@@ -46,6 +46,24 @@ async function buildDatabaseFromIndex() {
             items.push({ id, title, type, rating, genres, image });
         });
 
+        // Merge approved items from shared JSON (visible par tous)
+        try {
+            const res = await fetch('data/approved.json', { credentials: 'same-origin', cache: 'no-store' });
+            if (res && res.ok) {
+                const approved = await res.json();
+                if (Array.isArray(approved)) {
+                    approved.forEach(c => {
+                        if (!c || !c.id || !c.title) return;
+                        const type = c.type || 'film';
+                        const rating = (typeof c.rating === 'number') ? c.rating : undefined;
+                        const genres = Array.isArray(c.genres) ? c.genres.filter(Boolean) : [];
+                        const image = c.portraitImage || c.image || '';
+                        items.push({ id: c.id, title: c.title, type, rating, genres, image });
+                    });
+                }
+            }
+        } catch {}
+
         // Merge approved admin items from localStorage
         try {
             const raw = localStorage.getItem('clipsou_items_approved_v1');

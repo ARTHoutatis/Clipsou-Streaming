@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   // Audio unlocker: primes WebAudio on first user gesture so autoplay with sound is allowed later
   (function installAudioUnlocker(){
     try {
@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', function () {
   window.addEventListener('hashchange', syncOnNav);
 
   // Auto-build sections from popups so nothing depends on pre-existing cards
-  (function buildFromPopups() {
+  (async function buildFromPopups() {
     // Utility: slugify for ids
     const slug = (name) => (name || '')
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -267,7 +267,40 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Auto-annotation of descriptions disabled by request. Descriptions are managed directly in index.html.
 
-    // Merge approved custom items from admin (localStorage)
+    // Merge approved custom items from a shared JSON (visible to all)
+    try {
+      const res = await fetch('data/approved.json', { credentials: 'same-origin', cache: 'no-store' });
+      if (res && res.ok) {
+        const approved = await res.json();
+        if (Array.isArray(approved)) {
+          approved.forEach(c => {
+            if (!c || !c.id || !c.title) return;
+            const type = c.type || 'film';
+            const portraitImage = c.portraitImage || c.image || '';
+            const landscapeImage = c.landscapeImage || c.image || '';
+            const imgName = (landscapeImage || portraitImage || '').split('/').pop();
+            const baseName = (imgName || '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/\d+$/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            const rating = (typeof c.rating === 'number') ? c.rating : undefined;
+            items.push({
+              id: c.id,
+              title: c.title,
+              image: landscapeImage || portraitImage || 'apercu.png',
+              portraitImage,
+              landscapeImage,
+              genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [],
+              rating,
+              type,
+              category: c.category || 'LEGO',
+              description: c.description || '',
+              baseName,
+              watchUrl: c.watchUrl || ''
+            });
+          });
+        }
+      }
+    } catch {}
+
+    // Merge approved custom items from admin (localStorage, only on this device)
     try {
       const approvedRaw = localStorage.getItem('clipsou_items_approved_v1');
       if (approvedRaw) {

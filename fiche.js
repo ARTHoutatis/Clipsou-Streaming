@@ -304,6 +304,29 @@ async function buildItemsFromIndex() {
       items.push({ id, title, image, genres, rating, type, description, watchUrl });
     });
 
+    // Merge approved items from shared JSON (visible to all)
+    try {
+      const res = await fetch('data/approved.json', { credentials: 'same-origin', cache: 'no-store' });
+      if (res && res.ok) {
+        const approved = await res.json();
+        if (Array.isArray(approved)) {
+          approved.forEach(c => {
+            if (!c || !c.id || !c.title) return;
+            const type = c.type || 'film';
+            const rating = (typeof c.rating === 'number') ? c.rating : undefined;
+            const genres = Array.isArray(c.genres)
+              ? c.genres.map(g => String(g || '').trim()).filter(Boolean)
+              : [];
+            const image = c.landscapeImage || c.image || c.portraitImage || '';
+            const description = c.description || '';
+            const watchUrl = c.watchUrl || '';
+            const actors = Array.isArray(c.actors) ? c.actors.filter(a=>a && a.name) : [];
+            items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '' });
+          });
+        }
+      }
+    } catch {}
+
     // Merge approved admin items from localStorage
     try {
       const raw = localStorage.getItem('clipsou_items_approved_v1');
