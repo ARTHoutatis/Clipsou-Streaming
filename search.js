@@ -47,8 +47,9 @@ async function buildDatabaseFromIndex() {
         });
 
         // Merge approved items from shared JSON (visible par tous)
+        const sharedApproved = [];
         try {
-            const res = await fetch('data/approved.json', { credentials: 'same-origin', cache: 'no-store' });
+            const res = await fetch('data/approved.json?v=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' });
             if (res && res.ok) {
                 const approved = await res.json();
                 if (Array.isArray(approved)) {
@@ -58,7 +59,7 @@ async function buildDatabaseFromIndex() {
                         const rating = (typeof c.rating === 'number') ? c.rating : undefined;
                         const genres = Array.isArray(c.genres) ? c.genres.filter(Boolean) : [];
                         const image = c.portraitImage || c.image || '';
-                        items.push({ id: c.id, title: c.title, type, rating, genres, image });
+                        sharedApproved.push({ id: c.id, title: c.title, type, rating, genres, image });
                     });
                 }
             }
@@ -81,6 +82,26 @@ async function buildDatabaseFromIndex() {
                 }
             }
         } catch {}
+
+        // Apply shared approved as source of truth (overwrite by id)
+        if (sharedApproved.length) {
+            const map = new Map(items.map(it => [it.id, it]));
+            for (const it of sharedApproved) map.set(it.id, it);
+            items.splice(0, items.length, ...map.values());
+        }
+
+        // Dedupe by id
+        {
+            const seen = new Set();
+            const dedup = [];
+            for (const it of items) {
+                if (!it || !it.id) continue;
+                if (seen.has(it.id)) continue;
+                seen.add(it.id);
+                dedup.push(it);
+            }
+            items.splice(0, items.length, ...dedup);
+        }
 
         if (items.length > 0) {
             moviesDatabase = items;
