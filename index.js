@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Merge approved items from shared JSON (visible to all users)
     try {
-      const res = await fetch('data/approved.json', { credentials: 'same-origin', cache: 'no-store' });
+      const res = await fetch('data/approved.json?v=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' });
       if (res && res.ok) {
         const approved = await res.json();
         if (Array.isArray(approved)) {
@@ -299,6 +299,20 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
       }
     } catch {}
+
+    // De-duplicate items by id (shared JSON + localStorage may produce duplicates)
+    {
+      const seen = new Set();
+      const dedup = [];
+      for (const it of items) {
+        if (!it || !it.id) continue;
+        if (seen.has(it.id)) continue;
+        seen.add(it.id);
+        dedup.push(it);
+      }
+      items.length = 0;
+      items.push(...dedup);
+    }
 
     // Merge approved custom items from admin (localStorage, only on this device)
     try {
