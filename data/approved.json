@@ -3,12 +3,12 @@
     "id": "custom-test-n0a1",
     "requestId": "r_mffvfxn1_3scozn",
     "title": "test",
-    "type": "série",
+    "type": "sÃ©rie",
     "rating": 2,
     "genres": [
       "Action",
       "Ambience",
-      "Comédie"
+      "ComÃ©die"
     ],
     "description": "test",
     "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757623130/jhjy4nz6l1st5leuuy0h.jpg",
