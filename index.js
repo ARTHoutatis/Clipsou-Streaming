@@ -224,7 +224,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     const items = [];
     document.querySelectorAll('.fiche-popup[id]').forEach(popup => {
       const id = popup.getAttribute('id');
-      // Skip non-content popups like partenariat/submit
       if (!/^film\d+|^serie\d+/i.test(id)) return;
       const titleEl = popup.querySelector('h3');
       const title = titleEl ? titleEl.textContent.trim().replace(/\s+/g, ' ') : '';
@@ -235,39 +234,21 @@ document.addEventListener('DOMContentLoaded', async function () {
       const starsText = (popup.querySelector('.rating-genres .stars') || {}).textContent || '';
       const m = starsText.match(/([0-9]+(?:[\.,][0-9]+)?)/);
       const rating = m ? parseFloat(m[1].replace(',', '.')) : undefined;
-      // Extract a short description (first paragraph inside fiche-right)
       let description = '';
       const descEl = popup.querySelector('.fiche-right p');
       if (descEl) description = descEl.textContent.trim();
-      // Detect category from popup image filename (basename without trailing digits/extension)
-      // Examples:
-      //  - Ur1.jpg -> base "ur" => Minecraft
-      //  - Bac1.png -> base "bac" => Minecraft
-      //  - Ja1.jpg -> base "ja" => Live-action (Jackson Goup)
-      //  - Ba1.jpg -> base "ba" => Live-action (Batman trailer)
       const imgName = (image || '').split('/').pop();
-      const baseName = (imgName || '')
-        .replace(/\.(jpg|jpeg|png|webp)$/i, '')
-        .replace(/\d+$/g, '')
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove accents
-        .toLowerCase();
+      const baseName = (imgName || '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/\d+$/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
       let category = 'LEGO';
-      // Minecraft: Urbanos (ur), Backrooms Urbanos (bac), Batman trailer (ba), Dédoublement (de)
-      if (['ur', 'bac', 'ba', 'de'].includes(baseName)) {
-        category = 'Minecraft';
-      // Live-action: Jackson Goup (ja), Karma (ka)
-      } else if (['ja', 'ka'].includes(baseName)) {
-        category = 'Live-action';
-      }
+      if (['ur', 'bac', 'ba', 'de'].includes(baseName)) category = 'Minecraft';
+      else if (['ja', 'ka'].includes(baseName)) category = 'Live-action';
       let type = 'film';
-      if (/^serie/i.test(id)) type = 'série';
-      else if (/trailer/i.test(title)) type = 'trailer';
+      if (/^serie/i.test(id)) type = 'série'; else if (/trailer/i.test(title)) type = 'trailer';
       items.push({ id, title, image, genres, rating, type, category, description, baseName });
     });
 
-    // Auto-annotation of descriptions disabled by request. Descriptions are managed directly in index.html.
-
-    // Merge approved items from shared JSON (visible to all users)
+    // Merge from shared JSON (visible to all). If it fails, fallback to localStorage only on this device.
+    let sharedLoaded = false;
     try {
       const res = await fetch('data/approved.json?v=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' });
       if (res && res.ok) {
@@ -281,75 +262,43 @@ document.addEventListener('DOMContentLoaded', async function () {
             const imgName = (landscapeImage || portraitImage || '').split('/').pop();
             const baseName = (imgName || '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/\d+$/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
             const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-            items.push({
-              id: c.id,
-              title: c.title,
-              image: landscapeImage || portraitImage || 'apercu.png',
-              portraitImage,
-              landscapeImage,
-              genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [],
-              rating,
-              type,
-              category: c.category || 'LEGO',
-              description: c.description || '',
-              baseName,
-              watchUrl: c.watchUrl || ''
-            });
+            items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || 'apercu.png', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '' });
           });
+          sharedLoaded = true;
         }
       }
     } catch {}
 
-    // De-duplicate items by id (shared JSON + localStorage may produce duplicates)
-    {
-      const seen = new Set();
-      const dedup = [];
-      for (const it of items) {
-        if (!it || !it.id) continue;
-        if (seen.has(it.id)) continue;
-        seen.add(it.id);
-        dedup.push(it);
-      }
-      items.length = 0;
-      items.push(...dedup);
+    if (!sharedLoaded) {
+      try {
+        const approvedRaw = localStorage.getItem('clipsou_items_approved_v1');
+        if (approvedRaw) {
+          const approved = JSON.parse(approvedRaw);
+          if (Array.isArray(approved)) {
+            approved.forEach(c => {
+              if (!c || !c.id || !c.title) return;
+              const type = c.type || 'film';
+              const portraitImage = c.portraitImage || c.image || '';
+              const landscapeImage = c.landscapeImage || c.image || '';
+              const imgName = (landscapeImage || portraitImage || '').split('/').pop();
+              const baseName = (imgName || '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/\d+$/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+              const rating = (typeof c.rating === 'number') ? c.rating : undefined;
+              items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || 'apercu.png', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '' });
+            });
+          }
+        }
+      } catch {}
     }
 
-    // Merge approved custom items from admin (localStorage, only on this device)
-    try {
-      const approvedRaw = localStorage.getItem('clipsou_items_approved_v1');
-      if (approvedRaw) {
-        const approved = JSON.parse(approvedRaw);
-        if (Array.isArray(approved)) {
-          approved.forEach(c => {
-            if (!c || !c.id || !c.title) return;
-            const type = c.type || 'film';
-            const portraitImage = c.portraitImage || c.image || '';
-            const landscapeImage = c.landscapeImage || c.image || '';
-            const imgName = (landscapeImage || portraitImage || '').split('/').pop();
-            const baseName = (imgName || '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/\d+$/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-            // Category heuristic: keep default LEGO unless otherwise specified
-            const category = c.category || 'LEGO';
-            const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-            items.push({
-              id: c.id,
-              title: c.title,
-              image: landscapeImage || portraitImage || 'apercu.png',
-              portraitImage,
-              landscapeImage,
-              genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [],
-              rating,
-              type,
-              category,
-              description: c.description || '',
-              baseName,
-              watchUrl: c.watchUrl || ''
-            });
-          });
-        }
-      }
-    } catch {}
+    // De-duplicate by id
+    {
+      const seen = new Set();
+      const out = [];
+      for (const it of items) { if (!it || !it.id) continue; if (seen.has(it.id)) continue; seen.add(it.id); out.push(it); }
+      items.length = 0; items.push(...out);
+    }
 
-    // Helper: derive thumbnail from popup image (remove trailing digits and prefer .jpg/.jpeg/.png)
+    // Helper: derive thumbnail and backgrounds
     function deriveThumbnail(src) {
       if (!src) return '';
       try {
@@ -357,21 +306,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (!m) return src;
         const base = m[1];
         const originalExt = m[3].toLowerCase();
-        const candidates = [
-          base + '.webp',
-          base + '.jpg',
-          base + '.jpeg',
-          base + '.png',
-          // fallback to original without digit if it already had none
-          base + '.' + originalExt
-        ];
-        // Remove duplicates while preserving order
+        const candidates = [base + '.webp', base + '.jpg', base + '.jpeg', base + '.png', base + '.' + originalExt];
         return candidates.filter((v, i, a) => a.indexOf(v) === i);
       } catch { return [src]; }
     }
-
-    // Helper: derive preferred BACKGROUND poster list.
-    // Tries base+"1".(jpg|jpeg|png) first (e.g., Al1, Law1), then base.(jpg|jpeg|png), then original src.
     function deriveBackgrounds(src) {
       if (!src) return [];
       try {
@@ -379,19 +317,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (!m) return [src];
         const base = m[1];
         const originalExt = m[3].toLowerCase();
-        const withOne = [
-          base + '1.webp',
-          base + '1.jpg',
-          base + '1.jpeg',
-          base + '1.png'
-        ];
-        const withoutOne = [
-          base + '.webp',
-          base + '.jpg',
-          base + '.jpeg',
-          base + '.png',
-          base + '.' + originalExt
-        ];
+        const withOne = [base + '1.webp', base + '1.jpg', base + '1.jpeg', base + '1.png'];
+        const withoutOne = [base + '.webp', base + '.jpg', base + '.jpeg', base + '.png', base + '.' + originalExt];
         const seq = [...withOne, ...withoutOne, src];
         return seq.filter((v, i, a) => a.indexOf(v) === i);
       } catch { return [src]; }
@@ -399,344 +326,81 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Helper to create a card node from item
     function createCard(item) {
-      const card = document.createElement('div');
-      card.className = 'card';
-      const a = document.createElement('a');
-      a.setAttribute('href', `fiche.html?id=${item.id}`);
+      const card = document.createElement('div'); card.className = 'card';
+      const a = document.createElement('a'); a.setAttribute('href', `fiche.html?id=${item.id}`);
       const img = document.createElement('img');
-      // Prefer explicit portraitImage if available (custom items), fallback to derived from item.image
       const primaryPortrait = item.portraitImage || '';
       const thumbs = primaryPortrait ? [primaryPortrait] : deriveThumbnail(item.image);
-      let idx = 0;
-      img.src = (thumbs && thumbs[0]) || item.image || 'apercu.png';
-      img.onerror = function () {
-        if (idx < thumbs.length - 1) {
-          idx += 1;
-          this.src = thumbs[idx];
-        } else if (this.src !== 'apercu.png') {
-          this.src = 'apercu.png';
-        }
-      };
+      let idx = 0; img.src = (thumbs && thumbs[0]) || item.image || 'apercu.png';
+      img.onerror = function () { if (idx < thumbs.length - 1) { idx += 1; this.src = thumbs[idx]; } else if (this.src !== 'apercu.png') { this.src = 'apercu.png'; } };
       img.setAttribute('alt', `Affiche de ${item.title}`);
-      img.setAttribute('loading', 'lazy');
-      img.setAttribute('decoding', 'async');
-      const info = document.createElement('div');
-      info.className = 'card-info';
-      info.setAttribute('data-type', item.type || 'film');
-      if (typeof item.rating !== 'undefined') info.setAttribute('data-rating', String(item.rating));
-      // Media wrapper to overlay badge on the image only
-      const media = document.createElement('div');
-      media.className = 'card-media';
-      // Brand badge overlay (bottom-left of the image)
-      const badge = document.createElement('div');
-      badge.className = 'brand-badge';
-      const logo = document.createElement('img');
-      logo.src = 'clipsoustudio.png';
-      logo.alt = 'Clipsou Studio';
-      logo.setAttribute('loading', 'lazy');
-      logo.setAttribute('decoding', 'async');
-      badge.appendChild(logo);
-
-      media.appendChild(img);
-      media.appendChild(badge);
-      a.appendChild(media);
-      a.appendChild(info);
-      card.appendChild(a);
-      return card;
+      img.setAttribute('loading', 'lazy'); img.setAttribute('decoding', 'async');
+      const info = document.createElement('div'); info.className = 'card-info'; info.setAttribute('data-type', item.type || 'film'); if (typeof item.rating !== 'undefined') info.setAttribute('data-rating', String(item.rating));
+      const media = document.createElement('div'); media.className = 'card-media';
+      const badge = document.createElement('div'); badge.className = 'brand-badge'; const logo = document.createElement('img'); logo.src = 'clipsoustudio.png'; logo.alt = 'Clipsou Studio'; logo.setAttribute('loading', 'lazy'); logo.setAttribute('decoding', 'async'); badge.appendChild(logo);
+      media.appendChild(img); media.appendChild(badge); a.appendChild(media); a.appendChild(info); card.appendChild(a); return card;
     }
 
     // Populate Top Rated (sorted by rating desc)
     const topRated = document.querySelector('#top-rated .rail');
     if (topRated) {
-      const sorted = items
-        .filter(it => typeof it.rating === 'number' && it.rating >= 3.5)
-        .sort((a, b) => {
-          const ra = (typeof a.rating === 'number') ? a.rating : -Infinity;
-          const rb = (typeof b.rating === 'number') ? b.rating : -Infinity;
-          if (rb !== ra) return rb - ra;
-          return (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' });
-        });
-      topRated.innerHTML = '';
-      sorted.forEach(it => topRated.appendChild(createCard(it)));
+      const sorted = items.filter(it => typeof it.rating === 'number' && it.rating >= 3.5)
+        .sort((a, b) => { const ra = (typeof a.rating === 'number') ? a.rating : -Infinity; const rb = (typeof b.rating === 'number') ? b.rating : -Infinity; if (rb !== ra) return rb - ra; return (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' }); });
+      topRated.innerHTML = ''; sorted.forEach(it => topRated.appendChild(createCard(it)));
     }
 
     // Group by genre and ensure sections
     const firstPopup = document.querySelector('.fiche-popup');
     const byGenre = new Map();
-    items.forEach(it => {
-      (it.genres || []).forEach(g => {
-        if (!g) return;
-        const key = g.trim();
-        if (!byGenre.has(key)) byGenre.set(key, []);
-        byGenre.get(key).push(it);
-      });
-    });
-
-    // Emoji mapping for genre headers
-    function genreEmoji(name) {
-      const g = (name || '').toLowerCase();
-      const map = {
-        'action': '🔥',
-        'comédie': '😂',
-        'comedie': '😂',
-        'drame': '😢',
-        'familial': '👨‍👩‍👧',
-        'horreur': '👻',
-        'aventure': '🗺️',
-        'thriller': '🗡️',
-        'fantastique': '✨',
-        'western': '🤠',
-        'mystère': '🕵️',
-        'mystere': '🕵️',
-        'ambience': '🌫️',
-        'enfants': '🧒',
-        'super-héros': '🦸',
-        'super heros': '🦸',
-        'psychologique': '🧠'
-      };
-      return map[g] || '🎞️';
-    }
-
+    items.forEach(it => { (it.genres || []).forEach(g => { if (!g) return; const key = g.trim(); if (!byGenre.has(key)) byGenre.set(key, []); byGenre.get(key).push(it); }); });
+    function genreEmoji(name) { const g = (name || '').toLowerCase(); const map = { 'action':'🔥','comédie':'😂','comedie':'😂','drame':'😢','familial':'👨‍👩‍👧','horreur':'👻','aventure':'🗺️','thriller':'🗡️','fantastique':'✨','western':'🤠','mystère':'🕵️','mystere':'🕵️','ambience':'🌫️','enfants':'🧒','super-héros':'🦸','super heros':'🦸','psychologique':'🧠' }; return map[g] || '🎞️'; }
     byGenre.forEach((list, genreName) => {
       const id = 'genre-' + slug(genreName);
-      // TEMP: Skip 'Mystère' section to avoid duplicates with Backrooms/Karma
       const lowerName = (genreName || '').toLowerCase();
-      if (lowerName === 'mystère' || lowerName === 'mystere') {
-        const existing = document.getElementById(id);
-        if (existing) existing.remove();
-        return; // do not build this genre section
-      }
-      // If only one item for this genre, remove existing section if present and skip creation
-      if (!list || list.length <= 1) {
-        const existingSection = document.getElementById(id);
-        if (existingSection) existingSection.remove();
-        return;
-      }
-
+      if (lowerName === 'mystère' || lowerName === 'mystere') { const existing = document.getElementById(id); if (existing) existing.remove(); return; }
+      if (!list || list.length <= 1) { const existingSection = document.getElementById(id); if (existingSection) existingSection.remove(); return; }
       let section = document.getElementById(id);
-      if (!section) {
-        section = document.createElement('div');
-        section.className = 'section';
-        section.id = id;
-        const h2 = document.createElement('h2');
-        h2.textContent = `${genreEmoji(genreName)} ${genreName}`;
-        const rail = document.createElement('div');
-        rail.className = 'rail';
-        section.appendChild(h2);
-        section.appendChild(rail);
-        if (firstPopup && firstPopup.parentNode) firstPopup.parentNode.insertBefore(section, firstPopup);
-        else (document.querySelector('main') || document.body).appendChild(section);
-      }
-
-      const rail = section.querySelector('.rail');
-      // Ensure existing header has emoji
-      const header = section.querySelector('h2');
-      if (header) header.textContent = `${genreEmoji(genreName)} ${genreName}`;
-      // Sort by rating desc then title, rebuild rail to enforce order
-      const sorted = list.slice().sort((a, b) => {
-        const ra = (typeof a.rating === 'number') ? a.rating : -Infinity;
-        const rb = (typeof b.rating === 'number') ? b.rating : -Infinity;
-        if (rb !== ra) return rb - ra;
-        return (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' });
-      });
-      rail.innerHTML = '';
-      const seen = new Set();
-      sorted.forEach(it => {
-        const href = `#${it.id}`;
-        if (seen.has(href)) return;
-        rail.appendChild(createCard(it));
-        seen.add(href);
-      });
-
-      // After population, if the section ends up with <= 1 card, remove it
-      const cardCount = rail.querySelectorAll('.card').length;
-      if (cardCount <= 1) {
-        section.remove();
-      }
+      if (!section) { section = document.createElement('div'); section.className = 'section'; section.id = id; const h2 = document.createElement('h2'); h2.textContent = `${genreEmoji(genreName)} ${genreName}`; const rail = document.createElement('div'); rail.className = 'rail'; section.appendChild(h2); section.appendChild(rail); if (firstPopup && firstPopup.parentNode) firstPopup.parentNode.insertBefore(section, firstPopup); else (document.querySelector('main') || document.body).appendChild(section); }
+      const rail = section.querySelector('.rail'); const header = section.querySelector('h2'); if (header) header.textContent = `${genreEmoji(genreName)} ${genreName}`;
+      const sorted = list.slice().sort((a, b) => { const ra = (typeof a.rating === 'number') ? a.rating : -Infinity; const rb = (typeof b.rating === 'number') ? b.rating : -Infinity; if (rb !== ra) return rb - ra; return (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' }); });
+      rail.innerHTML = ''; const seen = new Set(); sorted.forEach(it => { const href = `#${it.id}`; if (seen.has(href)) return; rail.appendChild(createCard(it)); seen.add(href); });
+      if (rail.querySelectorAll('.card').length <= 1) { section.remove(); }
     });
 
-    // Build requested category sections: LEGO, Minecraft, Live-action (always shown when >=1)
-    function categoryEmoji(name) {
-      const g = (name || '').toLowerCase();
-      const map = {
-        'lego': '🧱',
-        'minecraft': '⛏️',
-        'live-action': '🎬'
-      };
-      return map[g] || '🎞️';
-    }
-
+    // Build category sections
+    function categoryEmoji(name) { const g = (name || '').toLowerCase(); const map = { 'lego':'🧱','minecraft':'⛏️','live-action':'🎬' }; return map[g] || '🎞️'; }
     function buildCategorySection(name, list) {
       const id = 'category-' + slug(name);
       let section = document.getElementById(id);
-      if (!section) {
-        section = document.createElement('div');
-        section.className = 'section';
-        section.id = id;
-        const h2 = document.createElement('h2');
-        h2.textContent = `${categoryEmoji(name)} ${name}`;
-        const rail = document.createElement('div');
-        rail.className = 'rail';
-        section.appendChild(h2);
-        section.appendChild(rail);
-        if (firstPopup && firstPopup.parentNode) firstPopup.parentNode.insertBefore(section, firstPopup);
-        else (document.querySelector('main') || document.body).appendChild(section);
-      }
-      const rail = section.querySelector('.rail');
-      rail.innerHTML = '';
-      const seen = new Set();
-      list.forEach(it => {
-        const href = `#${it.id}`;
-        if (seen.has(href)) return;
-        rail.appendChild(createCard(it));
-        seen.add(href);
-      });
+      if (!section) { section = document.createElement('div'); section.className = 'section'; section.id = id; const h2 = document.createElement('h2'); h2.textContent = `${categoryEmoji(name)} ${name}`; const rail = document.createElement('div'); rail.className = 'rail'; section.appendChild(h2); section.appendChild(rail); if (firstPopup && firstPopup.parentNode) firstPopup.parentNode.insertBefore(section, firstPopup); else (document.querySelector('main') || document.body).appendChild(section); }
+      const rail = section.querySelector('.rail'); rail.innerHTML = ''; const seen = new Set(); list.forEach(it => { const href = `#${it.id}`; if (seen.has(href)) return; rail.appendChild(createCard(it)); seen.add(href); });
     }
-
     const cats = ['LEGO', 'Minecraft', 'Live-action'];
-    const byCat = new Map();
-    cats.forEach(c => byCat.set(c, []));
-    items.forEach(it => {
-      const c = it.category || 'LEGO';
-      if (!byCat.has(c)) byCat.set(c, []);
-      byCat.get(c).push(it);
-    });
-    cats.forEach(c => {
-      const list = byCat.get(c) || [];
-      if (list.length >= 1) buildCategorySection(c, list);
-    });
+    const byCat = new Map(); cats.forEach(c => byCat.set(c, []));
+    items.forEach(it => { const c = it.category || 'LEGO'; if (!byCat.has(c)) byCat.set(c, []); byCat.get(c).push(it); });
+    cats.forEach(c => { const list = byCat.get(c) || []; if (list.length >= 1) buildCategorySection(c, list); });
 
     // Build carousel with 5 random films/séries (exclude trailers)
     (function buildRandomCarousel() {
-      const container = document.querySelector('.carousel-container');
-      if (!container) return;
-      const slidesTrack = container.querySelector('.carousel-slides');
-      const indicatorsWrap = container.querySelector('.carousel-indicators');
-      if (!slidesTrack || !indicatorsWrap) return;
-
-      // Pool: films + séries only
-      const pool = items.filter(it => {
-        const t = (it.type || '').toLowerCase();
-        return t === 'film' || t === 'série' || t === 'serie';
-      });
-      if (pool.length === 0) return;
-
-      // Shuffle (Fisher-Yates)
-      const arr = pool.slice();
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      const chosen = arr.slice(0, Math.min(5, arr.length));
-
-      // Clear existing
-      slidesTrack.innerHTML = '';
-      indicatorsWrap.innerHTML = '';
-
-      // Build slide DOM for each chosen item
+      const container = document.querySelector('.carousel-container'); if (!container) return;
+      const slidesTrack = container.querySelector('.carousel-slides'); const indicatorsWrap = container.querySelector('.carousel-indicators'); if (!slidesTrack || !indicatorsWrap) return;
+      const pool = items.filter(it => { const t = (it.type || '').toLowerCase(); return t === 'film' || t === 'série' || t === 'serie'; }); if (pool.length === 0) return;
+      const arr = pool.slice(); for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+      const chosen = arr.slice(0, Math.min(5, arr.length)); slidesTrack.innerHTML = ''; indicatorsWrap.innerHTML = '';
       chosen.forEach((it, idx) => {
-        const slide = document.createElement('div');
-        slide.className = 'carousel-slide';
-        // Use an <img> as visual background to allow robust fallbacks
-        const bg = document.createElement('img');
-        bg.setAttribute('alt', '');
-        bg.setAttribute('aria-hidden', 'true');
-        bg.decoding = 'async';
-        // Prioritize the first slide image for better LCP, keep others lazy
-        if (idx === 0) {
-          bg.loading = 'eager';
-          try { bg.fetchPriority = 'high'; } catch {}
-        } else {
-          bg.loading = 'lazy';
-          try { bg.fetchPriority = 'low'; } catch {}
-        }
-        Object.assign(bg.style, {
-          position: 'absolute',
-          inset: '0',
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          zIndex: '0'
-        });
-        // For Backrooms Urbanos, keep top visible (crop bottom) instead of centering
-        if ((it.baseName || '').toLowerCase() === 'bac') {
-          bg.style.objectPosition = 'top center';
-        }
-        // Prefer the exact provided image first (landscapeImage or image)
-        // This ensures items like Jean‑Michel use Je1.webp before any derivation
-        const primaryBg = it.landscapeImage || (it.image || '');
-        const backs = primaryBg ? [primaryBg, ...deriveBackgrounds(primaryBg)] : deriveBackgrounds(it.image || '');
-        let bIdx = 0;
-        bg.src = backs[bIdx] || (it.image || '');
-        bg.onerror = function () {
-          if (bIdx < backs.length - 1) {
-            bIdx += 1;
-            this.src = backs[bIdx];
-          }
-        };
-
-        const content = document.createElement('div');
-        content.className = 'carousel-content';
-
-        const h2 = document.createElement('h2');
-        h2.className = 'carousel-title';
-        h2.textContent = it.title || '';
-
-        const genresWrap = document.createElement('div');
-        genresWrap.className = 'carousel-genres';
-        // Rating inline with genres like on fiche: ★3/5 or ★3.5/5 (dot, no trailing .0)
-        if (typeof it.rating === 'number' && !Number.isNaN(it.rating)) {
-          const ratingSpan = document.createElement('span');
-          ratingSpan.className = 'carousel-rating';
-          const rounded = Math.round(it.rating * 10) / 10; // one decimal
-          let txt = rounded.toFixed(1);
-          if (txt.endsWith('.0')) txt = String(Math.round(rounded));
-          const star = document.createElement('span');
-          star.className = 'star';
-          star.textContent = '★';
-          star.setAttribute('aria-hidden', 'true');
-          ratingSpan.appendChild(star);
-          ratingSpan.appendChild(document.createTextNode(`${txt}/5`));
-          ratingSpan.setAttribute('aria-label', `Note ${txt} sur 5`);
-          ratingSpan.setAttribute('data-rating', String(it.rating));
-          genresWrap.appendChild(ratingSpan);
-        }
-        (it.genres || []).slice(0, 3).forEach(g => {
-          const tag = document.createElement('span');
-          tag.className = 'carousel-genre-tag';
-          tag.textContent = g;
-          genresWrap.appendChild(tag);
-        });
-
-        const p = document.createElement('p');
-        p.className = 'carousel-description';
-        p.textContent = it.description || '';
-
-        const link = document.createElement('a');
-        link.className = 'carousel-btn';
-        link.href = `fiche.html?id=${it.id}`;
-        link.textContent = 'Voir la fiche';
-
-        content.appendChild(h2);
-        content.appendChild(genresWrap);
-        if (it.description) content.appendChild(p);
-        content.appendChild(link);
-        slide.appendChild(bg);
-        slide.appendChild(content);
-        slidesTrack.appendChild(slide);
-
-        // Indicator
-        const dot = document.createElement('div');
-        dot.className = 'carousel-indicator' + (idx === 0 ? ' active' : '');
-        dot.setAttribute('role', 'button');
-        dot.setAttribute('tabindex', '0');
-        dot.setAttribute('aria-label', `Aller à la diapositive ${idx + 1}`);
-        dot.setAttribute('data-index', String(idx));
-        if (idx === 0) dot.setAttribute('aria-current', 'true');
-        indicatorsWrap.appendChild(dot);
+        const slide = document.createElement('div'); slide.className = 'carousel-slide';
+        const bg = document.createElement('img'); bg.setAttribute('alt', ''); bg.setAttribute('aria-hidden', 'true'); bg.decoding = 'async'; if (idx === 0) { bg.loading = 'eager'; try { bg.fetchPriority = 'high'; } catch {} } else { bg.loading = 'lazy'; try { bg.fetchPriority = 'low'; } catch {} }
+        Object.assign(bg.style, { position: 'absolute', inset: '0', width: '100%', height: '100%', objectFit: 'cover', zIndex: '0' }); if ((it.baseName || '').toLowerCase() === 'bac') { bg.style.objectPosition = 'top center'; }
+        const primaryBg = it.landscapeImage || (it.image || ''); const backs = primaryBg ? [primaryBg, ...deriveBackgrounds(primaryBg)] : deriveBackgrounds(it.image || ''); let bIdx = 0; bg.src = backs[bIdx] || (it.image || ''); bg.onerror = function () { if (bIdx < backs.length - 1) { bIdx += 1; this.src = backs[bIdx]; } };
+        const content = document.createElement('div'); content.className = 'carousel-content';
+        const h2 = document.createElement('h2'); h2.className = 'carousel-title'; h2.textContent = it.title || '';
+        const genresWrap = document.createElement('div'); genresWrap.className = 'carousel-genres'; if (typeof it.rating === 'number' && !Number.isNaN(it.rating)) { const ratingSpan = document.createElement('span'); ratingSpan.className = 'carousel-rating'; const rounded = Math.round(it.rating * 10) / 10; let txt = rounded.toFixed(1); if (txt.endsWith('.0')) txt = String(Math.round(rounded)); const star = document.createElement('span'); star.className = 'star'; star.textContent = '★'; star.setAttribute('aria-hidden', 'true'); ratingSpan.appendChild(star); ratingSpan.appendChild(document.createTextNode(`${txt}/5`)); ratingSpan.setAttribute('aria-label', `Note ${txt} sur 5`); ratingSpan.setAttribute('data-rating', String(it.rating)); genresWrap.appendChild(ratingSpan); } (it.genres || []).slice(0, 3).forEach(g => { const tag = document.createElement('span'); tag.className = 'carousel-genre-tag'; tag.textContent = g; genresWrap.appendChild(tag); });
+        const p = document.createElement('p'); p.className = 'carousel-description'; p.textContent = it.description || '';
+        const link = document.createElement('a'); link.className = 'carousel-btn'; link.href = `fiche.html?id=${it.id}`; link.textContent = 'Voir la fiche';
+        content.appendChild(h2); content.appendChild(genresWrap); if (it.description) content.appendChild(p); content.appendChild(link);
+        slide.appendChild(bg); slide.appendChild(content); slidesTrack.appendChild(slide);
+        const dot = document.createElement('div'); dot.className = 'carousel-indicator' + (idx === 0 ? ' active' : ''); dot.setAttribute('role', 'button'); dot.setAttribute('tabindex', '0'); dot.setAttribute('aria-label', `Aller à la diapositive ${idx + 1}`); dot.setAttribute('data-index', String(idx)); if (idx === 0) dot.setAttribute('aria-current', 'true'); indicatorsWrap.appendChild(dot);
       });
-
-      // After dynamic build, (re)setup the carousel controls
       setupCarousel();
     })();
   })();
