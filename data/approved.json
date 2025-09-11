@@ -15,5 +15,22 @@
     "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757623133/vzdswffjgh3dedgmqp9y.jpg",
     "watchUrl": "https://www.youtube.com/watch?v=snro9u1Vsuk",
     "actors": []
+  },
+  {
+    "id": "custom-test-rjou",
+    "requestId": "r_mffvfwgw_vewced",
+    "title": "test",
+    "type": "série",
+    "rating": 2,
+    "genres": [
+      "Action",
+      "Ambience",
+      "Comédie"
+    ],
+    "description": "test",
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757623130/jhjy4nz6l1st5leuuy0h.jpg",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757623133/vzdswffjgh3dedgmqp9y.jpg",
+    "watchUrl": "https://www.youtube.com/watch?v=snro9u1Vsuk",
+    "actors": []
   }
 ]
