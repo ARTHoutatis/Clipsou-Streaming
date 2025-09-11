@@ -4,22 +4,71 @@ html, body { margin: 0; padding: 0; background: #0b1117; color: #e5e7eb; font-fa
 h1, h2, h3 { margin: 12px 0; }
 .muted { color: #94a3b8; }
 .small { font-size: 12px; }
-.btn { background: #2563eb; color: white; border: 0; padding: 10px 14px; border-radius: 8px; cursor: pointer; }
-.btn.secondary { background: #334155; }
+
+/* Sections as cards for better separation */
+.form-section { background: #0f172a; border: 1px solid #1f2a3a; border-radius: 12px; padding: 16px; margin: 16px 0; }
+
+/* Unified button styles */
+.btn {
+  background: #2563eb;
+  color: white;
+  border: 0;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1;
+}
+.btn.secondary { background: #334155; color: #e5e7eb; }
 .btn:disabled { opacity: .6; cursor: not-allowed; }
-.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+/* Inputs aligned to the same control height where relevant */
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 label { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
-input[type="text"], input[type="url"], input[type="password"], input[type="number"], textarea, select { background: #0f172a; color: #e5e7eb; border: 1px solid #334155; border-radius: 8px; padding: 10px 12px; }
+input[type="text"], input[type="url"], input[type="password"], input[type="number"], textarea, select {
+  background: #0f172a;
+  color: #e5e7eb;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+input[type="text"], input[type="url"], input[type="password"], input[type="number"], select { height: 40px; }
 textarea { resize: vertical; }
-fieldset { border: 1px solid #334155; border-radius: 8px; padding: 12px; margin: 12px 0; }
+
+fieldset { border: 1px solid #334155; border-radius: 12px; padding: 12px; margin: 12px 0; }
 .actor-row { display: flex; gap: 8px; align-items: center; }
 .actors-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; margin-bottom: 8px; }
 .actor-chip { background: #1f2937; border: 1px solid #374151; border-radius: 999px; padding: 6px 10px; display: inline-flex; align-items: center; gap: 8px; }
 .actor-chip .remove { background: transparent; border: 0; color: #e11d48; cursor: pointer; }
-.actions { display: flex; gap: 8px; margin: 10px 0; }
+
+/* Better action rows */
+.actions { display: flex; gap: 10px; margin: 10px 0; flex-wrap: wrap; align-items: center; }
+
 .table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-.table th, .table td { border-bottom: 1px solid #334155; padding: 8px; text-align: left; vertical-align: top; }
-.table .row-actions { display: flex; gap: 6px; }
+.table th, .table td { border-bottom: 1px solid #334155; padding: 10px; text-align: left; vertical-align: top; }
+.table .row-actions { display: flex; gap: 8px; }
+
 .file-label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+
 .login { max-width: 420px; margin: 64px auto; padding: 24px; background: #0f172a; border: 1px solid #334155; border-radius: 12px; text-align: center; }
+
 @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+
+/* Image previews */
+.img-preview {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #0f172a;
+  margin: 6px 0;
+}
+
+/* Lock button minor adjustment */
+.lock-btn { height: 34px; padding: 0 10px; font-size: 13px; }

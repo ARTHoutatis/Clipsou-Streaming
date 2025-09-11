@@ -6,8 +6,82 @@
   const APP_KEY_DRAFT = 'clipsou_admin_form_draft_v1';
   const APP_KEY_SESSION = 'clipsou_admin_session_v1';
   const APP_KEY_REMEMBER = 'clipsou_admin_remember_v1';
+  const APP_KEY_CLD = 'clipsou_admin_cloudinary_v1';
+  const APP_KEY_CLD_LOCK = 'clipsou_admin_cloudinary_lock_v1';
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+  // ===== Cloudinary config (unsigned upload) =====
+  // Renseignez ici votre cloud name et votre upload preset configuré en "unsigned" dans Cloudinary.
+  // Doc: https://cloudinary.com/documentation/upload_images#unsigned_upload
+  // Valeurs par défaut (préremplies et verrouillées par défaut dans l'UI)
+  const CLOUDINARY = {
+    cloudName: 'dlaisw4zm',
+    uploadPreset: 'dlaisw4zm_unsigned',
+    folder: ''
+  };
+
+  function getCldConfig(){
+    try {
+      const saved = JSON.parse(localStorage.getItem(APP_KEY_CLD) || 'null');
+      const cfg = Object.assign({}, CLOUDINARY, saved || {});
+      return cfg;
+    } catch { return Object.assign({}, CLOUDINARY); }
+  }
+
+  function setCldConfig(cfg){
+    try { localStorage.setItem(APP_KEY_CLD, JSON.stringify(cfg || {})); } catch {}
+  }
+
+  function cloudinaryConfigured(){
+    const cfg = getCldConfig();
+    return cfg.cloudName && cfg.uploadPreset &&
+           !String(cfg.cloudName).includes('<') &&
+           !String(cfg.uploadPreset).includes('<');
+  }
+
+  function cloudinaryUploadUrl(){
+    const cfg = getCldConfig();
+    return `https://api.cloudinary.com/v1_1/${cfg.cloudName}/image/upload`;
+  }
+
+  function transformDeliveryUrl(url){
+    // Ajoute les transformations f_auto,q_auto pour servir en WEBP/AVIF avec qualité auto
+    try { return url.replace('/upload/', '/upload/f_auto,q_auto/'); } catch { return url; }
+  }
+
+  async function uploadImageToCloudinary(file){
+    if (!cloudinaryConfigured()) {
+      alert('Cloudinary n\'est pas configuré. Merci de renseigner « Cloud name » et « Upload preset » dans la section Stockage images (en haut de l\'admin).');
+      throw new Error('Cloudinary not configured');
+    }
+    const cfg = getCldConfig();
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', cfg.uploadPreset);
+    if (cfg.folder) fd.append('folder', cfg.folder);
+    const res = await fetch(cloudinaryUploadUrl(), { method: 'POST', body: fd });
+    if (!res.ok) {
+      const txt = await res.text().catch(()=>String(res.status));
+      throw new Error('Upload failed: '+txt);
+    }
+    const json = await res.json();
+    if (!json || !json.secure_url) throw new Error('Réponse upload invalide');
+    return transformDeliveryUrl(json.secure_url);
+  }
+
+  function setPreview(imgEl, value){
+    if (!imgEl) return;
+    const url = (value||'').trim();
+    if (!url) {
+      imgEl.hidden = true;
+      try { imgEl.removeAttribute('src'); } catch {}
+      return;
+    }
+    const full = url.startsWith('http') ? url : `../${url}`;
+    imgEl.src = full;
+    imgEl.hidden = false;
+  }
 
   function loadJSON(key, fallback){
     try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch(_) { return fallback; }
@@ -119,6 +193,9 @@
     const actors = Array.isArray(data.actors) ? data.actors.slice() : [];
     $('#contentForm').dataset.actors = JSON.stringify(actors);
     renderActors(actors);
+    // Previews
+    setPreview($('#portraitPreview'), $('#portraitImage').value);
+    setPreview($('#landscapePreview'), $('#landscapeImage').value);
   }
 
   function emptyForm(){ fillForm({}); }
@@ -243,6 +320,144 @@
 
     $('#resetBtn').addEventListener('click', ()=>{ emptyForm(); clearDraft(); });
 
+    // ===== Cloudinary settings form =====
+    (function wireCloudinaryForm(){
+      const nameEl = $('#cldCloudName');
+      const presetEl = $('#cldUploadPreset');
+      const folderEl = $('#cldFolder');
+      const saveBtn = $('#cldSaveBtn');
+      const clearBtn = $('#cldClearBtn');
+      const statusEl = $('#cldStatus');
+      const lockBtn = $('#cldLockBtn');
+      const actionsRow = $('#cldActionsRow');
+
+      function refreshUI(){
+        const cfg = getCldConfig();
+        if (nameEl) nameEl.value = cfg.cloudName || '';
+        if (presetEl) presetEl.value = cfg.uploadPreset || '';
+        if (folderEl) folderEl.value = cfg.folder || '';
+        if (statusEl) {
+          if (cloudinaryConfigured()) {
+            statusEl.textContent = 'Cloudinary est configuré. Les uploads sont activés.';
+          } else {
+            statusEl.textContent = 'Cloudinary n\'est pas configuré. Renseignez les champs ci-dessus pour activer l\'upload.';
+          }
+        }
+      }
+
+      function isLocked(){
+        try { return (localStorage.getItem(APP_KEY_CLD_LOCK) || '1') === '1'; } catch { return true; }
+      }
+      function setLocked(v){
+        try { localStorage.setItem(APP_KEY_CLD_LOCK, v ? '1' : '0'); } catch {}
+      }
+      function applyLockUI(locked){
+        const ro = !!locked;
+        if (nameEl) nameEl.readOnly = ro;
+        if (presetEl) presetEl.readOnly = ro;
+        if (folderEl) folderEl.readOnly = ro;
+        if (saveBtn) saveBtn.disabled = ro;
+        if (clearBtn) clearBtn.disabled = ro;
+        if (actionsRow) actionsRow.style.opacity = ro ? '0.7' : '1';
+        if (lockBtn) {
+          lockBtn.textContent = locked ? '🔒' : '🔓';
+          lockBtn.title = locked ? 'Déverrouiller la configuration' : 'Verrouiller la configuration';
+          lockBtn.classList.toggle('secondary', locked);
+        }
+      }
+
+      refreshUI();
+      applyLockUI(isLocked());
+      if (saveBtn) saveBtn.addEventListener('click', ()=>{
+        const cfg = {
+          cloudName: (nameEl && nameEl.value || '').trim(),
+          uploadPreset: (presetEl && presetEl.value || '').trim(),
+          folder: (folderEl && folderEl.value || '').trim()
+        };
+        setCldConfig(cfg);
+        refreshUI();
+        alert('Configuration Cloudinary enregistrée.');
+      });
+      if (clearBtn) clearBtn.addEventListener('click', ()=>{
+        try { localStorage.removeItem(APP_KEY_CLD); } catch {}
+        refreshUI();
+        alert('Configuration Cloudinary réinitialisée.');
+      });
+      if (lockBtn) lockBtn.addEventListener('click', ()=>{
+        const next = !isLocked();
+        setLocked(next);
+        applyLockUI(next);
+      });
+    })();
+
+    // ===== Upload & previews wiring =====
+    const portraitInput = $('#portraitFileInput');
+    const landscapeInput = $('#landscapeFileInput');
+    const portraitText = $('#portraitImage');
+    const landscapeText = $('#landscapeImage');
+    const portraitPreview = $('#portraitPreview');
+    const landscapePreview = $('#landscapePreview');
+    const portraitClearBtn = $('#portraitClearBtn');
+    const landscapeClearBtn = $('#landscapeClearBtn');
+
+    function wireTextPreview(inputEl, previewEl){
+      if (!inputEl || !previewEl) return;
+      inputEl.addEventListener('input', ()=> setPreview(previewEl, inputEl.value));
+      inputEl.addEventListener('change', ()=> setPreview(previewEl, inputEl.value));
+    }
+    wireTextPreview(portraitText, portraitPreview);
+    wireTextPreview(landscapeText, landscapePreview);
+
+    async function handleUpload(kind, file){
+      const btns = $$('.btn');
+      btns.forEach(b=>b.disabled=true);
+      try {
+        const url = await uploadImageToCloudinary(file);
+        if (kind==='portrait') {
+          portraitText.value = url;
+          setPreview(portraitPreview, url);
+        } else {
+          landscapeText.value = url;
+          setPreview(landscapePreview, url);
+        }
+        saveDraft();
+      } catch(err){
+        console.error(err);
+        alert('Échec de l\'upload: '+ (err && err.message ? err.message : 'inconnu'));
+      } finally {
+        btns.forEach(b=>b.disabled=false);
+      }
+    }
+
+    if (portraitInput) {
+      portraitInput.addEventListener('change', async (e)=>{
+        const f = e.target.files && e.target.files[0];
+        if (f) await handleUpload('portrait', f);
+        e.target.value = '';
+      });
+    }
+    if (landscapeInput) {
+      landscapeInput.addEventListener('change', async (e)=>{
+        const f = e.target.files && e.target.files[0];
+        if (f) await handleUpload('landscape', f);
+        e.target.value = '';
+      });
+    }
+    if (portraitClearBtn) {
+      portraitClearBtn.addEventListener('click', ()=>{
+        portraitText.value = '';
+        setPreview(portraitPreview, '');
+        saveDraft();
+      });
+    }
+    if (landscapeClearBtn) {
+      landscapeClearBtn.addEventListener('click', ()=>{
+        landscapeText.value = '';
+        setPreview(landscapePreview, '');
+        saveDraft();
+      });
+    }
+
     $('#contentForm').addEventListener('submit', (e)=>{
       e.preventDefault();
       const data = collectForm();
@@ -277,7 +492,8 @@
     form.addEventListener('input', schedule);
     form.addEventListener('change', schedule);
 
-    $('#exportBtn').addEventListener('click', ()=>{
+    const exportBtn = $('#exportBtn');
+    if (exportBtn) exportBtn.addEventListener('click', ()=>{
       const payload = {
         requests: getRequests(),
         approved: getApproved()
@@ -289,7 +505,8 @@
       URL.revokeObjectURL(url);
     });
 
-    $('#importInput').addEventListener('change', async (e)=>{
+    const importInput = $('#importInput');
+    if (importInput) importInput.addEventListener('change', async (e)=>{
       const file = e.target.files && e.target.files[0];
       if (!file) return;
       try {
