@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Admin – Clipsou Streaming</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="../favicon.png" type="image/png">
+  <link rel="stylesheet" href="admin.css?v=20250910">
+</head>
+<body>
+  <main class="container" id="app" hidden>
+    <h1>Clipsou Streaming – Admin</h1>
+
+    <section class="auth">
+      <p class="muted">Accès restreint. Votre session admin est active.</p>
+      <button id="logoutBtn" type="button" class="btn">Se déconnecter</button>
+    </section>
+
+    <section class="form-section">
+      <h2>Ajouter / Modifier un contenu</h2>
+      <form id="contentForm">
+        <input type="hidden" name="id" id="id">
+        <input type="hidden" name="requestId" id="requestId">
+
+        <div class="grid">
+          <label>
+            <span>Titre</span>
+            <input type="text" id="title" required>
+          </label>
+          <label>
+            <span>Type</span>
+            <select id="type" required>
+              <option value="film">Film</option>
+              <option value="série">Série</option>
+              <option value="trailer">Trailer</option>
+            </select>
+          </label>
+          <label>
+            <span>Note (/5)</span>
+            <input type="number" id="rating" step="0.1" min="0" max="5" placeholder="3.5">
+          </label>
+        </div>
+
+        <div class="grid">
+          <label>
+            <span>Genre 1</span>
+            <input type="text" id="genre1" list="genresDatalist" required>
+          </label>
+          <label>
+            <span>Genre 2</span>
+            <input type="text" id="genre2" list="genresDatalist" required>
+          </label>
+          <label>
+            <span>Genre 3</span>
+            <input type="text" id="genre3" list="genresDatalist" required>
+          </label>
+        </div>
+
+        <label>
+          <span>Description</span>
+          <textarea id="description" rows="4" required></textarea>
+        </label>
+
+        <div class="grid">
+          <label>
+            <span>Image carte (portrait 9/12) – ex: Je.webp</span>
+            <input type="text" id="portraitImage" placeholder="Nom de fichier ou URL" required>
+          </label>
+          <label>
+            <span>Image fiche (paysage 16/9) – ex: Je1.webp</span>
+            <input type="text" id="landscapeImage" placeholder="Nom de fichier ou URL" required>
+          </label>
+          <label>
+            <span>Lien YouTube</span>
+            <input type="url" id="watchUrl" placeholder="https://www.youtube.com/..." required>
+          </label>
+        </div>
+
+        <fieldset>
+          <legend>Acteurs & Doubleurs</legend>
+          <div id="actorsList" class="actors-list"></div>
+          <div class="actor-row">
+            <input type="text" id="actorName" placeholder="Nom" list="actorNamesDatalist">
+            <input type="text" id="actorRole" placeholder="Rôle">
+            <button type="button" id="addActorBtn" class="btn secondary">Ajouter</button>
+          </div>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit" class="btn">Enregistrer la requête</button>
+          <button type="button" id="resetBtn" class="btn secondary">Réinitialiser</button>
+        </div>
+      </form>
+      <datalist id="genresDatalist"></datalist>
+      <datalist id="actorNamesDatalist"></datalist>
+    </section>
+
+    <section class="requests">
+      <h2>Requêtes d'ajout</h2>
+      <div class="actions">
+        <button type="button" id="exportBtn" class="btn secondary">Exporter JSON</button>
+        <label class="btn file-label">
+          Importer JSON
+          <input type="file" id="importInput" accept="application/json" hidden>
+        </label>
+      </div>
+      <table class="table" id="requestsTable" aria-describedby="requestsHelp">
+        <thead>
+          <tr>
+            <th>Titre</th>
+            <th>Type</th>
+            <th>Genres</th>
+            <th>Note</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p id="requestsHelp" class="muted">Approuvez une requête pour la publier. Vous pouvez modifier ou supprimer à tout moment.</p>
+    </section>
+  </main>
+
+  <div id="login" class="login">
+    <h1>Admin – Connexion</h1>
+    <p class="muted">Entrez le mot de passe admin pour accéder à l’interface.</p>
+    <input id="passwordInput" type="password" placeholder="Mot de passe">
+    <div style="display:flex; gap:12px; justify-content:center; align-items:center; margin:8px 0;">
+      <label style="display:flex; gap:6px; align-items:center;">
+        <input id="showPwd" type="checkbox">
+        <span>Afficher le mot de passe</span>
+      </label>
+    </div>
+    <button id="loginBtn" class="btn">Se connecter</button>
+  </div>
+
+  <script src="admin.js" defer></script>
+</body>
+</html>
