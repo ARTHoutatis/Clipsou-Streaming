@@ -32,7 +32,7 @@ const LOCAL_FALLBACK_DB = [
   {
     id: 'film1',
     title: 'La vie au petit âge',
-    image: 'La1.jpg',
+    image: 'La1.webp',
     genres: ['Comédie','Familial','Aventure'],
     rating: 2.5,
     type: 'film',
@@ -42,7 +42,7 @@ const LOCAL_FALLBACK_DB = [
   {
     id: 'film2',
     title: 'Dédoublement',
-    image: 'Dé1.jpg',
+    image: 'Dé1.webp',
     genres: ['Thriller','Comédie','Action'],
     rating: 4,
     type: 'film',
@@ -52,7 +52,7 @@ const LOCAL_FALLBACK_DB = [
   {
     id: 'film3',
     title: 'Jackson Goup',
-    image: 'Ja1.jpg',
+    image: 'Ja1.webp',
     genres: ['Aventure','Fantastique','Comédie'],
     rating: 3.5,
     type: 'film',
@@ -62,7 +62,7 @@ const LOCAL_FALLBACK_DB = [
   {
     id: 'serie1',
     title: 'Alex',
-    image: 'Al1.jpg',
+    image: 'Al1.webp',
     genres: ['Action','Comédie','Familial'],
     rating: 3,
     type: 'série',
@@ -72,7 +72,7 @@ const LOCAL_FALLBACK_DB = [
   {
     id: 'serie2',
     title: 'Lawless Legend',
-    image: 'Law1.jpg',
+    image: 'Law1.webp',
     genres: ['Western','Comédie','Action'],
     rating: 3,
     type: 'série',
@@ -82,7 +82,7 @@ const LOCAL_FALLBACK_DB = [
   {
     id: 'film4',
     title: 'Karma',
-    image: 'Ka1.jpg',
+    image: 'Ka1.webp',
     genres: ['Horreur','Mystère','Psychologique'],
     rating: 2.5,
     type: 'film',
@@ -92,7 +92,7 @@ const LOCAL_FALLBACK_DB = [
   {
     id: 'film5',
     title: 'Trailer BATMAN',
-    image: 'Ba1.jpg',
+    image: 'Ba1.webp',
     genres: ['Action','Drame','Super-héros'],
     type: 'trailer',
     description: "Un nouveau trailer de Batman, sombre et intense, réimaginé dans l'univers Minecraft. Découvrez des premières images qui redéfinissent le chevalier noir avec une approche moderne et spectaculaire.",
@@ -101,7 +101,7 @@ const LOCAL_FALLBACK_DB = [
   {
     id: 'film6',
     title: 'URBANOS city',
-    image: 'Ur1.jpg',
+    image: 'Ur1.webp',
     genres: ['Comédie','Familial','Enfants'],
     rating: 2,
     type: 'film',
@@ -111,7 +111,7 @@ const LOCAL_FALLBACK_DB = [
   {
     id: 'film7',
     title: 'Backrooms URBANOS',
-    image: 'Bac1.png',
+    image: 'Bac1.webp',
     genres: ['Horreur','Mystère','Ambience'],
     rating: 3.5,
     type: 'film',

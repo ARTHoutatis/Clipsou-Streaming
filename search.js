@@ -3,16 +3,16 @@ let moviesDatabase = [];
 
 // Fallback minimal (s'active seulement si on ne peut pas lire index.html)
 const LOCAL_FALLBACK_DB = [
-    { id: 'film1',  title: 'La vie au petit âge', type: 'film',  rating: 2.5, genres: ['Comédie','Familial','Aventure'], image: 'La.jpeg' },
-    { id: 'film2',  title: 'Dédoublement',        type: 'film',  rating: 4,   genres: ['Thriller','Comédie','Action'], image: 'Dé.jpg' },
-    { id: 'film3',  title: 'Jackson Goup',        type: 'film',  rating: 3,   genres: ['Aventure','Fantastique','Comédie'], image: 'Ja.jpg' },
-    { id: 'film4',  title: 'Karma',               type: 'film',  rating: 2.5, genres: ['Horreur','Mystère','Psychologique'], image: 'Ka.jpeg' },
-    { id: 'serie1', title: 'Alex',                type: 'série', rating: 3,   genres: ['Action','Comédie','Familial'], image: 'Al.jpg' },
-    { id: 'serie2', title: 'Lawless Legend',      type: 'série', rating: 3,   genres: ['Western','Comédie','Action'], image: 'Law.jpg' },
+    { id: 'film1',  title: 'La vie au petit âge', type: 'film',  rating: 2.5, genres: ['Comédie','Familial','Aventure'], image: 'La.webp' },
+    { id: 'film2',  title: 'Dédoublement',        type: 'film',  rating: 4,   genres: ['Thriller','Comédie','Action'], image: 'Dé.webp' },
+    { id: 'film3',  title: 'Jackson Goup',        type: 'film',  rating: 3,   genres: ['Aventure','Fantastique','Comédie'], image: 'Ja.webp' },
+    { id: 'film4',  title: 'Karma',               type: 'film',  rating: 2.5, genres: ['Horreur','Mystère','Psychologique'], image: 'Ka.webp' },
+    { id: 'serie1', title: 'Alex',                type: 'série', rating: 3,   genres: ['Action','Comédie','Familial'], image: 'Al.webp' },
+    { id: 'serie2', title: 'Lawless Legend',      type: 'série', rating: 3,   genres: ['Western','Comédie','Action'], image: 'Law.webp' },
     { id: 'serie3', title: 'Les Aventures de Jean‑Michel Content', type: 'série', rating: 3.5, genres: ['Familial','Aventure','Comédie'], image: 'Je.webp' },
-    { id: 'film5',  title: 'Trailer Batman',      type: 'trailer',            genres: ['Action','Drame','Super-héros'], image: 'Ba.jpg' },
-    { id: 'film6',  title: 'Urbanos City',        type: 'film',  rating: 2,   genres: ['Comédie','Familial','Enfants'], image: 'Ur.jpg' },
-    { id: 'film7',  title: 'Backrooms Urbanos',   type: 'film',  rating: 3,   genres: ['Horreur','Mystère','Ambience'], image: 'Bac.jpg' }
+    { id: 'film5',  title: 'Trailer Batman',      type: 'trailer',            genres: ['Action','Drame','Super-héros'], image: 'Ba.webp' },
+    { id: 'film6',  title: 'Urbanos City',        type: 'film',  rating: 2,   genres: ['Comédie','Familial','Enfants'], image: 'Ur.webp' },
+    { id: 'film7',  title: 'Backrooms Urbanos',   type: 'film',  rating: 3,   genres: ['Horreur','Mystère','Ambience'], image: 'Bac.webp' }
 ];
 
 // Construit dynamiquement la base à partir de index.html (cartes + popups)

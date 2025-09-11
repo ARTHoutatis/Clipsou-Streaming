@@ -311,6 +311,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const base = m[1];
         const originalExt = m[3].toLowerCase();
         const candidates = [
+          base + '.webp',
           base + '.jpg',
           base + '.jpeg',
           base + '.png',
@@ -332,11 +333,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const base = m[1];
         const originalExt = m[3].toLowerCase();
         const withOne = [
+          base + '1.webp',
           base + '1.jpg',
           base + '1.jpeg',
           base + '1.png'
         ];
         const withoutOne = [
+          base + '.webp',
           base + '.jpg',
           base + '.jpeg',
           base + '.png',
