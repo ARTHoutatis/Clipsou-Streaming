@@ -8,6 +8,7 @@
   const APP_KEY_REMEMBER = 'clipsou_admin_remember_v1';
   const APP_KEY_CLD = 'clipsou_admin_cloudinary_v1';
   const APP_KEY_CLD_LOCK = 'clipsou_admin_cloudinary_lock_v1';
+  const APP_KEY_PUB = 'clipsou_admin_publish_api_v1';
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
@@ -100,6 +101,51 @@
   function setRequests(list){ saveJSON(APP_KEY_REQ, list); }
   function getApproved(){ return loadJSON(APP_KEY_APPROVED, []); }
   function setApproved(list){ saveJSON(APP_KEY_APPROVED, list); }
+
+  function getPublishConfig(){
+    try { return JSON.parse(localStorage.getItem(APP_KEY_PUB) || 'null') || {}; } catch { return {}; }
+  }
+  function setPublishConfig(cfg){
+    try { localStorage.setItem(APP_KEY_PUB, JSON.stringify(cfg||{})); } catch {}
+  }
+  async function ensurePublishConfig(){
+    let cfg = getPublishConfig();
+    if (!cfg.url) {
+      if (!confirm('Configurer l\'API de publication maintenant ?')) return null;
+      const url = prompt('Entrez l\'URL de l\'API de publication (ex: https://votre-worker.workers.dev/publish-approved):', cfg.url||'');
+      if (!url) return null;
+      const secret = prompt('Entrez le secret de l\'API (il sera stocké uniquement dans ce navigateur):', cfg.secret||'');
+      if (!secret) return null;
+      cfg = { url: url.trim(), secret: secret.trim() };
+      setPublishConfig(cfg);
+    }
+    return cfg;
+  }
+  async function publishApproved(item){
+    const cfg = await ensurePublishConfig();
+    if (!cfg || !cfg.url || !cfg.secret) return;
+    try {
+      const res = await fetch(cfg.url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + cfg.secret
+        },
+        body: JSON.stringify({ action: 'upsert', item })
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(()=>String(res.status));
+        alert('Publication API: échec ('+res.status+'). ' + text);
+        return;
+      }
+      // optional response parsing
+      // const data = await res.json().catch(()=>null);
+      console.log('Publication API: succès');
+    } catch (e) {
+      console.error(e);
+      alert('Publication API: erreur réseau.');
+    }
+  }
 
   function renderActors(list){
     const wrap = $('#actorsList');
@@ -282,6 +328,8 @@
           const idx = apr.findIndex(x=>x.id===found.data.id);
           if (idx>=0) apr[idx]=found.data; else apr.push(found.data);
           setApproved(apr);
+          // Publish through API for everyone
+          publishApproved(found.data);
         }
         renderTable();
       });
