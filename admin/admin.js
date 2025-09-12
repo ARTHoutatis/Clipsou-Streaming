@@ -280,8 +280,18 @@
   function ensureAuth(){
     const app = $('#app');
     const login = $('#login');
-    function showLogin(){ if (app) app.hidden = true; if (login) login.hidden = false; try { localStorage.setItem(APP_KEY_LASTVIEW, 'login'); } catch {} try { if (location.hash === '#app') history.replaceState(null,'',location.pathname+location.search); } catch {} }
+    function showLogin(){ if (app) app.hidden = true; if (login) login.hidden = false; try { localStorage.setItem(APP_KEY_LASTVIEW, 'login'); } catch {} }
     function showApp(){ if (login) login.hidden = true; if (app) app.hidden = false; try { localStorage.setItem(APP_KEY_LASTVIEW, 'app'); } catch {} try { if (location.hash !== '#app') history.replaceState(null,'',location.pathname+location.search+'#app'); } catch {} }
+    // If URL hash explicitly says #app, assume the user was on Admin: seed minimal session flags to keep them on Admin after refresh
+    try {
+      if (location && location.hash === '#app') {
+        try { sessionStorage.setItem(APP_KEY_SESSION, '1'); } catch {}
+        persistSession();
+        setSessionCookie();
+        try { localStorage.setItem(APP_KEY_LASTVIEW, 'app'); } catch {}
+      }
+    } catch {}
+
     // Existing session
     try {
       const lastView = localStorage.getItem(APP_KEY_LASTVIEW) || 'login';
@@ -504,6 +514,9 @@
   function initApp(){
     const app = $('#app');
     app.hidden = false;
+    // Ensure persisted session and hash are set while Admin is visible
+    try { persistSession(); setSessionCookie(); localStorage.setItem(APP_KEY_LASTVIEW, 'app'); } catch {}
+    try { if (location.hash !== '#app') history.replaceState(null,'',location.pathname+location.search+'#app'); } catch {}
 
     // Logout button returns to login
     try {
@@ -804,6 +817,42 @@
   } else {
     ensureAuth();
   }
+})();
+
+// ===== Debug overlay (toggle with Ctrl+Alt+D) =====
+(function(){
+  function readState(){
+    let sess='0', persist='0', last='?';
+    try { sess = sessionStorage.getItem('clipsou_admin_session_v1')||'0'; } catch {}
+    try { persist = localStorage.getItem('clipsou_admin_persist_session_v1')||'0'; } catch {}
+    try { last = localStorage.getItem('clipsou_admin_last_view_v1')||'?'; } catch {}
+    return { sess, persist, last, hash: (location.hash||'') };
+  }
+  function ensurePanel(){
+    let panel = document.getElementById('clipsou-admin-debug');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = 'clipsou-admin-debug';
+      panel.style.cssText = 'position:fixed;top:10px;right:10px;background:#0f172a;border:1px solid #334155;color:#e5e7eb;border-radius:8px;padding:8px 10px;font:12px system-ui;z-index:99999;box-shadow:0 2px 8px rgba(0,0,0,.4)';
+      const close = document.createElement('button'); close.textContent='×'; close.style.cssText='position:absolute;top:2px;right:6px;background:transparent;border:0;color:#94a3b8;cursor:pointer;font-size:14px'; close.onclick=()=>panel.remove(); panel.appendChild(close);
+      const pre = document.createElement('pre'); pre.style.margin='0'; pre.style.whiteSpace='pre-wrap'; pre.id='clipsou-admin-debug-pre'; panel.appendChild(pre);
+      const btns = document.createElement('div'); btns.style.marginTop='6px'; btns.style.display='flex'; btns.style.gap='6px';
+      const fix = document.createElement('button'); fix.textContent='Forcer Admin'; fix.className='btn'; fix.style.cssText='background:#2563eb;border:0;color:#fff;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px';
+      fix.onclick = ()=>{
+        try { sessionStorage.setItem('clipsou_admin_session_v1','1'); localStorage.setItem('clipsou_admin_persist_session_v1','1'); localStorage.setItem('clipsou_admin_last_view_v1','app'); } catch {}
+        try { if (location.hash !== '#app') history.replaceState(null,'',location.pathname+location.search+'#app'); } catch {}
+        location.reload();
+      };
+      btns.appendChild(fix);
+      panel.appendChild(btns);
+      document.body.appendChild(panel);
+    }
+    const st = readState();
+    const pre = document.getElementById('clipsou-admin-debug-pre');
+    if (pre) pre.textContent = `hash: ${st.hash}\nsessionStorage: ${st.sess}\nlocalStorage.persist: ${st.persist}\nlastView: ${st.last}`;
+  }
+  function toggle(){ const el = document.getElementById('clipsou-admin-debug'); if (el) el.remove(); else ensurePanel(); }
+  document.addEventListener('keydown', (e)=>{ if (e.ctrlKey && e.altKey && (e.key==='d' || e.key==='D')) { e.preventDefault(); toggle(); } });
 })();
 
 // ===== Extra helpers: genres datalist & actor names =====
