@@ -11,6 +11,7 @@
   const APP_KEY_PUB = 'clipsou_admin_publish_api_v1';
   const APP_KEY_PUB_TIMES = 'clipsou_admin_publish_times_v1';
   const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
+  const APP_KEY_LASTVIEW = 'clipsou_admin_last_view_v1';
   // Duration to display the deployment-in-progress hint after an approval
   const DEPLOY_HINT_MS = 2 * 60 * 60 * 1000; // 2 hours to account for slower GitHub Pages/CI deployments
   const $ = (sel, root=document) => root.querySelector(sel);
@@ -32,6 +33,17 @@
       const cfg = Object.assign({}, CLOUDINARY, saved || {});
       return cfg;
     } catch { return Object.assign({}, CLOUDINARY); }
+  }
+
+  // ===== Session cookie helpers (fallback if some browsers clear sessionStorage on hard refresh) =====
+  function setSessionCookie() {
+    try { document.cookie = 'clipsou_admin_session=1; path=/; SameSite=Lax'; } catch {}
+  }
+  function clearSessionCookie() {
+    try { document.cookie = 'clipsou_admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax'; } catch {}
+  }
+  function hasSessionCookie() {
+    try { return document.cookie.split(';').some(c => c.trim().startsWith('clipsou_admin_session=')); } catch { return false; }
   }
 
   function getPublishTimes(){
@@ -268,18 +280,13 @@
   function ensureAuth(){
     const app = $('#app');
     const login = $('#login');
-    function showLogin(){ if (app) app.hidden = true; if (login) login.hidden = false; }
-    function showApp(){ if (login) login.hidden = true; if (app) app.hidden = false; }
+    function showLogin(){ if (app) app.hidden = true; if (login) login.hidden = false; try { localStorage.setItem(APP_KEY_LASTVIEW, 'login'); } catch {} }
+    function showApp(){ if (login) login.hidden = true; if (app) app.hidden = false; try { localStorage.setItem(APP_KEY_LASTVIEW, 'app'); } catch {} }
     // Existing session
     try {
-      // If "remember" is set, auto-login without prompting
-      if (localStorage.getItem(APP_KEY_REMEMBER) === '1') {
-        sessionStorage.setItem(APP_KEY_SESSION, '1');
-        showApp();
-        initApp();
-        return;
-      }
-      if (sessionStorage.getItem(APP_KEY_SESSION) === '1') {
+      const lastView = localStorage.getItem(APP_KEY_LASTVIEW) || 'login';
+      if (lastView === 'app' && (sessionStorage.getItem(APP_KEY_SESSION) === '1' || hasSessionCookie())) {
+        try { sessionStorage.setItem(APP_KEY_SESSION, '1'); } catch {}
         showApp();
         initApp();
         return;
@@ -287,28 +294,11 @@
     } catch {}
 
     showLogin();
-    // Fallback auto-login in case some browsers delayed storage availability
-    try {
-      setTimeout(() => {
-        try {
-          if (localStorage.getItem(APP_KEY_REMEMBER) === '1') {
-            sessionStorage.setItem(APP_KEY_SESSION, '1');
-            showApp();
-            initApp();
-          }
-        } catch {}
-      }, 0);
-    } catch {}
     const btn = $('#loginBtn');
     const pwdInput = $('#passwordInput');
     const showPwd = $('#showPwd');
 
-    // Prefill password if previously remembered
-    try {
-      if (localStorage.getItem(APP_KEY_REMEMBER) === '1') {
-        if (pwdInput) pwdInput.value = '20Blabla30';
-      }
-    } catch {}
+    // Never prefill password for security
 
     // Show/hide password
     if (showPwd && pwdInput) {
@@ -321,8 +311,7 @@
       const pwd = (pwdInput && pwdInput.value) || '';
       if (pwd === '20Blabla30') {
         try { sessionStorage.setItem(APP_KEY_SESSION, '1'); } catch {}
-        // Always remember once successfully logged in
-        try { localStorage.setItem(APP_KEY_REMEMBER, '1'); } catch {}
+        setSessionCookie();
         showApp();
         initApp();
       } else {
@@ -518,6 +507,7 @@
       if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
           try { sessionStorage.removeItem(APP_KEY_SESSION); } catch {}
+          clearSessionCookie();
           const login = $('#login');
           if (app) app.hidden = true;
           if (login) login.hidden = false;
@@ -785,6 +775,22 @@
         if (info && !info.confirmedAt) startDeploymentWatch(id);
       });
     } catch {}
+
+    // ===== Track last visible view on unload/visibility change =====
+    (function trackLastView(){
+      const KEY = APP_KEY_LASTVIEW;
+      const write = () => {
+        try {
+          const isAppVisible = app && !app.hidden;
+          localStorage.setItem(KEY, isAppVisible ? 'app' : 'login');
+        } catch {}
+      };
+      document.addEventListener('visibilitychange', write);
+      window.addEventListener('beforeunload', write);
+      window.addEventListener('pagehide', write);
+      // Initial write to reflect current state
+      write();
+    })();
   }
 
   // Boot

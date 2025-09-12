@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Admin – Clipsou Streaming</title>
   <meta name="robots" content="noindex, nofollow">
+  <!-- Prevent caching so the admin always loads the latest JS and auth state restores correctly online -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <link rel="icon" href="../favicon.png" type="image/png">
   <link rel="stylesheet" href="admin.css?v=20250910">
 </head>
@@ -163,7 +167,7 @@
   <div id="login" class="login">
     <h1>Admin – Connexion</h1>
     <p class="muted">Entrez le mot de passe admin pour accéder à l’interface.</p>
-    <input id="passwordInput" type="password" placeholder="Mot de passe">
+    <input id="passwordInput" type="password" placeholder="Mot de passe" autocomplete="new-password" autocapitalize="off" spellcheck="false" name="admin-password">
     <div style="display:flex; gap:12px; justify-content:center; align-items:center; margin:8px 0;">
       <label style="display:flex; gap:6px; align-items:center;">
         <input id="showPwd" type="checkbox">
