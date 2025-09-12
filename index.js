@@ -540,15 +540,15 @@ document.addEventListener('DOMContentLoaded', async function () {
       });
     });
     function genreEmoji(name) { const g = (name || '').toLowerCase(); const map = { 'action':'🔥','comédie':'😂','comedie':'😂','drame':'😢','familial':'👨‍👩‍👧','horreur':'👻','aventure':'🗺️','thriller':'🗡️','fantastique':'✨','western':'🤠','mystère':'🕵️','mystere':'🕵️','ambience':'🌫️','enfants':'🧒','super-héros':'🦸','super heros':'🦸','psychologique':'🧠' }; return map[g] || '🎞️'; }
-    // Use normalized keys for skip set
-    const SKIP_GENRES = new Set(['ambience','enfants','super-heros','drame','psychologique','western','fantastique','thriller','sitcom']);
+    // Build only the fixed whitelist of genres
+    const ALLOWED_GENRES = new Set(['comedie','familial','aventure','action','horreur']);
     byGenre.forEach((entry, normKey) => {
       const list = entry && entry.list || [];
       const displayName = entry && entry.name ? entry.name : 'Genres';
       const id = 'genre-' + slug(displayName);
       const lowerName = normKey; // already normalized
-      // Skip building sections for specified genres
-      if (lowerName === 'mystere' || SKIP_GENRES.has(lowerName)) { const existing = document.getElementById(id); if (existing) existing.remove(); return; }
+      // If not in the whitelist, remove any pre-existing section and skip
+      if (!ALLOWED_GENRES.has(lowerName)) { const existing = document.getElementById(id); if (existing) existing.remove(); return; }
       if (!list || list.length < 1) { const existingSection = document.getElementById(id); if (existingSection) existingSection.remove(); return; }
       let section = document.getElementById(id);
       if (!section) { section = document.createElement('div'); section.className = 'section'; section.id = id; const h2 = document.createElement('h2'); h2.textContent = `${genreEmoji(displayName)} ${displayName}`; const rail = document.createElement('div'); rail.className = 'rail'; section.appendChild(h2); section.appendChild(rail); if (firstPopup && firstPopup.parentNode) firstPopup.parentNode.insertBefore(section, firstPopup); else (document.querySelector('main') || document.body).appendChild(section); }
