@@ -36,10 +36,15 @@
     } catch { return Object.assign({}, CLOUDINARY); }
   }
 
-  // ===== Persisted session flag (localStorage) to survive refresh while user stays on Admin =====
+  // ===== Persisted session helpers =====
   function persistSession() { try { localStorage.setItem(APP_KEY_PERSIST, '1'); } catch {} }
   function clearPersistSession() { try { localStorage.removeItem(APP_KEY_PERSIST); } catch {} }
   function hasPersistSession() { try { return localStorage.getItem(APP_KEY_PERSIST) === '1'; } catch { return false; } }
+
+  // Cookie fallback (some environments may clear localStorage on hard reload)
+  function setSessionCookie() { try { document.cookie = 'clipsou_admin_session=1; path=/; SameSite=Lax'; } catch {} }
+  function clearSessionCookie() { try { document.cookie = 'clipsou_admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax'; } catch {} }
+  function hasSessionCookie() { try { return document.cookie.split(';').some(c => c.trim().startsWith('clipsou_admin_session=')); } catch { return false; } }
 
   function getPublishTimes(){
     try { return JSON.parse(localStorage.getItem(APP_KEY_PUB_TIMES) || '{}'); } catch { return {}; }
@@ -281,7 +286,7 @@
     try {
       const lastView = localStorage.getItem(APP_KEY_LASTVIEW) || 'login';
       const hasSess = sessionStorage.getItem(APP_KEY_SESSION) === '1';
-      const hasPersist = hasPersistSession();
+      const hasPersist = hasPersistSession() || hasSessionCookie();
       const hasHashApp = (location && location.hash === '#app');
       if ((lastView === 'app' || hasHashApp) && (hasSess || hasPersist)) {
         try { sessionStorage.setItem(APP_KEY_SESSION, '1'); } catch {}
@@ -310,6 +315,7 @@
       if (pwd === '20Blabla30') {
         try { sessionStorage.setItem(APP_KEY_SESSION, '1'); } catch {}
         persistSession();
+        setSessionCookie();
         showApp();
         initApp();
       } else {
@@ -506,6 +512,7 @@
         logoutBtn.addEventListener('click', () => {
           try { sessionStorage.removeItem(APP_KEY_SESSION); } catch {}
           clearPersistSession();
+          clearSessionCookie();
           const login = $('#login');
           if (app) app.hidden = true;
           if (login) login.hidden = false;
