@@ -1,14 +1,3 @@
-      // Enhance status cell to reflect deployment delay message for recent publishes
-      const statusTd = tr.querySelector('.status-cell');
-      if (statusTd) {
-        const times = getPublishTimes();
-        const last = times[r.data.id];
-        let note = '';
-        if (r.status === 'approved' && last && (Date.now() - last) < 10 * 60 * 1000) {
-          note = ' <span class="muted small">• déploiement en cours (quelques minutes)</span> <span class="dot orange"></span>';
-        }
-        statusTd.innerHTML = `${r.status}${note}`;
-      }
 'use strict';
 
 (function(){
@@ -21,6 +10,8 @@
   const APP_KEY_CLD_LOCK = 'clipsou_admin_cloudinary_lock_v1';
   const APP_KEY_PUB = 'clipsou_admin_publish_api_v1';
   const APP_KEY_PUB_TIMES = 'clipsou_admin_publish_times_v1';
+  // Duration to display the deployment-in-progress hint after an approval
+  const DEPLOY_HINT_MS = 2 * 60 * 60 * 1000; // 2 hours to account for slower GitHub Pages/CI deployments
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
