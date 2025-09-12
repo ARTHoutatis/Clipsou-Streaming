@@ -57,7 +57,7 @@ async function buildDatabaseFromIndex() {
                         const type = c.type || 'film';
                         const rating = (typeof c.rating === 'number') ? c.rating : undefined;
                         const genres = Array.isArray(c.genres) ? c.genres.filter(Boolean) : [];
-                        const image = c.portraitImage || c.image || '';
+                        const image = c.portraitImage || c.image || c.landscapeImage || '';
                         items.push({ id: c.id, title: c.title, type, rating, genres, image });
                     });
                 }
@@ -83,7 +83,8 @@ async function buildDatabaseFromIndex() {
         } catch {}
 
         if (items.length > 0) {
-            moviesDatabase = items;
+            // Dedupe by id and normalized title, prefer entries with better data (image, rating)
+            moviesDatabase = dedupeItems(items);
         } else {
             // Aucun item trouvé (ex: ouverture sans serveur) -> fallback local
             moviesDatabase = LOCAL_FALLBACK_DB;
@@ -97,6 +98,59 @@ async function buildDatabaseFromIndex() {
 // Helper: remove accents/diacritics for accent-insensitive matching
 function normalizeStr(str) {
     return (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+// Normalize title to a comparable key (remove diacritics, non-alphanumerics, lowercase)
+function normalizeTitleKey(s) {
+    try {
+        return String(s || '')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '')
+          .trim();
+    } catch {
+        return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '').trim();
+    }
+}
+
+// Choose the better item when duplicates by id/title exist
+function preferBetter(a, b) {
+    const score = (x) => {
+        let s = 0;
+        if (x && x.image) s += 3; // has image
+        if (typeof x.rating === 'number') s += 1; // has rating
+        if (Array.isArray(x.genres) && x.genres.length) s += 1; // has genres
+        // Prefer approved-origin entries that likely have Cloudinary URLs (heuristic: http)
+        if (x && /^https?:\/\//i.test(x.image || '')) s += 1;
+        return s;
+    };
+    return score(a) >= score(b) ? a : b;
+}
+
+// Dedupe by id and normalized title
+function dedupeItems(list) {
+    const byId = new Map();
+    const byTitle = new Map();
+    for (const it of list) {
+        if (!it) continue;
+        const id = it.id || '';
+        const key = normalizeTitleKey(it.title || '');
+        if (id) {
+            byId.set(id, byId.has(id) ? preferBetter(byId.get(id), it) : it);
+        }
+        if (key) {
+            byTitle.set(key, byTitle.has(key) ? preferBetter(byTitle.get(key), it) : it);
+        }
+    }
+    // Merge preferring title uniqueness. If an id maps to a different title key, keep best.
+    const out = new Map();
+    byTitle.forEach((v, k) => out.set(k, v));
+    byId.forEach((v) => {
+        const k = normalizeTitleKey(v.title || '');
+        if (!out.has(k)) out.set(k, v); else out.set(k, preferBetter(out.get(k), v));
+    });
+    return Array.from(out.values());
 }
 
 // Fonction de recherche (accent-insensitive)
@@ -139,9 +193,11 @@ function displayResults(results) {
         return;
     }
     
-    // Helper: derive base path without trailing digits
+    // Helper: derive base path only for relative images with known extensions
     function deriveBase(src) {
         if (!src) return '';
+        // If remote URL or has querystring without explicit extension, skip base logic
+        if (/^https?:\/\//i.test(src)) return '';
         const m = src.match(/^(.*?)(\d+)?\.(jpg|jpeg|png|webp)$/i);
         return m ? m[1] : src.replace(/\.(jpg|jpeg|png|webp)$/i, '');
     }
@@ -161,6 +217,7 @@ function displayResults(results) {
             const originalIsWebp = /\.webp$/i.test(item.image || '');
             initialSrc = originalIsWebp ? `${base}.webp` : `${base}.jpg`;
         } else {
+            // If full URL or no extension, use as-is; fallback to placeholder
             initialSrc = item.image || 'apercu.png';
         }
         return `
