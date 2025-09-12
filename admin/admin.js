@@ -287,6 +287,18 @@
     } catch {}
 
     showLogin();
+    // Fallback auto-login in case some browsers delayed storage availability
+    try {
+      setTimeout(() => {
+        try {
+          if (localStorage.getItem(APP_KEY_REMEMBER) === '1') {
+            sessionStorage.setItem(APP_KEY_SESSION, '1');
+            showApp();
+            initApp();
+          }
+        } catch {}
+      }, 0);
+    } catch {}
     const btn = $('#loginBtn');
     const pwdInput = $('#passwordInput');
     const showPwd = $('#showPwd');
