@@ -10,7 +10,6 @@
   const APP_KEY_CLD_LOCK = 'clipsou_admin_cloudinary_lock_v1';
   const APP_KEY_PUB = 'clipsou_admin_publish_api_v1';
   const APP_KEY_PUB_TIMES = 'clipsou_admin_publish_times_v1';
-  const APP_KEY_PUB_DEPLOYED = 'clipsou_admin_publish_deployed_v1';
   // Duration to display the deployment-in-progress hint after an approval
   const DEPLOY_HINT_MS = 2 * 60 * 60 * 1000; // 2 hours to account for slower GitHub Pages/CI deployments
   const $ = (sel, root=document) => root.querySelector(sel);
@@ -130,55 +129,8 @@
       cfg = { url: url.trim(), secret: secret.trim() };
       setPublishConfig(cfg);
     }
-    // Probe URL used to detect when GitHub Pages (or equivalent) has deployed the change
-    if (!cfg.probeUrl) {
-      const suggested = location.origin + '/sitemap_index.xml';
-      const probeUrl = prompt('URL à sonder pour détecter la mise en ligne (ex: '+suggested+'):', cfg.probeUrl||suggested);
-      if (probeUrl) {
-        cfg.probeUrl = probeUrl.trim();
-      }
-      setPublishConfig(cfg);
-    }
     return cfg;
   }
-  function getDeployedMap(){
-    try { return JSON.parse(localStorage.getItem(APP_KEY_PUB_DEPLOYED) || '{}'); } catch { return {}; }
-  }
-  function setDeployedMap(map){
-    try { localStorage.setItem(APP_KEY_PUB_DEPLOYED, JSON.stringify(map||{})); } catch {}
-  }
-
-  async function waitForDeploy(approvedAtMs, itemId){
-    const cfg = await ensurePublishConfig();
-    if (!cfg || !cfg.probeUrl) return false;
-    const deadline = Date.now() + DEPLOY_HINT_MS; // stop after hint window
-    let lastSeen = 0;
-    const delay = (ms)=> new Promise(r=>setTimeout(r, ms));
-    while (Date.now() < deadline) {
-      try {
-        const res = await fetch(cfg.probeUrl + (cfg.probeUrl.includes('?')?'&':'?') + 'cachebust=' + Date.now(), {
-          method: 'HEAD', cache: 'no-store'
-        });
-        const lm = res.headers.get('last-modified');
-        const dateHdr = res.headers.get('date');
-        const etag = res.headers.get('etag');
-        let remoteMs = 0;
-        if (lm) remoteMs = Date.parse(lm);
-        if (!remoteMs && dateHdr) remoteMs = Date.parse(dateHdr);
-        // Fallback: if we have an ETag that changes, consider it as updated
-        if (!remoteMs && etag && etag !== '"' + String(lastSeen) + '"') remoteMs = Date.now();
-        if (remoteMs && remoteMs >= approvedAtMs) {
-          const deployed = getDeployedMap();
-          deployed[itemId] = remoteMs;
-          setDeployedMap(deployed);
-          return true;
-        }
-      } catch {}
-      await delay(20000); // poll every 20s
-    }
-    return false;
-  }
-
   async function publishApproved(item, action='upsert'){
     const cfg = await ensurePublishConfig();
     if (!cfg || !cfg.url || !cfg.secret) return false;
@@ -388,10 +340,6 @@
           setApproved(apr);
           // Remove from shared approved.json
           await deleteApproved(found.data.id);
-          // Clear deployed flag
-          const deployed = getDeployedMap();
-          delete deployed[found.data.id];
-          setDeployedMap(deployed);
         } else {
           // Show publishing indicator and disable button during network call
           const originalHtml = approveBtn.innerHTML;
@@ -406,35 +354,14 @@
           if (idx>=0) apr[idx]=found.data; else apr.push(found.data);
           setApproved(apr);
           // Publish through API for everyone and reflect final status
-          const startedAt = Date.now();
           const ok = await publishApproved(found.data);
           if (ok) {
             // Record publish time for deployment delay hint
             const times = getPublishTimes();
-            times[found.data.id] = startedAt;
+            times[found.data.id] = Date.now();
             setPublishTimes(times);
-            // Enhance status cell to reflect deployment status
-            const statusTd = tr.querySelector('.status-cell');
-            if (statusTd) {
-              const last = times[found.data.id];
-              const deployedMap = getDeployedMap();
-              const deployedAt = deployedMap[found.data.id] || 0;
-              let note = '';
-              if (r.status === 'approved') {
-                if (deployedAt && deployedAt >= last) {
-                  note = ' <span class="muted small">• publié</span> <span class="dot green"></span>';
-                } else if (last && (Date.now() - last) < DEPLOY_HINT_MS) {
-                  note = ' <span class="muted small">• déploiement GitHub Pages en cours</span> <span class="dot orange"></span>';
-                }
-              }
-              statusTd.innerHTML = `${r.status}${note}`;
-            }
             approveBtn.innerHTML = 'Retirer <span class="dot green"></span>';
             setTimeout(()=>{ renderTable(); }, 300);
-            // Start background probe to detect when deployment is live
-            waitForDeploy(startedAt, found.data.id).then(()=>{
-              renderTable();
-            });
           } else {
             // Revert local approval on failure
             found.status = 'pending';
