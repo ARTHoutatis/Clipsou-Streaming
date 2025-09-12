@@ -28,21 +28,5 @@
         "role": "Mamie"
       }
     ]
-  },
-  {
-    "id": "custom-test-53qa",
-    "title": "Test",
-    "type": "trailer",
-    "rating": 1,
-    "genres": [
-      "Action",
-      "Comédie",
-      "Aventure"
-    ],
-    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757659560/eybfzebeoki8knflhz5q.avif",
-    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757659564/nmzsh49be4vfubwvde3y.webp",
-    "description": "Il s'agit d'un test pour introduire une nouvelle caractéristique sur le site, ne vous préoccupez pas de cela.",
-    "watchUrl": "https://www.youtube.com/watch?v=snro9u1Vsuk",
-    "actors": []
   }
 ]
