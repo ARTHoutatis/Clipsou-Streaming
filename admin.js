@@ -10,6 +10,7 @@
   const APP_KEY_CLD_LOCK = 'clipsou_admin_cloudinary_lock_v1';
   const APP_KEY_PUB = 'clipsou_admin_publish_api_v1';
   const APP_KEY_PUB_TIMES = 'clipsou_admin_publish_times_v1';
+  const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
   // Duration to display the deployment-in-progress hint after an approval
   const DEPLOY_HINT_MS = 2 * 60 * 60 * 1000; // 2 hours to account for slower GitHub Pages/CI deployments
   const $ = (sel, root=document) => root.querySelector(sel);
@@ -38,6 +39,56 @@
   }
   function setPublishTimes(map){
     try { localStorage.setItem(APP_KEY_PUB_TIMES, JSON.stringify(map||{})); } catch {}
+  }
+
+  function getDeployTrack(){
+    try { return JSON.parse(localStorage.getItem(APP_KEY_DEPLOY_TRACK) || '{}'); } catch { return {}; }
+  }
+  function setDeployTrack(map){
+    try { localStorage.setItem(APP_KEY_DEPLOY_TRACK, JSON.stringify(map||{})); } catch {}
+  }
+
+  // Poll GitHub Pages public JSON to detect when an approved item is live
+  async function isItemLivePublic(id){
+    const tryUrls = ['../data/approved.json', 'data/approved.json'];
+    for (const base of tryUrls) {
+      try {
+        const res = await fetch(base + '?v=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' });
+        if (!res.ok) continue;
+        const arr = await res.json();
+        if (Array.isArray(arr) && arr.some(x => x && x.id === id)) return true;
+      } catch {}
+    }
+    return false;
+  }
+
+  const deployWatchers = new Map();
+  function startDeploymentWatch(id){
+    if (!id || deployWatchers.has(id)) return;
+    const tick = async () => {
+      const live = await isItemLivePublic(id);
+      if (live) {
+        const track = getDeployTrack();
+        track[id] = { startedAt: (track[id] && track[id].startedAt) || Date.now(), confirmedAt: Date.now() };
+        setDeployTrack(track);
+        // Refresh UI
+        renderTable();
+        // Stop watcher
+        const t = deployWatchers.get(id); if (t) clearTimeout(t);
+        deployWatchers.delete(id);
+        return;
+      }
+      // Schedule next poll (30s)
+      const handle = setTimeout(tick, 30000);
+      deployWatchers.set(id, handle);
+    };
+    // Mark started
+    const track = getDeployTrack();
+    track[id] = { startedAt: Date.now(), confirmedAt: track[id] && track[id].confirmedAt ? track[id].confirmedAt : undefined };
+    setDeployTrack(track);
+    // Kick off
+    const handle = setTimeout(tick, 0);
+    deployWatchers.set(id, handle);
   }
 
   function setCldConfig(cfg){
@@ -340,6 +391,10 @@
           setApproved(apr);
           // Remove from shared approved.json
           await deleteApproved(found.data.id);
+          // Clear tracking
+          const track = getDeployTrack();
+          delete track[found.data.id];
+          setDeployTrack(track);
         } else {
           // Show publishing indicator and disable button during network call
           const originalHtml = approveBtn.innerHTML;
@@ -360,6 +415,23 @@
             const times = getPublishTimes();
             times[found.data.id] = Date.now();
             setPublishTimes(times);
+            // Start background watch for GitHub Pages deployment
+            startDeploymentWatch(found.data.id);
+            // Enhance status cell: show pending (orange) until public site has the item, then green
+            const statusTd = tr.querySelector('.status-cell');
+            if (statusTd) {
+              const track = getDeployTrack();
+              const info = track[r.data.id];
+              let note = '';
+              if (r.status === 'approved') {
+                if (info && !info.confirmedAt) {
+                  note = ' <span class="muted small">• déploiement GitHub Pages en cours</span> <span class="dot orange"></span>';
+                } else if (info && info.confirmedAt) {
+                  note = ' <span class="muted small">• déployé</span> <span class="dot green"></span>';
+                }
+              }
+              statusTd.innerHTML = `${r.status}${note}`;
+            }
             approveBtn.innerHTML = 'Retirer <span class="dot green"></span>';
             setTimeout(()=>{ renderTable(); }, 300);
           } else {
@@ -626,6 +698,14 @@
     populateGenresDatalist();
     restoreDraft();
     populateActorNamesDatalist();
+    // Resume deployment watchers for any tracked items not yet confirmed
+    try {
+      const track = getDeployTrack();
+      Object.keys(track || {}).forEach(id => {
+        const info = track[id];
+        if (info && !info.confirmedAt) startDeploymentWatch(id);
+      });
+    } catch {}
   }
 
   // Boot
