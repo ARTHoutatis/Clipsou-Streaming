@@ -10,7 +10,7 @@
   const APP_KEY_CLD_LOCK = 'clipsou_admin_cloudinary_lock_v1';
   const APP_KEY_PUB = 'clipsou_admin_publish_api_v1';
   const APP_KEY_PUB_TIMES = 'clipsou_admin_publish_times_v1';
-  const APP_KEY_PUB_DEPLOYED = 'clipsou_admin_publish_deployed_v1';
+  const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
   // Duration to display the deployment-in-progress hint after an approval
   const DEPLOY_HINT_MS = 2 * 60 * 60 * 1000; // 2 hours to account for slower GitHub Pages/CI deployments
   const $ = (sel, root=document) => root.querySelector(sel);
@@ -39,6 +39,56 @@
   }
   function setPublishTimes(map){
     try { localStorage.setItem(APP_KEY_PUB_TIMES, JSON.stringify(map||{})); } catch {}
+  }
+
+  function getDeployTrack(){
+    try { return JSON.parse(localStorage.getItem(APP_KEY_DEPLOY_TRACK) || '{}'); } catch { return {}; }
+  }
+  function setDeployTrack(map){
+    try { localStorage.setItem(APP_KEY_DEPLOY_TRACK, JSON.stringify(map||{})); } catch {}
+  }
+
+  // Poll GitHub Pages public JSON to detect when an approved item is live
+  async function isItemLivePublic(id){
+    const tryUrls = ['../data/approved.json', 'data/approved.json'];
+    for (const base of tryUrls) {
+      try {
+        const res = await fetch(base + '?v=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' });
+        if (!res.ok) continue;
+        const arr = await res.json();
+        if (Array.isArray(arr) && arr.some(x => x && x.id === id)) return true;
+      } catch {}
+    }
+    return false;
+  }
+
+  const deployWatchers = new Map();
+  function startDeploymentWatch(id){
+    if (!id || deployWatchers.has(id)) return;
+    const tick = async () => {
+      const live = await isItemLivePublic(id);
+      if (live) {
+        const track = getDeployTrack();
+        track[id] = { startedAt: (track[id] && track[id].startedAt) || Date.now(), confirmedAt: Date.now() };
+        setDeployTrack(track);
+        // Refresh UI
+        renderTable();
+        // Stop watcher
+        const t = deployWatchers.get(id); if (t) clearTimeout(t);
+        deployWatchers.delete(id);
+        return;
+      }
+      // Schedule next poll (30s)
+      const handle = setTimeout(tick, 30000);
+      deployWatchers.set(id, handle);
+    };
+    // Mark started
+    const track = getDeployTrack();
+    track[id] = { startedAt: Date.now(), confirmedAt: track[id] && track[id].confirmedAt ? track[id].confirmedAt : undefined };
+    setDeployTrack(track);
+    // Kick off
+    const handle = setTimeout(tick, 0);
+    deployWatchers.set(id, handle);
   }
 
   function setCldConfig(cfg){
@@ -130,55 +180,8 @@
       cfg = { url: url.trim(), secret: secret.trim() };
       setPublishConfig(cfg);
     }
-    // Probe URL used to detect when GitHub Pages (or equivalent) has deployed the change
-    if (!cfg.probeUrl) {
-      const suggested = location.origin + '/sitemap_index.xml';
-      const probeUrl = prompt('URL à sonder pour détecter la mise en ligne (ex: '+suggested+'):', cfg.probeUrl||suggested);
-      if (probeUrl) {
-        cfg.probeUrl = probeUrl.trim();
-      }
-      setPublishConfig(cfg);
-    }
     return cfg;
   }
-  function getDeployedMap(){
-    try { return JSON.parse(localStorage.getItem(APP_KEY_PUB_DEPLOYED) || '{}'); } catch { return {}; }
-  }
-  function setDeployedMap(map){
-    try { localStorage.setItem(APP_KEY_PUB_DEPLOYED, JSON.stringify(map||{})); } catch {}
-  }
-
-  async function waitForDeploy(approvedAtMs, itemId){
-    const cfg = await ensurePublishConfig();
-    if (!cfg || !cfg.probeUrl) return false;
-    const deadline = Date.now() + DEPLOY_HINT_MS; // stop after hint window
-    let lastSeen = 0;
-    const delay = (ms)=> new Promise(r=>setTimeout(r, ms));
-    while (Date.now() < deadline) {
-      try {
-        const res = await fetch(cfg.probeUrl + (cfg.probeUrl.includes('?')?'&':'?') + 'cachebust=' + Date.now(), {
-          method: 'HEAD', cache: 'no-store'
-        });
-        const lm = res.headers.get('last-modified');
-        const dateHdr = res.headers.get('date');
-        const etag = res.headers.get('etag');
-        let remoteMs = 0;
-        if (lm) remoteMs = Date.parse(lm);
-        if (!remoteMs && dateHdr) remoteMs = Date.parse(dateHdr);
-        // Fallback: if we have an ETag that changes, consider it as updated
-        if (!remoteMs && etag && etag !== '"' + String(lastSeen) + '"') remoteMs = Date.now();
-        if (remoteMs && remoteMs >= approvedAtMs) {
-          const deployed = getDeployedMap();
-          deployed[itemId] = remoteMs;
-          setDeployedMap(deployed);
-          return true;
-        }
-      } catch {}
-      await delay(20000); // poll every 20s
-    }
-    return false;
-  }
-
   async function publishApproved(item, action='upsert'){
     const cfg = await ensurePublishConfig();
     if (!cfg || !cfg.url || !cfg.secret) return false;
@@ -388,10 +391,10 @@
           setApproved(apr);
           // Remove from shared approved.json
           await deleteApproved(found.data.id);
-          // Clear deployed flag
-          const deployed = getDeployedMap();
-          delete deployed[found.data.id];
-          setDeployedMap(deployed);
+          // Clear tracking
+          const track = getDeployTrack();
+          delete track[found.data.id];
+          setDeployTrack(track);
         } else {
           // Show publishing indicator and disable button during network call
           const originalHtml = approveBtn.innerHTML;
@@ -406,35 +409,31 @@
           if (idx>=0) apr[idx]=found.data; else apr.push(found.data);
           setApproved(apr);
           // Publish through API for everyone and reflect final status
-          const startedAt = Date.now();
           const ok = await publishApproved(found.data);
           if (ok) {
             // Record publish time for deployment delay hint
             const times = getPublishTimes();
-            times[found.data.id] = startedAt;
+            times[found.data.id] = Date.now();
             setPublishTimes(times);
-            // Enhance status cell to reflect deployment status
+            // Start background watch for GitHub Pages deployment
+            startDeploymentWatch(found.data.id);
+            // Enhance status cell: show pending (orange) until public site has the item, then green
             const statusTd = tr.querySelector('.status-cell');
             if (statusTd) {
-              const last = times[found.data.id];
-              const deployedMap = getDeployedMap();
-              const deployedAt = deployedMap[found.data.id] || 0;
+              const track = getDeployTrack();
+              const info = track[r.data.id];
               let note = '';
               if (r.status === 'approved') {
-                if (deployedAt && deployedAt >= last) {
-                  note = ' <span class="muted small">• publié</span> <span class="dot green"></span>';
-                } else if (last && (Date.now() - last) < DEPLOY_HINT_MS) {
+                if (info && !info.confirmedAt) {
                   note = ' <span class="muted small">• déploiement GitHub Pages en cours</span> <span class="dot orange"></span>';
+                } else if (info && info.confirmedAt) {
+                  note = ' <span class="muted small">• déployé</span> <span class="dot green"></span>';
                 }
               }
               statusTd.innerHTML = `${r.status}${note}`;
             }
             approveBtn.innerHTML = 'Retirer <span class="dot green"></span>';
             setTimeout(()=>{ renderTable(); }, 300);
-            // Start background probe to detect when deployment is live
-            waitForDeploy(startedAt, found.data.id).then(()=>{
-              renderTable();
-            });
           } else {
             // Revert local approval on failure
             found.status = 'pending';
@@ -699,6 +698,14 @@
     populateGenresDatalist();
     restoreDraft();
     populateActorNamesDatalist();
+    // Resume deployment watchers for any tracked items not yet confirmed
+    try {
+      const track = getDeployTrack();
+      Object.keys(track || {}).forEach(id => {
+        const info = track[id];
+        if (info && !info.confirmedAt) startDeploymentWatch(id);
+      });
+    } catch {}
   }
 
   // Boot
