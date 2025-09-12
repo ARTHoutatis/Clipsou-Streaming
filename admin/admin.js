@@ -11,7 +11,6 @@
   const APP_KEY_PUB = 'clipsou_admin_publish_api_v1';
   const APP_KEY_PUB_TIMES = 'clipsou_admin_publish_times_v1';
   const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
-  const APP_KEY_SCROLL = 'clipsou_admin_scroll_v1';
   // Duration to display the deployment-in-progress hint after an approval
   const DEPLOY_HINT_MS = 2 * 60 * 60 * 1000; // 2 hours to account for slower GitHub Pages/CI deployments
   const $ = (sel, root=document) => root.querySelector(sel);
@@ -82,32 +81,31 @@
 
   const deployWatchers = new Map();
   function startDeploymentWatch(id, action='upsert'){
-    if (!id || deployWatchers.has(id)) return;
+    if (!id) return;
+    const key = id + '::' + action;
+    if (deployWatchers.has(key)) return;
     const tick = async () => {
       const live = await isItemLivePublic(id);
-      const done = (action === 'delete') ? !live : !!live;
-      if (done) {
+      const satisfied = (action === 'upsert') ? !!live : !live;
+      if (satisfied) {
         const track = getDeployTrack();
-        track[id] = { action, startedAt: (track[id] && track[id].startedAt) || Date.now(), confirmedAt: Date.now() };
+        const prev = track[id] || {};
+        track[id] = { ...prev, action, startedAt: prev.startedAt || Date.now(), confirmedAt: Date.now() };
         setDeployTrack(track);
-        // Refresh UI
         renderTable();
-        // Stop watcher
-        const t = deployWatchers.get(id); if (t) clearTimeout(t);
-        deployWatchers.delete(id);
+        const t = deployWatchers.get(key); if (t) clearTimeout(t);
+        deployWatchers.delete(key);
         return;
       }
-      // Schedule next poll (30s)
       const handle = setTimeout(tick, 30000);
-      deployWatchers.set(id, handle);
+      deployWatchers.set(key, handle);
     };
-    // Mark started
     const track = getDeployTrack();
-    track[id] = { action, startedAt: Date.now(), confirmedAt: track[id] && track[id].confirmedAt ? track[id].confirmedAt : undefined };
+    const prev = track[id] || {};
+    track[id] = { ...prev, action, startedAt: prev.startedAt || Date.now(), confirmedAt: undefined };
     setDeployTrack(track);
-    // Kick off
     const handle = setTimeout(tick, 0);
-    deployWatchers.set(id, handle);
+    deployWatchers.set(key, handle);
   }
 
   function setCldConfig(cfg){
@@ -406,7 +404,10 @@
           else if (info && info.confirmedAt) approveBtn.innerHTML = 'Retirer <span class="dot green"></span>';
           else approveBtn.textContent = 'Retirer';
         } else {
-          approveBtn.textContent = 'Approuver';
+          // Pending side: if a delete deployment is in progress, keep orange until confirmed removal
+          if (info && info.action === 'delete' && !info.confirmedAt) approveBtn.innerHTML = 'Approuver <span class="dot orange"></span>';
+          else if (info && info.action === 'delete' && info.confirmedAt) approveBtn.innerHTML = 'Approuver <span class="dot green"></span>';
+          else approveBtn.textContent = 'Approuver';
         }
       })();
       actions.appendChild(editBtn); actions.appendChild(delBtn); actions.appendChild(approveBtn);
@@ -432,27 +433,15 @@
           const apr = getApproved().filter(x=>x.id!==found.data.id);
           setApproved(apr);
           // Remove from shared approved.json
-          const originalHtml = approveBtn.innerHTML;
-          approveBtn.disabled = true;
-          approveBtn.innerHTML = 'Retrait… <span class="dot orange"></span>';
-          const okDel = await deleteApproved(found.data.id);
-          approveBtn.disabled = false;
-          if (okDel === false) {
-            // Revert UI if deletion API failed
-            found.status = 'approved';
-            setRequests(list);
-            // Re-add to approved list locally (defensive)
-            const aprBack = getApproved();
-            const idxBack = aprBack.findIndex(x=>x.id===found.data.id);
-            if (idxBack<0) aprBack.push(found.data);
-            setApproved(aprBack);
-            approveBtn.innerHTML = originalHtml;
-            renderTable();
-            return;
-          }
-          // Start watching for deletion propagation on public site
+          await deleteApproved(found.data.id);
+          // Start tracking deletion deployment and reflect orange state until confirmed
           startDeploymentWatch(found.data.id, 'delete');
-          renderTable();
+          approveBtn.innerHTML = 'Approuver <span class="dot orange"></span>';
+          // Refresh row status cell
+          const statusTd = tr.querySelector('.status-cell');
+          if (statusTd) {
+            statusTd.innerHTML = `pending <span class="muted small">• retrait GitHub Pages en cours</span> <span class="dot orange"></span>`;
+          }
         } else {
           // Show publishing indicator and disable button during network call
           const originalHtml = approveBtn.innerHTML;
@@ -474,7 +463,7 @@
             times[found.data.id] = Date.now();
             setPublishTimes(times);
             // Start background watch for GitHub Pages deployment
-            startDeploymentWatch(found.data.id);
+            startDeploymentWatch(found.data.id, 'upsert');
             // Keep the action button orange until confirmation is detected
             approveBtn.innerHTML = 'Retirer <span class="dot orange"></span>';
             setTimeout(()=>{ renderTable(); }, 300);
@@ -750,24 +739,6 @@
         if (info && !info.confirmedAt) startDeploymentWatch(id);
       });
     } catch {}
-
-    // Restore scroll position within admin after refresh
-    try {
-      const y = parseInt(localStorage.getItem(APP_KEY_SCROLL) || '0', 10);
-      if (!Number.isNaN(y) && y > 0) {
-        // Ensure layout is ready before scrolling
-        setTimeout(() => { window.scrollTo({ top: y, left: 0, behavior: 'auto' }); }, 0);
-      }
-    } catch {}
-
-    // Persist scroll position (debounced)
-    let scrollT = null;
-    const saveScroll = () => {
-      try { localStorage.setItem(APP_KEY_SCROLL, String(window.scrollY || window.pageYOffset || 0)); } catch {}
-    };
-    const onScroll = () => { if (scrollT) clearTimeout(scrollT); scrollT = setTimeout(saveScroll, 150); };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('beforeunload', saveScroll);
   }
 
   // Boot
