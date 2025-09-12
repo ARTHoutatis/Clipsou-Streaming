@@ -123,7 +123,7 @@
   }
   async function publishApproved(item, action='upsert'){
     const cfg = await ensurePublishConfig();
-    if (!cfg || !cfg.url || !cfg.secret) return;
+    if (!cfg || !cfg.url || !cfg.secret) return false;
     try {
       const res = await fetch(cfg.url, {
         method: 'POST',
@@ -140,14 +140,14 @@
       if (!res.ok) {
         const text = await res.text().catch(()=>String(res.status));
         alert('Publication API: échec ('+res.status+'). ' + text);
-        return;
+        return false;
       }
-      // optional response parsing
-      // const data = await res.json().catch(()=>null);
       console.log('Publication API: succès');
+      return true;
     } catch (e) {
       console.error(e);
       alert('Publication API: erreur réseau.');
+      return false;
     }
   }
 
@@ -318,7 +318,7 @@
         }
         renderTable(); emptyForm();
       });
-      approveBtn.addEventListener('click', ()=>{
+      approveBtn.addEventListener('click', async ()=>{
         const list = getRequests();
         const found = list.find(x=>x.requestId===r.requestId);
         if (!found) return;
@@ -329,19 +329,38 @@
           const apr = getApproved().filter(x=>x.id!==found.data.id);
           setApproved(apr);
           // Remove from shared approved.json
-          deleteApproved(found.data.id);
+          await deleteApproved(found.data.id);
         } else {
+          // Show publishing indicator and disable button during network call
+          const originalHtml = approveBtn.innerHTML;
+          approveBtn.disabled = true;
+          approveBtn.innerHTML = 'Publication… <span class="dot orange"></span>';
+
+          // Optimistically set approved locally
           found.status = 'approved';
           setRequests(list);
           const apr = getApproved();
-          // Upsert approved item
           const idx = apr.findIndex(x=>x.id===found.data.id);
           if (idx>=0) apr[idx]=found.data; else apr.push(found.data);
           setApproved(apr);
-          // Publish through API for everyone
-          publishApproved(found.data);
+          // Publish through API for everyone and reflect final status
+          const ok = await publishApproved(found.data);
+          if (ok) {
+            approveBtn.innerHTML = 'Retirer <span class="dot green"></span>';
+            setTimeout(()=>{ renderTable(); }, 300);
+          } else {
+            // Revert local approval on failure
+            found.status = 'pending';
+            setRequests(list);
+            const apr2 = getApproved().filter(x=>x.id!==found.data.id);
+            setApproved(apr2);
+            approveBtn.innerHTML = originalHtml;
+            renderTable();
+          }
+          approveBtn.disabled = false;
         }
-        renderTable();
+        // For unapprove, immediate refresh
+        if (found.status==='pending') renderTable();
       });
       tbody.appendChild(tr);
     });

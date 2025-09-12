@@ -72,3 +72,19 @@ fieldset { border: 1px solid #334155; border-radius: 12px; padding: 12px; margin
 
 /* Lock button minor adjustment */
 .lock-btn { height: 34px; padding: 0 10px; font-size: 13px; }
+
+/* Status dots for async publishing */
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+.dot.orange { background: #f59e0b; animation: dot-blink 1s ease-in-out infinite; }
+.dot.green { background: #10b981; }
+
+@keyframes dot-blink {
+  0%, 100% { opacity: .5; }
+  50% { opacity: 1; }
+}
