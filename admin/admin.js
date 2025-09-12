@@ -16,6 +16,80 @@
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
+  // ===== Utilities: normalization, validation, and deduplication =====
+  function normalizeTitleKey(s) {
+    try {
+      return String(s || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '')
+        .trim();
+    } catch (_) {
+      return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '').trim();
+    }
+  }
+
+  function isValidImageLike(url) {
+    if (!url) return false;
+    const u = String(url).trim();
+    if (/^https?:\/\//i.test(u)) return true;
+    return /(\.png|\.jpe?g|\.webp)$/i.test(u);
+  }
+
+  function isValidWatchUrl(u) {
+    if (!u) return false;
+    try {
+      const url = new URL(u, window.location.href);
+      if (!/^https?:$/i.test(url.protocol)) return false;
+      return /youtube\.com|youtu\.be/i.test(url.hostname);
+    } catch {
+      return false;
+    }
+  }
+
+  function validateData(data) {
+    const errors = [];
+    const title = String(data.title || '').trim();
+    if (title.length < 2) errors.push('Titre trop court.');
+    const typeOk = ['film', 'série', 'trailer'].includes(String(data.type||'').trim());
+    if (!typeOk) errors.push('Type invalide.');
+    if (typeof data.rating !== 'undefined') {
+      const r = data.rating;
+      if (!(typeof r === 'number' && r >= 0 && r <= 5)) errors.push('Note doit être entre 0 et 5.');
+      if (Math.round(r*2) !== r*2) errors.push('Note doit être par pas de 0.5.');
+    }
+    const genres = Array.isArray(data.genres) ? data.genres.filter(Boolean) : [];
+    if (genres.length !== 3) errors.push('3 genres sont requis.');
+    if (new Set(genres.map(g=>g.toLowerCase())).size !== genres.length) errors.push('Les genres doivent être uniques.');
+    if (!isValidWatchUrl(data.watchUrl)) errors.push('Lien YouTube invalide.');
+    if (data.portraitImage && !isValidImageLike(data.portraitImage)) errors.push('Image carte (portrait) invalide.');
+    if (data.landscapeImage && !isValidImageLike(data.landscapeImage)) errors.push('Image fiche (paysage) invalide.');
+    return { ok: errors.length === 0, message: errors.join('\n') };
+  }
+
+  function dedupeByIdAndTitle(items) {
+    const byTitle = new Map();
+    const byId = new Map();
+    (items||[]).forEach(it => {
+      if (!it) return;
+      const key = normalizeTitleKey(it.title || '');
+      const id = it.id || '';
+      // Prefer last occurrence (most recently edited)
+      if (key) byTitle.set(key, it);
+      if (id) byId.set(id, it);
+    });
+    // Merge preference: ensure uniqueness by title primarily
+    const out = new Map();
+    byTitle.forEach((it, key) => { out.set(key, it); });
+    // Ensure any items with unique ids but missing/duplicate titles are included only once
+    byId.forEach(it => {
+      const key = normalizeTitleKey(it.title || '');
+      if (!out.has(key)) out.set(key, it);
+    });
+    return Array.from(out.values());
+  }
+
   // ===== Cloudinary config (unsigned upload) =====
   // Renseignez ici votre cloud name et votre upload preset configuré en "unsigned" dans Cloudinary.
   // Doc: https://cloudinary.com/documentation/upload_images#unsigned_upload
@@ -345,7 +419,11 @@
 
   function collectForm(){
     const actors = JSON.parse($('#contentForm').dataset.actors || '[]');
-    const genres = [$('#genre1').value, $('#genre2').value, $('#genre3').value].filter(Boolean);
+    // Keep order, enforce uniqueness and non-empty for genres
+    const seen = new Set();
+    const genresRaw = [$('#genre1').value, $('#genre2').value, $('#genre3').value];
+    const genres = [];
+    genresRaw.forEach(g => { const v = String(g||'').trim(); if (v && !seen.has(v.toLowerCase())) { seen.add(v.toLowerCase()); genres.push(v); } });
     let id = $('#id').value.trim();
     const title = $('#title').value.trim();
     if (!id) id = makeIdFromTitle(title);
@@ -451,10 +529,12 @@
           // Optimistically set approved locally
           found.status = 'approved';
           setRequests(list);
-          const apr = getApproved();
-          const idx = apr.findIndex(x=>x.id===found.data.id);
-          if (idx>=0) apr[idx]=found.data; else apr.push(found.data);
-          setApproved(apr);
+          let apr = getApproved();
+          const key = normalizeTitleKey(found.data && found.data.title);
+          // Remove any existing approved with same normalized title or different item with same id
+          apr = apr.filter(x => x && x.id !== found.data.id && normalizeTitleKey(x.title) !== key);
+          apr.push(found.data);
+          setApproved(dedupeByIdAndTitle(apr));
           // Publish through API for everyone and reflect final status
           const ok = await publishApproved(found.data);
           if (ok) {
@@ -659,6 +739,8 @@
       form.addEventListener('submit', (e)=>{
         e.preventDefault();
         const data = collectForm();
+        const v = validateData(data);
+        if (!v.ok) { alert('Veuillez corriger les erreurs avant d\'enregistrer:\n\n' + v.message); return; }
         // Upsert request by requestId, otherwise create new request entry
         let list = getRequests();
         let reqId = data.requestId || '';
@@ -667,19 +749,20 @@
         // Persist the requestId in the hidden input to avoid duplicate creation on rapid double-submit
         const reqIdInput = $('#requestId');
         if (reqIdInput) reqIdInput.value = reqId;
+        // Remove other requests with the same normalized title to avoid duplicates
+        const keyNew = normalizeTitleKey(data.title);
+        list = list.filter(x => x && x.requestId === reqId || normalizeTitleKey(x && x.data && x.data.title) !== keyNew);
         const existing = list.find(x=>x.requestId===reqId);
-        if (existing) {
-          existing.data = data;
-        } else {
-          list.unshift({ requestId: reqId, status: 'pending', data });
-        }
+        if (existing) { existing.data = data; }
+        else { list.unshift({ requestId: reqId, status: 'pending', data }); }
         setRequests(list);
         // If already approved, keep approved in sync
         if (existing && existing.status==='approved') {
-          const apr = getApproved();
-          const idx = apr.findIndex(x=>x.id===data.id);
-          if (idx>=0) apr[idx]=data; else apr.push(data);
-          setApproved(apr);
+          let apr = getApproved();
+          const key = normalizeTitleKey(data.title);
+          apr = apr.filter(x => x && x.id !== data.id && normalizeTitleKey(x.title) !== key);
+          apr.push(data);
+          setApproved(dedupeByIdAndTitle(apr));
         }
         renderTable();
         populateGenresDatalist();
