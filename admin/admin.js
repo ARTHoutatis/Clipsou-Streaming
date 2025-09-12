@@ -516,39 +516,49 @@
       });
     }
 
-    $('#contentForm').addEventListener('submit', (e)=>{
-      e.preventDefault();
-      const data = collectForm();
-      // Upsert request by requestId, otherwise create new request entry
-      let list = getRequests();
-      let reqId = data.requestId || '';
-      if (!reqId) reqId = uid();
-      data.requestId = reqId;
-      const existing = list.find(x=>x.requestId===reqId);
-      if (existing) {
-        existing.data = data;
-      } else {
-        list.unshift({ requestId: reqId, status: 'pending', data });
-      }
-      setRequests(list);
-      // If already approved, keep approved in sync
-      if (existing && existing.status==='approved') {
-        const apr = getApproved();
-        const idx = apr.findIndex(x=>x.id===data.id);
-        if (idx>=0) apr[idx]=data; else apr.push(data);
-        setApproved(apr);
-      }
-      renderTable();
-      populateGenresDatalist();
-      clearDraft();
-      alert('Requête enregistrée.');
-    });
+    const form = $('#contentForm');
+    if (form && !form.dataset.submitWired) {
+      form.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const data = collectForm();
+        // Upsert request by requestId, otherwise create new request entry
+        let list = getRequests();
+        let reqId = data.requestId || '';
+        if (!reqId) reqId = uid();
+        data.requestId = reqId;
+        // Persist the requestId in the hidden input to avoid duplicate creation on rapid double-submit
+        const reqIdInput = $('#requestId');
+        if (reqIdInput) reqIdInput.value = reqId;
+        const existing = list.find(x=>x.requestId===reqId);
+        if (existing) {
+          existing.data = data;
+        } else {
+          list.unshift({ requestId: reqId, status: 'pending', data });
+        }
+        setRequests(list);
+        // If already approved, keep approved in sync
+        if (existing && existing.status==='approved') {
+          const apr = getApproved();
+          const idx = apr.findIndex(x=>x.id===data.id);
+          if (idx>=0) apr[idx]=data; else apr.push(data);
+          setApproved(apr);
+        }
+        renderTable();
+        populateGenresDatalist();
+        clearDraft();
+        alert('Requête enregistrée.');
+      });
+      // Mark as wired to prevent duplicate event listeners
+      form.dataset.submitWired = '1';
+    }
 
     // Autosave draft on input changes (debounced minimal)
-    const form = $('#contentForm');
+    // Autosave draft on input changes (debounced minimal)
     let t=null; const schedule=()=>{ if (t) clearTimeout(t); t=setTimeout(saveDraft, 200); };
-    form.addEventListener('input', schedule);
-    form.addEventListener('change', schedule);
+    if (form) {
+      form.addEventListener('input', schedule);
+      form.addEventListener('change', schedule);
+    }
 
     const exportBtn = $('#exportBtn');
     if (exportBtn) exportBtn.addEventListener('click', ()=>{
