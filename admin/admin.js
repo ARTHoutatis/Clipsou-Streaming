@@ -11,8 +11,7 @@
   const APP_KEY_PUB = 'clipsou_admin_publish_api_v1';
   const APP_KEY_PUB_TIMES = 'clipsou_admin_publish_times_v1';
   const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
-  const APP_KEY_LASTVIEW = 'clipsou_admin_last_view_v1';
-  const APP_KEY_PERSIST = 'clipsou_admin_persist_session_v1';
+  const APP_KEY_SCROLL = 'clipsou_admin_scroll_v1';
   // Duration to display the deployment-in-progress hint after an approval
   const DEPLOY_HINT_MS = 2 * 60 * 60 * 1000; // 2 hours to account for slower GitHub Pages/CI deployments
   const $ = (sel, root=document) => root.querySelector(sel);
@@ -35,16 +34,6 @@
       return cfg;
     } catch { return Object.assign({}, CLOUDINARY); }
   }
-
-  // ===== Persisted session helpers =====
-  function persistSession() { try { localStorage.setItem(APP_KEY_PERSIST, '1'); } catch {} }
-  function clearPersistSession() { try { localStorage.removeItem(APP_KEY_PERSIST); } catch {} }
-  function hasPersistSession() { try { return localStorage.getItem(APP_KEY_PERSIST) === '1'; } catch { return false; } }
-
-  // Cookie fallback (some environments may clear localStorage on hard reload)
-  function setSessionCookie() { try { document.cookie = 'clipsou_admin_session=1; path=/; SameSite=Lax'; } catch {} }
-  function clearSessionCookie() { try { document.cookie = 'clipsou_admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax'; } catch {} }
-  function hasSessionCookie() { try { return document.cookie.split(';').some(c => c.trim().startsWith('clipsou_admin_session=')); } catch { return false; } }
 
   function getPublishTimes(){
     try { return JSON.parse(localStorage.getItem(APP_KEY_PUB_TIMES) || '{}'); } catch { return {}; }
@@ -280,28 +269,18 @@
   function ensureAuth(){
     const app = $('#app');
     const login = $('#login');
-    function showLogin(){ if (app) app.hidden = true; if (login) login.hidden = false; try { localStorage.setItem(APP_KEY_LASTVIEW, 'login'); } catch {} }
-    function showApp(){ if (login) login.hidden = true; if (app) app.hidden = false; try { localStorage.setItem(APP_KEY_LASTVIEW, 'app'); } catch {} try { if (location.hash !== '#app') history.replaceState(null,'',location.pathname+location.search+'#app'); } catch {} }
-    // Si l'URL contient #app, forcer l'Admin immédiatement (l'utilisateur était déjà sur l'Admin avant le refresh)
+    function showLogin(){ if (app) app.hidden = true; if (login) login.hidden = false; }
+    function showApp(){ if (login) login.hidden = true; if (app) app.hidden = false; }
+    // Existing session
     try {
-      if (location && location.hash === '#app') {
-        try { sessionStorage.setItem(APP_KEY_SESSION, '1'); } catch {}
-        persistSession();
-        setSessionCookie();
-        try { localStorage.setItem(APP_KEY_LASTVIEW, 'app'); } catch {}
+      // If "remember" is set, auto-login without prompting
+      if (localStorage.getItem(APP_KEY_REMEMBER) === '1') {
+        sessionStorage.setItem(APP_KEY_SESSION, '1');
         showApp();
         initApp();
         return;
       }
-    } catch {}
-
-    // Existing session
-    try {
-      const lastView = localStorage.getItem(APP_KEY_LASTVIEW) || 'login';
-      const hasSess = sessionStorage.getItem(APP_KEY_SESSION) === '1';
-      const hasPersist = hasPersistSession() || hasSessionCookie();
-      if (lastView === 'app' && (hasSess || hasPersist)) {
-        try { sessionStorage.setItem(APP_KEY_SESSION, '1'); } catch {}
+      if (sessionStorage.getItem(APP_KEY_SESSION) === '1') {
         showApp();
         initApp();
         return;
@@ -313,7 +292,12 @@
     const pwdInput = $('#passwordInput');
     const showPwd = $('#showPwd');
 
-    // Never prefill password for security
+    // Prefill password if previously remembered
+    try {
+      if (localStorage.getItem(APP_KEY_REMEMBER) === '1') {
+        if (pwdInput) pwdInput.value = '20Blabla30';
+      }
+    } catch {}
 
     // Show/hide password
     if (showPwd && pwdInput) {
@@ -326,8 +310,8 @@
       const pwd = (pwdInput && pwdInput.value) || '';
       if (pwd === '20Blabla30') {
         try { sessionStorage.setItem(APP_KEY_SESSION, '1'); } catch {}
-        persistSession();
-        setSessionCookie();
+        // Always remember once successfully logged in
+        try { localStorage.setItem(APP_KEY_REMEMBER, '1'); } catch {}
         showApp();
         initApp();
       } else {
@@ -516,9 +500,6 @@
   function initApp(){
     const app = $('#app');
     app.hidden = false;
-    // Ensure persisted session and hash are set while Admin is visible
-    try { persistSession(); setSessionCookie(); localStorage.setItem(APP_KEY_LASTVIEW, 'app'); } catch {}
-    try { if (location.hash !== '#app') history.replaceState(null,'',location.pathname+location.search+'#app'); } catch {}
 
     // Logout button returns to login
     try {
@@ -526,8 +507,6 @@
       if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
           try { sessionStorage.removeItem(APP_KEY_SESSION); } catch {}
-          clearPersistSession();
-          clearSessionCookie();
           const login = $('#login');
           if (app) app.hidden = true;
           if (login) login.hidden = false;
@@ -763,30 +742,6 @@
     populateGenresDatalist();
     restoreDraft();
     populateActorNamesDatalist();
-
-    // ===== Persist and restore scroll position in admin =====
-    (function persistScroll(){
-      const KEY = 'clipsou_admin_scroll_v1';
-      let st = null;
-      const save = () => {
-        try { localStorage.setItem(KEY, JSON.stringify({ y: window.scrollY || 0, t: Date.now() })); } catch {}
-      };
-      const onScroll = () => { if (st) clearTimeout(st); st = setTimeout(save, 150); };
-      // Restore once after initial render
-      try {
-        const raw = localStorage.getItem(KEY);
-        if (raw) {
-          const v = JSON.parse(raw);
-          if (v && typeof v.y === 'number') {
-            // Defer to ensure layout is stable
-            setTimeout(() => { window.scrollTo({ top: v.y, left: 0, behavior: 'auto' }); }, 0);
-          }
-        }
-      } catch {}
-      window.addEventListener('scroll', onScroll, { passive: true });
-      window.addEventListener('beforeunload', save);
-      window.addEventListener('pagehide', save);
-    })();
     // Resume deployment watchers for any tracked items not yet confirmed
     try {
       const track = getDeployTrack();
@@ -796,21 +751,23 @@
       });
     } catch {}
 
-    // ===== Track last visible view on unload/visibility change =====
-    (function trackLastView(){
-      const KEY = APP_KEY_LASTVIEW;
-      const write = () => {
-        try {
-          const isAppVisible = app && !app.hidden;
-          localStorage.setItem(KEY, isAppVisible ? 'app' : 'login');
-        } catch {}
-      };
-      document.addEventListener('visibilitychange', write);
-      window.addEventListener('beforeunload', write);
-      window.addEventListener('pagehide', write);
-      // Initial write to reflect current state
-      write();
-    })();
+    // Restore scroll position within admin after refresh
+    try {
+      const y = parseInt(localStorage.getItem(APP_KEY_SCROLL) || '0', 10);
+      if (!Number.isNaN(y) && y > 0) {
+        // Ensure layout is ready before scrolling
+        setTimeout(() => { window.scrollTo({ top: y, left: 0, behavior: 'auto' }); }, 0);
+      }
+    } catch {}
+
+    // Persist scroll position (debounced)
+    let scrollT = null;
+    const saveScroll = () => {
+      try { localStorage.setItem(APP_KEY_SCROLL, String(window.scrollY || window.pageYOffset || 0)); } catch {}
+    };
+    const onScroll = () => { if (scrollT) clearTimeout(scrollT); scrollT = setTimeout(saveScroll, 150); };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('beforeunload', saveScroll);
   }
 
   // Boot
@@ -819,42 +776,6 @@
   } else {
     ensureAuth();
   }
-})();
-
-// ===== Debug overlay (toggle with Ctrl+Alt+D) =====
-(function(){
-  function readState(){
-    let sess='0', persist='0', last='?';
-    try { sess = sessionStorage.getItem('clipsou_admin_session_v1')||'0'; } catch {}
-    try { persist = localStorage.getItem('clipsou_admin_persist_session_v1')||'0'; } catch {}
-    try { last = localStorage.getItem('clipsou_admin_last_view_v1')||'?'; } catch {}
-    return { sess, persist, last, hash: (location.hash||'') };
-  }
-  function ensurePanel(){
-    let panel = document.getElementById('clipsou-admin-debug');
-    if (!panel) {
-      panel = document.createElement('div');
-      panel.id = 'clipsou-admin-debug';
-      panel.style.cssText = 'position:fixed;top:10px;right:10px;background:#0f172a;border:1px solid #334155;color:#e5e7eb;border-radius:8px;padding:8px 10px;font:12px system-ui;z-index:99999;box-shadow:0 2px 8px rgba(0,0,0,.4)';
-      const close = document.createElement('button'); close.textContent='×'; close.style.cssText='position:absolute;top:2px;right:6px;background:transparent;border:0;color:#94a3b8;cursor:pointer;font-size:14px'; close.onclick=()=>panel.remove(); panel.appendChild(close);
-      const pre = document.createElement('pre'); pre.style.margin='0'; pre.style.whiteSpace='pre-wrap'; pre.id='clipsou-admin-debug-pre'; panel.appendChild(pre);
-      const btns = document.createElement('div'); btns.style.marginTop='6px'; btns.style.display='flex'; btns.style.gap='6px';
-      const fix = document.createElement('button'); fix.textContent='Forcer Admin'; fix.className='btn'; fix.style.cssText='background:#2563eb;border:0;color:#fff;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px';
-      fix.onclick = ()=>{
-        try { sessionStorage.setItem('clipsou_admin_session_v1','1'); localStorage.setItem('clipsou_admin_persist_session_v1','1'); localStorage.setItem('clipsou_admin_last_view_v1','app'); } catch {}
-        try { if (location.hash !== '#app') history.replaceState(null,'',location.pathname+location.search+'#app'); } catch {}
-        location.reload();
-      };
-      btns.appendChild(fix);
-      panel.appendChild(btns);
-      document.body.appendChild(panel);
-    }
-    const st = readState();
-    const pre = document.getElementById('clipsou-admin-debug-pre');
-    if (pre) pre.textContent = `hash: ${st.hash}\nsessionStorage: ${st.sess}\nlocalStorage.persist: ${st.persist}\nlastView: ${st.last}`;
-  }
-  function toggle(){ const el = document.getElementById('clipsou-admin-debug'); if (el) el.remove(); else ensurePanel(); }
-  document.addEventListener('keydown', (e)=>{ if (e.ctrlKey && e.altKey && (e.key==='d' || e.key==='D')) { e.preventDefault(); toggle(); } });
 })();
 
 // ===== Extra helpers: genres datalist & actor names =====

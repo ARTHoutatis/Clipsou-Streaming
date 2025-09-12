@@ -5,10 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Admin – Clipsou Streaming</title>
   <meta name="robots" content="noindex, nofollow">
-  <!-- Prevent caching so the admin always loads the latest JS and auth state restores correctly online -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
   <link rel="icon" href="../favicon.png" type="image/png">
   <link rel="stylesheet" href="admin.css?v=20250910">
 </head>
@@ -167,7 +163,7 @@
   <div id="login" class="login">
     <h1>Admin – Connexion</h1>
     <p class="muted">Entrez le mot de passe admin pour accéder à l’interface.</p>
-    <input id="passwordInput" type="password" placeholder="Mot de passe" autocomplete="current-password" autocapitalize="off" spellcheck="false" name="password">
+    <input id="passwordInput" type="password" placeholder="Mot de passe">
     <div style="display:flex; gap:12px; justify-content:center; align-items:center; margin:8px 0;">
       <label style="display:flex; gap:6px; align-items:center;">
         <input id="showPwd" type="checkbox">
@@ -176,18 +172,7 @@
     </div>
     <button id="loginBtn" class="btn">Se connecter</button>
   </div>
-  <script>
-    // Seed session as early as possible if the URL indicates the Admin view
-    (function(){
-      try {
-        if (location.hash === '#app') {
-          sessionStorage.setItem('clipsou_admin_session_v1','1');
-          localStorage.setItem('clipsou_admin_persist_session_v1','1');
-          localStorage.setItem('clipsou_admin_last_view_v1','app');
-        }
-      } catch (e) {}
-    })();
-  </script>
-  <script src="admin.js?v=20250912-4" defer></script>
+
+  <script src="admin.js" defer></script>
 </body>
 </html>
