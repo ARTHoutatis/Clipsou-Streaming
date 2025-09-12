@@ -50,13 +50,30 @@
 
   // Poll GitHub Pages public JSON to detect when an approved item is live
   async function isItemLivePublic(id){
-    const tryUrls = ['../data/approved.json', 'data/approved.json'];
+    const cfg = getPublishConfig();
+    const absolute = (typeof window !== 'undefined' && window.location) ? (window.location.origin + '/data/approved.json') : null;
+    const tryUrls = [
+      cfg && cfg.publicApprovedUrl ? cfg.publicApprovedUrl : null,
+      absolute,
+      '../data/approved.json',
+      'data/approved.json'
+    ].filter(Boolean);
     for (const base of tryUrls) {
       try {
         const res = await fetch(base + '?v=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' });
         if (!res.ok) continue;
-        const arr = await res.json();
-        if (Array.isArray(arr) && arr.some(x => x && x.id === id)) return true;
+        const json = await res.json();
+        // Robust detection: handle array at root or under common keys
+        if (Array.isArray(json) && json.some(x => x && x.id === id)) return true;
+        if (json && typeof json === 'object') {
+          const candidates = [];
+          if (Array.isArray(json.approved)) candidates.push(json.approved);
+          if (Array.isArray(json.items)) candidates.push(json.items);
+          if (Array.isArray(json.data)) candidates.push(json.data);
+          for (const arr of candidates) {
+            if (arr.some(x => x && x.id === id)) return true;
+          }
+        }
       } catch {}
     }
     return false;
@@ -177,8 +194,19 @@
       if (!url) return null;
       const secret = prompt('Entrez le secret de l\'API (il sera stocké uniquement dans ce navigateur):', cfg.secret||'');
       if (!secret) return null;
-      cfg = { url: url.trim(), secret: secret.trim() };
+      // Optional: URL publique de approved.json pour vérifier le déploiement GitHub Pages
+      let defaultPublic = '';
+      try { defaultPublic = (window.location.origin || '') + '/data/approved.json'; } catch {}
+      const publicApprovedUrl = prompt('URL publique du approved.json (optionnel, ex: https://<user>.github.io/<repo>/data/approved.json):', cfg.publicApprovedUrl || defaultPublic || '');
+      cfg = { url: url.trim(), secret: secret.trim(), publicApprovedUrl: (publicApprovedUrl||'').trim() };
       setPublishConfig(cfg);
+    } else if (!cfg.publicApprovedUrl) {
+      // Backfill publicApprovedUrl if missing
+      try {
+        const guess = (window.location.origin || '') + '/data/approved.json';
+        cfg.publicApprovedUrl = guess;
+        setPublishConfig(cfg);
+      } catch {}
     }
     return cfg;
   }
@@ -366,7 +394,19 @@
       const actions = tr.querySelector('.row-actions');
       const editBtn = document.createElement('button'); editBtn.className='btn secondary'; editBtn.textContent='Modifier';
       const delBtn = document.createElement('button'); delBtn.className='btn secondary'; delBtn.textContent='Supprimer';
-      const approveBtn = document.createElement('button'); approveBtn.className='btn'; approveBtn.textContent=(r.status==='approved'?'Retirer':'Approuver');
+      const approveBtn = document.createElement('button'); approveBtn.className='btn';
+      // Approve button label reflects deploy state: orange while pending, green when confirmed
+      (function setApproveBtnLabel(){
+        const track = getDeployTrack();
+        const info = track[r.data.id];
+        if (r.status === 'approved') {
+          if (info && !info.confirmedAt) approveBtn.innerHTML = 'Retirer <span class="dot orange"></span>';
+          else if (info && info.confirmedAt) approveBtn.innerHTML = 'Retirer <span class="dot green"></span>';
+          else approveBtn.textContent = 'Retirer';
+        } else {
+          approveBtn.textContent = 'Approuver';
+        }
+      })();
       actions.appendChild(editBtn); actions.appendChild(delBtn); actions.appendChild(approveBtn);
       editBtn.addEventListener('click', ()=>{ fillForm(r.data); });
       delBtn.addEventListener('click', ()=>{
@@ -417,22 +457,8 @@
             setPublishTimes(times);
             // Start background watch for GitHub Pages deployment
             startDeploymentWatch(found.data.id);
-            // Enhance status cell: show pending (orange) until public site has the item, then green
-            const statusTd = tr.querySelector('.status-cell');
-            if (statusTd) {
-              const track = getDeployTrack();
-              const info = track[r.data.id];
-              let note = '';
-              if (r.status === 'approved') {
-                if (info && !info.confirmedAt) {
-                  note = ' <span class="muted small">• déploiement GitHub Pages en cours</span> <span class="dot orange"></span>';
-                } else if (info && info.confirmedAt) {
-                  note = ' <span class="muted small">• déployé</span> <span class="dot green"></span>';
-                }
-              }
-              statusTd.innerHTML = `${r.status}${note}`;
-            }
-            approveBtn.innerHTML = 'Retirer <span class="dot green"></span>';
+            // Keep the action button orange until confirmation is detected
+            approveBtn.innerHTML = 'Retirer <span class="dot orange"></span>';
             setTimeout(()=>{ renderTable(); }, 300);
           } else {
             // Revert local approval on failure
