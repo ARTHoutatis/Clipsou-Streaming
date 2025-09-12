@@ -502,21 +502,57 @@ document.addEventListener('DOMContentLoaded', async function () {
       topRated.innerHTML = ''; sorted.forEach(it => topRated.appendChild(createCard(it)));
     }
 
-    // Group by genre and ensure sections
+    // Helpers to normalize and pretty-print genre names (merge accents/variants)
+    const normalizeGenre = (name) => (name || '')
+      .trim()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+    const PRETTY_MAP = {
+      'comedie': 'Comédie',
+      'action': 'Action',
+      'drame': 'Drame',
+      'familial': 'Familial',
+      'horreur': 'Horreur',
+      'aventure': 'Aventure',
+      'thriller': 'Thriller',
+      'fantastique': 'Fantastique',
+      'western': 'Western',
+      'mystere': 'Mystère',
+      'ambience': 'Ambience',
+      'enfants': 'Enfants',
+      'super-heros': 'Super‑héros',
+      'psychologique': 'Psychologique',
+    };
+    const prettyGenre = (name) => PRETTY_MAP[normalizeGenre(name).replace(/\s+/g,'-')] || (function(){
+      const n = (name||'').trim();
+      return n.charAt(0).toUpperCase() + n.slice(1);
+    })();
+
+    // Group by normalized genre and ensure sections
     const firstPopup = document.querySelector('.fiche-popup');
     const byGenre = new Map();
-    items.forEach(it => { (it.genres || []).forEach(g => { if (!g) return; const key = g.trim(); if (!byGenre.has(key)) byGenre.set(key, []); byGenre.get(key).push(it); }); });
+    items.forEach(it => {
+      (it.genres || []).forEach(g => {
+        if (!g) return;
+        const norm = normalizeGenre(g);
+        if (!byGenre.has(norm)) byGenre.set(norm, { name: prettyGenre(g), list: [] });
+        byGenre.get(norm).list.push(it);
+      });
+    });
     function genreEmoji(name) { const g = (name || '').toLowerCase(); const map = { 'action':'🔥','comédie':'😂','comedie':'😂','drame':'😢','familial':'👨‍👩‍👧','horreur':'👻','aventure':'🗺️','thriller':'🗡️','fantastique':'✨','western':'🤠','mystère':'🕵️','mystere':'🕵️','ambience':'🌫️','enfants':'🧒','super-héros':'🦸','super heros':'🦸','psychologique':'🧠' }; return map[g] || '🎞️'; }
-    const SKIP_GENRES = new Set(['ambience','enfants','super-héros','super heros','drame','psychologique','western','fantastique','thriller']);
-    byGenre.forEach((list, genreName) => {
-      const id = 'genre-' + slug(genreName);
-      const lowerName = (genreName || '').toLowerCase();
+    // Use normalized keys for skip set
+    const SKIP_GENRES = new Set(['ambience','enfants','super-heros','drame','psychologique','western','fantastique','thriller']);
+    byGenre.forEach((entry, normKey) => {
+      const list = entry && entry.list || [];
+      const displayName = entry && entry.name ? entry.name : 'Genres';
+      const id = 'genre-' + slug(displayName);
+      const lowerName = normKey; // already normalized
       // Skip building sections for specified genres
-      if (lowerName === 'mystère' || lowerName === 'mystere' || SKIP_GENRES.has(lowerName)) { const existing = document.getElementById(id); if (existing) existing.remove(); return; }
+      if (lowerName === 'mystere' || SKIP_GENRES.has(lowerName)) { const existing = document.getElementById(id); if (existing) existing.remove(); return; }
       if (!list || list.length < 1) { const existingSection = document.getElementById(id); if (existingSection) existingSection.remove(); return; }
       let section = document.getElementById(id);
-      if (!section) { section = document.createElement('div'); section.className = 'section'; section.id = id; const h2 = document.createElement('h2'); h2.textContent = `${genreEmoji(genreName)} ${genreName}`; const rail = document.createElement('div'); rail.className = 'rail'; section.appendChild(h2); section.appendChild(rail); if (firstPopup && firstPopup.parentNode) firstPopup.parentNode.insertBefore(section, firstPopup); else (document.querySelector('main') || document.body).appendChild(section); }
-      const rail = section.querySelector('.rail'); const header = section.querySelector('h2'); if (header) header.textContent = `${genreEmoji(genreName)} ${genreName}`;
+      if (!section) { section = document.createElement('div'); section.className = 'section'; section.id = id; const h2 = document.createElement('h2'); h2.textContent = `${genreEmoji(displayName)} ${displayName}`; const rail = document.createElement('div'); rail.className = 'rail'; section.appendChild(h2); section.appendChild(rail); if (firstPopup && firstPopup.parentNode) firstPopup.parentNode.insertBefore(section, firstPopup); else (document.querySelector('main') || document.body).appendChild(section); }
+      const rail = section.querySelector('.rail'); const header = section.querySelector('h2'); if (header) header.textContent = `${genreEmoji(displayName)} ${displayName}`;
       const sorted = list.slice().sort((a, b) => { const ra = (typeof a.rating === 'number') ? a.rating : -Infinity; const rb = (typeof b.rating === 'number') ? b.rating : -Infinity; if (rb !== ra) return rb - ra; return (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' }); });
       rail.innerHTML = ''; const seen = new Set(); sorted.forEach(it => { const href = `#${it.id}`; if (seen.has(href)) return; rail.appendChild(createCard(it)); seen.add(href); });
       if (rail.querySelectorAll('.card').length <= 0) { section.remove(); }
