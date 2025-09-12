@@ -12,6 +12,7 @@
   const APP_KEY_PUB_TIMES = 'clipsou_admin_publish_times_v1';
   const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
   const APP_KEY_LASTVIEW = 'clipsou_admin_last_view_v1';
+  const APP_KEY_PERSIST = 'clipsou_admin_persist_session_v1';
   // Duration to display the deployment-in-progress hint after an approval
   const DEPLOY_HINT_MS = 2 * 60 * 60 * 1000; // 2 hours to account for slower GitHub Pages/CI deployments
   const $ = (sel, root=document) => root.querySelector(sel);
@@ -35,16 +36,10 @@
     } catch { return Object.assign({}, CLOUDINARY); }
   }
 
-  // ===== Session cookie helpers (fallback if some browsers clear sessionStorage on hard refresh) =====
-  function setSessionCookie() {
-    try { document.cookie = 'clipsou_admin_session=1; path=/; SameSite=Lax'; } catch {}
-  }
-  function clearSessionCookie() {
-    try { document.cookie = 'clipsou_admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax'; } catch {}
-  }
-  function hasSessionCookie() {
-    try { return document.cookie.split(';').some(c => c.trim().startsWith('clipsou_admin_session=')); } catch { return false; }
-  }
+  // ===== Persisted session flag (localStorage) to survive refresh while user stays on Admin =====
+  function persistSession() { try { localStorage.setItem(APP_KEY_PERSIST, '1'); } catch {} }
+  function clearPersistSession() { try { localStorage.removeItem(APP_KEY_PERSIST); } catch {} }
+  function hasPersistSession() { try { return localStorage.getItem(APP_KEY_PERSIST) === '1'; } catch { return false; } }
 
   function getPublishTimes(){
     try { return JSON.parse(localStorage.getItem(APP_KEY_PUB_TIMES) || '{}'); } catch { return {}; }
@@ -280,12 +275,15 @@
   function ensureAuth(){
     const app = $('#app');
     const login = $('#login');
-    function showLogin(){ if (app) app.hidden = true; if (login) login.hidden = false; try { localStorage.setItem(APP_KEY_LASTVIEW, 'login'); } catch {} }
-    function showApp(){ if (login) login.hidden = true; if (app) app.hidden = false; try { localStorage.setItem(APP_KEY_LASTVIEW, 'app'); } catch {} }
+    function showLogin(){ if (app) app.hidden = true; if (login) login.hidden = false; try { localStorage.setItem(APP_KEY_LASTVIEW, 'login'); } catch {} try { if (location.hash === '#app') history.replaceState(null,'',location.pathname+location.search); } catch {} }
+    function showApp(){ if (login) login.hidden = true; if (app) app.hidden = false; try { localStorage.setItem(APP_KEY_LASTVIEW, 'app'); } catch {} try { if (location.hash !== '#app') history.replaceState(null,'',location.pathname+location.search+'#app'); } catch {} }
     // Existing session
     try {
       const lastView = localStorage.getItem(APP_KEY_LASTVIEW) || 'login';
-      if (lastView === 'app' && (sessionStorage.getItem(APP_KEY_SESSION) === '1' || hasSessionCookie())) {
+      const hasSess = sessionStorage.getItem(APP_KEY_SESSION) === '1';
+      const hasPersist = hasPersistSession();
+      const hasHashApp = (location && location.hash === '#app');
+      if ((lastView === 'app' || hasHashApp) && (hasSess || hasPersist)) {
         try { sessionStorage.setItem(APP_KEY_SESSION, '1'); } catch {}
         showApp();
         initApp();
@@ -311,7 +309,7 @@
       const pwd = (pwdInput && pwdInput.value) || '';
       if (pwd === '20Blabla30') {
         try { sessionStorage.setItem(APP_KEY_SESSION, '1'); } catch {}
-        setSessionCookie();
+        persistSession();
         showApp();
         initApp();
       } else {
@@ -507,7 +505,7 @@
       if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
           try { sessionStorage.removeItem(APP_KEY_SESSION); } catch {}
-          clearSessionCookie();
+          clearPersistSession();
           const login = $('#login');
           if (app) app.hidden = true;
           if (login) login.hidden = false;
