@@ -1,4 +1,14 @@
 document.addEventListener('DOMContentLoaded', async function () {
+  // Always start at the top on load/refresh (avoid browser restoring scroll)
+  try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch {}
+  try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); } catch { window.scrollTo(0,0); }
+  try { setTimeout(() => { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); }, 0); } catch {}
+  try {
+    window.addEventListener('pageshow', function(e){
+      // Always reset to top even on BFCache restore
+      try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); } catch { window.scrollTo(0,0); }
+    });
+  } catch {}
   // Audio unlocker: primes WebAudio on first user gesture so autoplay with sound is allowed later
   (function installAudioUnlocker(){
     try {
@@ -42,6 +52,149 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (!img.hasAttribute('decoding')) img.setAttribute('decoding', 'async');
     if (!img.getAttribute('alt')) img.setAttribute('alt', 'Image – Clipsou Streaming');
   });
+
+  // ========== Drawer (hamburger) ==========
+  (function setupDrawer(){
+    const btn = document.querySelector('.hamburger');
+    const drawer = document.getElementById('app-drawer');
+    const overlay = document.getElementById('drawer-overlay');
+    const closeBtn = drawer ? drawer.querySelector('.close-drawer') : null;
+    if (!btn || !drawer || !overlay) return; // Only on homepage where drawer exists
+
+    function open(){
+      drawer.classList.add('open');
+      overlay.classList.add('open');
+      drawer.setAttribute('aria-hidden','false');
+      overlay.setAttribute('aria-hidden','false');
+      try {
+        document.body.style.overflow = 'hidden';
+        // On mobile, fix the body to lock scroll entirely
+        if (window.innerWidth <= 768) {
+          const y = window.pageYOffset || document.documentElement.scrollTop || 0;
+          document.body.dataset.lockY = String(y);
+          document.body.style.position = 'fixed';
+          document.body.style.top = `-${y}px`;
+          document.body.style.width = '100%';
+          document.body.style.left = '0';
+          document.body.style.right = '0';
+        }
+      } catch {}
+      try { document.body.classList.add('drawer-open'); document.documentElement.classList.add('drawer-open'); } catch {}
+      try { btn.setAttribute('aria-expanded','true'); } catch {}
+    }
+    function close(){
+      drawer.classList.remove('open');
+      overlay.classList.remove('open');
+      drawer.setAttribute('aria-hidden','true');
+      overlay.setAttribute('aria-hidden','true');
+      try {
+        document.body.style.overflow = '';
+        // Restore scroll when unlocking on mobile
+        if (window.innerWidth <= 768) {
+          const yStr = document.body.dataset.lockY || '0';
+          const y = parseInt(yStr, 10) || 0;
+          document.body.style.position = '';
+          document.body.style.top = '';
+          document.body.style.width = '';
+          document.body.style.left = '';
+          document.body.style.right = '';
+          delete document.body.dataset.lockY;
+          window.scrollTo({ top: y, left: 0, behavior: 'auto' });
+        }
+      } catch {}
+      try { document.body.classList.remove('drawer-open'); document.documentElement.classList.remove('drawer-open'); } catch {}
+      try { btn.setAttribute('aria-expanded','false'); } catch {}
+    }
+    btn.addEventListener('click', () => {
+      if (drawer.classList.contains('open')) { close(); return; }
+      try { buildDrawerLinks(); } catch {}
+      open();
+    });
+    overlay.addEventListener('click', close);
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') close(); });
+
+    // Smooth scroll for drawer links (center target section in viewport)
+    function enableLink(link){
+      link.addEventListener('click', (e)=>{
+        const href = link.getAttribute('href')||'';
+        if (href.startsWith('#')) {
+          e.preventDefault();
+          try {
+            const target = document.querySelector(href);
+            if (target) {
+              close();
+              // Center the section in the viewport
+              const rect = target.getBoundingClientRect();
+              const currentY = window.pageYOffset || document.documentElement.scrollTop || 0;
+              const targetCenterY = currentY + rect.top + (rect.height / 2) - (window.innerHeight / 2);
+              const top = Math.max(0, Math.round(targetCenterY));
+              const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+              window.scrollTo({ top, left: 0, behavior: prefersReduced ? 'auto' : 'smooth' });
+            }
+          } catch {}
+        }
+      });
+    }
+
+    // Build section links dynamically (Top Rated + all genre sections built later)
+    function buildDrawerLinks(){
+      const list = document.getElementById('drawer-sections');
+      if (!list) return;
+      // Keep first fixed entry (Top Rated) and remove others
+      const fixed = Array.from(list.querySelectorAll('li'))[0] || null;
+      list.innerHTML = '';
+      if (fixed) list.appendChild(fixed);
+
+      // Find genre sections
+      const sections = Array.from(document.querySelectorAll('.section[id^="genre-"] h2'));
+      sections.forEach(h2 => {
+        const section = h2.closest('.section');
+        if (!section || !section.id) return;
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.className = 'link';
+        a.href = '#' + section.id;
+        a.textContent = h2.textContent || section.id.replace(/^genre-/, '');
+        li.appendChild(a);
+        list.appendChild(li);
+        enableLink(a);
+      });
+
+      // Ensure all anchors (including the fixed 'Mieux notés') have handlers
+      list.querySelectorAll('a').forEach(a => {
+        if (!a.dataset.drawerEnabled) {
+          enableLink(a);
+          a.dataset.drawerEnabled = '1';
+        }
+      });
+    }
+    // Observe DOM for new genre sections and rebuild automatically
+    try {
+      const mo = new MutationObserver((mutList)=>{
+        for (const m of mutList) {
+          for (const n of m.addedNodes) {
+            if (n && n.nodeType === 1) {
+              const el = /** @type {HTMLElement} */(n);
+              const id = (el.id || '').toLowerCase();
+              if (id.startsWith('genre-') || el.querySelector?.('[id^="genre-"]')) {
+                buildDrawerLinks();
+                return;
+              }
+            }
+          }
+        }
+      });
+      mo.observe(document.body, { childList: true, subtree: true });
+    } catch {}
+
+    // Expose for later
+    window.__rebuildDrawerLinks = buildDrawerLinks;
+    // Initial build (will be rebuilt after sections are created)
+    buildDrawerLinks();
+    // Safety: rebuild shortly after load in case sections arrive asynchronously
+    try { setTimeout(buildDrawerLinks, 300); } catch {}
+  })();
 
   // Helper to set up carousel controls once slides/indicators are built
   function setupCarousel() {
@@ -354,31 +507,23 @@ document.addEventListener('DOMContentLoaded', async function () {
     const byGenre = new Map();
     items.forEach(it => { (it.genres || []).forEach(g => { if (!g) return; const key = g.trim(); if (!byGenre.has(key)) byGenre.set(key, []); byGenre.get(key).push(it); }); });
     function genreEmoji(name) { const g = (name || '').toLowerCase(); const map = { 'action':'🔥','comédie':'😂','comedie':'😂','drame':'😢','familial':'👨‍👩‍👧','horreur':'👻','aventure':'🗺️','thriller':'🗡️','fantastique':'✨','western':'🤠','mystère':'🕵️','mystere':'🕵️','ambience':'🌫️','enfants':'🧒','super-héros':'🦸','super heros':'🦸','psychologique':'🧠' }; return map[g] || '🎞️'; }
+    const SKIP_GENRES = new Set(['ambience','enfants','super-héros','super heros','drame','psychologique','western','fantastique','thriller']);
     byGenre.forEach((list, genreName) => {
       const id = 'genre-' + slug(genreName);
       const lowerName = (genreName || '').toLowerCase();
-      if (lowerName === 'mystère' || lowerName === 'mystere') { const existing = document.getElementById(id); if (existing) existing.remove(); return; }
-      if (!list || list.length <= 1) { const existingSection = document.getElementById(id); if (existingSection) existingSection.remove(); return; }
+      // Skip building sections for specified genres
+      if (lowerName === 'mystère' || lowerName === 'mystere' || SKIP_GENRES.has(lowerName)) { const existing = document.getElementById(id); if (existing) existing.remove(); return; }
+      if (!list || list.length < 1) { const existingSection = document.getElementById(id); if (existingSection) existingSection.remove(); return; }
       let section = document.getElementById(id);
       if (!section) { section = document.createElement('div'); section.className = 'section'; section.id = id; const h2 = document.createElement('h2'); h2.textContent = `${genreEmoji(genreName)} ${genreName}`; const rail = document.createElement('div'); rail.className = 'rail'; section.appendChild(h2); section.appendChild(rail); if (firstPopup && firstPopup.parentNode) firstPopup.parentNode.insertBefore(section, firstPopup); else (document.querySelector('main') || document.body).appendChild(section); }
       const rail = section.querySelector('.rail'); const header = section.querySelector('h2'); if (header) header.textContent = `${genreEmoji(genreName)} ${genreName}`;
       const sorted = list.slice().sort((a, b) => { const ra = (typeof a.rating === 'number') ? a.rating : -Infinity; const rb = (typeof b.rating === 'number') ? b.rating : -Infinity; if (rb !== ra) return rb - ra; return (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' }); });
       rail.innerHTML = ''; const seen = new Set(); sorted.forEach(it => { const href = `#${it.id}`; if (seen.has(href)) return; rail.appendChild(createCard(it)); seen.add(href); });
-      if (rail.querySelectorAll('.card').length <= 1) { section.remove(); }
+      if (rail.querySelectorAll('.card').length <= 0) { section.remove(); }
+      else { try { window.__genreSectionIds = window.__genreSectionIds || new Set(); window.__genreSectionIds.add(id); } catch {} }
     });
 
-    // Build category sections
-    function categoryEmoji(name) { const g = (name || '').toLowerCase(); const map = { 'lego':'🧱','minecraft':'⛏️','live-action':'🎬' }; return map[g] || '🎞️'; }
-    function buildCategorySection(name, list) {
-      const id = 'category-' + slug(name);
-      let section = document.getElementById(id);
-      if (!section) { section = document.createElement('div'); section.className = 'section'; section.id = id; const h2 = document.createElement('h2'); h2.textContent = `${categoryEmoji(name)} ${name}`; const rail = document.createElement('div'); rail.className = 'rail'; section.appendChild(h2); section.appendChild(rail); if (firstPopup && firstPopup.parentNode) firstPopup.parentNode.insertBefore(section, firstPopup); else (document.querySelector('main') || document.body).appendChild(section); }
-      const rail = section.querySelector('.rail'); rail.innerHTML = ''; const seen = new Set(); list.forEach(it => { const href = `#${it.id}`; if (seen.has(href)) return; rail.appendChild(createCard(it)); seen.add(href); });
-    }
-    const cats = ['LEGO', 'Minecraft', 'Live-action'];
-    const byCat = new Map(); cats.forEach(c => byCat.set(c, []));
-    items.forEach(it => { const c = it.category || 'LEGO'; if (!byCat.has(c)) byCat.set(c, []); byCat.get(c).push(it); });
-    cats.forEach(c => { const list = byCat.get(c) || []; if (list.length >= 1) buildCategorySection(c, list); });
+    // Category sections removed per request (LEGO, Minecraft, Live-action)
 
     // Build carousel with 5 random films/séries (exclude trailers)
     (function buildRandomCarousel() {
@@ -402,6 +547,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         const dot = document.createElement('div'); dot.className = 'carousel-indicator' + (idx === 0 ? ' active' : ''); dot.setAttribute('role', 'button'); dot.setAttribute('tabindex', '0'); dot.setAttribute('aria-label', `Aller à la diapositive ${idx + 1}`); dot.setAttribute('data-index', String(idx)); if (idx === 0) dot.setAttribute('aria-current', 'true'); indicatorsWrap.appendChild(dot);
       });
       setupCarousel();
+      // Final safety: rebuild after carousel construction
+      try { if (typeof window.__rebuildDrawerLinks === 'function') setTimeout(window.__rebuildDrawerLinks, 0); } catch {}
     })();
   })();
 
@@ -444,6 +591,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   (function setupPopupClosing() {
     let lastScrollY = null;
     let lastOpener = null;
+    let drawerAutoOpened = false;
 
     // Intercept clicks that open a popup to remember the current scroll position and opener
     document.addEventListener('click', function (e) {
@@ -460,7 +608,35 @@ document.addEventListener('DOMContentLoaded', async function () {
       lastOpener = a;
       e.preventDefault();
       // Defer to allow event loop to finish before changing hash
-      setTimeout(() => { window.location.hash = '#' + id; }, 0);
+      setTimeout(() => { 
+        window.location.hash = '#' + id; 
+        try { 
+          if (window.innerWidth <= 768) {
+            document.body.classList.add('popup-open');
+            document.documentElement.classList.add('popup-open');
+            // Lock scroll like for drawer
+            const y = window.pageYOffset || document.documentElement.scrollTop || 0;
+            document.body.dataset.popupLockY = String(y);
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${y}px`;
+            document.body.style.width = '100%';
+            document.body.style.left = '0';
+            document.body.style.right = '0';
+            document.body.style.overflow = 'hidden';
+          }
+        } catch {}
+        // Ensure the drawer is visible in the background behind the popup
+        try {
+          const drawer = document.getElementById('app-drawer');
+          const overlay = document.getElementById('drawer-overlay');
+          if (drawer && !drawer.classList.contains('open')) {
+            drawer.classList.add('open');
+            drawerAutoOpened = true;
+          }
+          // Keep the drawer overlay closed/hidden so it doesn't interfere
+          if (overlay) overlay.classList.remove('open');
+        } catch {}
+      }, 0);
     }, { capture: true });
 
     function clearHash() {
@@ -473,6 +649,33 @@ document.addEventListener('DOMContentLoaded', async function () {
       if (window.history && typeof window.history.replaceState === 'function') {
         window.history.replaceState(null, document.title, url);
       }
+      // Unlock background scroll on mobile
+      try { 
+        document.body.classList.remove('popup-open');
+        document.documentElement.classList.remove('popup-open');
+        if (window.innerWidth <= 768) {
+          const yStr = document.body.dataset.popupLockY || '0';
+          const y = parseInt(yStr, 10) || 0;
+          document.body.style.position = '';
+          document.body.style.top = '';
+          document.body.style.width = '';
+          document.body.style.left = '';
+          document.body.style.right = '';
+          document.body.style.overflow = '';
+          delete document.body.dataset.popupLockY;
+          window.scrollTo({ top: y, left: 0, behavior: 'auto' });
+        }
+      } catch {}
+      // If we auto-opened the drawer for background visibility, close it back
+      try {
+        if (drawerAutoOpened) {
+          const drawer = document.getElementById('app-drawer');
+          if (drawer) drawer.classList.remove('open');
+          const overlay = document.getElementById('drawer-overlay');
+          if (overlay) overlay.classList.remove('open');
+        }
+        drawerAutoOpened = false;
+      } catch {}
     }
 
     // Handle clicks on any .close-btn (override javascript:history.back())
@@ -516,6 +719,43 @@ document.addEventListener('DOMContentLoaded', async function () {
           lastOpener.focus();
         }
       }
+    });
+
+    // On hash change (e.g., back button), toggle scroll lock accordingly
+    window.addEventListener('hashchange', () => {
+      try {
+        const targetId = (location.hash || '').replace(/^#/, '');
+        const isPopup = !!(targetId && document.getElementById(targetId) && document.getElementById(targetId).classList.contains('fiche-popup'));
+        if (isPopup && window.innerWidth <= 768) {
+          // Engage lock if not already fixed
+          document.body.classList.add('popup-open');
+          document.documentElement.classList.add('popup-open');
+          if (getComputedStyle(document.body).position !== 'fixed') {
+            const y = window.pageYOffset || document.documentElement.scrollTop || 0;
+            document.body.dataset.popupLockY = String(y);
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${y}px`;
+            document.body.style.width = '100%';
+            document.body.style.left = '0';
+            document.body.style.right = '0';
+            document.body.style.overflow = 'hidden';
+          }
+        } else {
+          // Release lock if present
+          document.body.classList.remove('popup-open');
+          document.documentElement.classList.remove('popup-open');
+          const yStr = document.body.dataset.popupLockY || '0';
+          const y = parseInt(yStr, 10) || 0;
+          document.body.style.position = '';
+          document.body.style.top = '';
+          document.body.style.width = '';
+          document.body.style.left = '';
+          document.body.style.right = '';
+          document.body.style.overflow = '';
+          delete document.body.dataset.popupLockY;
+          window.scrollTo({ top: y, left: 0, behavior: 'auto' });
+        }
+      } catch {}
     });
   })();
 

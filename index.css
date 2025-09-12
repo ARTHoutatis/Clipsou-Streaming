@@ -5,6 +5,7 @@
     --brand-2: #6c5ce7;
 }
 
+
 /* Partner logos: contain inside their fixed box and support simple position codes */
 .partner-logo {
   display: block;
@@ -70,19 +71,57 @@ body:has(.fiche-popup:target) {
     height: 100vh;
 }
 
+/* Activate global dim when any popup is open */
+body:has(.fiche-popup:target)::before {
+    background: rgba(0,0,0,0.6);
+    pointer-events: auto; /* block clicks to underlying UI */
+}
+/* JS-driven fallback: also dim when body has .popup-open (set in index.js) */
+body.popup-open::before {
+    background: rgba(0,0,0,0.6);
+    pointer-events: auto; /* block clicks to underlying UI */
+}
+
 body::before {
     content: '';
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: none;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: none; /* inactive by default */
     pointer-events: none;
-    z-index: -1;
+    z-index: 9998; /* above nav (~1000) and just below popup (9999) */
 }
 
 /* Navigation (desktop styles are unified in common.css) */
+/* Disable nav interactions while a popup is open */
+body:has(.fiche-popup:target) nav[aria-label="Navigation principale"],
+body.popup-open nav[aria-label="Navigation principale"] {
+  pointer-events: none !important;
+}
+
+/* Make nav fully transparent under popup so the global dim overlay covers it identically */
+body:has(.fiche-popup:target) nav[aria-label="Navigation principale"],
+body.popup-open nav[aria-label="Navigation principale"] {
+  background: transparent !important;
+  border-bottom-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Add explicit dim overlay on nav to guarantee identical darkness */
+body:has(.fiche-popup:target) nav[aria-label="Navigation principale"]::after,
+body.popup-open nav[aria-label="Navigation principale"]::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; height: 70px;
+  background: rgba(0,0,0,0.6);
+  pointer-events: none;
+  z-index: 9998;
+}
+@media (max-width: 768px) {
+  body:has(.fiche-popup:target) nav[aria-label="Navigation principale"]::after,
+  body.popup-open nav[aria-label="Navigation principale"]::after {
+    height: 60px;
+  }
+}
 
 /* .logo styles are centralized in common.css to keep title identical across pages */
 
@@ -424,11 +463,17 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
 .fiche-popup {
     display: none;
     position: fixed;
-    inset: 0;
+    left: 0; right: 0; bottom: 0; top: 70px; /* keep site bar visible */
     background: rgba(0, 0, 0, 0.9);
-    justify-content: center;
-    align-items: center;
+    justify-content: center; /* horizontal centering */
+    align-items: center;     /* vertical centering */
+    align-content: center;   /* multi-line centering safety */
+    place-content: center;   /* shorthand safety */
+    place-items: center;     /* shorthand safety */
     z-index: 9999;
+    /* Span full height (minus nav) so centering works on all desktops */
+    min-height: calc(100dvh - 70px);
+    min-height: calc(100vh - 70px);
     padding: clamp(12px, 3vw, 20px);
     backdrop-filter: none;
     overscroll-behavior: contain; /* empêche le scroll de fond sur mobile */
@@ -439,9 +484,10 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
 }
 
 .fiche-content {
-    width: 100%;
+    width: 90%;
     max-width: 2000px;
-    max-height: 95vh;
+    /* Keep popup vertically centered by respecting the fixed nav height */
+    max-height: calc(100dvh - 110px);
     background: rgba(26, 35, 50, 0.95);
     border-radius: 16px;
     display: grid;
@@ -450,6 +496,7 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
+    margin: auto; /* ensure centering even if container alignment is overridden */
 }
 /* ... */
 .fiche-content {
@@ -757,6 +804,12 @@ html {
 
 /* Responsive mobile */
 @media (max-width: 768px) {
+  /* Place close button above the text on mobile */
+  .fiche-content .top-right-close {
+    position: static !important;
+    align-self: flex-end;
+    margin: 0 0 8px 0;
+  }
     /* Kill 100vh on mobile to avoid extra blank space below content */
     html, body { height: auto !important; }
     body { min-height: auto !important; }
@@ -959,11 +1012,12 @@ html {
     .fiche-content .stars { color: #ffffff !important; }
 
     .fiche-popup { 
+        top: 60px; /* below mobile nav */
         padding-left: max(12px, env(safe-area-inset-left)); 
         padding-right: max(12px, env(safe-area-inset-right)); 
         padding-top: max(12px, env(safe-area-inset-top));
         padding-bottom: max(12px, env(safe-area-inset-bottom));
-        min-height: 100svh; /* compat meilleurs barres d'adresse mobiles */
+        min-height: calc(100svh - 60px); /* account for fixed nav on mobile */
         align-items: center;
     }
 
@@ -973,9 +1027,10 @@ html {
         grid-template-areas:
             "image"
             "content";
-        width: 100%;
-        max-width: 95vw;
-        max-height: min(90svh, 90dvh);
+        width: 92%;               /* not full-bleed, keep margins */
+        max-width: 700px;         /* cap the width for nice centering */
+        margin: 0 auto;           /* center horizontally */
+        max-height: calc(100svh - 80px); /* nav + breathing */
         padding: 0 12px 8px; /* no top padding: image hugs the top */
         justify-items: center;
         align-items: start;
@@ -1515,6 +1570,12 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
         align-items: flex-start;              /* align to top */
         gap: 32px;                            /* space between image and text */
     }
+    /* Desktop: align fiche page logo like index (account for hamburger space on index) */
+    @media (min-width: 769px) {
+      body.fiche-page-view nav[aria-label="Navigation principale"] .logo {
+        margin-left: 88px !important;
+      }
+    }
     /* Subtle top separator before similar section on fiche pages */
     #fiche > .section {
         border-top: 1px solid rgba(255,255,255,0.16);
@@ -1549,3 +1610,15 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     body.fiche-page-view .nav-links .search-link { display: none !important; }
     
     
+/* FINAL OVERRIDE: hide all popup titles on mobile (placed at end to win cascade) */
+@media (max-width: 768px) {
+  .fiche-popup .fiche-content h3,
+  .fiche-popup .fiche-right > h3,
+  .fiche-popup h3 { display: none !important; margin: 0 !important; }
+}
+
+/* JS-driven mobile flag: if body.has('is-mobile'), hide popup titles too */
+body.is-mobile .fiche-popup h3 { display: none !important; margin: 0 !important; }
+body.is-mobile #infos-title,
+body.is-mobile #youtube-title,
+body.is-mobile #partenariats-title { display: none !important; }

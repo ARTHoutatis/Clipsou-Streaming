@@ -7,6 +7,196 @@ html {
   color-scheme: light; /* keep light controls regardless of system */
 }
 
+/* Global background fallback to avoid white flash when scroll is locked */
+html, body { background-color: #0b1117; }
+
+/* Shared button styles */
+.button {
+  background: #2B22EE;
+  border-radius: 5px;
+  padding: 12px 24px;
+  color: #fff;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.button:hover { transform: translateY(-1px); box-shadow: none; }
+.close-btn { background: #ff4444; }
+.close-btn:hover { background: #cc0000; box-shadow: none; }
+
+/* When drawer is open, keep the top bar fully opaque to prevent any light bleed */
+body.drawer-open nav[aria-label="Navigation principale"] {
+  backdrop-filter: none;
+  background: #0b1117; /* solid */
+}
+
+/* Drawer overlay and panel */
+.drawer-overlay {
+  position: fixed;
+  left: 0; right: 0; bottom: 0; top: 70px; /* below nav to avoid blur/light halo */
+  background: transparent; /* no dimmed cover */
+  backdrop-filter: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
+  z-index: 998;
+}
+.drawer-overlay.open { opacity: 1; pointer-events: auto; }
+
+.drawer {
+  position: fixed;
+  top: 70px; left: 0; /* below nav to avoid overlapping blur region */
+  height: calc(100vh - 70px);
+  width: min(86vw, 320px);
+  background: linear-gradient(180deg, #0b1117, #0e141b);
+  border-right: 1px solid rgba(255,255,255,0.08);
+  transform: translateX(-100%);
+  transition: transform .28s ease;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+}
+.drawer.open { transform: translateX(0); }
+.drawer header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.drawer header .title { font-weight: 700; font-size: 1.05rem; }
+.drawer .close-drawer {
+  appearance: none; border: 0; background: transparent; color: #fff; width: 40px; height: 40px; cursor: pointer;
+}
+.drawer nav { padding: 8px 10px 16px; overflow-y: auto; }
+.drawer .group-title { font-size: .9rem; opacity: .85; margin: 12px 8px 6px; font-weight: 700; }
+.drawer .link { display: block; padding: 10px 10px; border-radius: 8px; color: #fff; }
+.drawer .link:hover { background: rgba(255,255,255,0.06); }
+.drawer .links { list-style: none; margin: 0; padding: 0; }
+.drawer .links li { margin: 2px 0; }
+.drawer nav .cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center; /* center CTA buttons group */
+}
+/* Smart emphasis for the donation button without changing HTML */
+.drawer nav .cta-row a.button[href*="tipeee"],
+.drawer nav .cta-row a.button[href*="/don" i] {
+  width: auto; /* allow to sit beside Partenariats */
+  justify-content: center;
+  flex: 1 1 220px; /* share the row with Partenariats when space allows */
+  font-weight: 700; /* slightly lighter */
+  letter-spacing: .2px;
+  background: linear-gradient(135deg, #ff6aa6, #8a2be2) !important; /* pink → purple */
+  border: 1px solid rgba(255,255,255,0.22);
+  box-shadow: none !important; /* no glow */
+  position: relative;
+  isolation: isolate;
+  font-size: 13px; /* smaller */
+  padding: 10px 16px; /* smaller */
+}
+/* No pulse animation */
+/* Remove badge: no ::after decoration */
+.drawer nav .cta-row a.button[href*="tipeee"]::after,
+.drawer nav .cta-row a.button[href*="/don" i]::after { content: none; }
+/* Mobile: keep it prominent but comfortable */
+@media (max-width: 768px) {
+  .drawer nav .cta-row a.button[href*="tipeee"],
+  .drawer nav .cta-row a.button[href*="/don" i] {
+    font-size: 14px; /* still reduced vs default prominence */
+    padding: 10px 14px;
+    flex: 1 1 48%; /* on small screens try to keep it next to Partenariats */
+  }
+}
+
+/* Ensure Partenariats can share the row with the donation button */
+.drawer nav .cta-row a.button[href="#partenariats"] {
+  flex: 1 1 220px;
+}
+@media (max-width: 768px) {
+  .drawer nav .cta-row a.button[href="#partenariats"] {
+    flex: 1 1 48%;
+  }
+}
+.drawer .cta-row a { padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); }
+
+/* Remove blue glow/outline on drawer buttons */
+.drawer .cta-row a.button {
+  box-shadow: none !important;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.drawer .cta-row a.button:focus,
+.drawer .cta-row a.button:focus-visible,
+.drawer .cta-row a.button:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Drawer CTA brand colors */
+.drawer nav .cta-row a.button[href="#youtube"] {
+  background: #FF0000 !important;
+  border-color: rgba(255,0,0,0.35) !important;
+}
+.drawer nav .cta-row a.button[href="#youtube"]:hover { background: #CC0000 !important; }
+
+.drawer nav .cta-row a.button[href*="discord.gg" i] {
+  background: #5865F2 !important; /* Discord blurple */
+  border-color: rgba(88,101,242,0.45) !important;
+}
+.drawer nav .cta-row a.button[href*="discord.gg" i]:hover { background: #4552E0 !important; }
+
+.drawer nav .cta-row a.button[href="#partenariats"] {
+  background: #16a34a !important; /* green */
+  border-color: rgba(22,163,74,0.45) !important;
+}
+.drawer nav .cta-row a.button[href="#partenariats"]:hover { background: #15803d !important; }
+
+
+/* Hamburger button (hidden by default on desktop) */
+.hamburger {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  width: 40px;
+  height: 40px;
+  display: inline-flex; /* visible by default (desktop + mobile) */
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  cursor: pointer;
+  margin-right: 8px;
+}
+.hamburger:focus-visible { outline: 2px solid rgba(99,102,241,0.9); outline-offset: 2px; }
+.hamburger .bar {
+  position: relative;
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+}
+.hamburger .bar::before,
+.hamburger .bar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 24px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+}
+.hamburger .bar::before { top: -7px; }
+.hamburger .bar::after { top: 7px; }
+
 /* Type label mappings via data-type (support attribute on .card-info or on .card) */
 .card .card-info[data-type="film"]::before,
 .card[data-type="film"] .card-info::before { content: 'Film'; }
@@ -49,8 +239,7 @@ body {
 
 /* Navigation (banderole) */
 nav[aria-label="Navigation principale"] {
-  background: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0.65));
-  backdrop-filter: blur(8px);
+  background: #0b1117; /* solid dark */
   border-bottom: 1px solid rgba(255,255,255,0.08);
   padding: 0 40px; /* horizontal only on desktop to lock bar height */
   height: 70px; /* fixed desktop height for consistency */
@@ -122,6 +311,7 @@ nav[aria-label="Navigation principale"] {
     padding: 10px 20px !important;
     position: relative !important;
   }
+  /* no override for desktop; base (70px) is correct */
   .nav-links .search-link::before {
     position: static !important;
     left: auto !important;
@@ -240,6 +430,24 @@ nav[aria-label="Navigation principale"] {
 
 /* Mobile tweak for similar-section cards */
 @media (max-width: 768px) {
+  /* Lock background scroll when a popup is open */
+  body.popup-open,
+  body.drawer-open {
+    overflow: hidden !important; /* prevent background scroll */
+    width: 100% !important;
+    overscroll-behavior: none !important;
+    touch-action: none !important;
+  }
+  /* Also lock the root element to prevent scrolling in some mobile browsers */
+  html.popup-open,
+  html.drawer-open {
+    overflow: hidden !important;
+    height: 100% !important;
+    overscroll-behavior: none !important;
+  }
+  /* For popups, keep position static to avoid iOS background flash */
+  body.popup-open { position: static !important; }
+  /* For drawer, JS applies position:fixed with top offset to fully lock scroll */
   .similar-section .card .card-media .brand-badge {
     bottom: 12px; /* adjust for mobile consistently */
   }
@@ -351,7 +559,12 @@ html { scrollbar-color: #615d5d #0a0a0a; scrollbar-width: thin; }
     justify-content: space-between;
     flex-wrap: nowrap;
     column-gap: 6px;
+    position: fixed !important; /* keep fixed on mobile */
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
   }
+  /* Offset page content for fixed nav */
+  body { padding-top: 60px; }
   .logo {
     flex: 1 1 auto;
     min-width: 0;

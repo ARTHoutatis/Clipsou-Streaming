@@ -7,6 +7,11 @@
 /* Accueil link on search page: plain white text next to the logo */
 .home-link { background: transparent; border: 0; color: #fff; box-shadow: none; }
 
+/* Desktop: align logo block like on index (compensate for hamburger space) */
+@media (min-width: 769px) {
+  nav[aria-label="Navigation principale"] .logo { margin-left: 88px !important; }
+}
+
 /* Ultra-small phones: keep text natural size */
 @media (max-width: 360px) {
   .nav-links .home-link { width: auto; height: auto; padding: 0; }
@@ -163,12 +168,11 @@ body {
     linear-gradient(180deg, var(--bg-2), var(--bg-1));
 }
 
-/* Glassy nav with subtle blur */
+/* Opaque nav (match homepage) */
 nav[aria-label="Navigation principale"] {
-  background: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0.65));
-  backdrop-filter: blur(8px);
+  background: #0b1117; /* solid dark */
+  backdrop-filter: none;
   border-bottom: 1px solid rgba(255,255,255,0.08);
-  /* Use default spacing/alignment from common.css to keep consistency */
 }
 
 /* Gradient title text */
