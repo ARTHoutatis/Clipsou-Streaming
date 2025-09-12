@@ -282,13 +282,16 @@
     const login = $('#login');
     function showLogin(){ if (app) app.hidden = true; if (login) login.hidden = false; try { localStorage.setItem(APP_KEY_LASTVIEW, 'login'); } catch {} }
     function showApp(){ if (login) login.hidden = true; if (app) app.hidden = false; try { localStorage.setItem(APP_KEY_LASTVIEW, 'app'); } catch {} try { if (location.hash !== '#app') history.replaceState(null,'',location.pathname+location.search+'#app'); } catch {} }
-    // If URL hash explicitly says #app, assume the user was on Admin: seed minimal session flags to keep them on Admin after refresh
+    // Si l'URL contient #app, forcer l'Admin immédiatement (l'utilisateur était déjà sur l'Admin avant le refresh)
     try {
       if (location && location.hash === '#app') {
         try { sessionStorage.setItem(APP_KEY_SESSION, '1'); } catch {}
         persistSession();
         setSessionCookie();
         try { localStorage.setItem(APP_KEY_LASTVIEW, 'app'); } catch {}
+        showApp();
+        initApp();
+        return;
       }
     } catch {}
 
@@ -297,8 +300,7 @@
       const lastView = localStorage.getItem(APP_KEY_LASTVIEW) || 'login';
       const hasSess = sessionStorage.getItem(APP_KEY_SESSION) === '1';
       const hasPersist = hasPersistSession() || hasSessionCookie();
-      const hasHashApp = (location && location.hash === '#app');
-      if ((lastView === 'app' || hasHashApp) && (hasSess || hasPersist)) {
+      if (lastView === 'app' && (hasSess || hasPersist)) {
         try { sessionStorage.setItem(APP_KEY_SESSION, '1'); } catch {}
         showApp();
         initApp();
