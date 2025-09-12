@@ -363,9 +363,8 @@ html { scrollbar-color: #615d5d #0a0a0a; scrollbar-width: thin; }
     padding-top: 1px; /* micro offset to center vertically */
     padding-bottom: 4px; /* prevent bottom clipping of letters like 'g' */
   }
-  .logo img { width: 18px; height: 18px; flex: 0 0 auto; }
-  /* Double the logo size on mobile */
-  .logo img { width: 36px; height: 36px; }
+  /* Mobile logo size */
+  .logo img { width: 36px; height: 36px; flex: 0 0 auto; }
   .logo span {
     display: inline-block; /* ensure proper line box for descenders */
     overflow-x: hidden;
