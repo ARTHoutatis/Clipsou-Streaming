@@ -28,5 +28,26 @@
         "role": "Mamie"
       }
     ]
+  },
+  {
+    "id": "custom-test-jxgo",
+    "title": "test",
+    "type": "film",
+    "rating": 2,
+    "genres": [
+      "Action",
+      "Comédie",
+      "Aventure"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757699048/fdxtuxsxztgd88bkcsp5.avif",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757699050/rzkupw2qt62cxrhmryrb.webp",
+    "description": "test",
+    "watchUrl": "https://www.youtube.com/shorts/v8O-_YuEi58",
+    "actors": [
+      {
+        "name": "Arth",
+        "role": "testeur"
+      }
+    ]
   }
 ]
