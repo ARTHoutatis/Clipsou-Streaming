@@ -541,7 +541,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
     function genreEmoji(name) { const g = (name || '').toLowerCase(); const map = { 'action':'🔥','comédie':'😂','comedie':'😂','drame':'😢','familial':'👨‍👩‍👧','horreur':'👻','aventure':'🗺️','thriller':'🗡️','fantastique':'✨','western':'🤠','mystère':'🕵️','mystere':'🕵️','ambience':'🌫️','enfants':'🧒','super-héros':'🦸','super heros':'🦸','psychologique':'🧠' }; return map[g] || '🎞️'; }
     // Use normalized keys for skip set
-    const SKIP_GENRES = new Set(['ambience','enfants','super-heros','drame','psychologique','western','fantastique','thriller']);
+    const SKIP_GENRES = new Set(['ambience','enfants','super-heros','drame','psychologique','western','fantastique','thriller','sitcom']);
     byGenre.forEach((entry, normKey) => {
       const list = entry && entry.list || [];
       const displayName = entry && entry.name ? entry.name : 'Genres';
