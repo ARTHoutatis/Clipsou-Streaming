@@ -176,7 +176,18 @@
     </div>
     <button id="loginBtn" class="btn">Se connecter</button>
   </div>
-
-  <script src="admin.js?v=20250912-3" defer></script>
+  <script>
+    // Seed session as early as possible if the URL indicates the Admin view
+    (function(){
+      try {
+        if (location.hash === '#app') {
+          sessionStorage.setItem('clipsou_admin_session_v1','1');
+          localStorage.setItem('clipsou_admin_persist_session_v1','1');
+          localStorage.setItem('clipsou_admin_last_view_v1','app');
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <script src="admin.js?v=20250912-4" defer></script>
 </body>
 </html>
