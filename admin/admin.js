@@ -80,13 +80,14 @@
   }
 
   const deployWatchers = new Map();
-  function startDeploymentWatch(id){
+  function startDeploymentWatch(id, action='upsert'){
     if (!id || deployWatchers.has(id)) return;
     const tick = async () => {
       const live = await isItemLivePublic(id);
-      if (live) {
+      const done = (action === 'delete') ? !live : !!live;
+      if (done) {
         const track = getDeployTrack();
-        track[id] = { startedAt: (track[id] && track[id].startedAt) || Date.now(), confirmedAt: Date.now() };
+        track[id] = { action, startedAt: (track[id] && track[id].startedAt) || Date.now(), confirmedAt: Date.now() };
         setDeployTrack(track);
         // Refresh UI
         renderTable();
@@ -101,7 +102,7 @@
     };
     // Mark started
     const track = getDeployTrack();
-    track[id] = { startedAt: Date.now(), confirmedAt: track[id] && track[id].confirmedAt ? track[id].confirmedAt : undefined };
+    track[id] = { action, startedAt: Date.now(), confirmedAt: track[id] && track[id].confirmedAt ? track[id].confirmedAt : undefined };
     setDeployTrack(track);
     // Kick off
     const handle = setTimeout(tick, 0);
@@ -430,11 +431,27 @@
           const apr = getApproved().filter(x=>x.id!==found.data.id);
           setApproved(apr);
           // Remove from shared approved.json
-          await deleteApproved(found.data.id);
-          // Clear tracking
-          const track = getDeployTrack();
-          delete track[found.data.id];
-          setDeployTrack(track);
+          const originalHtml = approveBtn.innerHTML;
+          approveBtn.disabled = true;
+          approveBtn.innerHTML = 'Retrait… <span class="dot orange"></span>';
+          const okDel = await deleteApproved(found.data.id);
+          approveBtn.disabled = false;
+          if (okDel === false) {
+            // Revert UI if deletion API failed
+            found.status = 'approved';
+            setRequests(list);
+            // Re-add to approved list locally (defensive)
+            const aprBack = getApproved();
+            const idxBack = aprBack.findIndex(x=>x.id===found.data.id);
+            if (idxBack<0) aprBack.push(found.data);
+            setApproved(aprBack);
+            approveBtn.innerHTML = originalHtml;
+            renderTable();
+            return;
+          }
+          // Start watching for deletion propagation on public site
+          startDeploymentWatch(found.data.id, 'delete');
+          renderTable();
         } else {
           // Show publishing indicator and disable button during network call
           const originalHtml = approveBtn.innerHTML;
