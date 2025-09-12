@@ -741,6 +741,30 @@
     populateGenresDatalist();
     restoreDraft();
     populateActorNamesDatalist();
+
+    // ===== Persist and restore scroll position in admin =====
+    (function persistScroll(){
+      const KEY = 'clipsou_admin_scroll_v1';
+      let st = null;
+      const save = () => {
+        try { localStorage.setItem(KEY, JSON.stringify({ y: window.scrollY || 0, t: Date.now() })); } catch {}
+      };
+      const onScroll = () => { if (st) clearTimeout(st); st = setTimeout(save, 150); };
+      // Restore once after initial render
+      try {
+        const raw = localStorage.getItem(KEY);
+        if (raw) {
+          const v = JSON.parse(raw);
+          if (v && typeof v.y === 'number') {
+            // Defer to ensure layout is stable
+            setTimeout(() => { window.scrollTo({ top: v.y, left: 0, behavior: 'auto' }); }, 0);
+          }
+        }
+      } catch {}
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('beforeunload', save);
+      window.addEventListener('pagehide', save);
+    })();
     // Resume deployment watchers for any tracked items not yet confirmed
     try {
       const track = getDeployTrack();
