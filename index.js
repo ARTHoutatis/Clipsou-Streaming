@@ -571,6 +571,7 @@ document.addEventListener('DOMContentLoaded', async function () {
           prev.className = 'rail-arrow prev';
           prev.setAttribute('aria-label','Défiler vers la gauche');
           prev.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>';
+          prev.classList.add('hidden');
           section.appendChild(prev);
         }
         if (!section.querySelector('.rail-arrow.next')) {
@@ -578,17 +579,18 @@ document.addEventListener('DOMContentLoaded', async function () {
           next.className = 'rail-arrow next';
           next.setAttribute('aria-label','Défiler vers la droite');
           next.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>';
+          next.classList.add('hidden');
           section.appendChild(next);
         }
         // Ensure gradient fades exist (under arrows)
         if (!section.querySelector('.rail-fade.left')) {
           const fadeL = document.createElement('div');
-          fadeL.className = 'rail-fade left';
+          fadeL.className = 'rail-fade left hidden';
           section.appendChild(fadeL);
         }
         if (!section.querySelector('.rail-fade.right')) {
           const fadeR = document.createElement('div');
-          fadeR.className = 'rail-fade right';
+          fadeR.className = 'rail-fade right hidden';
           section.appendChild(fadeR);
         }
 
