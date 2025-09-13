@@ -1355,6 +1355,13 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     overflow-y: visible; /* allow hover lift without clipping */
     overscroll-behavior-x: contain;
 }
+/* Create start/end breathing space so cards never stick to edges */
+.rail::before,
+.rail::after {
+    content: '';
+    display: block;
+    width: 40px; /* desktop default; overridden on mobile */
+}
 /* Desktop-only: add side paddings + enable snapping */
 @media (min-width: 769px) {
   .rail {
