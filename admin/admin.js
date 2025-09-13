@@ -124,6 +124,31 @@
     try { localStorage.setItem(APP_KEY_DEPLOY_TRACK, JSON.stringify(map||{})); } catch {}
   }
 
+  // ===== UI: transient publish wait hint (30s) =====
+  function showPublishWaitHint(){
+    try {
+      let el = document.getElementById('publishWaitHint');
+      if (!el) {
+        el = document.createElement('p');
+        el.id = 'publishWaitHint';
+        el.className = 'muted';
+        el.style.margin = '8px 0';
+        const sec = document.querySelector('.requests');
+        if (sec) {
+          const h2 = sec.querySelector('h2');
+          if (h2) h2.insertAdjacentElement('afterend', el);
+          else sec.prepend(el);
+        } else {
+          document.body.appendChild(el);
+        }
+      }
+      el.textContent = 'Attendez la publication sur GitHub';
+      el.hidden = false;
+      if (el._hintTO) clearTimeout(el._hintTO);
+      el._hintTO = setTimeout(()=>{ try { el.hidden = true; } catch{} }, 30000);
+    } catch {}
+  }
+
   // Shallow compare of arrays (by values) and primitives inside item fields we care about
   function arraysEqual(a, b) {
     if (!Array.isArray(a) || !Array.isArray(b)) return false;
@@ -681,7 +706,8 @@
           // Show publishing indicator and disable button during network call
           const originalHtml = approveBtn.innerHTML;
           approveBtn.disabled = true;
-          approveBtn.textContent = 'Publication…';
+          approveBtn.textContent = 'Attendez la publication sur GitHub';
+          showPublishWaitHint();
 
           // Optimistically set approved locally
           found.status = 'approved';
@@ -962,6 +988,8 @@
             times[data.id] = Date.now();
             setPublishTimes(times);
           } catch {}
+          // Show 30s publish hint banner
+          showPublishWaitHint();
           renderTable();
           // Start background watch immediately so UI shows orange dot during publication (same as Approve flow)
           startDeploymentWatch(data.id, 'upsert', data);
