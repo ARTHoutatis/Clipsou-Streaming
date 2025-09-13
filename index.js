@@ -344,6 +344,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         existingHrefs.add(href);
       }
     });
+    // Force rail to start at far left
+    try { topRatedSection.scrollLeft = 0; requestAnimationFrame(() => { try { topRatedSection.scrollLeft = 0; } catch {} }); } catch {}
   }
 
   // Mobile tweak: hide Partenariats popup title on small screens (defensive in case CSS is overridden)
@@ -556,7 +558,11 @@ document.addEventListener('DOMContentLoaded', async function () {
       const sorted = list.slice().sort((a, b) => { const ra = (typeof a.rating === 'number') ? a.rating : -Infinity; const rb = (typeof b.rating === 'number') ? b.rating : -Infinity; if (rb !== ra) return rb - ra; return (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' }); });
       rail.innerHTML = ''; const seen = new Set(); sorted.forEach(it => { const href = `#${it.id}`; if (seen.has(href)) return; rail.appendChild(createCard(it)); seen.add(href); });
       if (rail.querySelectorAll('.card').length <= 0) { section.remove(); }
-      else { try { window.__genreSectionIds = window.__genreSectionIds || new Set(); window.__genreSectionIds.add(id); } catch {} }
+      else {
+        try { window.__genreSectionIds = window.__genreSectionIds || new Set(); window.__genreSectionIds.add(id); } catch {}
+        // Ensure each rail starts fully left after render
+        try { rail.scrollLeft = 0; requestAnimationFrame(() => { try { rail.scrollLeft = 0; } catch {} }); } catch {}
+      }
     });
 
     // Category sections removed per request (LEGO, Minecraft, Live-action)
@@ -587,6 +593,20 @@ document.addEventListener('DOMContentLoaded', async function () {
       try { if (typeof window.__rebuildDrawerLinks === 'function') setTimeout(window.__rebuildDrawerLinks, 0); } catch {}
     })();
   })();
+
+  // Safety: reset all rails to far left after initial builds
+  function resetAllRailsLeft(){
+    try {
+      document.querySelectorAll('.rail').forEach(r => {
+        try { r.scrollLeft = 0; } catch {}
+      });
+      requestAnimationFrame(() => {
+        try { document.querySelectorAll('.rail').forEach(r => { try { r.scrollLeft = 0; } catch {} }); } catch {}
+      });
+    } catch {}
+  }
+  try { window.addEventListener('load', resetAllRailsLeft); } catch {}
+  try { window.addEventListener('pageshow', resetAllRailsLeft); } catch {}
 
   // Ensure any pre-existing cards get a .card-media wrapper and a badge overlay on the image only
   (function ensureCardBadges() {
