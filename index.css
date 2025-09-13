@@ -991,13 +991,13 @@ html {
     .grid { padding: 0 16px; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
     /* Rails padding on mobile */
     .rail { 
-        padding: 0 16px; /* mobile gutters */
+        padding: 0; 
         /* Smaller cards in rails on mobile */
         grid-auto-columns: clamp(120px, 42vw, 180px);
         gap: 12px;
         scroll-snap-type: none !important;   /* force disable snapping on mobile */
-        scroll-padding-left: 16px !important;   /* keep left gutter visible at start */
-        scroll-padding-inline-start: 16px !important;
+        scroll-padding-left: 0 !important;   /* ensure first card aligns exactly at left */
+        scroll-padding-inline-start: 0 !important;
     }
     /* Also disable snap alignment on children for mobile */
     .rail > .card, .rail > * {
@@ -1405,12 +1405,11 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
             grid-auto-flow: column;
             grid-auto-columns: clamp(180px, 18vw, 240px);
             gap: 18px;
-            padding: 0 40px; /* gutter left/right so cards don't touch site edges */
+            padding: 0 40px;
             overflow-x: auto;
             overflow-y: visible; /* allow hover lift without clipping */
             overscroll-behavior-x: contain;
             scroll-snap-type: inline mandatory; /* desktop only */
-            scroll-padding-inline-start: 40px; /* keep left gutter visible when snapped at start */
         }
         .rail::-webkit-scrollbar { height: 10px; }
         .rail::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
