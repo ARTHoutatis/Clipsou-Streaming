@@ -946,8 +946,7 @@
         const keyNew = normalizeTitleKey(data.title);
         list = list.filter(x => x && x.requestId === reqId || normalizeTitleKey(x && x.data && x.data.title) !== keyNew);
         const existing = list.find(x=>x.requestId===reqId);
-        // Show publish hint only when editing an existing request
-        if (existing) showPublishWaitHint();
+        // Removed: do not show the 30s publish wait hint when saving modifications
         const wasApproved = !!(existing && existing.status === 'approved');
         if (existing) {
           existing.data = data;
