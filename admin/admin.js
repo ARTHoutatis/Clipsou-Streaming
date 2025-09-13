@@ -639,55 +639,15 @@
       const editBtn = document.createElement('button'); editBtn.className='btn secondary'; editBtn.textContent='Modifier';
       const delBtn = document.createElement('button'); delBtn.className='btn secondary'; delBtn.textContent='Supprimer';
       const approveBtn = document.createElement('button'); approveBtn.className='btn';
-      // Approve button label reflects deploy state: orange while pending, green when confirmed
-      (function setApproveBtnLabel(){
-        const track = getDeployTrack();
-        const info = track[r.data.id];
-        if (r.status === 'approved') {
-          if (info && !info.confirmedAt) approveBtn.innerHTML = 'Retirer <span class="dot orange"></span>';
-          else if (info && info.confirmedAt) approveBtn.innerHTML = 'Retirer <span class="dot green"></span>';
-          else approveBtn.textContent = 'Retirer';
-        } else {
-          // Pending side: if a delete or upsert deployment is in progress, keep orange until confirmed
-          if (info && ((info.action === 'delete' && !info.confirmedAt) || (info.action === 'upsert' && !info.confirmedAt))) approveBtn.innerHTML = 'Approuver <span class="dot orange"></span>';
-          else if (info && info.action === 'delete' && info.confirmedAt) approveBtn.innerHTML = 'Approuver <span class="dot green"></span>';
-          else approveBtn.textContent = 'Approuver';
-        }
-      })();
+      // Simplified labels without status dots
+      approveBtn.textContent = (r.status === 'approved') ? 'Retirer' : 'Approuver';
       actions.appendChild(editBtn); actions.appendChild(delBtn); actions.appendChild(approveBtn);
 
-      // Populate the status cell with a deployment indicator (orange while pending, green once confirmed)
+      // Simplified status cell without colored dots/messages
       (function setStatusCell(){
         const statusTd = tr.querySelector('.status-cell');
         if (!statusTd) return;
-        const track = getDeployTrack();
-        const info = track[r.data.id];
-        const times = getPublishTimes();
-        const lastPub = times && times[r.data.id];
-        const now = Date.now();
-        if (r.status === 'approved') {
-          if (info && !info.confirmedAt) {
-            statusTd.innerHTML = `approved <span class="muted small">• déploiement GitHub Pages en cours</span> <span class="dot orange"></span>`;
-          } else if (info && info.confirmedAt) {
-            statusTd.innerHTML = `approved <span class="dot green"></span>`;
-          } else if (lastPub && (now - lastPub) < DEPLOY_HINT_MS) {
-            statusTd.innerHTML = `approved <span class="muted small">• propagation en cours</span> <span class="dot orange"></span>`;
-          } else {
-            statusTd.textContent = 'approved';
-          }
-        } else {
-          if (info && info.action === 'delete' && !info.confirmedAt) {
-            statusTd.innerHTML = `pending <span class="muted small">• retrait GitHub Pages en cours</span> <span class="dot orange"></span>`;
-          } else if (info && info.action === 'upsert' && !info.confirmedAt) {
-            statusTd.innerHTML = `pending <span class="muted small">• publication GitHub Pages en cours</span> <span class="dot orange"></span>`;
-          } else if (lastPub && (now - lastPub) < DEPLOY_HINT_MS) {
-            statusTd.innerHTML = `pending <span class="muted small">• publication GitHub Pages en cours</span> <span class="dot orange"></span>`;
-          } else if (info && (info.action === 'delete' || info.action === 'upsert') && info.confirmedAt) {
-            statusTd.innerHTML = `pending <span class="dot green"></span>`;
-          } else {
-            statusTd.textContent = 'pending';
-          }
-        }
+        statusTd.textContent = r.status || '';
       })();
       editBtn.addEventListener('click', ()=>{ fillForm(r.data); });
       delBtn.addEventListener('click', ()=>{
@@ -719,19 +679,17 @@
           await deleteApproved(found.data.id);
           // Start tracking deletion deployment and reflect orange state until confirmed
           startDeploymentWatch(found.data.id, 'delete');
-          approveBtn.innerHTML = 'Approuver <span class="dot orange"></span>';
+          approveBtn.textContent = 'Approuver';
           // Refresh row status cell
           const statusTd = tr.querySelector('.status-cell');
-          if (statusTd) {
-            statusTd.innerHTML = `pending <span class="muted small">• retrait GitHub Pages en cours</span> <span class="dot orange"></span>`;
-          }
+          if (statusTd) { statusTd.textContent = 'pending'; }
           // Sync shared requests after change
           publishRequests(getRequests());
         } else {
           // Show publishing indicator and disable button during network call
           const originalHtml = approveBtn.innerHTML;
           approveBtn.disabled = true;
-          approveBtn.innerHTML = 'Publication… <span class="dot orange"></span>';
+          approveBtn.textContent = 'Publication…';
 
           // Optimistically set approved locally
           found.status = 'approved';
@@ -754,8 +712,7 @@
             setPublishTimes(times);
             // Start background watch for GitHub Pages deployment
             startDeploymentWatch(found.data.id, 'upsert');
-            // Keep the action button orange until confirmation is detected
-            approveBtn.innerHTML = 'Retirer <span class="dot orange"></span>';
+            approveBtn.textContent = 'Retirer';
             setTimeout(()=>{ renderTable(); }, 300);
           } else {
             // Revert local approval on failure
@@ -763,7 +720,7 @@
             setRequests(list);
             const apr2 = getApproved().filter(x=>x.id!==found.data.id);
             setApproved(apr2);
-            approveBtn.innerHTML = originalHtml;
+            approveBtn.textContent = 'Approuver';
             renderTable();
           }
           approveBtn.disabled = false;
