@@ -958,8 +958,6 @@
         const data = collectForm();
         const v = validateData(data);
         if (!v.ok) { alert('Veuillez corriger les erreurs avant d\'enregistrer:\n\n' + v.message); return; }
-        // Show publish hint on any modification save
-        showPublishWaitHint();
         // Upsert request by requestId, otherwise create new request entry
         let list = getRequests();
         let reqId = data.requestId || '';
@@ -972,6 +970,8 @@
         const keyNew = normalizeTitleKey(data.title);
         list = list.filter(x => x && x.requestId === reqId || normalizeTitleKey(x && x.data && x.data.title) !== keyNew);
         const existing = list.find(x=>x.requestId===reqId);
+        // Show publish hint only when editing an existing request
+        if (existing) showPublishWaitHint();
         const wasApproved = !!(existing && existing.status === 'approved');
         if (existing) {
           existing.data = data;
@@ -1001,8 +1001,6 @@
             times[data.id] = Date.now();
             setPublishTimes(times);
           } catch {}
-          // Show 30s publish hint banner
-          showPublishWaitHint();
           renderTable();
           // Start background watch immediately so UI shows orange dot during publication (same as Approve flow)
           startDeploymentWatch(data.id, 'upsert', data);
