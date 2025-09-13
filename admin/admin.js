@@ -643,7 +643,9 @@
       (function setApproveBtnLabel(){
         const track = getDeployTrack();
         const info = track[r.data.id];
-        if (r.status === 'approved') {
+        // Derive UI status: if an upsert deployment is in progress, treat as pending in UI
+        const uiStatus = (info && info.action === 'upsert' && !info.confirmedAt) ? 'pending' : r.status;
+        if (uiStatus === 'approved') {
           if (info && !info.confirmedAt) approveBtn.innerHTML = 'Retirer <span class="dot orange"></span>';
           else if (info && info.confirmedAt) approveBtn.innerHTML = 'Retirer <span class="dot green"></span>';
           else approveBtn.textContent = 'Retirer';
@@ -665,7 +667,9 @@
         const times = getPublishTimes();
         const lastPub = times && times[r.data.id];
         const now = Date.now();
-        if (r.status === 'approved') {
+        // Derive UI status: force 'pending' during upsert-in-progress so refresh doesn't show green prematurely
+        const uiStatus = (info && info.action === 'upsert' && !info.confirmedAt) ? 'pending' : r.status;
+        if (uiStatus === 'approved') {
           if (info && !info.confirmedAt) {
             statusTd.innerHTML = `approved <span class="muted small">• déploiement GitHub Pages en cours</span> <span class="dot orange"></span>`;
           } else if (info && info.confirmedAt) {
