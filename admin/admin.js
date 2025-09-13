@@ -28,32 +28,6 @@
     } catch (_) {
       return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '').trim();
     }
-
-  // Lightweight inline save hint (no lock, short duration)
-  function showSaveHint(message){
-    try {
-      let el = document.getElementById('saveHint');
-      if (!el) {
-        el = document.createElement('p');
-        el.id = 'saveHint';
-        el.className = 'muted';
-        el.style.margin = '8px 0';
-        // Place under the form title if possible
-        const formSection = document.querySelector('.form-section');
-        if (formSection) {
-          const h2 = formSection.querySelector('h2');
-          if (h2) h2.insertAdjacentElement('afterend', el); else formSection.prepend(el);
-        } else {
-          document.body.appendChild(el);
-        }
-      }
-      el.textContent = message || 'Modifications enregistrées';
-      el.hidden = false;
-      // Auto hide after 3 seconds
-      if (el._hintTO) clearTimeout(el._hintTO);
-      el._hintTO = setTimeout(()=>{ try { el.hidden = true; } catch{} }, 3000);
-    } catch {}
-  }
   }
 
   function isValidImageLike(url) {
@@ -615,6 +589,9 @@
       if (submitBtn) {
         if (data && data.requestId) submitBtn.textContent = 'Enregistrer la modification';
         else submitBtn.textContent = 'Enregistrer la requête';
+        submitBtn.disabled = false;
+        submitBtn.removeAttribute('disabled');
+        submitBtn.style.pointerEvents = '';
       }
     } catch {}
   }
@@ -954,6 +931,24 @@
     }
 
     const form = $('#contentForm');
+    function setSubmitSavedUI(saved){
+      try {
+        const btn = document.querySelector('#contentForm .actions .btn[type="submit"], #contentForm .actions button[type="submit"]');
+        if (!btn) return;
+        if (saved) {
+          btn.textContent = 'Modifications enregistrées';
+          btn.disabled = true;
+          btn.setAttribute('disabled','disabled');
+          btn.style.pointerEvents = 'none';
+        } else {
+          const hasReqId = !!($('#requestId').value);
+          btn.textContent = hasReqId ? 'Enregistrer la modification' : 'Enregistrer la requête';
+          btn.disabled = false;
+          btn.removeAttribute('disabled');
+          btn.style.pointerEvents = '';
+        }
+      } catch {}
+    }
     if (form && !form.dataset.submitWired) {
       form.addEventListener('submit', (e)=>{
         e.preventDefault();
@@ -972,6 +967,7 @@
         const keyNew = normalizeTitleKey(data.title);
         list = list.filter(x => x && x.requestId === reqId || normalizeTitleKey(x && x.data && x.data.title) !== keyNew);
         const existing = list.find(x=>x.requestId===reqId);
+        const isEditing = !!existing; // used to alter submit button state
         // Removed: do not show the 30s publish wait hint when saving modifications
         const wasApproved = !!(existing && existing.status === 'approved');
         if (existing) {
@@ -982,10 +978,6 @@
         }
         else { list.unshift(stampUpdatedAt({ requestId: reqId, status: 'pending', data })); }
         setRequests(list);
-        // Show inline hint for modifications save (existing requests only)
-        if (existing) {
-          try { showSaveHint('Modifications enregistrées'); } catch {}
-        }
         // If already approved, keep approved in sync
         if (wasApproved) {
           let apr = getApproved();
@@ -1001,11 +993,13 @@
               renderTable();
             }
           })();
+          if (isEditing) setSubmitSavedUI(true);
         } else {
           renderTable();
           populateGenresDatalist();
           clearDraft();
           alert('Requête enregistrée.');
+          if (isEditing) setSubmitSavedUI(true);
         }
         // Sync removed
       });
@@ -1013,9 +1007,8 @@
       form.dataset.submitWired = '1';
     }
 
-    // Autosave draft on input changes (debounced minimal)
-    // Autosave draft on input changes (debounced minimal)
-    let t=null; const schedule=()=>{ if (t) clearTimeout(t); t=setTimeout(saveDraft, 200); };
+    // Autosave draft on input changes (debounced minimal) + re-enable submit for new edits
+    let t=null; const schedule=()=>{ if (t) clearTimeout(t); t=setTimeout(()=>{ setSubmitSavedUI(false); saveDraft(); }, 200); };
     if (form) {
       form.addEventListener('input', schedule);
       form.addEventListener('change', schedule);
