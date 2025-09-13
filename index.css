@@ -539,7 +539,7 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
 .fiche-popup {
     display: none;
     position: fixed;
-    left: 0; right: 0; bottom: 0; top: 70px; /* keep site bar visible */
+    left: 0; right: 0; bottom: 0; top: 0; /* cover full viewport, ignore site bar */
     background: rgba(0, 0, 0, 0.9);
     justify-content: center; /* horizontal centering */
     align-items: center;     /* vertical centering */
@@ -547,9 +547,9 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
     place-content: center;   /* shorthand safety */
     place-items: center;     /* shorthand safety */
     z-index: 9999;
-    /* Span full height (minus nav) so centering works on all desktops */
-    min-height: calc(100dvh - 70px);
-    min-height: calc(100vh - 70px);
+    /* Full viewport height so centering works on all devices */
+    min-height: 100dvh;
+    min-height: 100vh;
     padding: clamp(12px, 3vw, 20px);
     backdrop-filter: none;
     overscroll-behavior: contain; /* empêche le scroll de fond sur mobile */
