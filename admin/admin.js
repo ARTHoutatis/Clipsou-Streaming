@@ -764,8 +764,6 @@
           // Remove from shared approved.json
           showPublishWaitHint();
           await deleteApproved(found.data.id);
-          // Start tracking deletion deployment and reflect orange state until confirmed
-          startDeploymentWatch(found.data.id, 'delete');
           approveBtn.textContent = 'Approuver';
           // No status cell to refresh
           // Sync shared requests after change
@@ -793,12 +791,6 @@
           // Publish through API for everyone and reflect final status
           const ok = await publishApproved(found.data);
           if (ok) {
-            // Record publish time for deployment delay hint
-            const times = getPublishTimes();
-            times[found.data.id] = Date.now();
-            setPublishTimes(times);
-            // Start background watch for GitHub Pages deployment
-            startDeploymentWatch(found.data.id, 'upsert');
             approveBtn.textContent = 'Retirer';
             setTimeout(()=>{ renderTable(); }, 300);
           } else {
@@ -1049,33 +1041,12 @@
           apr = apr.filter(x => x && x.id !== data.id && normalizeTitleKey(x.title) !== key);
           apr.push(data);
           setApproved(dedupeByIdAndTitle(apr));
-          // Prime deploy track synchronously to display orange dot immediately
-          try {
-            const track = getDeployTrack();
-            const prev = track[data.id] || {};
-            track[data.id] = { ...prev, action: 'upsert', startedAt: prev.startedAt || Date.now(), confirmedAt: undefined };
-            setDeployTrack(track);
-          } catch {}
-          // Also stamp publish time immediately to trigger orange state via DEPLOY_HINT_MS
-          try {
-            const times = getPublishTimes();
-            times[data.id] = Date.now();
-            setPublishTimes(times);
-          } catch {}
           renderTable();
-          // Start background watch immediately so UI shows orange dot during publication (same as Approve flow)
-          startDeploymentWatch(data.id, 'upsert', data);
           // Republish updated approved item to the site so changes go live
           (async () => {
             const ok = await publishApproved(data);
             if (ok) {
-              try {
-                const times = getPublishTimes();
-                times[data.id] = Date.now();
-                setPublishTimes(times);
-              } catch {}
-              // Re-render to reflect deployment indicator
-              setTimeout(()=>{ renderTable(); }, 300);
+              renderTable();
             }
           })();
         } else {
@@ -1136,14 +1107,6 @@
     populateGenresDatalist();
     restoreDraft();
     populateActorNamesDatalist();
-    // Resume deployment watchers for any tracked items not yet confirmed
-    try {
-      const track = getDeployTrack();
-      Object.keys(track || {}).forEach(id => {
-        const info = track[id];
-        if (info && !info.confirmedAt) startDeploymentWatch(id);
-      });
-    } catch {}
   }
 
   // Boot
