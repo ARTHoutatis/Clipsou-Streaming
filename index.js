@@ -687,6 +687,47 @@ document.addEventListener('DOMContentLoaded', async function () {
       topRated.innerHTML = ''; sorted.forEach(it => topRated.appendChild(createCard(it)));
     }
 
+    // Build a dedicated "Séries" section
+    (function buildSeriesSection(){
+      try {
+        const seriesItems = items.filter(it => {
+          const t = (it.type || '').toLowerCase();
+          return t === 'série' || t === 'serie';
+        });
+        const firstPopup = document.querySelector('.fiche-popup');
+        const id = 'series';
+        let section = document.getElementById(id);
+        if (!seriesItems || seriesItems.length <= 0) {
+          if (section) section.remove();
+          return;
+        }
+        if (!section) {
+          section = document.createElement('div');
+          section.className = 'section';
+          section.id = id;
+          const h2 = document.createElement('h2');
+          h2.textContent = '📺 Séries';
+          const rail = document.createElement('div');
+          rail.className = 'rail';
+          section.appendChild(h2);
+          section.appendChild(rail);
+          if (firstPopup && firstPopup.parentNode) firstPopup.parentNode.insertBefore(section, firstPopup);
+          else (document.querySelector('main') || document.body).appendChild(section);
+        }
+        const rail = section.querySelector('.rail');
+        rail.innerHTML = '';
+        const sorted = seriesItems.slice().sort((a, b) => {
+          const ra = (typeof a.rating === 'number') ? a.rating : -Infinity;
+          const rb = (typeof b.rating === 'number') ? b.rating : -Infinity;
+          if (rb !== ra) return rb - ra; // higher ratings first
+          const ta = (a.title || '');
+          const tb = (b.title || '');
+          return ta.localeCompare(tb, 'fr', { sensitivity: 'base' });
+        });
+        sorted.forEach(it => rail.appendChild(createCard(it)));
+      } catch {}
+    })();
+
     // Helpers to normalize and pretty-print genre names (merge accents/variants)
     const normalizeGenre = (name) => (name || '')
       .trim()
