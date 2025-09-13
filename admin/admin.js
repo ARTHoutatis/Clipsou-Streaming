@@ -520,7 +520,16 @@
       rm.textContent = '✕';
       rm.addEventListener('click', () => {
         list.splice(idx,1);
+        // Persist new list into form dataset immediately so submit/draft reflect removal
+        try { $('#contentForm').dataset.actors = JSON.stringify(list); } catch {}
         renderActors(list);
+        // Update draft to avoid old actors reappearing on refresh
+        try { saveDraft(); } catch {}
+        // Mark form as having unsaved changes so the user can re-enregistrer
+        try {
+          const btn = document.querySelector('#contentForm .actions .btn[type="submit"], #contentForm .actions button[type="submit"]');
+          if (btn) { btn.disabled = false; btn.removeAttribute('disabled'); btn.style.pointerEvents = ''; }
+        } catch {}
       });
       chip.appendChild(rm);
       wrap.appendChild(chip);
@@ -1072,6 +1081,8 @@
             const ok = await publishApproved(data);
             if (ok) {
               renderTable();
+              // Clear any stale draft so removed actors don't reappear on reload
+              try { clearDraft(); } catch {}
             }
           })();
           if (isEditing) setSubmitSavedUI(true);
