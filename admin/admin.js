@@ -11,6 +11,7 @@
   const APP_KEY_PUB = 'clipsou_admin_publish_api_v1';
   const APP_KEY_PUB_TIMES = 'clipsou_admin_publish_times_v1';
   const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
+  const APP_KEY_ACTOR_PHOTOS = 'clipsou_admin_actor_photos_v1';
   // Duration to display the deployment-in-progress hint after an approval
   const DEPLOY_HINT_MS = 2 * 60 * 60 * 1000; // 2 hours to account for slower GitHub Pages/CI deployments
   const $ = (sel, root=document) => root.querySelector(sel);
@@ -219,6 +220,8 @@
       const ai = a[i]||{}; const bi = b[i]||{};
       if ((ai.name||'') !== (bi.name||'')) return false;
       if ((ai.role||'') !== (bi.role||'')) return false;
+      // Compare photo URLs too (optional field)
+      if ((ai.photo||'') !== (bi.photo||'')) return false;
     }
     return true;
   }
@@ -393,6 +396,13 @@
     localStorage.setItem(key, JSON.stringify(value));
   }
 
+  function getActorPhotoMap(){
+    try { return JSON.parse(localStorage.getItem(APP_KEY_ACTOR_PHOTOS) || '{}'); } catch { return {}; }
+  }
+  function setActorPhotoMap(map){
+    try { localStorage.setItem(APP_KEY_ACTOR_PHOTOS, JSON.stringify(map||{})); } catch {}
+  }
+
   function uid(){ return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8); }
   function makeIdFromTitle(title){
     const base = String(title||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
@@ -485,17 +495,19 @@
   function renderActors(list){
     const wrap = $('#actorsList');
     wrap.innerHTML = '';
+    const photoMap = getActorPhotoMap();
     (list||[]).forEach((a, idx) => {
       const chip = document.createElement('div');
       chip.className = 'actor-chip';
       // Optional avatar if a.photo is present
-      if (a && a.photo) {
+      const effectivePhoto = (a && a.photo) || (photoMap && photoMap[a && a.name || '']);
+      if (effectivePhoto) {
         const img = document.createElement('img');
         img.className = 'avatar';
         img.alt = a.name || 'acteur';
         img.loading = 'lazy';
         img.decoding = 'async';
-        try { img.src = a.photo; } catch { img.src = a.photo || ''; }
+        try { img.src = effectivePhoto; } catch { img.src = effectivePhoto || ''; }
         chip.appendChild(img);
       }
       const nameSpan = document.createElement('span'); nameSpan.textContent = a.name || '';
@@ -775,6 +787,7 @@
     (function wireActorPhoto(){
       const fileInput = $('#actorPhotoFile');
       const preview = $('#actorPhotoPreview');
+      const nameInput = $('#actorName');
       if (fileInput) {
         fileInput.addEventListener('change', async () => {
           const f = fileInput.files && fileInput.files[0];
@@ -784,10 +797,36 @@
             // Stash temporarily on the form element
             $('#contentForm').dataset.actorPhotoTemp = url;
             if (preview) { preview.hidden = false; preview.src = url.startsWith('http')? url : ('../'+url); }
+            // If a name is already filled, persist association name->photo
+            try {
+              const nm = (nameInput && nameInput.value || '').trim();
+              if (nm) {
+                const map = getActorPhotoMap();
+                map[nm] = url;
+                setActorPhotoMap(map);
+              }
+            } catch {}
           } catch (e) {
             alert('Upload photo acteur échoué');
           }
         });
+      }
+      // When selecting/typing a known actor name, prefill its default photo preview
+      function maybePrefillPhoto(){
+        try {
+          const nm = (nameInput && nameInput.value || '').trim();
+          if (!nm) return;
+          const map = getActorPhotoMap();
+          const url = map[nm];
+          if (url) {
+            $('#contentForm').dataset.actorPhotoTemp = url;
+            if (preview) { preview.hidden = false; preview.src = url.startsWith('http')? url : ('../'+url); }
+          }
+        } catch {}
+      }
+      if (nameInput) {
+        nameInput.addEventListener('change', maybePrefillPhoto);
+        nameInput.addEventListener('blur', maybePrefillPhoto);
       }
     })();
 
@@ -796,7 +835,11 @@
       const role = $('#actorRole').value.trim();
       if (!name) return;
       const actors = JSON.parse($('#contentForm').dataset.actors || '[]');
-      const photo = $('#contentForm').dataset.actorPhotoTemp || '';
+      let photo = $('#contentForm').dataset.actorPhotoTemp || '';
+      // If no temp photo but default exists for this name, use it
+      if (!photo) {
+        try { const map = getActorPhotoMap(); photo = map[name] || ''; } catch {}
+      }
       actors.push(photo ? { name, role, photo } : { name, role });
       $('#contentForm').dataset.actors = JSON.stringify(actors);
       // Reset inputs
