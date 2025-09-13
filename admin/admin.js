@@ -862,6 +862,21 @@
           apr = apr.filter(x => x && x.id !== data.id && normalizeTitleKey(x.title) !== key);
           apr.push(data);
           setApproved(dedupeByIdAndTitle(apr));
+          // Republish updated approved item to the site so changes go live
+          (async () => {
+            const ok = await publishApproved(data);
+            if (ok) {
+              try {
+                const times = getPublishTimes();
+                times[data.id] = Date.now();
+                setPublishTimes(times);
+              } catch {}
+              // Track deployment until confirmed live
+              startDeploymentWatch(data.id, 'upsert');
+              // Re-render to reflect deployment indicator
+              setTimeout(()=>{ renderTable(); }, 300);
+            }
+          })();
         }
         renderTable();
         populateGenresDatalist();
