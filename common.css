@@ -277,14 +277,36 @@ nav[aria-label="Navigation principale"] {
   justify-content: space-between;
   align-items: center;
   box-shadow: none;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+  position: fixed; /* always fixed to viewport */
+  top: 0; left: 0; right: 0;
+  width: 100%;
+  z-index: 10100; /* above most content */
+}
+/* When a popup is open, force the nav to fixed so it stays visible behind overlay */
+body.popup-open nav[aria-label="Navigation principale"] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 9900 !important; /* below .fiche-popup (9999) so it is dimmed by overlay */
+  pointer-events: none; /* visible mais non cliquable pendant la popup */
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: flex !important;
+  backdrop-filter: none !important;
+  background: #0b1117 !important; /* solid opaque */
+  box-shadow: none !important;
 }
 
 /* Desktop/tablet: shift the whole left group (logo + Accueil) by 40px */
 @media (min-width: 769px) {
   .logo { margin-left: 40px; }
+}
+
+/* Desktop: offset page content for fixed nav */
+@media (min-width: 769px) {
+  body { padding-top: 70px; }
 }
 
 .logo {

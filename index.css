@@ -5,6 +5,8 @@
     --brand-2: #6c5ce7;
 }
 
+/* Overlay covers full viewport (including nav) so nav is dimmed under popup */
+
 /* ===== Desktop-only rail arrows ===== */
 @media (min-width: 769px) {
   .section { position: relative; }
@@ -164,40 +166,19 @@ body::before {
     top: 0; left: 0; right: 0; bottom: 0;
     background: none; /* inactive by default */
     pointer-events: none;
-    z-index: 9998; /* above nav (~1000) and just below popup (9999) */
+    z-index: 10990; /* above nav and just below popup (11000) */
 }
 
 /* Navigation (desktop styles are unified in common.css) */
 /* Disable nav interactions while a popup is open */
 body:has(.fiche-popup:target) nav[aria-label="Navigation principale"],
 body.popup-open nav[aria-label="Navigation principale"] {
-  pointer-events: none !important;
-}
-
-/* Make nav fully transparent under popup so the global dim overlay covers it identically */
-body:has(.fiche-popup:target) nav[aria-label="Navigation principale"],
-body.popup-open nav[aria-label="Navigation principale"] {
-  background: transparent !important;
-  border-bottom-color: transparent !important;
+  pointer-events: none !important; /* keep non-interactive while popup open */
+  background: #0b1117 !important;  /* enforce solid opaque background */
+  backdrop-filter: none !important;
   box-shadow: none !important;
 }
 
-/* Add explicit dim overlay on nav to guarantee identical darkness */
-body:has(.fiche-popup:target) nav[aria-label="Navigation principale"]::after,
-body.popup-open nav[aria-label="Navigation principale"]::after {
-  content: '';
-  position: fixed;
-  top: 0; left: 0; right: 0; height: 70px;
-  background: rgba(0,0,0,0.6);
-  pointer-events: none;
-  z-index: 9998;
-}
-@media (max-width: 768px) {
-  body:has(.fiche-popup:target) nav[aria-label="Navigation principale"]::after,
-  body.popup-open nav[aria-label="Navigation principale"]::after {
-    height: 60px;
-  }
-}
 
 /* .logo styles are centralized in common.css to keep title identical across pages */
 
@@ -539,14 +520,14 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
 .fiche-popup {
     display: none;
     position: fixed;
-    left: 0; right: 0; bottom: 0; top: 0; /* cover full viewport, ignore site bar */
-    background: rgba(0, 0, 0, 0.9);
+    left: 0; right: 0; bottom: 0; top: 0; /* default; overridden below to keep nav undimmed */
+    background: rgba(0, 0, 0, 0.6);
     justify-content: center; /* horizontal centering */
     align-items: center;     /* vertical centering */
     align-content: center;   /* multi-line centering safety */
     place-content: center;   /* shorthand safety */
     place-items: center;     /* shorthand safety */
-    z-index: 9999;
+    z-index: 11000;
     /* Full viewport height so centering works on all devices */
     min-height: 100dvh;
     min-height: 100vh;
@@ -564,7 +545,7 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
     max-width: 2000px;
     /* Keep popup vertically centered by respecting the fixed nav height */
     max-height: calc(100dvh - 110px);
-    background: rgba(26, 35, 50, 0.95);
+    background: #1a2332; /* opaque */
     border-radius: 16px;
     display: grid;
     gap: 30px;
@@ -573,6 +554,22 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
     overflow-x: hidden;
     position: relative;
     margin: auto; /* ensure centering even if container alignment is overridden */
+}
+
+/* Override AFTER base popup styles so nav stays fully opaque while popup is open */
+@media (min-width: 769px) {
+  .fiche-popup {
+    top: 70px !important; /* desktop nav height */
+    height: calc(100vh - 70px) !important;
+    min-height: auto !important;
+  }
+}
+@media (max-width: 768px) {
+  .fiche-popup {
+    top: 60px !important; /* mobile nav height */
+    height: calc(100vh - 60px) !important;
+    min-height: auto !important;
+  }
 }
 /* ... */
 .fiche-content {

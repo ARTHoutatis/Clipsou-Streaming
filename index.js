@@ -50,6 +50,78 @@ document.addEventListener('DOMContentLoaded', async function () {
   (function setupPopupScrollKeeper(){
     let lastPopupScrollY = null;
     let lastWasAtBottom = false;
+    function lockBodyAt(y){
+      try {
+        const b = document.body; const de = document.documentElement;
+        b.classList.add('popup-open'); de.classList.add('popup-open');
+        // Lock body visually at the opening position
+        b.style.position = 'fixed';
+        b.style.top = (-y) + 'px';
+        b.style.left = '0';
+        b.style.right = '0';
+        b.style.width = '100%';
+        // Compensate for scrollbar to avoid horizontal layout shift
+        const sw = (window.innerWidth || 0) - (de.clientWidth || 0);
+        if (sw > 0) { b.style.paddingRight = sw + 'px'; }
+        // Keep scrollbar space reserved to avoid reflow that can nudge bottom position
+        try { de.style.overflowY = 'scroll'; } catch {}
+        // Hard-lock window scroll to eliminate any tiny jumps
+        try {
+          if (window.__lockScrollHandler) window.removeEventListener('scroll', window.__lockScrollHandler, { capture: true });
+        } catch {}
+        window.__lockScrollY = y;
+        window.__lockScrollHandler = function(){
+          try {
+            const targetY = window.__lockScrollY || 0;
+            const curY = window.pageYOffset || document.documentElement.scrollTop || 0;
+            if (curY !== targetY) { window.scrollTo(0, targetY); }
+          } catch {}
+        };
+        try { window.addEventListener('scroll', window.__lockScrollHandler, { passive: true, capture: true }); } catch { window.addEventListener('scroll', window.__lockScrollHandler, true); }
+        // Also force scrollBehavior to auto to avoid any smooth scroll artifacts
+        try { de.style.scrollBehavior = 'auto'; b.style.scrollBehavior = 'auto'; } catch {}
+      } catch {}
+    }
+
+    // Removed global scroll blocking: popup content should be scrollable immediately
+
+    // Maintain scroll for a short duration via RAF to completely cancel micro-jumps
+    function maintainScroll(y, durationMs){
+      const de = document.documentElement;
+      const body = document.body;
+      const endAt = Date.now() + Math.max(0, durationMs||0);
+      function step(){
+        try {
+          const curY = window.pageYOffset || de.scrollTop || body.scrollTop || 0;
+          if (curY !== y) {
+            // Force on all three to counter engine differences
+            try { de.scrollTop = y; } catch {}
+            try { body.scrollTop = y; } catch {}
+            try { window.scrollTo(0, y); } catch {}
+          }
+        } catch {}
+        if (Date.now() < endAt) requestAnimationFrame(step);
+      }
+      try { requestAnimationFrame(step); } catch { setTimeout(step, 0); }
+    }
+    function unlockBody(){
+      try {
+        const b = document.body; const de = document.documentElement;
+        b.classList.remove('popup-open'); de.classList.remove('popup-open');
+        b.style.position = '';
+        b.style.top = '';
+        b.style.left = '';
+        b.style.right = '';
+        b.style.width = '';
+        b.style.paddingRight = '';
+        try { de.style.overflowY = ''; } catch {}
+        // Remove hard scroll lock
+        try { if (window.__lockScrollHandler) window.removeEventListener('scroll', window.__lockScrollHandler, { capture: true }); } catch {}
+        try { window.__lockScrollHandler = null; delete window.__lockScrollHandler; } catch {}
+        try { delete window.__lockScrollY; } catch {}
+        try { de.style.scrollBehavior = ''; b.style.scrollBehavior = ''; } catch {}
+      } catch {}
+    }
     function isPopupTargeted(){
       try {
         const hash = location.hash || '';
@@ -77,53 +149,103 @@ document.addEventListener('DOMContentLoaded', async function () {
         return { scrollHeight, viewport };
       } catch { return { scrollHeight: 0, viewport: 0 }; }
     }
+
+    // Shared: start and end of popup freeze lifecycle
+    function beginPopupFreeze(){
+      try {
+        const y = window.pageYOffset || document.documentElement.scrollTop || 0;
+        lastPopupScrollY = y;
+        const { scrollHeight, viewport } = getDocHeights();
+        lastWasAtBottom = (y + viewport >= scrollHeight - 2);
+        applyBodyPopupState(true);
+        lockBodyAt(y);
+        // Avoid focus-induced scrolling (e.g., buttons inside popup gaining focus)
+        try { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch {}
+        // Grace to avoid incidental drawer close
+        try { window.__suppressDrawerCloseUntil = Date.now() + 3000; } catch {}
+        // Maintain background position, but do NOT block inputs so popup can scroll immediately
+        maintainScroll(y, 400);
+      } catch {}
+    }
+
+    function endPopupFreeze(){
+      if (lastPopupScrollY == null) { try { applyBodyPopupState(false); } catch {}; return; }
+      // Immediately protect the drawer from auto-close during the entire closing sequence
+      try { window.__protectDrawerForever = true; } catch {}
+      // Restore after a tick to let layout settle
+      const y = lastPopupScrollY; const wasBottom = lastWasAtBottom; lastPopupScrollY = null; lastWasAtBottom = false;
+      // Suppress drawer auto-close while restoring position and for a generous grace period
+      try { window.__suppressDrawerCloseUntil = Date.now() + 5000; } catch {}
+      const doRestore = () => {
+        try {
+          // Unlock body before restoring scroll so the page can move back
+          unlockBody();
+          if (wasBottom) {
+            const { scrollHeight, viewport } = getDocHeights();
+            const bottomY = Math.max(0, scrollHeight - viewport);
+            window.scrollTo({ top: bottomY, left: 0, behavior: 'auto' });
+            maintainScroll(bottomY, 220);
+          } else {
+            window.scrollTo({ top: y, left: 0, behavior: 'auto' });
+            maintainScroll(y, 220);
+          }
+        } catch {
+          unlockBody();
+          if (wasBottom) {
+            const { scrollHeight, viewport } = getDocHeights();
+            const bottomY = Math.max(0, scrollHeight - viewport);
+            window.scrollTo(0, bottomY);
+            maintainScroll(bottomY, 220);
+          } else {
+            window.scrollTo(0, y);
+            maintainScroll(y, 220);
+          }
+        }
+      };
+      // Mark recent popup close to protect the drawer from auto-close on restoration scroll
+      try { window.__recentPopupClosedTs = Date.now(); } catch {}
+      // Run twice to counter any late layout shifts (images/fonts)
+      try { setTimeout(doRestore, 0); } catch { doRestore(); }
+      try { setTimeout(doRestore, 120); } catch {}
+      // Only clear popup-open class after restoration has completed
+      try { setTimeout(() => applyBodyPopupState(false), 180); } catch {}
+    }
     function onHashChanged(){
       try {
         const open = isPopupTargeted();
         if (open) {
-          if (lastPopupScrollY == null) {
-            // Save the current scroll position once when opening
-            const y = window.pageYOffset || document.documentElement.scrollTop || 0;
-            lastPopupScrollY = y;
-            const { scrollHeight, viewport } = getDocHeights();
-            lastWasAtBottom = (y + viewport >= scrollHeight - 2);
-          }
-          applyBodyPopupState(true);
-          // While a popup opens, suppress drawer auto-close on incidental scrolls
-          try { window.__suppressDrawerCloseUntil = Date.now() + 1600; } catch {}
+          if (lastPopupScrollY == null) beginPopupFreeze();
+          // Counter any initial anchor jump caused by :target
+          try { setTimeout(()=>{ const y = lastPopupScrollY || 0; window.scrollTo({ top: y, left: 0, behavior: 'auto' }); maintainScroll(y, 220); }, 0); } catch {}
         } else {
-          applyBodyPopupState(false);
-          if (lastPopupScrollY != null) {
-            // Restore after a tick to let layout settle
-            const y = lastPopupScrollY; const wasBottom = lastWasAtBottom; lastPopupScrollY = null; lastWasAtBottom = false;
-            // Suppress drawer auto-close while restoring position and for a short grace period
-            try { window.__suppressDrawerCloseUntil = Date.now() + 1600; } catch {}
-            const doRestore = () => {
-              try {
-                if (wasBottom) {
-                  const { scrollHeight, viewport } = getDocHeights();
-                  const bottomY = Math.max(0, scrollHeight - viewport);
-                  window.scrollTo({ top: bottomY, left: 0, behavior: 'auto' });
-                } else {
-                  window.scrollTo({ top: y, left: 0, behavior: 'auto' });
-                }
-              } catch {
-                if (wasBottom) {
-                  const { scrollHeight, viewport } = getDocHeights();
-                  const bottomY = Math.max(0, scrollHeight - viewport);
-                  window.scrollTo(0, bottomY);
-                } else {
-                  window.scrollTo(0, y);
-                }
-              }
-            };
-            // Run twice to counter any late layout shifts (images/fonts)
-            try { setTimeout(doRestore, 0); } catch { doRestore(); }
-            try { setTimeout(doRestore, 120); } catch {}
-          }
+          endPopupFreeze();
         }
       } catch {}
     }
+    // Intercept clicks on popup links to lock background before the browser attempts to scroll
+    try {
+      document.addEventListener('click', function(e){
+        try {
+          const a = e.target && (e.target.closest ? e.target.closest('a[href^="#"]') : null);
+          if (!a) return;
+          const href = a.getAttribute('href') || '';
+          if (!href || href.length < 2) return;
+          const target = document.querySelector(href);
+          if (!target || !target.classList || !target.classList.contains('fiche-popup')) return;
+          // It's a popup link: prevent default navigation scroll, lock body immediately, then set hash
+          e.preventDefault();
+          beginPopupFreeze();
+          // Now set the hash to actually target/open the popup without causing a jump
+          if ((location.hash || '') !== href) {
+            location.hash = href;
+          } else {
+            // If already same hash, manually trigger handler
+            onHashChanged();
+          }
+        } catch {}
+      }, true);
+    } catch {}
+
     // Initialize and listen
     onHashChanged();
     window.addEventListener('hashchange', onHashChanged, { passive: true });
@@ -154,7 +276,8 @@ document.addEventListener('DOMContentLoaded', async function () {
       try { document.body.classList.add('drawer-open'); document.documentElement.classList.add('drawer-open'); } catch {}
       try { btn.setAttribute('aria-expanded','true'); } catch {}
     }
-    function close(){
+    // Core close implementation
+    function reallyClose(){
       drawer.classList.remove('open');
       overlay.classList.remove('open');
       drawer.setAttribute('aria-hidden','true');
@@ -163,15 +286,34 @@ document.addEventListener('DOMContentLoaded', async function () {
       try { removeCloseOnScroll(); } catch {}
       try { document.body.classList.remove('drawer-open'); document.documentElement.classList.remove('drawer-open'); } catch {}
       try { btn.setAttribute('aria-expanded','false'); } catch {}
+      try { window.__protectDrawerForever = false; } catch {}
+    }
+    // Guarded close to ignore incidental closes right after popup close
+    function close(){
+      try {
+        if (window.__protectDrawerForever) return;
+      } catch {}
+      reallyClose();
     }
     btn.addEventListener('click', () => {
-      if (drawer.classList.contains('open')) { close(); return; }
+      if (drawer.classList.contains('open')) { reallyClose(); return; }
       try { buildDrawerLinks(); } catch {}
       open();
     });
-    overlay.addEventListener('click', close);
-    if (closeBtn) closeBtn.addEventListener('click', close);
-    document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') close(); });
+    // Overlay and close button should force-close, bypassing protection window
+    overlay.addEventListener('click', reallyClose);
+    if (closeBtn) closeBtn.addEventListener('click', reallyClose);
+    document.addEventListener('keydown', (e)=>{
+      if (e.key === 'Escape') {
+        try {
+          const popupOpen = !!document.querySelector('.fiche-popup:target') || document.body.classList.contains('popup-open');
+          if (popupOpen) return; // don't close drawer while popup is open
+          // If protection is active (after popup close), ignore Escape for auto-close
+          if (window.__protectDrawerForever) return;
+        } catch {}
+        reallyClose();
+      }
+    });
 
     // Smooth scroll for drawer links (center target section in viewport)
     function enableLink(link){
@@ -213,7 +355,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       let lastKeyTs = 0;
       let lastHashTs = 0;
       const SUPPRESS_MS = 250; // ignore scrolls right after wheel/touch/keys
-      const SUPPRESS_HASH_MS = 450; // ignore scrolls right after hash (popup open/close)
+      const SUPPRESS_HASH_MS = 1500; // ignore scrolls right after hash (popup open/close)
       const scrollKeys = new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','PageUp','PageDown','Home','End',' ']);
       // Block background wheel/touch scroll while drawer is open, but allow inside the drawer and inside popups
       const isInsideDrawer = (node) => {
@@ -287,6 +429,11 @@ document.addEventListener('DOMContentLoaded', async function () {
         try {
           const popupOpen = !!document.querySelector('.fiche-popup:target') || document.body.classList.contains('popup-open');
           if (popupOpen) return;
+        } catch {}
+        // If the drawer is open, and protection is active, ignore scroll-based auto-close indefinitely
+        try {
+          const drawerIsOpen = document.body.classList.contains('drawer-open');
+          if (drawerIsOpen && window.__protectDrawerForever) return;
         } catch {}
         // If we're within a grace period after popup open/close, do not close the drawer
         try {
