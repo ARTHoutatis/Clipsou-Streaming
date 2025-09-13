@@ -680,6 +680,8 @@
             statusTd.innerHTML = `pending <span class="muted small">• retrait GitHub Pages en cours</span> <span class="dot orange"></span>`;
           } else if (info && info.action === 'upsert' && !info.confirmedAt) {
             statusTd.innerHTML = `pending <span class="muted small">• publication GitHub Pages en cours</span> <span class="dot orange"></span>`;
+          } else if (lastPub && (now - lastPub) < DEPLOY_HINT_MS) {
+            statusTd.innerHTML = `pending <span class="muted small">• publication GitHub Pages en cours</span> <span class="dot orange"></span>`;
           } else if (info && (info.action === 'delete' || info.action === 'upsert') && info.confirmedAt) {
             statusTd.innerHTML = `pending <span class="dot green"></span>`;
           } else {
@@ -1004,6 +1006,12 @@
             const prev = track[data.id] || {};
             track[data.id] = { ...prev, action: 'upsert', startedAt: prev.startedAt || Date.now(), confirmedAt: undefined };
             setDeployTrack(track);
+          } catch {}
+          // Also stamp publish time immediately to trigger orange state via DEPLOY_HINT_MS
+          try {
+            const times = getPublishTimes();
+            times[data.id] = Date.now();
+            setPublishTimes(times);
           } catch {}
           renderTable();
           // Start background watch immediately so UI shows orange dot during publication (same as Approve flow)
