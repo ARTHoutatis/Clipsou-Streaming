@@ -125,6 +125,43 @@
   }
 
   // ===== UI: transient publish wait hint (30s) =====
+  function setPublishLockUntil(ts){
+    try { window.__publishLockUntil = ts; } catch { window.__publishLockUntil = ts; }
+  }
+  function getPublishLockUntil(){
+    try { return Number(window.__publishLockUntil||0) || 0; } catch { return 0; }
+  }
+  function isPublishLocked(){ return Date.now() < getPublishLockUntil(); }
+  function applyPublishLockUI(){
+    try {
+      const locked = isPublishLocked();
+      const buttons = Array.from(document.querySelectorAll('.requests button, #contentForm button[type="submit"], #contentForm .btn[type="submit"]'));
+      buttons.forEach(btn => {
+        try {
+          if (locked) {
+            if (!btn.dataset.lockedGlobal) {
+              btn.dataset.prevDisabled = btn.disabled ? '1' : '0';
+              btn.dataset.lockedGlobal = '1';
+            }
+            btn.disabled = true;
+            btn.setAttribute('disabled', 'disabled');
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.6';
+          } else {
+            if (btn.dataset.lockedGlobal) {
+              const prev = btn.dataset.prevDisabled === '1';
+              btn.disabled = prev;
+              if (!prev) btn.removeAttribute('disabled');
+              btn.style.pointerEvents = '';
+              btn.style.opacity = '';
+              delete btn.dataset.lockedGlobal;
+              delete btn.dataset.prevDisabled;
+            }
+          }
+        } catch {}
+      });
+    } catch {}
+  }
   function showPublishWaitHint(){
     try {
       let el = document.getElementById('publishWaitHint');
@@ -144,36 +181,13 @@
       }
       el.textContent = "⌛Attendez la publication sur le site par GitHub avant de faire d'autres modifications";
       el.hidden = false;
-      // Disable Approver/Retirer buttons and the form submit button for 30s
-      const targets = Array.from(document.querySelectorAll(
-        '.requests .row-actions .btn, #contentForm button[type="submit"], #contentForm .btn[type="submit"]'
-      ));
-      targets.forEach(btn => {
-        try {
-          // Save previous disabled state only once
-          if (!btn.dataset.locked30) {
-            btn.dataset.prevDisabled = btn.disabled ? '1' : '0';
-          }
-          btn.dataset.locked30 = '1';
-          btn.disabled = true;
-          btn.classList.add('is-disabled-30s');
-          // Reset any existing per-button timer
-          if (btn._unlockTO) clearTimeout(btn._unlockTO);
-          btn._unlockTO = setTimeout(() => {
-            try {
-              // Restore previous disabled state
-              const prev = btn.dataset.prevDisabled === '1';
-              btn.disabled = prev;
-              btn.classList.remove('is-disabled-30s');
-              delete btn.dataset.locked30;
-              delete btn._unlockTO;
-            } catch {}
-          }, 30000);
-        } catch {}
-      });
+      // Set a global lock window for 30s and apply UI; resilient to table re-renders
+      const until = Date.now() + 30000;
+      setPublishLockUntil(until);
+      applyPublishLockUI();
       // Global hint timer to hide the message
       if (el._hintTO) clearTimeout(el._hintTO);
-      el._hintTO = setTimeout(()=>{ try { el.hidden = true; } catch{} }, 30000);
+      el._hintTO = setTimeout(()=>{ try { el.hidden = true; applyPublishLockUI(); } catch{} }, 30000);
     } catch {}
   }
 
@@ -780,7 +794,8 @@
             approveBtn.textContent = 'Approuver';
             renderTable();
           }
-          approveBtn.disabled = false;
+          // Re-enable only if global 30s lock is not active
+          try { approveBtn.disabled = isPublishLocked(); } catch { approveBtn.disabled = false; }
         }
         // For unapprove, immediate refresh
         if (found.status==='pending') renderTable();
@@ -788,6 +803,8 @@
       tbody.appendChild(tr);
     });
     populateActorNamesDatalist();
+    // Apply global 30s lock state to any newly rendered buttons
+    try { applyPublishLockUI(); } catch {}
   }
 
   function initApp(){
