@@ -177,7 +177,7 @@
           document.body.appendChild(el);
         }
       }
-      el.textContent = "⌛Attendez la publication sur le site par GitHub avant de faire d'autres modifications";
+      el.textContent = "⌛Veuillez patienter 30s le temps que github fasse les modifications";
       el.hidden = false;
       // Set a global lock window for 30s and apply UI; resilient to table re-renders
       const until = Date.now() + 30000;
