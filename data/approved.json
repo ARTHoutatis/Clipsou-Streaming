@@ -16,11 +16,13 @@
     "actors": [
       {
         "name": "Theo German",
-        "role": "Chevalier"
+        "role": "Chevalier",
+        "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757797062/o6wlsmgxql9lqk56ikg9.jpg"
       },
       {
         "name": "Ben Pichard",
-        "role": "Soldat Godrick 1"
+        "role": "Soldat Godrick 1",
+        "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757797123/pl3quwtizo6m35yd6fqb.webp"
       },
       {
         "name": "Alex Lxl",
@@ -57,10 +59,6 @@
     "watchUrl": "https://youtu.be/7xp1zVBN-xs?si=q7NjC8G5sjAiz3AG",
     "actors": [
       {
-        "name": "Theo German",
-        "role": "Habitant d'abri"
-      },
-      {
         "name": "Maxence",
         "role": "Raider 1"
       },
@@ -69,16 +67,22 @@
         "role": "Raider 2"
       },
       {
-        "name": "Ben Pichard",
-        "role": "Raider 3"
-      },
-      {
         "name": "Winter7th",
         "role": "Voix Pip-boy"
       },
       {
         "name": "Te_officiel‬",
         "role": "Goule Sauvage"
+      },
+      {
+        "name": "Theo German",
+        "role": "Survivant D'abris",
+        "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757797062/o6wlsmgxql9lqk56ikg9.jpg"
+      },
+      {
+        "name": "Ben Pichard",
+        "role": "Raider 3",
+        "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757797123/pl3quwtizo6m35yd6fqb.webp"
       }
     ],
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757789533/tueuyfqyikexkxft9vqt.png"
@@ -100,7 +104,8 @@
     "actors": [
       {
         "name": "Theo German",
-        "role": "Racaille 1"
+        "role": "Racaille 1",
+        "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757797062/o6wlsmgxql9lqk56ikg9.jpg"
       },
       {
         "name": "Valentin",
@@ -112,11 +117,13 @@
       },
       {
         "name": "Ben Pichard",
-        "role": "Racaille 4"
+        "role": "Racaille 4",
+        "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757797123/pl3quwtizo6m35yd6fqb.webp"
       },
       {
         "name": "Ben Pichard",
-        "role": "Policiers 1"
+        "role": "Policiers 1",
+        "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757797123/pl3quwtizo6m35yd6fqb.webp"
       },
       {
         "name": "Valentin",
