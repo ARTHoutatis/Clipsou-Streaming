@@ -185,9 +185,25 @@
       const until = Date.now() + 30000;
       setPublishLockUntil(until);
       applyPublishLockUI();
+      // During the 30s window, re-apply lock UI periodically in case of dynamic re-renders
+      try {
+        if (window.__publishLockInterval) clearInterval(window.__publishLockInterval);
+      } catch {}
+      try {
+        window.__publishLockInterval = setInterval(() => {
+          try {
+            if (!isPublishLocked()) {
+              clearInterval(window.__publishLockInterval);
+              window.__publishLockInterval = null;
+              return;
+            }
+            applyPublishLockUI();
+          } catch {}
+        }, 250);
+      } catch {}
       // Global hint timer to hide the message
       if (el._hintTO) clearTimeout(el._hintTO);
-      el._hintTO = setTimeout(()=>{ try { el.hidden = true; applyPublishLockUI(); } catch{} }, 30000);
+      el._hintTO = setTimeout(()=>{ try { el.hidden = true; applyPublishLockUI(); if (window.__publishLockInterval) { clearInterval(window.__publishLockInterval); window.__publishLockInterval = null; } } catch{} }, 30000);
     } catch {}
   }
 
