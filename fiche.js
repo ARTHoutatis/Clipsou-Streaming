@@ -321,7 +321,8 @@ async function buildItemsFromIndex() {
             const description = c.description || '';
             const watchUrl = c.watchUrl || '';
             const actors = Array.isArray(c.actors) ? c.actors.filter(a=>a && a.name) : [];
-            items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '' });
+            const studioBadge = c.studioBadge || '';
+            items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '', studioBadge });
           });
         }
       }
@@ -639,7 +640,11 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       const badge = document.createElement('div');
       badge.className = 'brand-badge';
       const logo = document.createElement('img');
-      logo.src = 'clipsoustudio.png';
+      // Use configured studio badge if present, otherwise default
+      try {
+        const src = it.studioBadge || 'clipsoustudio.png';
+        logo.src = /^(https?:|data:)/i.test(src) ? src : src;
+      } catch { logo.src = 'clipsoustudio.png'; }
       logo.alt = 'Clipsou Studio';
       logo.loading = 'lazy';
       logo.decoding = 'async';
