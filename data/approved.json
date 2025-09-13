@@ -77,30 +77,5 @@
         "role": "Mamie"
       }
     ]
-  },
-  {
-    "id": "custom-test-video-rvm4",
-    "title": "TEST Video",
-    "type": "film",
-    "rating": 3,
-    "genres": [
-      "Mystère",
-      "Drame",
-      "Ambience"
-    ],
-    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757764569/tfusawppuyjcsjqncyn4.webp",
-    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757764571/u98kkzs4dpe6cfc7yljb.jpg",
-    "description": "test de comment ajouter un film :)",
-    "watchUrl": "https://youtu.be/jOcsPvjaRwo?si=FjO7453TOpUToTlc",
-    "actors": [
-      {
-        "name": "Jeremy Detuto",
-        "role": "Sam De Ponch"
-      },
-      {
-        "name": "Liam Roxxor",
-        "role": "Tuto"
-      }
-    ]
   }
 ]
