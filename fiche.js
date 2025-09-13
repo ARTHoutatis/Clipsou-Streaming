@@ -394,18 +394,6 @@ function renderFiche(container, item) {
   img.decoding = 'async';
   img.className = 'landscape';
   mediaWrap.appendChild(img);
-  // Studio badge overlay on main fiche image
-  try {
-    const badge = document.createElement('div');
-    badge.className = 'brand-badge';
-    const logo = document.createElement('img');
-    logo.src = (item && item.studioBadge && String(item.studioBadge).trim()) || 'clipsoustudio.png';
-    logo.alt = 'Studio';
-    logo.loading = 'lazy';
-    logo.decoding = 'async';
-    badge.appendChild(logo);
-    mediaWrap.appendChild(badge);
-  } catch {}
   left.appendChild(mediaWrap);
 
   const right = document.createElement('div');

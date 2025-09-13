@@ -424,16 +424,6 @@ nav[aria-label="Navigation principale"] {
 }
 
 /* Fiche page: allow overlay on the main image too */
-.fiche-media-wrap {
-  position: relative;
-}
-.fiche-media-wrap .brand-badge {
-  position: absolute;
-  left: 6px;
-  bottom: 8px;
-  z-index: 2;
-  pointer-events: none;
-}
 
 /* Fine-tune badge position for similar-section cards (fiche page) */
 .similar-section .card .card-media .brand-badge {
