@@ -144,6 +144,34 @@
       }
       el.textContent = "⌛Attendez la publication sur le site par GitHub avant de faire d'autres modifications";
       el.hidden = false;
+      // Disable Approver/Retirer buttons and the form submit button for 30s
+      const targets = Array.from(document.querySelectorAll(
+        '.requests .row-actions .btn, #contentForm button[type="submit"], #contentForm .btn[type="submit"]'
+      ));
+      targets.forEach(btn => {
+        try {
+          // Save previous disabled state only once
+          if (!btn.dataset.locked30) {
+            btn.dataset.prevDisabled = btn.disabled ? '1' : '0';
+          }
+          btn.dataset.locked30 = '1';
+          btn.disabled = true;
+          btn.classList.add('is-disabled-30s');
+          // Reset any existing per-button timer
+          if (btn._unlockTO) clearTimeout(btn._unlockTO);
+          btn._unlockTO = setTimeout(() => {
+            try {
+              // Restore previous disabled state
+              const prev = btn.dataset.prevDisabled === '1';
+              btn.disabled = prev;
+              btn.classList.remove('is-disabled-30s');
+              delete btn.dataset.locked30;
+              delete btn._unlockTO;
+            } catch {}
+          }, 30000);
+        } catch {}
+      });
+      // Global hint timer to hide the message
       if (el._hintTO) clearTimeout(el._hintTO);
       el._hintTO = setTimeout(()=>{ try { el.hidden = true; } catch{} }, 30000);
     } catch {}
