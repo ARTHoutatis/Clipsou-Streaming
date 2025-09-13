@@ -608,9 +608,19 @@ document.addEventListener('DOMContentLoaded', async function () {
           // Expand fade a bit above/below the card to cover hover-lift (cards move ~6px up on hover)
           const topOffset = Math.max(0, Math.round(cardRect.top - secRect.top - 6));
           const cardH = Math.round(cardRect.height + 12);
-          [prevBtn, nextBtn, fadeLeft, fadeRight].forEach(btn => {
-            btn.style.top = topOffset + 'px';
-            btn.style.height = cardH + 'px';
+          // Fades take full extended height
+          [fadeLeft, fadeRight].forEach(el => {
+            if (!el) return;
+            el.style.top = topOffset + 'px';
+            el.style.height = cardH + 'px';
+            el.style.transform = 'none';
+          });
+          // Arrows are 3/4 of the original card height and centered vertically
+          const arrowH = Math.round(cardRect.height * 0.75);
+          const arrowTop = Math.max(0, Math.round((cardRect.top - secRect.top) + (cardRect.height - arrowH) / 2));
+          [prevBtn, nextBtn].forEach(btn => {
+            btn.style.top = arrowTop + 'px';
+            btn.style.height = arrowH + 'px';
             btn.style.transform = 'none';
             btn.style.alignItems = 'center';
           });
