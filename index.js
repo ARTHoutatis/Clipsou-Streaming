@@ -45,6 +45,89 @@ document.addEventListener('DOMContentLoaded', async function () {
       try { document.addEventListener('keydown', unlock, { once: true }); } catch {}
     } catch {}
   })();
+
+  // ===== Preserve scroll position when opening/closing popups =====
+  (function setupPopupScrollKeeper(){
+    let lastPopupScrollY = null;
+    let lastWasAtBottom = false;
+    function isPopupTargeted(){
+      try {
+        const hash = location.hash || '';
+        if (!hash || hash.length < 2) return false;
+        const el = document.querySelector(hash);
+        return !!(el && el.classList && el.classList.contains('fiche-popup'));
+      } catch { return false; }
+    }
+    function applyBodyPopupState(open){
+      try {
+        document.body.classList.toggle('popup-open', !!open);
+        document.documentElement.classList.toggle('popup-open', !!open);
+      } catch {}
+    }
+    function getDocHeights(){
+      try {
+        const de = document.documentElement;
+        const body = document.body;
+        const scrollHeight = Math.max(
+          body.scrollHeight, de.scrollHeight,
+          body.offsetHeight, de.offsetHeight,
+          body.clientHeight, de.clientHeight
+        );
+        const viewport = window.innerHeight || de.clientHeight || 0;
+        return { scrollHeight, viewport };
+      } catch { return { scrollHeight: 0, viewport: 0 }; }
+    }
+    function onHashChanged(){
+      try {
+        const open = isPopupTargeted();
+        if (open) {
+          if (lastPopupScrollY == null) {
+            // Save the current scroll position once when opening
+            const y = window.pageYOffset || document.documentElement.scrollTop || 0;
+            lastPopupScrollY = y;
+            const { scrollHeight, viewport } = getDocHeights();
+            lastWasAtBottom = (y + viewport >= scrollHeight - 2);
+          }
+          applyBodyPopupState(true);
+          // While a popup opens, suppress drawer auto-close on incidental scrolls
+          try { window.__suppressDrawerCloseUntil = Date.now() + 1600; } catch {}
+        } else {
+          applyBodyPopupState(false);
+          if (lastPopupScrollY != null) {
+            // Restore after a tick to let layout settle
+            const y = lastPopupScrollY; const wasBottom = lastWasAtBottom; lastPopupScrollY = null; lastWasAtBottom = false;
+            // Suppress drawer auto-close while restoring position and for a short grace period
+            try { window.__suppressDrawerCloseUntil = Date.now() + 1600; } catch {}
+            const doRestore = () => {
+              try {
+                if (wasBottom) {
+                  const { scrollHeight, viewport } = getDocHeights();
+                  const bottomY = Math.max(0, scrollHeight - viewport);
+                  window.scrollTo({ top: bottomY, left: 0, behavior: 'auto' });
+                } else {
+                  window.scrollTo({ top: y, left: 0, behavior: 'auto' });
+                }
+              } catch {
+                if (wasBottom) {
+                  const { scrollHeight, viewport } = getDocHeights();
+                  const bottomY = Math.max(0, scrollHeight - viewport);
+                  window.scrollTo(0, bottomY);
+                } else {
+                  window.scrollTo(0, y);
+                }
+              }
+            };
+            // Run twice to counter any late layout shifts (images/fonts)
+            try { setTimeout(doRestore, 0); } catch { doRestore(); }
+            try { setTimeout(doRestore, 120); } catch {}
+          }
+        }
+      } catch {}
+    }
+    // Initialize and listen
+    onHashChanged();
+    window.addEventListener('hashchange', onHashChanged, { passive: true });
+  })();
   // Backward-compatibility handling for old hash links removed intentionally.
   // Ensure lazy/async attrs on all images
   document.querySelectorAll('img').forEach(function (img) {
@@ -66,19 +149,8 @@ document.addEventListener('DOMContentLoaded', async function () {
       overlay.classList.add('open');
       drawer.setAttribute('aria-hidden','false');
       overlay.setAttribute('aria-hidden','false');
-      try {
-        document.body.style.overflow = 'hidden';
-        // On mobile, fix the body to lock scroll entirely
-        if (window.innerWidth <= 768) {
-          const y = window.pageYOffset || document.documentElement.scrollTop || 0;
-          document.body.dataset.lockY = String(y);
-          document.body.style.position = 'fixed';
-          document.body.style.top = `-${y}px`;
-          document.body.style.width = '100%';
-          document.body.style.left = '0';
-          document.body.style.right = '0';
-        }
-      } catch {}
+      // Allow scrolling; if user scrolls, close the drawer to let them continue
+      try { installCloseOnScroll(); } catch {}
       try { document.body.classList.add('drawer-open'); document.documentElement.classList.add('drawer-open'); } catch {}
       try { btn.setAttribute('aria-expanded','true'); } catch {}
     }
@@ -87,21 +159,8 @@ document.addEventListener('DOMContentLoaded', async function () {
       overlay.classList.remove('open');
       drawer.setAttribute('aria-hidden','true');
       overlay.setAttribute('aria-hidden','true');
-      try {
-        document.body.style.overflow = '';
-        // Restore scroll when unlocking on mobile
-        if (window.innerWidth <= 768) {
-          const yStr = document.body.dataset.lockY || '0';
-          const y = parseInt(yStr, 10) || 0;
-          document.body.style.position = '';
-          document.body.style.top = '';
-          document.body.style.width = '';
-          document.body.style.left = '';
-          document.body.style.right = '';
-          delete document.body.dataset.lockY;
-          window.scrollTo({ top: y, left: 0, behavior: 'auto' });
-        }
-      } catch {}
+      // Remove close-on-scroll listeners
+      try { removeCloseOnScroll(); } catch {}
       try { document.body.classList.remove('drawer-open'); document.documentElement.classList.remove('drawer-open'); } catch {}
       try { btn.setAttribute('aria-expanded','false'); } catch {}
     }
@@ -119,6 +178,14 @@ document.addEventListener('DOMContentLoaded', async function () {
       link.addEventListener('click', (e)=>{
         const href = link.getAttribute('href')||'';
         if (href.startsWith('#')) {
+          // If the target is a popup, do not intercept so :target opens it
+          try {
+            const target = document.querySelector(href);
+            if (target && target.classList && target.classList.contains('fiche-popup')) {
+              // Let default hash navigation happen to open popup
+              return;
+            }
+          } catch {}
           e.preventDefault();
           try {
             const target = document.querySelector(href);
@@ -137,14 +204,115 @@ document.addEventListener('DOMContentLoaded', async function () {
       });
     }
 
+    // Close drawer when user scrolls via scrollbar drag (not with wheel/touch/keys)
+    let removeCloseOnScroll = () => {};
+    function installCloseOnScroll(){
+      try { removeCloseOnScroll(); } catch {}
+      let lastWheelTs = 0;
+      let lastTouchTs = 0;
+      let lastKeyTs = 0;
+      let lastHashTs = 0;
+      const SUPPRESS_MS = 250; // ignore scrolls right after wheel/touch/keys
+      const SUPPRESS_HASH_MS = 450; // ignore scrolls right after hash (popup open/close)
+      const scrollKeys = new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','PageUp','PageDown','Home','End',' ']);
+      // Block background wheel/touch scroll while drawer is open, but allow inside the drawer
+      const isInsideDrawer = (node) => {
+        try {
+          if (!drawer) return false;
+          if (node === drawer) return true;
+          if (node && node.closest) return !!node.closest('#app-drawer');
+        } catch {}
+        return false;
+      };
+      function findScrollableAncestor(start) {
+        let el = start instanceof Element ? start : null;
+        while (el && el !== document.body && el !== document.documentElement) {
+          const style = getComputedStyle(el);
+          const canScrollY = /(auto|scroll)/.test(style.overflowY);
+          if (canScrollY && el.scrollHeight > el.clientHeight + 1) return el;
+          el = el.parentElement;
+        }
+        return null;
+      }
+      function shouldPreventFor(el, deltaY) {
+        // If no scrollable container, prevent to avoid background scroll
+        if (!el) return true;
+        const atTop = el.scrollTop <= 0;
+        const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+        if (deltaY < 0 && atTop) return true;    // scrolling up at top
+        if (deltaY > 0 && atBottom) return true; // scrolling down at bottom
+        return false; // allow native scroll within
+      }
+      const onWheel = (e) => {
+        lastWheelTs = Date.now();
+        try {
+          if (isInsideDrawer(e.target)) {
+            const deltaY = (/** @type {WheelEvent} */(e)).deltaY || 0;
+            const scrollBox = findScrollableAncestor(/** @type {Element} */(e.target));
+            if (shouldPreventFor(scrollBox, deltaY)) { e.preventDefault(); e.stopPropagation(); }
+            return;
+          }
+          // Outside drawer: block background scroll
+          e.preventDefault(); e.stopPropagation();
+        } catch {}
+      };
+      const onTouchMove = (e) => {
+        lastTouchTs = Date.now();
+        try {
+          if (isInsideDrawer(e.target)) {
+            // For touch, approximate: if the list can scroll, allow; otherwise block
+            const scrollBox = findScrollableAncestor(/** @type {Element} */(e.target));
+            if (shouldPreventFor(scrollBox, 0)) { e.preventDefault(); e.stopPropagation(); }
+            return;
+          }
+          e.preventDefault(); e.stopPropagation();
+        } catch {}
+      };
+      const onKeyDown = (e) => { if (scrollKeys.has(e.key)) lastKeyTs = Date.now(); };
+      const onScroll = () => {
+        const now = Date.now();
+        // If a popup is currently open, never auto-close the drawer on scroll
+        try {
+          const popupOpen = !!document.querySelector('.fiche-popup:target') || document.body.classList.contains('popup-open');
+          if (popupOpen) return;
+        } catch {}
+        // If we're within a grace period after popup open/close, do not close the drawer
+        try {
+          const until = window.__suppressDrawerCloseUntil || 0;
+          if (until && now <= until) return;
+        } catch {}
+        // Suppress immediately after hash changes (popup open/close may adjust layout)
+        if ((now - lastHashTs) <= SUPPRESS_HASH_MS) return;
+        if ((now - lastWheelTs) <= SUPPRESS_MS) return;
+        if ((now - lastTouchTs) <= SUPPRESS_MS) return;
+        if ((now - lastKeyTs) <= SUPPRESS_MS) return;
+        // New behavior: do not alter page scroll position; simply close the drawer if user scrolls the page
+        try { close(); } catch {}
+      };
+      const onHash = () => { lastHashTs = Date.now(); };
+      window.addEventListener('wheel', onWheel, { passive: false, capture: true });
+      window.addEventListener('touchmove', onTouchMove, { passive: false, capture: true });
+      window.addEventListener('keydown', onKeyDown, { passive: true });
+      window.addEventListener('scroll', onScroll, { passive: true, capture: true });
+      window.addEventListener('hashchange', onHash, { passive: true });
+      removeCloseOnScroll = () => {
+        window.removeEventListener('wheel', onWheel, { capture: true });
+        window.removeEventListener('touchmove', onTouchMove, { capture: true });
+        window.removeEventListener('keydown', onKeyDown);
+        window.removeEventListener('scroll', onScroll, { capture: true });
+        window.removeEventListener('hashchange', onHash);
+        removeCloseOnScroll = () => {};
+      };
+    }
+
     // Build section links dynamically (Top Rated + all genre sections built later)
     function buildDrawerLinks(){
       const list = document.getElementById('drawer-sections');
       if (!list) return;
-      // Keep first fixed entry (Top Rated) and remove others
-      const fixed = Array.from(list.querySelectorAll('li'))[0] || null;
+      // Keep all fixed entries (e.g., Mieux notés, Ajouter son film)
+      const fixedItems = Array.from(list.querySelectorAll('li[data-fixed="1"]'));
       list.innerHTML = '';
-      if (fixed) list.appendChild(fixed);
+      fixedItems.forEach(li => list.appendChild(li));
 
       // Find genre sections
       const sections = Array.from(document.querySelectorAll('.section[id^="genre-"] h2'));
@@ -161,7 +329,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         enableLink(a);
       });
 
-      // Ensure all anchors (including the fixed 'Mieux notés') have handlers
+      // Ensure all anchors (including fixed ones) have handlers
       list.querySelectorAll('a').forEach(a => {
         if (!a.dataset.drawerEnabled) {
           enableLink(a);

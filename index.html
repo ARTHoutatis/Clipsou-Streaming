@@ -91,11 +91,12 @@
   <nav>
     <div class="group-title">Raccourcis</div>
     <ul class="links" id="drawer-sections">
-      <li><a class="link" href="#top-rated">⭐ Mieux notés</a></li>
+      <li data-fixed="1"><a class="link" href="#top-rated">⭐ Mieux notés</a></li>
       <!-- Genres dynamiques ajoutés par index.js -->
     </ul>
     <div class="group-title">Liens et infos</div>
     <div class="cta-row">
+      <a class="button" href="#submit-film">➕ Ajouter son film</a>
       <a class="button" href="#partenariats">🤝 Partenariats</a>
       <a class="button" href="https://fr.tipeee.com/clipsou-studio" target="_blank" rel="noopener noreferrer">❤ Nous soutenir</a>
       <a class="button" href="#youtube">▶ YouTube</a>
@@ -539,29 +540,26 @@
     </div>
     </div>
 
-<!-- Popup: Proposer un film -->
+<!-- Popup: Ajouter son film -->
 <div id="submit-film" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="submit-film-title">
   <div class="fiche-content">
+    <a href="javascript:history.back()" class="button close-btn top-right-close" aria-label="Fermer">❌ Fermer</a>
     <div class="fiche-right" style="padding-left:0;">
-      <h3 id="submit-film-title">Proposez vos films sur notre site 🎬</h3>
-      <p>Vous souhaitez mettre en avant vos créations ? Rien de plus simple !</p>
-      <p>Il vous suffit de nous envoyer :</p>
+      <h3 id="submit-film-title">🎬 Vous voulez ajouter votre film sur notre site ?</h3>
+      <p>Pas de souci, c’est super simple ! 🚀</p>
+      <p>👉 Il me faut juste ces infos :</p>
       <p>
-        ➤ Une affiche (format 9/12)<br>
-        ➤ Une image (format 16/9)<br>
-        ➤ Si le film est tourné en prise de vue réelle, en LEGO ou réalisé dans un jeu vidéo<br>
-        ➤ Le logo de votre studio (fond transparent si possible)<br>
-        ➤ 3 genres (exemple : Action, Comédie, Thriller)<br>
-        ➤ Le lien YouTube de votre film<br>
-        ➤ Les noms des acteurs (et rôles si possible)
+        🖼️ Affiche (format 9/12)<br>
+        📸 Image (format 16/9)<br>
+        🏷️ Logo de votre studio (fond transparent si possible)<br>
+        🎭 3 genres (exemple : Action, Comédie, Thriller)<br>
+        🔗 Lien YouTube de votre film<br>
+        ⭐ Acteurs / Doubleurs et rôles<br>
+        📝 Courte description du film
       </p>
-      <p>👉 C’est 100% gratuit !</p>
-      <p>En échange, nous vous demanderons simplement un petit coup de pouce : partager une pub de notre site sur vos réseaux sociaux 💙</p>
-      <p>📩 Intéressé(e) ? Contactez-moi sur Discord : <strong>arth.d.i.s.c.o.r.d</strong><br>
-      ou sinon par notre Email <a href="mailto:roxxormister@gmail.com">roxxormister@gmail.com</a></p>
-      <div class="button-group">
-        <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
-      </div>
+      <p>📩 Envoyez-moi tout ça par MP Discord : <strong>arth.d.i.s.c.o.r.d</strong></p>
+      <p>✉️ Ou par email : <a href="mailto:roxxormister@gmail.com">roxxormister@gmail.com</a></p>
+      
     </div>
   </div>
 </div>

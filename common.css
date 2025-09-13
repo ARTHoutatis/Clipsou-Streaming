@@ -75,11 +75,27 @@ body.drawer-open nav[aria-label="Navigation principale"] {
 .drawer .close-drawer {
   appearance: none; border: 0; background: transparent; color: #fff; width: 40px; height: 40px; cursor: pointer;
 }
-.drawer nav { padding: 8px 10px 16px; overflow-y: auto; }
+.drawer nav {
+  padding: 8px 10px 16px;
+  flex: 1 1 auto;                /* fill remaining drawer height below header */
+  overflow-y: auto;              /* show scrollbar only when needed */
+  overscroll-behavior: contain;  /* don't propagate to page */
+}
 .drawer .group-title { font-size: .9rem; opacity: .85; margin: 12px 8px 6px; font-weight: 700; }
 .drawer .link { display: block; padding: 10px 10px; border-radius: 8px; color: #fff; }
 .drawer .link:hover { background: rgba(255,255,255,0.06); }
 .drawer .links { list-style: none; margin: 0; padding: 0; }
+.drawer .links {
+  max-height: none;             /* inherit from nav scrolling */
+  overflow: visible;            /* let nav handle scrolling */
+  padding-right: 0;
+}
+/* Scrollbar styling applied to the whole nav */
+.drawer nav { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.28) transparent; }
+.drawer nav::-webkit-scrollbar { width: 10px; }
+.drawer nav::-webkit-scrollbar-track { background: transparent; }
+.drawer nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.28); border-radius: 8px; }
+.drawer nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.38); }
 .drawer .links li { margin: 2px 0; }
 .drawer nav .cta-row {
   display: flex;
@@ -126,6 +142,11 @@ body.drawer-open nav[aria-label="Navigation principale"] {
     flex: 1 1 48%;
   }
 }
+@media (max-width: 768px) {
+  .drawer nav .cta-row a.button[href="#submit-film"] {
+    flex: 1 1 48%;
+  }
+}
 .drawer .cta-row a { padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); }
 
 /* Remove blue glow/outline on drawer buttons */
@@ -160,6 +181,15 @@ body.drawer-open nav[aria-label="Navigation principale"] {
 }
 .drawer nav .cta-row a.button[href="#partenariats"]:hover { background: #15803d !important; }
 
+/* Submit Film: emphasized wide blue button */
+.drawer nav .cta-row a.button[href="#submit-film"] {
+  flex: 1 1 220px;
+  font-weight: 700;
+  letter-spacing: .2px;
+  background: var(--brand-1) !important; /* blue */
+  border-color: rgba(43,34,238,0.45) !important;
+}
+.drawer nav .cta-row a.button[href="#submit-film"]:hover { background: #241DE0 !important; }
 
 /* Hamburger button (hidden by default on desktop) */
 .hamburger {
@@ -432,23 +462,20 @@ nav[aria-label="Navigation principale"] {
 
 /* Mobile tweak for similar-section cards */
 @media (max-width: 768px) {
-  /* Lock background scroll when a popup is open */
-  body.popup-open,
-  body.drawer-open {
+  /* Lock background scroll when a popup is open (drawer keeps scrollbar visible) */
+  body.popup-open {
     overflow: hidden !important; /* prevent background scroll */
     width: 100% !important;
     overscroll-behavior: none !important;
     touch-action: none !important;
+    position: static !important; /* avoid iOS background flash */
   }
-  /* Also lock the root element to prevent scrolling in some mobile browsers */
-  html.popup-open,
-  html.drawer-open {
+  /* Also lock the root element to prevent scrolling in some mobile browsers for popups only */
+  html.popup-open {
     overflow: hidden !important;
     height: 100% !important;
     overscroll-behavior: none !important;
   }
-  /* For popups, keep position static to avoid iOS background flash */
-  body.popup-open { position: static !important; }
   /* For drawer, JS applies position:fixed with top offset to fully lock scroll */
   .similar-section .card .card-media .brand-badge {
     bottom: 12px; /* adjust for mobile consistently */
