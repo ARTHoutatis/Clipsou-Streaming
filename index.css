@@ -1370,6 +1370,30 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
 
   /* Global scrollbar styles provided by common.css */
 
+/* ===== Rail edge spacing and clipping (desktop and mobile) ===== */
+/* Ensure sections clip horizontal overflow so cards at the edges can be cut */
+.section { overflow: hidden; }
+
+/* Desktop: keep 40px left space and clip right edge like reference site */
+@media (min-width: 769px) {
+  .rail {
+    padding-left: 40px !important;
+    padding-right: 40px !important;
+    margin-right: -40px !important; /* clip right padding so last cards can be cut */
+    scroll-padding-inline-start: 40px !important; /* start scroll with left offset */
+  }
+}
+
+/* Mobile: smaller inset and same clipping behavior */
+@media (max-width: 768px) {
+  .rail {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    margin-right: -16px !important; /* clip right edge */
+    scroll-padding-inline-start: 16px !important;
+  }
+}
+
   /* Card hover actions */
   .card { position: relative; }
   .card-actions {
