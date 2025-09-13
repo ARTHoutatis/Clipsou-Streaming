@@ -11,6 +11,8 @@
   const APP_KEY_PUB = 'clipsou_admin_publish_api_v1';
   const APP_KEY_PUB_TIMES = 'clipsou_admin_publish_times_v1';
   const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
+  // Shared requests sync cache marker (optional)
+  const APP_KEY_REQ_LAST_SYNC = 'clipsou_admin_requests_last_sync_v1';
   // Duration to display the deployment-in-progress hint after an approval
   const DEPLOY_HINT_MS = 2 * 60 * 60 * 1000; // 2 hours to account for slower GitHub Pages/CI deployments
   const $ = (sel, root=document) => root.querySelector(sel);
@@ -272,7 +274,10 @@
       let defaultPublic = '';
       try { defaultPublic = (window.location.origin || '') + '/data/approved.json'; } catch {}
       const publicApprovedUrl = prompt('URL publique du approved.json (optionnel, ex: https://<user>.github.io/<repo>/data/approved.json):', cfg.publicApprovedUrl || defaultPublic || '');
-      cfg = { url: url.trim(), secret: secret.trim(), publicApprovedUrl: (publicApprovedUrl||'').trim() };
+      // Optional: endpoints for shared requests sync
+      const requestsUrl = prompt('URL de l\'API de synchronisation des requêtes (optionnel):', cfg.requestsUrl || '');
+      const publicRequestsUrl = prompt('URL publique du requests.json (optionnel):', cfg.publicRequestsUrl || '');
+      cfg = { url: url.trim(), secret: secret.trim(), publicApprovedUrl: (publicApprovedUrl||'').trim(), requestsUrl: (requestsUrl||'').trim(), publicRequestsUrl: (publicRequestsUrl||'').trim() };
       setPublishConfig(cfg);
     } else if (!cfg.publicApprovedUrl) {
       // Backfill publicApprovedUrl if missing
@@ -283,6 +288,89 @@
       } catch {}
     }
     return cfg;
+  }
+
+  // ===== Shared requests (multi-admin) sync =====
+  function stampUpdatedAt(req) {
+    try {
+      const now = Date.now();
+      if (req && typeof req === 'object') {
+        if (!req.meta) req.meta = {};
+        req.meta.updatedAt = now;
+      }
+    } catch {}
+    return req;
+  }
+
+  function mergeRequestsByUpdatedAt(localList, remoteList){
+    const byId = new Map();
+    (localList||[]).forEach(r => { if (r && r.requestId) byId.set(r.requestId, r); });
+    (remoteList||[]).forEach(r => {
+      if (!r || !r.requestId) return;
+      const existing = byId.get(r.requestId);
+      const lu = existing && existing.meta && existing.meta.updatedAt || 0;
+      const ru = r && r.meta && r.meta.updatedAt || 0;
+      if (!existing || ru > lu) byId.set(r.requestId, r);
+    });
+    // Return in a stable order: most recently updated first
+    return Array.from(byId.values()).sort((a,b)=>((b.meta&&b.meta.updatedAt||0) - (a.meta&&a.meta.updatedAt||0)));
+  }
+
+  async function fetchSharedRequests(){
+    const cfg = getPublishConfig();
+    const candidates = [];
+    if (cfg && cfg.publicRequestsUrl) candidates.push(cfg.publicRequestsUrl);
+    try { candidates.push((window.location.origin||'') + '/data/requests.json'); } catch {}
+    candidates.push('../data/requests.json');
+    candidates.push('data/requests.json');
+    for (const u of candidates.filter(Boolean)) {
+      try {
+        const res = await fetch(u + '?v=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' });
+        if (!res.ok) continue;
+        const json = await res.json();
+        if (Array.isArray(json)) return json;
+        if (json && Array.isArray(json.requests)) return json.requests;
+      } catch {}
+    }
+    return [];
+  }
+
+  async function publishRequests(allRequests){
+    const cfg = await ensurePublishConfig();
+    if (!cfg) return false;
+    // If no dedicated requestsUrl configured, ask once to set it (optional cancel)
+    if (!cfg.requestsUrl) {
+      const url = prompt('Aucune URL API de synchronisation des requêtes n\'est configurée. Entrez l\'URL (optionnel):', '');
+      if (url) {
+        const next = { ...cfg, requestsUrl: url.trim() };
+        setPublishConfig(next);
+        return publishRequests(allRequests);
+      }
+      return false;
+    }
+    try {
+      const res = await fetch(cfg.requestsUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': cfg.secret ? ('Bearer ' + cfg.secret) : undefined
+        },
+        body: JSON.stringify({ action: 'syncRequests', requests: allRequests || [] })
+      });
+      return res.ok;
+    } catch { return false; }
+  }
+
+  async function syncRequestsWithRemote(render=true){
+    try {
+      const remote = await fetchSharedRequests();
+      if (!Array.isArray(remote)) return;
+      const local = getRequests();
+      const merged = mergeRequestsByUpdatedAt(local, remote);
+      setRequests(merged);
+      if (render) renderTable();
+      try { localStorage.setItem(APP_KEY_REQ_LAST_SYNC, String(Date.now())); } catch {}
+    } catch {}
   }
   async function publishApproved(item, action='upsert'){
     const cfg = await ensurePublishConfig();
@@ -456,7 +544,8 @@
 
   function renderTable(){
     const tbody = $('#requestsTable tbody');
-    const reqs = getRequests();
+    // Exclude requests marked as deleted from the UI
+    const reqs = getRequests().filter(r => !(r && r.meta && r.meta.deleted));
     tbody.innerHTML = '';
     reqs.forEach(r => {
       const tr = document.createElement('tr');
@@ -492,13 +581,17 @@
       editBtn.addEventListener('click', ()=>{ fillForm(r.data); });
       delBtn.addEventListener('click', ()=>{
         if (!confirm('Supprimer cette requête ?')) return;
-        const list = getRequests().filter(x=>x.requestId!==r.requestId);
+        let list = getRequests().filter(x=>x.requestId!==r.requestId);
+        // Stamp and sync
+        const deleted = { ...r, meta: { ...(r.meta||{}), updatedAt: Date.now(), deleted: true } };
+        list.unshift(deleted);
         setRequests(list);
         if (r.status==='approved') {
           const apr = getApproved().filter(x=>x.id!==r.data.id);
           setApproved(apr);
         }
         renderTable(); emptyForm();
+        publishRequests(getRequests());
       });
       approveBtn.addEventListener('click', async ()=>{
         const list = getRequests();
@@ -507,6 +600,7 @@
         if (found.status==='approved') {
           // Unapprove
           found.status = 'pending';
+          stampUpdatedAt(found);
           setRequests(list);
           const apr = getApproved().filter(x=>x.id!==found.data.id);
           setApproved(apr);
@@ -520,6 +614,8 @@
           if (statusTd) {
             statusTd.innerHTML = `pending <span class="muted small">• retrait GitHub Pages en cours</span> <span class="dot orange"></span>`;
           }
+          // Sync shared requests after change
+          publishRequests(getRequests());
         } else {
           // Show publishing indicator and disable button during network call
           const originalHtml = approveBtn.innerHTML;
@@ -528,6 +624,7 @@
 
           // Optimistically set approved locally
           found.status = 'approved';
+          stampUpdatedAt(found);
           setRequests(list);
           let apr = getApproved();
           const key = normalizeTitleKey(found.data && found.data.title);
@@ -535,6 +632,8 @@
           apr = apr.filter(x => x && x.id !== found.data.id && normalizeTitleKey(x.title) !== key);
           apr.push(found.data);
           setApproved(dedupeByIdAndTitle(apr));
+          // Sync shared requests immediately
+          publishRequests(getRequests());
           // Publish through API for everyone and reflect final status
           const ok = await publishApproved(found.data);
           if (ok) {
@@ -753,8 +852,8 @@
         const keyNew = normalizeTitleKey(data.title);
         list = list.filter(x => x && x.requestId === reqId || normalizeTitleKey(x && x.data && x.data.title) !== keyNew);
         const existing = list.find(x=>x.requestId===reqId);
-        if (existing) { existing.data = data; }
-        else { list.unshift({ requestId: reqId, status: 'pending', data }); }
+        if (existing) { existing.data = data; stampUpdatedAt(existing); }
+        else { list.unshift(stampUpdatedAt({ requestId: reqId, status: 'pending', data })); }
         setRequests(list);
         // If already approved, keep approved in sync
         if (existing && existing.status==='approved') {
@@ -768,6 +867,8 @@
         populateGenresDatalist();
         clearDraft();
         alert('Requête enregistrée.');
+        // Publish/shared sync
+        publishRequests(getRequests());
       });
       // Mark as wired to prevent duplicate event listeners
       form.dataset.submitWired = '1';
@@ -811,6 +912,8 @@
 
     emptyForm();
     renderTable();
+    // Attempt to load shared requests then re-render
+    syncRequestsWithRemote(true);
     populateGenresDatalist();
     restoreDraft();
     populateActorNamesDatalist();
