@@ -415,7 +415,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             const imgName = (landscapeImage || portraitImage || '').split('/').pop();
             const baseName = (imgName || '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/\d+$/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
             const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-            items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || 'apercu.png', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '' });
+            items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || 'apercu.png', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '', studioBadge: c.studioBadge || '' });
           });
           sharedLoaded = true;
         }
@@ -436,7 +436,7 @@ document.addEventListener('DOMContentLoaded', async function () {
               const imgName = (landscapeImage || portraitImage || '').split('/').pop();
               const baseName = (imgName || '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/\d+$/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
               const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-              items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || 'apercu.png', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '' });
+              items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || 'apercu.png', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '', studioBadge: c.studioBadge || '' });
             });
           }
         }
@@ -488,9 +488,9 @@ document.addEventListener('DOMContentLoaded', async function () {
       img.onerror = function () { if (idx < thumbs.length - 1) { idx += 1; this.src = thumbs[idx]; } else if (this.src !== 'apercu.png') { this.src = 'apercu.png'; } };
       img.setAttribute('alt', `Affiche de ${item.title}`);
       img.setAttribute('loading', 'lazy'); img.setAttribute('decoding', 'async');
-      const info = document.createElement('div'); info.className = 'card-info'; info.setAttribute('data-type', item.type || 'film'); if (typeof item.rating !== 'undefined') info.setAttribute('data-rating', String(item.rating));
+      const info = document.createElement('div'); info.className = 'card-info'; info.setAttribute('data-type', item.type || 'film'); if (typeof item.rating !== 'undefined') info.setAttribute('data-rating', String(item.rating)); if (item.studioBadge) info.setAttribute('data-studio-badge', String(item.studioBadge));
       const media = document.createElement('div'); media.className = 'card-media';
-      const badge = document.createElement('div'); badge.className = 'brand-badge'; const logo = document.createElement('img'); logo.src = 'clipsoustudio.png'; logo.alt = 'Clipsou Studio'; logo.setAttribute('loading', 'lazy'); logo.setAttribute('decoding', 'async'); badge.appendChild(logo);
+      const badge = document.createElement('div'); badge.className = 'brand-badge'; const logo = document.createElement('img'); logo.src = (item.studioBadge && String(item.studioBadge).trim()) || 'clipsoustudio.png'; logo.alt = 'Studio'; logo.setAttribute('loading', 'lazy'); logo.setAttribute('decoding', 'async'); badge.appendChild(logo);
       media.appendChild(img); media.appendChild(badge); a.appendChild(media); a.appendChild(info); card.appendChild(a); return card;
     }
 
@@ -742,17 +742,17 @@ document.addEventListener('DOMContentLoaded', async function () {
       if (!media) return;
 
       // Add badge if missing
-      if (!media.querySelector('.brand-badge')) {
-        const badge = document.createElement('div');
-        badge.className = 'brand-badge';
-        const logo = document.createElement('img');
-        logo.src = 'clipsoustudio.png';
-        logo.alt = 'Clipsou Studio';
-        logo.setAttribute('loading', 'lazy');
-        logo.setAttribute('decoding', 'async');
-        badge.appendChild(logo);
-        media.appendChild(badge);
-      }
+      let badge = media.querySelector('.brand-badge');
+      if (!badge) { badge = document.createElement('div'); badge.className = 'brand-badge'; const logo = document.createElement('img'); logo.setAttribute('loading', 'lazy'); logo.setAttribute('decoding', 'async'); badge.appendChild(logo); media.appendChild(badge); }
+      const logo = badge.querySelector('img');
+      // Determine preferred badge URL from data-studio-badge if present
+      let desired = '';
+      try {
+        const info = a.querySelector('.card-info');
+        desired = (info && info.getAttribute('data-studio-badge')) || '';
+      } catch {}
+      if (!desired) desired = 'clipsoustudio.png';
+      if (logo && logo.src !== desired) { logo.src = desired; logo.alt = 'Studio'; }
     });
   })();
 
