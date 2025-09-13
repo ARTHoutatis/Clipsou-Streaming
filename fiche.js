@@ -761,10 +761,17 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       const img = document.createElement('img');
       const nameRaw = String(a.name || '').trim();
       const baseSlug = ACTOR_IMAGE_MAP[nameRaw] || ACTOR_IMAGE_MAP['Unknown'];
-      // Start with jpeg, then try other extensions
-      img.src = './' + baseSlug + '.jpeg';
-      // Keep slug for retries with other extensions
-      img.setAttribute('data-slug', baseSlug);
+      // Prefer the explicit photo provided by admin if present; otherwise use slug-based local images
+      if (a && a.photo) {
+        try { img.src = a.photo; } catch { img.src = a.photo || './unknown.jpeg'; }
+        // mark as having explicit photo to skip slug fallback
+        img.setAttribute('data-explicit-photo', '1');
+      } else {
+        // Start with jpeg, then try other extensions
+        img.src = './' + baseSlug + '.jpeg';
+        // Keep slug for retries with other extensions
+        img.setAttribute('data-slug', baseSlug);
+      }
       img.alt = a.name;
       // Strong inline sizing to win against any external CSS and prevent cropping
       img.style.width = 'auto';
@@ -775,8 +782,12 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       img.style.objectPosition = 'center center';
       img.style.display = 'block';
       img.decoding = 'async';
-      // Fallback automatique multi-extensions puis Unknown
+      // Fallback automatique multi-extensions puis Unknown (only for slug-based images)
       img.onerror = function(){
+        if (this.getAttribute('data-explicit-photo') === '1') {
+          // If explicit photo fails, fallback to Unknown directly
+          this.onerror = null; this.src = './unknown.jpeg'; return;
+        }
         var slug = this.getAttribute('data-slug');
         if (!slug) { this.onerror = null; this.src = './unknown.jpeg'; return; }
         var i = (parseInt(this.dataset.i || '0', 10) || 0) + 1;
