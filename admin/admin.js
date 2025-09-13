@@ -695,6 +695,7 @@
           const apr = getApproved().filter(x=>x.id!==found.data.id);
           setApproved(apr);
           // Remove from shared approved.json
+          showPublishWaitHint();
           await deleteApproved(found.data.id);
           // Start tracking deletion deployment and reflect orange state until confirmed
           startDeploymentWatch(found.data.id, 'delete');
@@ -947,6 +948,8 @@
         const data = collectForm();
         const v = validateData(data);
         if (!v.ok) { alert('Veuillez corriger les erreurs avant d\'enregistrer:\n\n' + v.message); return; }
+        // Show publish hint on any modification save
+        showPublishWaitHint();
         // Upsert request by requestId, otherwise create new request entry
         let list = getRequests();
         let reqId = data.requestId || '';
