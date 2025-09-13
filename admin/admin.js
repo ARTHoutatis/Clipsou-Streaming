@@ -922,22 +922,22 @@
         const keyNew = normalizeTitleKey(data.title);
         list = list.filter(x => x && x.requestId === reqId || normalizeTitleKey(x && x.data && x.data.title) !== keyNew);
         const existing = list.find(x=>x.requestId===reqId);
-        if (existing) { existing.data = data; stampUpdatedAt(existing); }
+        const wasApproved = !!(existing && existing.status === 'approved');
+        if (existing) {
+          existing.data = data;
+          // If previously approved, mark as pending right away so UI reflects deployment-in-progress
+          if (wasApproved) existing.status = 'pending';
+          stampUpdatedAt(existing);
+        }
         else { list.unshift(stampUpdatedAt({ requestId: reqId, status: 'pending', data })); }
         setRequests(list);
         // If already approved, keep approved in sync
-        if (existing && existing.status==='approved') {
+        if (wasApproved) {
           let apr = getApproved();
           const key = normalizeTitleKey(data.title);
           apr = apr.filter(x => x && x.id !== data.id && normalizeTitleKey(x.title) !== key);
           apr.push(data);
           setApproved(dedupeByIdAndTitle(apr));
-          // Mark request as pending during republish so UI shows orange deployment state
-          try {
-            const list2 = getRequests();
-            const found2 = list2.find(x=>x.requestId===reqId);
-            if (found2) { found2.status = 'pending'; stampUpdatedAt(found2); setRequests(list2); renderTable(); }
-          } catch {}
           // Republish updated approved item to the site so changes go live
           (async () => {
             const ok = await publishApproved(data);
