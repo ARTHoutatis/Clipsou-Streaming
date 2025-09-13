@@ -5,6 +5,76 @@
     --brand-2: #6c5ce7;
 }
 
+/* ===== Desktop-only rail arrows ===== */
+@media (min-width: 769px) {
+  .section { position: relative; }
+  .rail-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px; height: 44px;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    color: #ffffff;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 8px;
+    cursor: pointer;
+    z-index: 2;
+    transition: background .2s ease, opacity .25s ease, transform .25s ease;
+    opacity: 0.85;
+    -webkit-tap-highlight-color: transparent;
+    transform: translateX(0);
+  }
+  .rail-arrow:hover { background: rgba(0,0,0,0.65); opacity: 1; }
+  .rail-arrow:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
+  .rail-arrow.prev { left: 8px; }
+  .rail-arrow.next { right: 8px; }
+  .rail-arrow svg { width: 24px; height: 24px; display: block; }
+
+  /* Gradient fades on edges to hint overflow and softly cut cards */
+  .rail-fade {
+    position: absolute;
+    top: 0; /* adjusted by JS */
+    width: 80px;
+    height: 100%; /* adjusted by JS */
+    pointer-events: none;
+    z-index: 5; /* above cards; arrows remain above with higher z-index */
+    transform: translateX(0);
+    transition: opacity .25s ease, transform .25s ease;
+  }
+  .rail-fade.left {
+    left: 0;
+    background: linear-gradient(90deg,
+      rgba(11,17,23,0.96) 0%,
+      rgba(11,17,23,0.82) 38%,
+      rgba(11,17,23,0.58) 60%,
+      rgba(11,17,23,0.00) 100%
+    );
+  }
+  .rail-fade.right {
+    right: 0;
+    background: linear-gradient(270deg,
+      rgba(11,17,23,0.96) 0%,
+      rgba(11,17,23,0.82) 38%,
+      rgba(11,17,23,0.58) 60%,
+      rgba(11,17,23,0.00) 100%
+    );
+  }
+  /* Keep arrows above fades */
+  .rail-arrow { z-index: 6; }
+
+  /* Hidden states: slide out of the viewport with fade */
+  .rail-arrow.prev.hidden, .rail-fade.left.hidden { transform: translateX(-110%); opacity: 0; }
+  .rail-arrow.next.hidden, .rail-fade.right.hidden { transform: translateX(110%); opacity: 0; }
+}
+
+/* Hide arrows on mobile */
+@media (max-width: 768px) {
+  .rail-arrow { display: none !important; }
+  .rail-fade { display: none !important; }
+}
+
 
 /* Partner logos: contain inside their fixed box and support simple position codes */
 .partner-logo {
@@ -1381,7 +1451,11 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     padding-right: 40px !important;
     margin-right: -40px !important; /* clip right padding so last cards can be cut */
     scroll-padding-inline-start: 40px !important; /* start scroll with left offset */
+    /* Hide native scrollbar on desktop while preserving scroll */
+    scrollbar-width: none;           /* Firefox */
+    -ms-overflow-style: none;        /* IE/Edge legacy */
   }
+  .rail::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 }
 
 /* Mobile: smaller inset and same clipping behavior */

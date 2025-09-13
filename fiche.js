@@ -640,11 +640,11 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       const badge = document.createElement('div');
       badge.className = 'brand-badge';
       const logo = document.createElement('img');
-      // Use configured studio badge if present, otherwise default
+      // Use configured studio badge if present, otherwise default to absolute URL
       try {
-        const src = it.studioBadge || 'clipsoustudio.png';
-        logo.src = /^(https?:|data:)/i.test(src) ? src : src;
-      } catch { logo.src = 'clipsoustudio.png'; }
+        const src = it.studioBadge || 'https://clipsoustreaming.com/clipsoustudio.png';
+        logo.src = src;
+      } catch { logo.src = 'https://clipsoustreaming.com/clipsoustudio.png'; }
       logo.alt = 'Clipsou Studio';
       logo.loading = 'lazy';
       logo.decoding = 'async';

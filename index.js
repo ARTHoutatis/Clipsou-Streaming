@@ -45,17 +45,6 @@ document.addEventListener('DOMContentLoaded', async function () {
       try { document.addEventListener('keydown', unlock, { once: true }); } catch {}
     } catch {}
   })();
-
-  // Ensure all horizontal rails are scrolled fully to the left (avoid browser restoring partial position)
-  function resetRailsScrollLeft() {
-    try {
-      const rails = document.querySelectorAll('.rail');
-      rails.forEach(r => { try { r.scrollLeft = 0; } catch {} });
-    } catch {}
-  }
-  // Run at various moments to defeat BFCache and async builds
-  try { resetRailsScrollLeft(); setTimeout(resetRailsScrollLeft, 0); setTimeout(resetRailsScrollLeft, 150); setTimeout(resetRailsScrollLeft, 500); } catch {}
-  try { window.addEventListener('pageshow', () => { setTimeout(resetRailsScrollLeft, 0); }); } catch {}
   // Backward-compatibility handling for old hash links removed intentionally.
   // Ensure lazy/async attrs on all images
   document.querySelectorAll('img').forEach(function (img) {
@@ -355,7 +344,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         existingHrefs.add(href);
       }
     });
-    try { topRatedSection.scrollLeft = 0; } catch {}
   }
 
   // Mobile tweak: hide Partenariats popup title on small screens (defensive in case CSS is overridden)
@@ -569,10 +557,130 @@ document.addEventListener('DOMContentLoaded', async function () {
       rail.innerHTML = ''; const seen = new Set(); sorted.forEach(it => { const href = `#${it.id}`; if (seen.has(href)) return; rail.appendChild(createCard(it)); seen.add(href); });
       if (rail.querySelectorAll('.card').length <= 0) { section.remove(); }
       else { try { window.__genreSectionIds = window.__genreSectionIds || new Set(); window.__genreSectionIds.add(id); } catch {} }
-      // Always reset scroll to the far left per section
-      try { rail.scrollLeft = 0; } catch {}
     });
 
+    // After all rails are (re)built, add desktop-only arrows and wire scroll
+    function enhanceRailsWithArrows(){
+      if (window.innerWidth <= 768) return; // desktop only
+      document.querySelectorAll('.section').forEach(section => {
+        const rail = section.querySelector('.rail');
+        if (!rail) return;
+        // Avoid duplicates
+        if (!section.querySelector('.rail-arrow.prev')) {
+          const prev = document.createElement('button');
+          prev.className = 'rail-arrow prev';
+          prev.setAttribute('aria-label','Défiler vers la gauche');
+          prev.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>';
+          section.appendChild(prev);
+        }
+        if (!section.querySelector('.rail-arrow.next')) {
+          const next = document.createElement('button');
+          next.className = 'rail-arrow next';
+          next.setAttribute('aria-label','Défiler vers la droite');
+          next.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>';
+          section.appendChild(next);
+        }
+        // Ensure gradient fades exist (under arrows)
+        if (!section.querySelector('.rail-fade.left')) {
+          const fadeL = document.createElement('div');
+          fadeL.className = 'rail-fade left';
+          section.appendChild(fadeL);
+        }
+        if (!section.querySelector('.rail-fade.right')) {
+          const fadeR = document.createElement('div');
+          fadeR.className = 'rail-fade right';
+          section.appendChild(fadeR);
+        }
+
+        const prevBtn = section.querySelector('.rail-arrow.prev');
+        const nextBtn = section.querySelector('.rail-arrow.next');
+        const fadeLeft = section.querySelector('.rail-fade.left');
+        const fadeRight = section.querySelector('.rail-fade.right');
+        const card = rail.querySelector('.card');
+        const gap = parseInt(getComputedStyle(rail).columnGap || getComputedStyle(rail).gap || '18', 10) || 18;
+        const cardWidth = card ? card.getBoundingClientRect().width : 220;
+        const step = Math.round(cardWidth + gap);
+        function positionArrows(){
+          // Position arrows to match exactly the card height (excluding rail padding)
+          const secRect = section.getBoundingClientRect();
+          const firstCard = rail.querySelector('.card');
+          const cardRect = firstCard ? firstCard.getBoundingClientRect() : rail.getBoundingClientRect();
+          // Expand fade a bit above/below the card to cover hover-lift (cards move ~6px up on hover)
+          const topOffset = Math.max(0, Math.round(cardRect.top - secRect.top - 6));
+          const cardH = Math.round(cardRect.height + 12);
+          [prevBtn, nextBtn, fadeLeft, fadeRight].forEach(btn => {
+            btn.style.top = topOffset + 'px';
+            btn.style.height = cardH + 'px';
+            btn.style.transform = 'none';
+            btn.style.alignItems = 'center';
+          });
+        }
+        function updateArrows(){
+          const maxScroll = rail.scrollWidth - rail.clientWidth - 1; // tolerance
+          const hasOverflow = rail.scrollWidth > rail.clientWidth + 1;
+          // If no overflow: slide both out (keep in DOM for animation)
+          if (!hasOverflow) {
+            prevBtn.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+            if (fadeLeft) fadeLeft.classList.add('hidden');
+            if (fadeRight) fadeRight.classList.add('hidden');
+            return;
+          }
+          // Default: make both visible (not hidden)
+          prevBtn.classList.remove('hidden');
+          nextBtn.classList.remove('hidden');
+          if (fadeLeft) fadeLeft.classList.remove('hidden');
+          if (fadeRight) fadeRight.classList.remove('hidden');
+          // Hide left side at start, right side at end
+          const atStart = rail.scrollLeft <= 0;
+          const atEnd = rail.scrollLeft >= maxScroll;
+          if (atStart) {
+            prevBtn.classList.add('hidden');
+            if (fadeLeft) fadeLeft.classList.add('hidden');
+          } else {
+            prevBtn.classList.remove('hidden');
+            if (fadeLeft) fadeLeft.classList.remove('hidden');
+          }
+          if (atEnd) {
+            nextBtn.classList.add('hidden');
+            if (fadeRight) fadeRight.classList.add('hidden');
+          } else {
+            nextBtn.classList.remove('hidden');
+            if (fadeRight) fadeRight.classList.remove('hidden');
+          }
+        }
+        function perPage(){ return Math.max(1, Math.floor(rail.clientWidth / step)); }
+        function scrollByPage(dir){
+          const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          const firstIndex = Math.max(0, Math.floor(rail.scrollLeft / step));
+          const page = perPage();
+          const maxFirst = Math.max(0, Math.ceil((rail.scrollWidth - rail.clientWidth) / step));
+          let newFirst = dir > 0 ? firstIndex + page : firstIndex - page;
+          if (newFirst < 0) newFirst = 0;
+          if (newFirst > maxFirst) newFirst = maxFirst;
+          const target = Math.round(newFirst * step);
+          rail.scrollTo({ left: target, behavior: prefersReduced ? 'auto' : 'smooth' });
+          setTimeout(updateArrows, 300);
+        }
+        prevBtn.onclick = ()=>scrollByPage(-1);
+        nextBtn.onclick = ()=>scrollByPage(1);
+        rail.addEventListener('scroll', updateArrows, { passive: true });
+        // Initial update
+        positionArrows();
+        updateArrows();
+        // Reposition after images load (card heights can change)
+        rail.querySelectorAll('img').forEach(img => {
+          img.addEventListener('load', () => { positionArrows(); }, { once: true });
+        });
+        // Observe size changes
+        try {
+          const ro = new ResizeObserver(() => positionArrows());
+          ro.observe(rail);
+        } catch {}
+      });
+    }
+    enhanceRailsWithArrows();
+    window.addEventListener('resize', ()=>{ try { document.querySelectorAll('.rail-arrow').forEach(b=>b.remove()); } catch{}; enhanceRailsWithArrows(); });
     // Category sections removed per request (LEGO, Minecraft, Live-action)
 
     // Build carousel with 5 random films/séries (exclude trailers)
@@ -600,8 +708,6 @@ document.addEventListener('DOMContentLoaded', async function () {
       // Final safety: rebuild after carousel construction
       try { if (typeof window.__rebuildDrawerLinks === 'function') setTimeout(window.__rebuildDrawerLinks, 0); } catch {}
     })();
-    // After building everything, reset rails once more
-    try { setTimeout(resetRailsScrollLeft, 0); setTimeout(resetRailsScrollLeft, 200); } catch {}
   })();
 
   // Ensure any pre-existing cards get a .card-media wrapper and a badge overlay on the image only
