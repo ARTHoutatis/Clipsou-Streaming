@@ -142,7 +142,7 @@
           document.body.appendChild(el);
         }
       }
-      el.textContent = '‼️ Attendez la publication sur GitHub';
+      el.textContent = "⌛Attendez la publication sur le site par GitHub avant de faire d'autres modifications";
       el.hidden = false;
       if (el._hintTO) clearTimeout(el._hintTO);
       el._hintTO = setTimeout(()=>{ try { el.hidden = true; } catch{} }, 30000);
