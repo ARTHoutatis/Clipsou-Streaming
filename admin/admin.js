@@ -632,7 +632,6 @@
         <td>${r.data.type||''}</td>
         <td>${g3}</td>
         <td>${(typeof r.data.rating==='number')?r.data.rating:''}</td>
-        <td class="status-cell"></td>
         <td class="row-actions"></td>
       `;
       const actions = tr.querySelector('.row-actions');
@@ -643,12 +642,7 @@
       approveBtn.textContent = (r.status === 'approved') ? 'Retirer' : 'Approuver';
       actions.appendChild(editBtn); actions.appendChild(delBtn); actions.appendChild(approveBtn);
 
-      // Simplified status cell without colored dots/messages
-      (function setStatusCell(){
-        const statusTd = tr.querySelector('.status-cell');
-        if (!statusTd) return;
-        statusTd.textContent = r.status || '';
-      })();
+      // No status cell anymore
       editBtn.addEventListener('click', ()=>{ fillForm(r.data); });
       delBtn.addEventListener('click', ()=>{
         if (!confirm('Supprimer cette requête ?')) return;
@@ -680,9 +674,7 @@
           // Start tracking deletion deployment and reflect orange state until confirmed
           startDeploymentWatch(found.data.id, 'delete');
           approveBtn.textContent = 'Approuver';
-          // Refresh row status cell
-          const statusTd = tr.querySelector('.status-cell');
-          if (statusTd) { statusTd.textContent = 'pending'; }
+          // No status cell to refresh
           // Sync shared requests after change
           publishRequests(getRequests());
         } else {
