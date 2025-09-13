@@ -11,6 +11,7 @@
   const APP_KEY_PUB = 'clipsou_admin_publish_api_v1';
   const APP_KEY_PUB_TIMES = 'clipsou_admin_publish_times_v1';
   const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
+  const APP_KEY_SCROLL = 'clipsou_admin_scroll_v1';
   // Shared requests sync cache marker (optional)
   const APP_KEY_REQ_LAST_SYNC = 'clipsou_admin_requests_last_sync_v1';
   // Duration to display the deployment-in-progress hint after an approval
@@ -122,6 +123,29 @@
   }
   function setDeployTrack(map){
     try { localStorage.setItem(APP_KEY_DEPLOY_TRACK, JSON.stringify(map||{})); } catch {}
+  }
+
+  // ===== Persist/restore scroll position (stay at the same spot on refresh) =====
+  function getSavedScroll(){
+    try { const v = localStorage.getItem(APP_KEY_SCROLL); return v ? parseInt(v, 10) : 0; } catch { return 0; }
+  }
+  function saveScroll(y){
+    try { localStorage.setItem(APP_KEY_SCROLL, String(Math.max(0, Math.floor(y||0)))); } catch {}
+  }
+  let __scrollSaveTimer = null;
+  function wireScrollPersistence(){
+    function schedule(){
+      if (__scrollSaveTimer) cancelAnimationFrame(__scrollSaveTimer);
+      __scrollSaveTimer = requestAnimationFrame(()=> saveScroll(window.scrollY || window.pageYOffset || 0));
+    }
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('beforeunload', ()=> saveScroll(window.scrollY || window.pageYOffset || 0));
+    document.addEventListener('visibilitychange', ()=>{ if (document.visibilityState === 'hidden') saveScroll(window.scrollY || window.pageYOffset || 0); });
+  }
+  function restoreScrollPosition(){
+    const y = getSavedScroll();
+    try { window.scrollTo({ top: y, left: 0, behavior: 'instant' }); }
+    catch(_) { window.scrollTo(0, y); }
   }
 
   // Shallow compare of arrays (by values) and primitives inside item fields we care about
@@ -779,6 +803,9 @@
   function initApp(){
     const app = $('#app');
     app.hidden = false;
+
+    // Restore scroll position and keep it up-to-date for the next refresh
+    try { restoreScrollPosition(); wireScrollPersistence(); } catch {}
 
     // Logout button returns to login
     try {
