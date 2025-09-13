@@ -1,5 +1,47 @@
 [
   {
+    "id": "custom-elden-ring-le-film-le-pire-guerrier-pxql",
+    "title": "ELDEN RING Le Film : Le pire guerrier",
+    "type": "film",
+    "rating": 5,
+    "genres": [
+      "Action",
+      "Aventure",
+      "Comedie"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757789650/zeyax1bmrxuocpyvszqm.jpg",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757789687/ucrvx2w7a2v0bw7xw1as.png",
+    "description": "Un chevalier se lance dans un combat acharné contre un gigantesque Boss. Mais chaque tentative se solde par sa mort, l’obligeant à tout recommencer depuis le début. Prisonnier d’une boucle sans fin, il devra redoubler d’efforts et de courage pour espérer triompher.",
+    "watchUrl": "https://youtu.be/EMA2dU_2hVI?si=nUn3lWwYdRZskeLx",
+    "actors": [
+      {
+        "name": "Theo German",
+        "role": "Chevalier"
+      },
+      {
+        "name": "Ben Pichard",
+        "role": "Soldat Godrick 1"
+      },
+      {
+        "name": "Alex Lxl",
+        "role": "Soldat Godrick 2"
+      },
+      {
+        "name": "Sacha",
+        "role": "Marchand Nomade"
+      },
+      {
+        "name": "CherNabog",
+        "role": "Replique Marchand (Voix)"
+      },
+      {
+        "name": "Winter7th",
+        "role": "Melina (voix off)"
+      }
+    ],
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757789704/cn7mkfzppoy9e2vnja9w.png"
+  },
+  {
     "id": "custom-fallout-pour-de-vrai-4mti",
     "title": "FALLOUT ... pour de vrai !",
     "type": "film",
