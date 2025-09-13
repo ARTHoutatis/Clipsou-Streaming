@@ -590,8 +590,8 @@
           else if (info && info.confirmedAt) approveBtn.innerHTML = 'Retirer <span class="dot green"></span>';
           else approveBtn.textContent = 'Retirer';
         } else {
-          // Pending side: if a delete deployment is in progress, keep orange until confirmed removal
-          if (info && info.action === 'delete' && !info.confirmedAt) approveBtn.innerHTML = 'Approuver <span class="dot orange"></span>';
+          // Pending side: if a delete or upsert deployment is in progress, keep orange until confirmed
+          if (info && ((info.action === 'delete' && !info.confirmedAt) || (info.action === 'upsert' && !info.confirmedAt))) approveBtn.innerHTML = 'Approuver <span class="dot orange"></span>';
           else if (info && info.action === 'delete' && info.confirmedAt) approveBtn.innerHTML = 'Approuver <span class="dot green"></span>';
           else approveBtn.textContent = 'Approuver';
         }
@@ -620,7 +620,9 @@
         } else {
           if (info && info.action === 'delete' && !info.confirmedAt) {
             statusTd.innerHTML = `pending <span class="muted small">• retrait GitHub Pages en cours</span> <span class="dot orange"></span>`;
-          } else if (info && info.action === 'delete' && info.confirmedAt) {
+          } else if (info && info.action === 'upsert' && !info.confirmedAt) {
+            statusTd.innerHTML = `pending <span class="muted small">• publication GitHub Pages en cours</span> <span class="dot orange"></span>`;
+          } else if (info && (info.action === 'delete' || info.action === 'upsert') && info.confirmedAt) {
             statusTd.innerHTML = `pending <span class="dot green"></span>`;
           } else {
             statusTd.textContent = 'pending';
