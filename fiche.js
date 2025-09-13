@@ -924,7 +924,42 @@ const id = params.get('id');
 const container = document.getElementById('fiche-container');
 
   const items = await buildItemsFromIndex();
-  const item = items.find(it => it.id === id);
+  // Prefer the richest duplicate for this id (carry studioBadge and best images/metadata)
+  let item = (function pickBestById(list, targetId){
+    const cands = list.filter(it => it && it.id === targetId);
+    if (!cands.length) return list.find(it => it && it.id === targetId);
+    const score = (x) => {
+      let s = 0;
+      if (x && x.studioBadge) s += 6; // prioritize custom badge strongly
+      if (x && (x.landscapeImage || x.portraitImage || x.image)) s += 3;
+      if (typeof x.rating === 'number') s += 1;
+      if (Array.isArray(x.genres) && x.genres.length) s += 1;
+      if (x && x.description) s += 1;
+      if (x && x.watchUrl) s += 1;
+      if (Array.isArray(x.actors) && x.actors.length) s += 1;
+      return s;
+    };
+    // Reduce to best and merge critical fields so nothing is lost
+    const best = cands.reduce((acc, cur) => {
+      if (!acc) return { ...cur };
+      const chosen = score(cur) >= score(acc) ? { ...cur } : { ...acc };
+      const other  = chosen === cur ? acc : cur;
+      // Preserve studioBadge if present on either
+      if (!chosen.studioBadge && other && other.studioBadge) chosen.studioBadge = other.studioBadge;
+      // Prefer explicit portrait/landscape images; keep a generic image as fallback
+      chosen.portraitImage = chosen.portraitImage || other.portraitImage || '';
+      chosen.landscapeImage = chosen.landscapeImage || other.landscapeImage || '';
+      chosen.image = chosen.image || other.image || '';
+      // Fill missing metadata
+      if (!chosen.description) chosen.description = other.description || '';
+      if (!chosen.watchUrl) chosen.watchUrl = other.watchUrl || '';
+      if ((!chosen.actors || !chosen.actors.length) && Array.isArray(other.actors) && other.actors.length) chosen.actors = other.actors.slice();
+      if (typeof chosen.rating !== 'number' && typeof other.rating === 'number') chosen.rating = other.rating;
+      if ((!chosen.genres || !chosen.genres.length) && Array.isArray(other.genres) && other.genres.length) chosen.genres = other.genres.slice();
+      return chosen;
+    }, null);
+    return best;
+  })(items, id);
 
   if (!id) {
     document.title = 'Toutes les fiches – Clipsou Streaming';

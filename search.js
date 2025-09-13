@@ -123,6 +123,8 @@ function preferBetter(a, b) {
         if (x && x.image) s += 3; // has image
         if (typeof x.rating === 'number') s += 1; // has rating
         if (Array.isArray(x.genres) && x.genres.length) s += 1; // has genres
+        // Prefer entries carrying a custom studio badge (ensures correct logo display)
+        if (x && x.studioBadge) s += 4;
         // Prefer approved-origin entries that likely have Cloudinary URLs (heuristic: http)
         if (x && /^https?:\/\//i.test(x.image || '')) s += 1;
         return s;
@@ -139,10 +141,24 @@ function dedupeItems(list) {
         const id = it.id || '';
         const key = normalizeTitleKey(it.title || '');
         if (id) {
-            byId.set(id, byId.has(id) ? preferBetter(byId.get(id), it) : it);
+            const chosen = byId.has(id) ? preferBetter(byId.get(id), it) : it;
+            // Merge important fields we don't want to lose (e.g., studioBadge)
+            const prev = byId.get(id) || {};
+            const merged = {
+                ...chosen,
+                // If best item lacks studioBadge, carry it over from the other duplicate
+                studioBadge: (chosen && chosen.studioBadge) || (it && it.studioBadge) || (prev && prev.studioBadge) || ''
+            };
+            byId.set(id, merged);
         }
         if (key) {
-            byTitle.set(key, byTitle.has(key) ? preferBetter(byTitle.get(key), it) : it);
+            const chosenT = byTitle.has(key) ? preferBetter(byTitle.get(key), it) : it;
+            const prevT = byTitle.get(key) || {};
+            const mergedT = {
+                ...chosenT,
+                studioBadge: (chosenT && chosenT.studioBadge) || (it && it.studioBadge) || (prevT && prevT.studioBadge) || ''
+            };
+            byTitle.set(key, mergedT);
         }
     }
     // Merge preferring title uniqueness. If an id maps to a different title key, keep best.
@@ -150,7 +166,16 @@ function dedupeItems(list) {
     byTitle.forEach((v, k) => out.set(k, v));
     byId.forEach((v) => {
         const k = normalizeTitleKey(v.title || '');
-        if (!out.has(k)) out.set(k, v); else out.set(k, preferBetter(out.get(k), v));
+        if (!out.has(k)) {
+            out.set(k, v);
+        } else {
+            const chosen = preferBetter(out.get(k), v);
+            const other = chosen === out.get(k) ? v : out.get(k);
+            // Ensure studioBadge is preserved if present on either
+            const merged = { ...chosen };
+            if (!merged.studioBadge && other && other.studioBadge) merged.studioBadge = other.studioBadge;
+            out.set(k, merged);
+        }
     });
     return Array.from(out.values());
 }
