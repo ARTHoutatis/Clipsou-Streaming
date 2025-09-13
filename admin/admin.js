@@ -495,6 +495,9 @@
     $('#portraitImage').value = data.portraitImage || '';
     $('#landscapeImage').value = data.landscapeImage || '';
     $('#watchUrl').value = data.watchUrl || '';
+    // New: studio badge
+    const studioBadgeEl = $('#studioBadge');
+    if (studioBadgeEl) studioBadgeEl.value = data.studioBadge || '';
     const actors = Array.isArray(data.actors) ? data.actors.slice() : [];
     $('#contentForm').dataset.actors = JSON.stringify(actors);
     renderActors(actors);
@@ -515,6 +518,10 @@
     let id = $('#id').value.trim();
     const title = $('#title').value.trim();
     if (!id) id = makeIdFromTitle(title);
+    // New: studio badge with default
+    let studioBadge = '';
+    try { studioBadge = String($('#studioBadge').value || '').trim(); } catch {}
+    if (!studioBadge) studioBadge = 'clipsoustudio.png';
     return {
       id,
       requestId: $('#requestId').value || '',
@@ -526,6 +533,7 @@
       portraitImage: $('#portraitImage').value.trim(),
       landscapeImage: $('#landscapeImage').value.trim(),
       watchUrl: $('#watchUrl').value.trim(),
+      studioBadge,
       actors
     };
   }
@@ -578,6 +586,36 @@
         }
       })();
       actions.appendChild(editBtn); actions.appendChild(delBtn); actions.appendChild(approveBtn);
+
+      // Populate the status cell with a deployment indicator (orange while pending, green once confirmed)
+      (function setStatusCell(){
+        const statusTd = tr.querySelector('.status-cell');
+        if (!statusTd) return;
+        const track = getDeployTrack();
+        const info = track[r.data.id];
+        const times = getPublishTimes();
+        const lastPub = times && times[r.data.id];
+        const now = Date.now();
+        if (r.status === 'approved') {
+          if (info && !info.confirmedAt) {
+            statusTd.innerHTML = `approved <span class="muted small">• déploiement GitHub Pages en cours</span> <span class="dot orange"></span>`;
+          } else if (info && info.confirmedAt) {
+            statusTd.innerHTML = `approved <span class="dot green"></span>`;
+          } else if (lastPub && (now - lastPub) < DEPLOY_HINT_MS) {
+            statusTd.innerHTML = `approved <span class="muted small">• propagation en cours</span> <span class="dot orange"></span>`;
+          } else {
+            statusTd.textContent = 'approved';
+          }
+        } else {
+          if (info && info.action === 'delete' && !info.confirmedAt) {
+            statusTd.innerHTML = `pending <span class="muted small">• retrait GitHub Pages en cours</span> <span class="dot orange"></span>`;
+          } else if (info && info.action === 'delete' && info.confirmedAt) {
+            statusTd.innerHTML = `pending <span class="dot green"></span>`;
+          } else {
+            statusTd.textContent = 'pending';
+          }
+        }
+      })();
       editBtn.addEventListener('click', ()=>{ fillForm(r.data); });
       delBtn.addEventListener('click', ()=>{
         if (!confirm('Supprimer cette requête ?')) return;
