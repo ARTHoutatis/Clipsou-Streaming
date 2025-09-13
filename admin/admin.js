@@ -124,8 +124,57 @@
     try { localStorage.setItem(APP_KEY_DEPLOY_TRACK, JSON.stringify(map||{})); } catch {}
   }
 
-  // Poll GitHub Pages public JSON to detect when an approved item is live
-  async function isItemLivePublic(id){
+  // Shallow compare of arrays (by values) and primitives inside item fields we care about
+  function arraysEqual(a, b) {
+    if (!Array.isArray(a) || !Array.isArray(b)) return false;
+    if (a.length !== b.length) return false;
+    for (let i=0; i<a.length; i++) if (a[i] !== b[i]) return false;
+    return true;
+  }
+  function actorsEqual(a, b){
+    if (!Array.isArray(a) || !Array.isArray(b)) return false;
+    if (a.length !== b.length) return false;
+    for (let i=0; i<a.length; i++) {
+      const ai = a[i]||{}; const bi = b[i]||{};
+      if ((ai.name||'') !== (bi.name||'')) return false;
+      if ((ai.role||'') !== (bi.role||'')) return false;
+    }
+    return true;
+  }
+  function itemMatchesPublic(expected, remote){
+    if (!expected || !remote) return false;
+    // Compare key fields only
+    if ((expected.title||'') !== (remote.title||'')) return false;
+    if ((expected.type||'') !== (remote.type||'')) return false;
+    const er = (typeof expected.rating==='number') ? expected.rating : undefined;
+    const rr = (typeof remote.rating==='number') ? remote.rating : undefined;
+    if (er !== rr) return false;
+    const eg = Array.isArray(expected.genres) ? expected.genres.slice() : [];
+    const rg = Array.isArray(remote.genres) ? remote.genres.slice() : [];
+    if (!arraysEqual(eg, rg)) return false;
+    if ((expected.description||'') !== (remote.description||'')) return false;
+    if ((expected.watchUrl||'') !== (remote.watchUrl||'')) return false;
+    const ep = expected.portraitImage || '';
+    const el = expected.landscapeImage || '';
+    const ri = remote.image || '';
+    // remote may flatten to image only: accept match if any of images equals remote.image or remote has portrait/landscape
+    const rp = remote.portraitImage || '';
+    const rl = remote.landscapeImage || '';
+    const imageOk = (ri && (ri===ep || ri===el)) || (!ri && (rp===ep && rl===el)) || (!!rp && rp===ep) || (!!rl && rl===el);
+    if (!imageOk) return false;
+    const sa = Array.isArray(expected.actors) ? expected.actors.filter(x=>x&&x.name) : [];
+    const ra = Array.isArray(remote.actors) ? remote.actors.filter(x=>x&&x.name) : [];
+    if (sa.length || ra.length) {
+      if (!actorsEqual(sa, ra)) return false;
+    }
+    const sb = (expected.studioBadge||'') || '';
+    const rb = (remote.studioBadge||'') || '';
+    if (sb || rb) { if (sb !== rb) return false; }
+    return true;
+  }
+
+  // Poll GitHub Pages public JSON to detect when an approved item is live and, for upsert, when fields match the expected item
+  async function isItemLivePublic(id, expected){
     const cfg = getPublishConfig();
     const absolute = (typeof window !== 'undefined' && window.location) ? (window.location.origin + '/data/approved.json') : null;
     const tryUrls = [
@@ -140,14 +189,23 @@
         if (!res.ok) continue;
         const json = await res.json();
         // Robust detection: handle array at root or under common keys
-        if (Array.isArray(json) && json.some(x => x && x.id === id)) return true;
+        const collect = [];
+        if (Array.isArray(json)) collect.push(json);
         if (json && typeof json === 'object') {
-          const candidates = [];
-          if (Array.isArray(json.approved)) candidates.push(json.approved);
-          if (Array.isArray(json.items)) candidates.push(json.items);
-          if (Array.isArray(json.data)) candidates.push(json.data);
-          for (const arr of candidates) {
-            if (arr.some(x => x && x.id === id)) return true;
+          if (Array.isArray(json.approved)) collect.push(json.approved);
+          if (Array.isArray(json.items)) collect.push(json.items);
+          if (Array.isArray(json.data)) collect.push(json.data);
+        }
+        for (const arr of collect) {
+          const found = arr.find(x => x && x.id === id);
+          if (found) {
+            // If an expected item is provided (upsert), ensure the public data matches the update
+            if (expected && typeof expected === 'object') {
+              if (itemMatchesPublic(expected, found)) return true;
+              // found but not matching yet; continue polling
+            } else {
+              return true;
+            }
           }
         }
       } catch {}
@@ -156,12 +214,12 @@
   }
 
   const deployWatchers = new Map();
-  function startDeploymentWatch(id, action='upsert'){
+  function startDeploymentWatch(id, action='upsert', expected){
     if (!id) return;
     const key = id + '::' + action;
     if (deployWatchers.has(key)) return;
     const tick = async () => {
-      const live = await isItemLivePublic(id);
+      const live = await isItemLivePublic(id, expected);
       const satisfied = (action === 'upsert') ? !!live : !live;
       if (satisfied) {
         const track = getDeployTrack();
@@ -940,6 +998,8 @@
           apr = apr.filter(x => x && x.id !== data.id && normalizeTitleKey(x.title) !== key);
           apr.push(data);
           setApproved(dedupeByIdAndTitle(apr));
+          // Start background watch immediately so UI shows orange dot during publication
+          startDeploymentWatch(data.id, 'upsert');
           // Republish updated approved item to the site so changes go live
           (async () => {
             const ok = await publishApproved(data);
@@ -949,8 +1009,6 @@
                 times[data.id] = Date.now();
                 setPublishTimes(times);
               } catch {}
-              // Track deployment until confirmed live
-              startDeploymentWatch(data.id, 'upsert');
               // Re-render to reflect deployment indicator
               setTimeout(()=>{ renderTable(); }, 300);
             }
