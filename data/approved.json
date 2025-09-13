@@ -102,5 +102,27 @@
         "role": "Tuto"
       }
     ]
+  },
+  {
+    "id": "custom-test2-fq84",
+    "title": "test2",
+    "type": "film",
+    "rating": 3,
+    "genres": [
+      "Action",
+      "Comédie",
+      "Drame"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757753668/f83bqnzby1hjfooahiqj.png",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757753675/puiuek3jseczrdlgohup.png",
+    "description": "test",
+    "watchUrl": "https://www.youtube.com/watch?v=snro9u1Vsuk&t=4s",
+    "actors": [
+      {
+        "name": "Mordecai",
+        "role": "testeur"
+      }
+    ],
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757767347/xmh2jlx7w6shwcywxqpf.webp"
   }
 ]
