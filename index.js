@@ -625,39 +625,40 @@ document.addEventListener('DOMContentLoaded', async function () {
             btn.style.alignItems = 'center';
           });
         }
+        function setHidden(el, hide, immediate){
+          if (!el) return;
+          if (hide) {
+            if (immediate) el.classList.add('immediate');
+            el.classList.add('hidden');
+            if (immediate) requestAnimationFrame(()=>{ try { el.classList.remove('immediate'); } catch {} });
+          } else {
+            el.classList.remove('hidden');
+          }
+        }
+
         function updateArrows(){
           const maxScroll = rail.scrollWidth - rail.clientWidth - 1; // tolerance
           const hasOverflow = rail.scrollWidth > rail.clientWidth + 1;
           // If no overflow: slide both out (keep in DOM for animation)
           if (!hasOverflow) {
-            prevBtn.classList.add('hidden');
-            nextBtn.classList.add('hidden');
-            if (fadeLeft) fadeLeft.classList.add('hidden');
-            if (fadeRight) fadeRight.classList.add('hidden');
+            setHidden(prevBtn, true, true);
+            setHidden(nextBtn, true, true);
+            setHidden(fadeLeft, true, true);
+            setHidden(fadeRight, true, true);
             return;
           }
           // Default: make both visible (not hidden)
-          prevBtn.classList.remove('hidden');
-          nextBtn.classList.remove('hidden');
-          if (fadeLeft) fadeLeft.classList.remove('hidden');
-          if (fadeRight) fadeRight.classList.remove('hidden');
+          setHidden(prevBtn, false);
+          setHidden(nextBtn, false);
+          setHidden(fadeLeft, false);
+          setHidden(fadeRight, false);
           // Hide left side at start, right side at end
           const atStart = rail.scrollLeft <= 0;
           const atEnd = rail.scrollLeft >= maxScroll;
-          if (atStart) {
-            prevBtn.classList.add('hidden');
-            if (fadeLeft) fadeLeft.classList.add('hidden');
-          } else {
-            prevBtn.classList.remove('hidden');
-            if (fadeLeft) fadeLeft.classList.remove('hidden');
-          }
-          if (atEnd) {
-            nextBtn.classList.add('hidden');
-            if (fadeRight) fadeRight.classList.add('hidden');
-          } else {
-            nextBtn.classList.remove('hidden');
-            if (fadeRight) fadeRight.classList.remove('hidden');
-          }
+          setHidden(prevBtn, atStart, true);
+          setHidden(fadeLeft, atStart, true);
+          setHidden(nextBtn, atEnd, true);
+          setHidden(fadeRight, atEnd, true);
         }
         function perPage(){ return Math.max(1, Math.floor(rail.clientWidth / step)); }
         function scrollByPage(dir){
