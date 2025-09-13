@@ -28,6 +28,32 @@
     } catch (_) {
       return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '').trim();
     }
+
+  // Lightweight inline save hint (no lock, short duration)
+  function showSaveHint(message){
+    try {
+      let el = document.getElementById('saveHint');
+      if (!el) {
+        el = document.createElement('p');
+        el.id = 'saveHint';
+        el.className = 'muted';
+        el.style.margin = '8px 0';
+        // Place under the form title if possible
+        const formSection = document.querySelector('.form-section');
+        if (formSection) {
+          const h2 = formSection.querySelector('h2');
+          if (h2) h2.insertAdjacentElement('afterend', el); else formSection.prepend(el);
+        } else {
+          document.body.appendChild(el);
+        }
+      }
+      el.textContent = message || 'Modifications enregistrées';
+      el.hidden = false;
+      // Auto hide after 3 seconds
+      if (el._hintTO) clearTimeout(el._hintTO);
+      el._hintTO = setTimeout(()=>{ try { el.hidden = true; } catch{} }, 3000);
+    } catch {}
+  }
   }
 
   function isValidImageLike(url) {
@@ -956,6 +982,10 @@
         }
         else { list.unshift(stampUpdatedAt({ requestId: reqId, status: 'pending', data })); }
         setRequests(list);
+        // Show inline hint for modifications save (existing requests only)
+        if (existing) {
+          try { showSaveHint('Modifications enregistrées'); } catch {}
+        }
         // If already approved, keep approved in sync
         if (wasApproved) {
           let apr = getApproved();
