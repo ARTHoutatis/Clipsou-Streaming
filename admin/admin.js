@@ -985,7 +985,8 @@
         const wasApproved = !!(existing && existing.status === 'approved');
         if (existing) {
           existing.data = data;
-          // Keep status as 'approved' and use deployTrack + watcher to show orange dot, like Approve flow
+          // IMPORTANT: switch to 'pending' during publication to reflect real-time GitHub propagation
+          if (wasApproved) existing.status = 'pending';
           stampUpdatedAt(existing);
         }
         else { list.unshift(stampUpdatedAt({ requestId: reqId, status: 'pending', data })); }
