@@ -11,7 +11,6 @@
   const APP_KEY_PUB = 'clipsou_admin_publish_api_v1';
   const APP_KEY_PUB_TIMES = 'clipsou_admin_publish_times_v1';
   const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
-  const APP_KEY_SCROLL = 'clipsou_admin_scroll_v1';
   // Shared requests sync cache marker (optional)
   const APP_KEY_REQ_LAST_SYNC = 'clipsou_admin_requests_last_sync_v1';
   // Duration to display the deployment-in-progress hint after an approval
@@ -125,29 +124,6 @@
     try { localStorage.setItem(APP_KEY_DEPLOY_TRACK, JSON.stringify(map||{})); } catch {}
   }
 
-  // ===== Persist/restore scroll position (stay at the same spot on refresh) =====
-  function getSavedScroll(){
-    try { const v = localStorage.getItem(APP_KEY_SCROLL); return v ? parseInt(v, 10) : 0; } catch { return 0; }
-  }
-  function saveScroll(y){
-    try { localStorage.setItem(APP_KEY_SCROLL, String(Math.max(0, Math.floor(y||0)))); } catch {}
-  }
-  let __scrollSaveTimer = null;
-  function wireScrollPersistence(){
-    function schedule(){
-      if (__scrollSaveTimer) cancelAnimationFrame(__scrollSaveTimer);
-      __scrollSaveTimer = requestAnimationFrame(()=> saveScroll(window.scrollY || window.pageYOffset || 0));
-    }
-    window.addEventListener('scroll', schedule, { passive: true });
-    window.addEventListener('beforeunload', ()=> saveScroll(window.scrollY || window.pageYOffset || 0));
-    document.addEventListener('visibilitychange', ()=>{ if (document.visibilityState === 'hidden') saveScroll(window.scrollY || window.pageYOffset || 0); });
-  }
-  function restoreScrollPosition(){
-    const y = getSavedScroll();
-    try { window.scrollTo({ top: y, left: 0, behavior: 'instant' }); }
-    catch(_) { window.scrollTo(0, y); }
-  }
-
   // Shallow compare of arrays (by values) and primitives inside item fields we care about
   function arraysEqual(a, b) {
     if (!Array.isArray(a) || !Array.isArray(b)) return false;
@@ -242,6 +218,15 @@
     if (!id) return;
     const key = id + '::' + action;
     if (deployWatchers.has(key)) return;
+    // Persist expected snapshot for robust resume across reloads (only for upsert)
+    try {
+      if (action === 'upsert' && expected && typeof expected === 'object') {
+        const track = getDeployTrack();
+        const prev = track[id] || {};
+        track[id] = { ...prev, action, expected };
+        setDeployTrack(track);
+      }
+    } catch {}
     const tick = async () => {
       const live = await isItemLivePublic(id, expected);
       const satisfied = (action === 'upsert') ? !!live : !live;
@@ -255,7 +240,7 @@
           if (action === 'upsert') {
             const list = getRequests();
             let changed = false;
-            list.forEach(r => { if (r && r.data && r.data.id === id && r.status !== 'approved') { r.status = 'approved'; changed = true; } });
+            list.forEach(r => { if (r && r.data && r.data.id === id && r.status !== 'approved') { r.status = 'approved'; changed = true; if (r.meta) delete r.meta.expected; } });
             if (changed) setRequests(list);
           }
         } catch {}
@@ -588,7 +573,7 @@
     $('#watchUrl').value = data.watchUrl || '';
     // New: studio badge
     const studioBadgeEl = $('#studioBadge');
-    if (studioBadgeEl) studioBadgeEl.value = data.studioBadge || '';
+    if (studioBadgeEl) studioBadgeEl.value = data.studioBadge || 'https://clipsoustreaming.com/clipsoustudio.png';
     // Preview studio badge
     setPreview($('#studioBadgePreview'), (studioBadgeEl && studioBadgeEl.value) || '');
     const actors = Array.isArray(data.actors) ? data.actors.slice() : [];
@@ -614,7 +599,7 @@
     // New: studio badge with default
     let studioBadge = '';
     try { studioBadge = String($('#studioBadge').value || '').trim(); } catch {}
-    if (!studioBadge) studioBadge = 'clipsoustudio.png';
+    if (!studioBadge) studioBadge = 'https://clipsoustreaming.com/clipsoustudio.png';
     return {
       id,
       requestId: $('#requestId').value || '',
@@ -700,14 +685,13 @@
             statusTd.textContent = 'approved';
           }
         } else {
+          // While status is pending, always show orange until a watcher flips status to 'approved'
           if (info && info.action === 'delete' && !info.confirmedAt) {
             statusTd.innerHTML = `pending <span class="muted small">• retrait GitHub Pages en cours</span> <span class="dot orange"></span>`;
           } else if (info && info.action === 'upsert' && !info.confirmedAt) {
             statusTd.innerHTML = `pending <span class="muted small">• publication GitHub Pages en cours</span> <span class="dot orange"></span>`;
           } else if (lastPub && (now - lastPub) < DEPLOY_HINT_MS) {
             statusTd.innerHTML = `pending <span class="muted small">• publication GitHub Pages en cours</span> <span class="dot orange"></span>`;
-          } else if (info && (info.action === 'delete' || info.action === 'upsert') && info.confirmedAt) {
-            statusTd.innerHTML = `pending <span class="dot green"></span>`;
           } else {
             statusTd.textContent = 'pending';
           }
@@ -777,7 +761,7 @@
             times[found.data.id] = Date.now();
             setPublishTimes(times);
             // Start background watch for GitHub Pages deployment
-            startDeploymentWatch(found.data.id, 'upsert');
+            startDeploymentWatch(found.data.id, 'upsert', found.data);
             // Keep the action button orange until confirmation is detected
             approveBtn.innerHTML = 'Retirer <span class="dot orange"></span>';
             setTimeout(()=>{ renderTable(); }, 300);
@@ -803,9 +787,6 @@
   function initApp(){
     const app = $('#app');
     app.hidden = false;
-
-    // Restore scroll position and keep it up-to-date for the next refresh
-    try { restoreScrollPosition(); wireScrollPersistence(); } catch {}
 
     // Logout button returns to login
     try {
@@ -1015,7 +996,12 @@
         if (existing) {
           existing.data = data;
           // IMPORTANT: switch to 'pending' during publication to reflect real-time GitHub propagation
-          if (wasApproved) existing.status = 'pending';
+          if (wasApproved) {
+            existing.status = 'pending';
+            // Store expected snapshot on the request itself to allow robust resume after reloads
+            existing.meta = existing.meta || {};
+            try { existing.meta.expected = JSON.parse(JSON.stringify(data)); } catch { existing.meta.expected = data; }
+          }
           stampUpdatedAt(existing);
         }
         else { list.unshift(stampUpdatedAt({ requestId: reqId, status: 'pending', data })); }
@@ -1031,7 +1017,7 @@
           try {
             const track = getDeployTrack();
             const prev = track[data.id] || {};
-            track[data.id] = { ...prev, action: 'upsert', startedAt: prev.startedAt || Date.now(), confirmedAt: undefined };
+            track[data.id] = { ...prev, action: 'upsert', startedAt: prev.startedAt || Date.now(), confirmedAt: undefined, expected: data };
             setDeployTrack(track);
           } catch {}
           // Also stamp publish time immediately to trigger orange state via DEPLOY_HINT_MS
@@ -1117,10 +1103,34 @@
     // Resume deployment watchers for any tracked items not yet confirmed
     try {
       const track = getDeployTrack();
+      const list = getRequests();
+      let changed = false;
+      // GC very old confirmed entries (older than 48h)
+      const now = Date.now();
+      const keep = {};
       Object.keys(track || {}).forEach(id => {
         const info = track[id];
-        if (info && !info.confirmedAt) startDeploymentWatch(id);
+        const age = info && info.confirmedAt ? (now - info.confirmedAt) : 0;
+        if (!info || (info.confirmedAt && age > 48*60*60*1000)) {
+          // drop
+        } else {
+          keep[id] = info;
+        }
       });
+      setDeployTrack(keep);
+      // Force pending on upsert-in-progress & resume watchers
+      Object.keys(keep || {}).forEach(id => {
+        const info = keep[id];
+        if (info && !info.confirmedAt && (info.action || 'upsert') === 'upsert') {
+          const req = list.find(r => r && r.data && r.data.id === id);
+          if (req && req.status !== 'pending') { req.status = 'pending'; changed = true; }
+          const expected = (info && info.expected) || (req && req.meta && req.meta.expected) || (req && req.data) || undefined;
+          startDeploymentWatch(id, 'upsert', expected);
+        } else if (info && !info.confirmedAt && info.action === 'delete') {
+          startDeploymentWatch(id, 'delete');
+        }
+      });
+      if (changed) setRequests(list);
     } catch {}
   }
 
