@@ -84,6 +84,52 @@
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757789533/tueuyfqyikexkxft9vqt.png"
   },
   {
+    "id": "custom-gta-irl-quand-tu-essayes-de-devenir-une-racaille-xv2g",
+    "title": "GTA IRL : Quand tu essayes de devenir une racaille",
+    "type": "film",
+    "rating": 4.5,
+    "genres": [
+      "Comédie",
+      "Action",
+      "Live Action"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757790118/rrbevajakxlzbjbvzeo7.jpg",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757790096/mefamckrwk5t0eexkkyp.png",
+    "description": "Après avoir volé une voiture, une racaille découvre un bébé à l’intérieur. Pris de remords, il décide de l’adopter, mais son élan inattendu est interrompu par l’arrestation de la police.",
+    "watchUrl": "https://youtu.be/U6iTU5deIks?si=knEhX-IipI0sTMCO",
+    "actors": [
+      {
+        "name": "Theo German",
+        "role": "Racaille 1"
+      },
+      {
+        "name": "Valentin",
+        "role": "Racaille 2"
+      },
+      {
+        "name": "Winter7th",
+        "role": "Racaille 3"
+      },
+      {
+        "name": "Ben Pichard",
+        "role": "Racaille 4"
+      },
+      {
+        "name": "Ben Pichard",
+        "role": "Policiers 1"
+      },
+      {
+        "name": "Valentin",
+        "role": "Policiers 2"
+      },
+      {
+        "name": "Alison",
+        "role": "Civile"
+      }
+    ],
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757790111/epmm5uvpnyers3wcnzwo.png"
+  },
+  {
     "id": "custom-le-cafe-des-heros-k4a8",
     "title": "Le Café Des Héros",
     "type": "film",
