@@ -488,7 +488,20 @@
     (list||[]).forEach((a, idx) => {
       const chip = document.createElement('div');
       chip.className = 'actor-chip';
-      chip.innerHTML = `<span>${a.name || ''}</span><span class="muted small">${a.role || ''}</span>`;
+      // Optional avatar if a.photo is present
+      if (a && a.photo) {
+        const img = document.createElement('img');
+        img.className = 'avatar';
+        img.alt = a.name || 'acteur';
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        try { img.src = a.photo; } catch { img.src = a.photo || ''; }
+        chip.appendChild(img);
+      }
+      const nameSpan = document.createElement('span'); nameSpan.textContent = a.name || '';
+      const roleSpan = document.createElement('span'); roleSpan.className = 'muted small'; roleSpan.textContent = a.role || '';
+      chip.appendChild(nameSpan);
+      chip.appendChild(roleSpan);
       const rm = document.createElement('button');
       rm.className = 'remove';
       rm.type = 'button';
@@ -758,14 +771,39 @@
       }
     } catch {}
 
+    // Wire actor photo upload
+    (function wireActorPhoto(){
+      const fileInput = $('#actorPhotoFile');
+      const preview = $('#actorPhotoPreview');
+      if (fileInput) {
+        fileInput.addEventListener('change', async () => {
+          const f = fileInput.files && fileInput.files[0];
+          if (!f) return;
+          try {
+            const url = await uploadImageToCloudinary(f);
+            // Stash temporarily on the form element
+            $('#contentForm').dataset.actorPhotoTemp = url;
+            if (preview) { preview.hidden = false; preview.src = url.startsWith('http')? url : ('../'+url); }
+          } catch (e) {
+            alert('Upload photo acteur échoué');
+          }
+        });
+      }
+    })();
+
     $('#addActorBtn').addEventListener('click', ()=>{
       const name = $('#actorName').value.trim();
       const role = $('#actorRole').value.trim();
       if (!name) return;
       const actors = JSON.parse($('#contentForm').dataset.actors || '[]');
-      actors.push({ name, role });
+      const photo = $('#contentForm').dataset.actorPhotoTemp || '';
+      actors.push(photo ? { name, role, photo } : { name, role });
       $('#contentForm').dataset.actors = JSON.stringify(actors);
+      // Reset inputs
       $('#actorName').value=''; $('#actorRole').value='';
+      try { delete $('#contentForm').dataset.actorPhotoTemp; } catch {}
+      const fileInput = $('#actorPhotoFile'); if (fileInput) fileInput.value = '';
+      const preview = $('#actorPhotoPreview'); if (preview) { preview.hidden = true; preview.removeAttribute('src'); }
       renderActors(actors);
     });
 

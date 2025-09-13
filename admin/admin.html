@@ -140,6 +140,11 @@
           <div class="actor-row">
             <input type="text" id="actorName" placeholder="Nom" list="actorNamesDatalist">
             <input type="text" id="actorRole" placeholder="Rôle">
+            <label class="btn file-label" title="Photo de profil (optionnel)">
+              Photo
+              <input type="file" id="actorPhotoFile" accept="image/*" hidden>
+            </label>
+            <img id="actorPhotoPreview" class="img-preview small" alt="Aperçu acteur" hidden>
             <button type="button" id="addActorBtn" class="btn secondary">Ajouter</button>
           </div>
         </fieldset>
