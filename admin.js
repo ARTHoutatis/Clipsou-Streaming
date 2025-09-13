@@ -218,6 +218,15 @@
     if (!id) return;
     const key = id + '::' + action;
     if (deployWatchers.has(key)) return;
+    // Persist expected snapshot for robust resume across reloads (only for upsert)
+    try {
+      if (action === 'upsert' && expected && typeof expected === 'object') {
+        const track = getDeployTrack();
+        const prev = track[id] || {};
+        track[id] = { ...prev, action, expected };
+        setDeployTrack(track);
+      }
+    } catch {}
     const tick = async () => {
       const live = await isItemLivePublic(id, expected);
       const satisfied = (action === 'upsert') ? !!live : !live;
@@ -676,14 +685,13 @@
             statusTd.textContent = 'approved';
           }
         } else {
+          // While status is pending, always show orange until a watcher flips status to 'approved'
           if (info && info.action === 'delete' && !info.confirmedAt) {
             statusTd.innerHTML = `pending <span class="muted small">• retrait GitHub Pages en cours</span> <span class="dot orange"></span>`;
           } else if (info && info.action === 'upsert' && !info.confirmedAt) {
             statusTd.innerHTML = `pending <span class="muted small">• publication GitHub Pages en cours</span> <span class="dot orange"></span>`;
           } else if (lastPub && (now - lastPub) < DEPLOY_HINT_MS) {
             statusTd.innerHTML = `pending <span class="muted small">• publication GitHub Pages en cours</span> <span class="dot orange"></span>`;
-          } else if (info && (info.action === 'delete' || info.action === 'upsert') && info.confirmedAt) {
-            statusTd.innerHTML = `pending <span class="dot green"></span>`;
           } else {
             statusTd.textContent = 'pending';
           }
@@ -753,7 +761,7 @@
             times[found.data.id] = Date.now();
             setPublishTimes(times);
             // Start background watch for GitHub Pages deployment
-            startDeploymentWatch(found.data.id, 'upsert');
+            startDeploymentWatch(found.data.id, 'upsert', found.data);
             // Keep the action button orange until confirmation is detected
             approveBtn.innerHTML = 'Retirer <span class="dot orange"></span>';
             setTimeout(()=>{ renderTable(); }, 300);
@@ -1004,7 +1012,7 @@
           try {
             const track = getDeployTrack();
             const prev = track[data.id] || {};
-            track[data.id] = { ...prev, action: 'upsert', startedAt: prev.startedAt || Date.now(), confirmedAt: undefined };
+            track[data.id] = { ...prev, action: 'upsert', startedAt: prev.startedAt || Date.now(), confirmedAt: undefined, expected: data };
             setDeployTrack(track);
           } catch {}
           // Also stamp publish time immediately to trigger orange state via DEPLOY_HINT_MS
@@ -1090,9 +1098,25 @@
     // Resume deployment watchers for any tracked items not yet confirmed
     try {
       const track = getDeployTrack();
+      const list = getRequests();
+      let changed = false;
       Object.keys(track || {}).forEach(id => {
         const info = track[id];
-        if (info && !info.confirmedAt) startDeploymentWatch(id);
+        if (info && !info.confirmedAt) {
+          // If an upsert is in progress, force request status to pending on reload
+          if ((info.action || 'upsert') === 'upsert') {
+            const req = list.find(r => r && r.data && r.data.id === id);
+            if (req && req.status !== 'pending') { req.status = 'pending'; changed = true; }
+          }
+        }
+      });
+      if (changed) setRequests(list);
+      Object.keys(track || {}).forEach(id => {
+        const info = track[id];
+        if (info && !info.confirmedAt) {
+          // Resume with expected snapshot if available
+          startDeploymentWatch(id, info.action || 'upsert', info.expected);
+        }
       });
     } catch {}
   }
