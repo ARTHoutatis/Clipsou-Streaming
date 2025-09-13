@@ -168,6 +168,15 @@
         const prev = track[id] || {};
         track[id] = { ...prev, action, startedAt: prev.startedAt || Date.now(), confirmedAt: Date.now() };
         setDeployTrack(track);
+        // On successful upsert confirmation, set the corresponding request back to 'approved'
+        try {
+          if (action === 'upsert') {
+            const list = getRequests();
+            let changed = false;
+            list.forEach(r => { if (r && r.data && r.data.id === id && r.status !== 'approved') { r.status = 'approved'; changed = true; } });
+            if (changed) setRequests(list);
+          }
+        } catch {}
         renderTable();
         const t = deployWatchers.get(key); if (t) clearTimeout(t);
         deployWatchers.delete(key);
@@ -923,6 +932,12 @@
           apr = apr.filter(x => x && x.id !== data.id && normalizeTitleKey(x.title) !== key);
           apr.push(data);
           setApproved(dedupeByIdAndTitle(apr));
+          // Mark request as pending during republish so UI shows orange deployment state
+          try {
+            const list2 = getRequests();
+            const found2 = list2.find(x=>x.requestId===reqId);
+            if (found2) { found2.status = 'pending'; stampUpdatedAt(found2); setRequests(list2); renderTable(); }
+          } catch {}
           // Republish updated approved item to the site so changes go live
           (async () => {
             const ok = await publishApproved(data);
