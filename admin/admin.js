@@ -598,6 +598,15 @@
     // Previews
     setPreview($('#portraitPreview'), $('#portraitImage').value);
     setPreview($('#landscapePreview'), $('#landscapeImage').value);
+
+    // Update submit button label based on edit/new mode
+    try {
+      const submitBtn = document.querySelector('#contentForm .actions .btn[type="submit"], #contentForm .actions button[type="submit"]');
+      if (submitBtn) {
+        if (data && data.requestId) submitBtn.textContent = 'Enregistrer la modification';
+        else submitBtn.textContent = 'Enregistrer la requête';
+      }
+    } catch {}
   }
 
   function emptyForm(){ fillForm({}); }
