@@ -240,7 +240,15 @@
           if (action === 'upsert') {
             const list = getRequests();
             let changed = false;
-            list.forEach(r => { if (r && r.data && r.data.id === id && r.status !== 'approved') { r.status = 'approved'; changed = true; if (r.meta) delete r.meta.expected; } });
+            list.forEach(r => {
+              if (r && r.data && r.data.id === id) {
+                if (r.status !== 'approved') { r.status = 'approved'; changed = true; }
+                r.meta = r.meta || {};
+                if (r.meta.expected) delete r.meta.expected;
+                // Stamp updatedAt so future merges prefer this local authoritative state
+                r.meta.updatedAt = Date.now();
+              }
+            });
             if (changed) setRequests(list);
           }
         } catch {}
@@ -692,6 +700,9 @@
             statusTd.innerHTML = `pending <span class="muted small">• publication GitHub Pages en cours</span> <span class="dot orange"></span>`;
           } else if (lastPub && (now - lastPub) < DEPLOY_HINT_MS) {
             statusTd.innerHTML = `pending <span class="muted small">• publication GitHub Pages en cours</span> <span class="dot orange"></span>`;
+          } else if (info && info.action === 'upsert' && info.confirmedAt) {
+            // Fallback: if track says confirmed but status hasn't flipped yet (race), show approved green
+            statusTd.innerHTML = `approved <span class="dot green"></span>`;
           } else {
             statusTd.textContent = 'pending';
           }
