@@ -1354,18 +1354,11 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     overflow-x: auto;
     overflow-y: visible; /* allow hover lift without clipping */
     overscroll-behavior-x: contain;
+    padding: 0 40px; /* left/right gutter so first/last cards are not flush */
 }
-/* Create start/end breathing space so cards never stick to edges */
-.rail::before,
-.rail::after {
-    content: '';
-    display: block;
-    width: 40px; /* desktop default; overridden on mobile */
-}
-/* Desktop-only: add side paddings + enable snapping */
+/* Desktop-only: enable snapping */
 @media (min-width: 769px) {
   .rail {
-      padding: 0 40px;
       scroll-snap-type: inline mandatory; /* enable snapping on desktop only */
   }
 }
