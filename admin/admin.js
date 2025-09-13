@@ -936,7 +936,7 @@
         const btn = document.querySelector('#contentForm .actions .btn[type="submit"], #contentForm .actions button[type="submit"]');
         if (!btn) return;
         if (saved) {
-          btn.textContent = 'Modifications enregistrées';
+          btn.textContent = 'Modifications enregistrées — appuyez sur "Approuver"';
           btn.disabled = true;
           btn.setAttribute('disabled','disabled');
           btn.style.pointerEvents = 'none';
