@@ -345,7 +345,8 @@ async function buildItemsFromIndex() {
             const description = c.description || '';
             const watchUrl = c.watchUrl || '';
             const actors = Array.isArray(c.actors) ? c.actors.filter(a=>a && a.name) : [];
-            items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '' });
+            const studioBadge = c.studioBadge || '';
+            items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '', studioBadge });
           });
         }
       }
@@ -393,6 +394,18 @@ function renderFiche(container, item) {
   img.decoding = 'async';
   img.className = 'landscape';
   mediaWrap.appendChild(img);
+  // Studio badge overlay on main fiche image
+  try {
+    const badge = document.createElement('div');
+    badge.className = 'brand-badge';
+    const logo = document.createElement('img');
+    logo.src = (item && item.studioBadge && String(item.studioBadge).trim()) || 'clipsoustudio.png';
+    logo.alt = 'Studio';
+    logo.loading = 'lazy';
+    logo.decoding = 'async';
+    badge.appendChild(logo);
+    mediaWrap.appendChild(badge);
+  } catch {}
   left.appendChild(mediaWrap);
 
   const right = document.createElement('div');

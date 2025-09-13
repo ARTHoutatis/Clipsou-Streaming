@@ -58,7 +58,8 @@ async function buildDatabaseFromIndex() {
                         const rating = (typeof c.rating === 'number') ? c.rating : undefined;
                         const genres = Array.isArray(c.genres) ? c.genres.filter(Boolean) : [];
                         const image = c.portraitImage || c.image || c.landscapeImage || '';
-                        items.push({ id: c.id, title: c.title, type, rating, genres, image });
+                        const studioBadge = c.studioBadge || '';
+                        items.push({ id: c.id, title: c.title, type, rating, genres, image, studioBadge });
                     });
                 }
             }
@@ -76,7 +77,8 @@ async function buildDatabaseFromIndex() {
                         const rating = (typeof c.rating === 'number') ? c.rating : undefined;
                         const genres = Array.isArray(c.genres) ? c.genres.filter(Boolean) : [];
                         const image = c.portraitImage || c.image || '';
-                        items.push({ id: c.id, title: c.title, type, rating, genres, image });
+                        const studioBadge = c.studioBadge || '';
+                        items.push({ id: c.id, title: c.title, type, rating, genres, image, studioBadge });
                     });
                 }
             }
@@ -220,16 +222,17 @@ function displayResults(results) {
             // If full URL or no extension, use as-is; fallback to placeholder
             initialSrc = item.image || 'apercu.png';
         }
+        const badgeSrc = (item.studioBadge && String(item.studioBadge).trim()) || 'clipsoustudio.png';
         return `
         <div class="card">
             <a href="fiche.html?id=${encodeURIComponent(item.id)}&from=search">
                 <div class="card-media">
                     <img src="${initialSrc}" data-base="${base}" alt="Affiche de ${item.title}" loading="lazy" decoding="async" onerror="(function(img){var b=img.getAttribute('data-base'); if(!b){img.onerror=null; img.src='apercu.png'; return;} var i=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=i; var exts=['jpg','jpeg','png']; if(i<exts.length){ img.src=b+'.'+exts[i]; } else { img.onerror=null; img.src='apercu.png'; }})(this)">
                     <div class="brand-badge">
-                        <img src="clipsoustudio.png" alt="Clipsou Studio" loading="lazy" decoding="async">
+                        <img src="${badgeSrc}" alt="Studio" loading="lazy" decoding="async">
                     </div>
                 </div>
-                <div class="card-info" data-type="${typeAttr}"${ratingAttr}></div>
+                <div class="card-info" data-type="${typeAttr}"${ratingAttr}${item.studioBadge ? ` data-studio-badge="${String(item.studioBadge).replace(/"/g,'&quot;')}"` : ''}></div>
             </a>
         </div>`;
     }).join('');
