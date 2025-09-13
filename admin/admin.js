@@ -498,6 +498,8 @@
     // New: studio badge
     const studioBadgeEl = $('#studioBadge');
     if (studioBadgeEl) studioBadgeEl.value = data.studioBadge || '';
+    // Preview studio badge
+    setPreview($('#studioBadgePreview'), (studioBadgeEl && studioBadgeEl.value) || '');
     const actors = Array.isArray(data.actors) ? data.actors.slice() : [];
     $('#contentForm').dataset.actors = JSON.stringify(actors);
     renderActors(actors);
@@ -806,12 +808,16 @@
     // ===== Upload & previews wiring =====
     const portraitInput = $('#portraitFileInput');
     const landscapeInput = $('#landscapeFileInput');
+    const studioInput = $('#studioBadgeFileInput');
     const portraitText = $('#portraitImage');
     const landscapeText = $('#landscapeImage');
+    const studioText = $('#studioBadge');
     const portraitPreview = $('#portraitPreview');
     const landscapePreview = $('#landscapePreview');
+    const studioPreview = $('#studioBadgePreview');
     const portraitClearBtn = $('#portraitClearBtn');
     const landscapeClearBtn = $('#landscapeClearBtn');
+    const studioClearBtn = $('#studioBadgeClearBtn');
 
     function wireTextPreview(inputEl, previewEl){
       if (!inputEl || !previewEl) return;
@@ -829,9 +835,12 @@
         if (kind==='portrait') {
           portraitText.value = url;
           setPreview(portraitPreview, url);
-        } else {
+        } else if (kind==='landscape') {
           landscapeText.value = url;
           setPreview(landscapePreview, url);
+        } else if (kind==='studio') {
+          studioText.value = url;
+          setPreview(studioPreview, url);
         }
         saveDraft();
       } catch(err){
@@ -856,6 +865,13 @@
         e.target.value = '';
       });
     }
+    if (studioInput) {
+      studioInput.addEventListener('change', async (e)=>{
+        const f = e.target.files && e.target.files[0];
+        if (f) await handleUpload('studio', f);
+        e.target.value = '';
+      });
+    }
     if (portraitClearBtn) {
       portraitClearBtn.addEventListener('click', ()=>{
         portraitText.value = '';
@@ -867,6 +883,13 @@
       landscapeClearBtn.addEventListener('click', ()=>{
         landscapeText.value = '';
         setPreview(landscapePreview, '');
+        saveDraft();
+      });
+    }
+    if (studioClearBtn) {
+      studioClearBtn.addEventListener('click', ()=>{
+        studioText.value = '';
+        setPreview(studioPreview, '');
         saveDraft();
       });
     }

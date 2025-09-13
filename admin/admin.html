@@ -122,7 +122,15 @@
           </label>
           <label>
             <span>Étiquette studio (image)</span>
-            <input type="text" id="studioBadge" placeholder="ex: clipsoustudio.png ou URL https://...">
+            <input type="hidden" id="studioBadge">
+            <div class="actions">
+              <label class="btn file-label">
+                Importer image
+                <input type="file" id="studioBadgeFileInput" accept="image/*" hidden>
+              </label>
+              <button type="button" id="studioBadgeClearBtn" class="btn secondary">Effacer</button>
+            </div>
+            <img id="studioBadgePreview" class="img-preview" alt="Aperçu étiquette studio" hidden>
           </label>
         </div>
 
