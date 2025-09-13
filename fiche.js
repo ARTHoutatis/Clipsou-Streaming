@@ -691,7 +691,8 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     const title = (currentItem && currentItem.title) || '';
     const norm = normalizeTitleKey(title);
     // Prefer actors attached to the current item (from admin-approved data)
-    const list = (currentItem && Array.isArray(currentItem.actors) && currentItem.actors.length)
+    const fromAdmin = !!(currentItem && Array.isArray(currentItem.actors) && currentItem.actors.length);
+    const list = fromAdmin
       ? currentItem.actors
       : (ACTOR_DB[title] || ACTOR_DB_NORM[norm] || []);
     if (!list.length) {
@@ -701,41 +702,46 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       actorsGrid.appendChild(empty);
       return;
     }
-    // Apply custom order if specified for this title; fallback to generic ordering otherwise
-    const desired = CUSTOM_ACTOR_ORDER[title] || CUSTOM_ACTOR_ORDER_NORM[norm];
+    // If actors come from admin, KEEP EXACT INPUT ORDER. Otherwise apply custom or generic ordering.
     let orderedActors;
-    if (Array.isArray(desired) && desired.length) {
-      const byKey = new Map();
-      list.forEach(a => byKey.set(normalizeTitleKey(a.name || ''), a));
-      orderedActors = [];
-      // add in specified order if present
-      desired.forEach(name => {
-        const key = normalizeTitleKey(name);
-        if (byKey.has(key)) {
-          orderedActors.push(byKey.get(key));
-          byKey.delete(key);
-        }
-      });
-      // append the remaining (not specified) preserving original appearance order
-      list.forEach(a => {
-        const key = normalizeTitleKey(a.name || '');
-        if (byKey.has(key)) {
-          orderedActors.push(a);
-          byKey.delete(key);
-        }
-      });
+    if (fromAdmin) {
+      orderedActors = list.slice();
     } else {
-      // Generic ordering fallback
-      orderedActors = list.slice().map((a, idx) => {
-        const nameRaw = String(a.name || '').trim();
-        const slug = ACTOR_IMAGE_MAP[nameRaw] || ACTOR_IMAGE_MAP['Unknown'];
-        const hasImage = !!slug && slug !== 'unknown';
-        const isLiam = nameRaw.toLowerCase() === 'liam roxxor';
-        let rank = 1;
-        if (hasImage) rank = 0; else rank = 2;
-        if (isLiam) rank = -1;
-        return { a, idx, rank };
-      }).sort((x, y) => (x.rank - y.rank) || (x.idx - y.idx)).map(x => x.a);
+      // Apply custom order if specified for this title; fallback to generic ordering otherwise
+      const desired = CUSTOM_ACTOR_ORDER[title] || CUSTOM_ACTOR_ORDER_NORM[norm];
+      if (Array.isArray(desired) && desired.length) {
+        const byKey = new Map();
+        list.forEach(a => byKey.set(normalizeTitleKey(a.name || ''), a));
+        orderedActors = [];
+        // add in specified order if present
+        desired.forEach(name => {
+          const key = normalizeTitleKey(name);
+          if (byKey.has(key)) {
+            orderedActors.push(byKey.get(key));
+            byKey.delete(key);
+          }
+        });
+        // append the remaining (not specified) preserving original appearance order
+        list.forEach(a => {
+          const key = normalizeTitleKey(a.name || '');
+          if (byKey.has(key)) {
+            orderedActors.push(a);
+            byKey.delete(key);
+          }
+        });
+      } else {
+        // Generic ordering fallback
+        orderedActors = list.slice().map((a, idx) => {
+          const nameRaw = String(a.name || '').trim();
+          const slug = ACTOR_IMAGE_MAP[nameRaw] || ACTOR_IMAGE_MAP['Unknown'];
+          const hasImage = !!slug && slug !== 'unknown';
+          const isLiam = nameRaw.toLowerCase() === 'liam roxxor';
+          let rank = 1;
+          if (hasImage) rank = 0; else rank = 2;
+          if (isLiam) rank = -1;
+          return { a, idx, rank };
+        }).sort((x, y) => (x.rank - y.rank) || (x.idx - y.idx)).map(x => x.a);
+      }
     }
     orderedActors.forEach((a) => {
       const card = document.createElement('div');
