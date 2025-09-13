@@ -142,7 +142,7 @@
           document.body.appendChild(el);
         }
       }
-      el.textContent = 'Attendez la publication sur GitHub';
+      el.textContent = '‼️ Attendez la publication sur GitHub';
       el.hidden = false;
       if (el._hintTO) clearTimeout(el._hintTO);
       el._hintTO = setTimeout(()=>{ try { el.hidden = true; } catch{} }, 30000);
@@ -707,7 +707,8 @@
           // Show publishing indicator and disable button during network call
           const originalHtml = approveBtn.innerHTML;
           approveBtn.disabled = true;
-          approveBtn.textContent = 'Attendez la publication sur GitHub';
+          // Keep the button label unchanged; the hint is displayed elsewhere
+          approveBtn.innerHTML = originalHtml;
           showPublishWaitHint();
 
           // Optimistically set approved locally
