@@ -215,12 +215,20 @@ document.addEventListener('DOMContentLoaded', async function () {
       const SUPPRESS_MS = 250; // ignore scrolls right after wheel/touch/keys
       const SUPPRESS_HASH_MS = 450; // ignore scrolls right after hash (popup open/close)
       const scrollKeys = new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','PageUp','PageDown','Home','End',' ']);
-      // Block background wheel/touch scroll while drawer is open, but allow inside the drawer
+      // Block background wheel/touch scroll while drawer is open, but allow inside the drawer and inside popups
       const isInsideDrawer = (node) => {
         try {
           if (!drawer) return false;
           if (node === drawer) return true;
           if (node && node.closest) return !!node.closest('#app-drawer');
+        } catch {}
+        return false;
+      };
+      const isInsidePopup = (node) => {
+        try {
+          if (!node) return false;
+          if (node.classList && node.classList.contains('fiche-popup')) return true;
+          if (node.closest) return !!node.closest('.fiche-popup');
         } catch {}
         return false;
       };
@@ -246,9 +254,11 @@ document.addEventListener('DOMContentLoaded', async function () {
       const onWheel = (e) => {
         lastWheelTs = Date.now();
         try {
-          if (isInsideDrawer(e.target)) {
+          if (isInsideDrawer(e.target) || isInsidePopup(e.target)) {
             const deltaY = (/** @type {WheelEvent} */(e)).deltaY || 0;
             const scrollBox = findScrollableAncestor(/** @type {Element} */(e.target));
+            // Mark that the last scroll action originated from a popup to avoid drawer auto-close
+            try { if (isInsidePopup(e.target)) window.__lastPopupScrollTs = Date.now(); } catch {}
             if (shouldPreventFor(scrollBox, deltaY)) { e.preventDefault(); e.stopPropagation(); }
             return;
           }
@@ -259,9 +269,11 @@ document.addEventListener('DOMContentLoaded', async function () {
       const onTouchMove = (e) => {
         lastTouchTs = Date.now();
         try {
-          if (isInsideDrawer(e.target)) {
+          if (isInsideDrawer(e.target) || isInsidePopup(e.target)) {
             // For touch, approximate: if the list can scroll, allow; otherwise block
             const scrollBox = findScrollableAncestor(/** @type {Element} */(e.target));
+            // Mark popup-originated touch scrolls
+            try { if (isInsidePopup(e.target)) window.__lastPopupScrollTs = Date.now(); } catch {}
             if (shouldPreventFor(scrollBox, 0)) { e.preventDefault(); e.stopPropagation(); }
             return;
           }
@@ -280,6 +292,11 @@ document.addEventListener('DOMContentLoaded', async function () {
         try {
           const until = window.__suppressDrawerCloseUntil || 0;
           if (until && now <= until) return;
+        } catch {}
+        // If a recent scroll originated from a popup, do not close the drawer either
+        try {
+          const lastPopupScrollTs = window.__lastPopupScrollTs || 0;
+          if (lastPopupScrollTs && (now - lastPopupScrollTs) <= 600) return;
         } catch {}
         // Suppress immediately after hash changes (popup open/close may adjust layout)
         if ((now - lastHashTs) <= SUPPRESS_HASH_MS) return;
