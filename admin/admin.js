@@ -985,8 +985,7 @@
         const wasApproved = !!(existing && existing.status === 'approved');
         if (existing) {
           existing.data = data;
-          // If previously approved, mark as pending right away so UI reflects deployment-in-progress
-          if (wasApproved) existing.status = 'pending';
+          // Keep status as 'approved' and use deployTrack + watcher to show orange dot, like Approve flow
           stampUpdatedAt(existing);
         }
         else { list.unshift(stampUpdatedAt({ requestId: reqId, status: 'pending', data })); }
@@ -998,8 +997,16 @@
           apr = apr.filter(x => x && x.id !== data.id && normalizeTitleKey(x.title) !== key);
           apr.push(data);
           setApproved(dedupeByIdAndTitle(apr));
-          // Start background watch immediately so UI shows orange dot during publication
-          startDeploymentWatch(data.id, 'upsert');
+          // Prime deploy track synchronously to display orange dot immediately
+          try {
+            const track = getDeployTrack();
+            const prev = track[data.id] || {};
+            track[data.id] = { ...prev, action: 'upsert', startedAt: prev.startedAt || Date.now(), confirmedAt: undefined };
+            setDeployTrack(track);
+          } catch {}
+          renderTable();
+          // Start background watch immediately so UI shows orange dot during publication (same as Approve flow)
+          startDeploymentWatch(data.id, 'upsert', data);
           // Republish updated approved item to the site so changes go live
           (async () => {
             const ok = await publishApproved(data);
@@ -1013,11 +1020,14 @@
               setTimeout(()=>{ renderTable(); }, 300);
             }
           })();
+        } else {
+          renderTable();
+          populateGenresDatalist();
+          clearDraft();
+          alert('Requête enregistrée.');
+          // Publish/shared sync
+          publishRequests(getRequests());
         }
-        renderTable();
-        populateGenresDatalist();
-        clearDraft();
-        alert('Requête enregistrée.');
         // Publish/shared sync
         publishRequests(getRequests());
       });
