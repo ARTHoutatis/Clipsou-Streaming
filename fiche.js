@@ -1249,6 +1249,7 @@ const container = document.getElementById('fiche-container');
           try { stage.querySelectorAll('video').forEach(v=>{ try { v.pause(); } catch{} }); } catch{}
           try { stage.querySelectorAll('iframe').forEach(f=>{ f.src = 'about:blank'; }); } catch{}
           stage.innerHTML = '';
+          try { overlay.classList.remove('intro-mode'); } catch {}
         };
         closeBtn.addEventListener('click', close);
         overlay.addEventListener('click', (e)=>{ if (e.target === overlay) close(); });
@@ -1291,11 +1292,12 @@ const container = document.getElementById('fiche-container');
         if (titleEl && linkTitle) titleEl.textContent = linkTitle;
         try { document.body.classList.add('player-open'); document.documentElement.classList.add('player-open'); } catch {}
         overlay.classList.add('open');
+        try { overlay.classList.add('intro-mode'); } catch {}
         stage.innerHTML = '';
         const intro = document.createElement('video');
         intro.src = 'intro.mp4'; intro.autoplay = true; intro.playsInline = true; intro.controls = false; intro.preload = 'auto';
         try { intro.muted = false; intro.defaultMuted = false; intro.volume = 1.0; } catch {}
-        Object.assign(intro.style, { width: '100%', height: '100%', objectFit: 'cover', display: 'block' });
+        Object.assign(intro.style, { width: '100%', height: '100%', objectFit: (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) ? 'contain' : 'cover', display: 'block' });
         let started = false;
         let cleaned = false;
         function cleanupActive(){
