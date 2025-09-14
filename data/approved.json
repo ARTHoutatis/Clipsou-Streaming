@@ -219,33 +219,6 @@
     ]
   },
   {
-    "id": "custom-test2-fq84",
-    "title": "test2",
-    "type": "film",
-    "rating": 3,
-    "genres": [
-      "Action",
-      "Comédie",
-      "Drame"
-    ],
-    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757753668/f83bqnzby1hjfooahiqj.png",
-    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757753675/puiuek3jseczrdlgohup.png",
-    "description": "test",
-    "watchUrl": "https://www.youtube.com/watch?v=snro9u1Vsuk&t=4s",
-    "actors": [
-      {
-        "name": "Clone prod",
-        "role": "testeur"
-      },
-      {
-        "name": "test",
-        "role": "test",
-        "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757795071/jhoayn8zwmw9m9fsvstc.png"
-      }
-    ],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757767347/xmh2jlx7w6shwcywxqpf.webp"
-  },
-  {
     "id": "custom-the-psycho-teacher-q2q6",
     "title": "The Psycho Teacher",
     "type": "film",
