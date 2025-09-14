@@ -591,19 +591,37 @@
 
   // ===== Online requests (public submissions) =====
   async function fetchOnlineRequestsArray(){
-    // Try common relative paths; same-origin fetch, no credentials beyond same-origin
+    // 1) Try Cloudflare Worker (no auth) to bypass CORS/origin issues when admin is opened via file:// or localhost
+    try {
+      const cfg = getPublishConfig();
+      if (cfg && cfg.url) {
+        const res = await fetch(cfg.url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'getRequests' })
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (Array.isArray(json)) return json;
+          if (json && typeof json === 'object') {
+            if (Array.isArray(json.requests)) return json.requests;
+            if (Array.isArray(json.data)) return json.data;
+          }
+        }
+      }
+    } catch {}
+
+    // 2) Try common site URLs (same-origin preferred)
     const origin = (function(){ try { return window.location.origin; } catch { return ''; } })();
     const tryUrls = [
-      // absolute first (CDN/static hosting)
       origin ? origin + '/data/requests.json' : null,
       'https://clipsoustreaming.com/data/requests.json',
-      // relative fallbacks
       '../data/requests.json',
       'data/requests.json'
     ].filter(Boolean);
     for (const u of tryUrls) {
       try {
-        const res = await fetch(u + '?v=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' });
+        const res = await fetch(u + '?v=' + Date.now(), { cache: 'no-store' });
         if (!res.ok) continue;
         const json = await res.json();
         if (Array.isArray(json)) return json;
