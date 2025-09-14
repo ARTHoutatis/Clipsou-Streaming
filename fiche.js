@@ -16,6 +16,48 @@
   window.addEventListener('pageshow', function(e){ if (e && e.persisted) toTop(); else toTop(); });
 })();
 
+// Episodes database per series title
+const EPISODES_DB = {
+  'Alex': [
+    { n: 1, url: 'https://www.youtube.com/watch?v=Uynd10bGS6I&list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf&index=1', title: 'SAUVER Zigzag !' },
+    { n: 2, url: 'https://www.youtube.com/watch?v=QfTsODE-HIU&list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf&index=2', title: 'EXPLOSION' },
+    { n: 3, url: 'https://www.youtube.com/watch?v=up7Q2jBlSOo&list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf&index=3', title: 'LA PLANTE' },
+    { n: 4, url: 'https://www.youtube.com/watch?v=DmUG8oVmzMk&list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf&index=4', title: 'Un petit feux de camp' },
+    { n: 5, url: 'https://www.youtube.com/watch?v=JzPlADBeDto&list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf&index=5', title: 'Une Banane' },
+    { n: 6, url: 'https://www.youtube.com/watch?v=Jm-Mwy6733Y&list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf&index=6', title: 'BOOM (8x8x8 X challenge)' },
+    { n: 7, url: 'https://www.youtube.com/watch?v=RYM7vH96y1I&list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf&index=7', title: 'Alex contre LA MAIN' },
+    { n: 8, url: 'https://www.youtube.com/watch?v=yMYoD9I1xs0&list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf&index=8', title: 'Casser une vitre animation' },
+    { n: 9, url: 'https://www.youtube.com/watch?v=IQXjgoYKyYU&list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf&index=9', title: 'Deadpool lego combat stop motion' }
+  ],
+  'Lawless Legend': [
+    { n: 1, url: 'https://www.youtube.com/watch?v=I21K4Ksf_4A&list=PLljfI9MJr5K2Li687G4dOxjfyDQkIfJn3&index=1', title: "De l'argent voler pour de l'argent gagné" },
+    { n: 2, url: 'https://www.youtube.com/watch?v=jfbOQ7kWKw0&list=PLljfI9MJr5K2Li687G4dOxjfyDQkIfJn3&index=2', title: 'Les voleurs ennemis' },
+    { n: 3, url: 'https://www.youtube.com/watch?v=JCW8qyJCqbA&list=PLljfI9MJr5K2Li687G4dOxjfyDQkIfJn3&index=3', title: 'Une mauvaise nouvelle' }
+  ],
+  'Les Aventures de Jean‑Michel Content': [
+    { n: 1, url: 'https://www.youtube.com/watch?v=OgLRqt_iRkI&list=PLljfI9MJr5K17MmHDsdU6QqSFwZJ_Tn-5&index=1', title: 'Jean-Michel Content à la plage' },
+    { n: 2, url: 'https://www.youtube.com/watch?v=Sa_3VceEqaI&list=PLljfI9MJr5K17MmHDsdU6QqSFwZJ_Tn-5&index=2', title: 'Jean-Michel Content fête son anniversaire' }
+  ]
+};
+
+// Build normalized lookup for episodes by title (accent/punctuation-insensitive)
+const EPISODES_DB_NORM = (() => {
+  const m = Object.create(null);
+  try {
+    Object.keys(EPISODES_DB).forEach(k => {
+      m[normalizeTitleKey(k)] = EPISODES_DB[k];
+    });
+  } catch {}
+  return m;
+})();
+
+// Fallback episodes mapping by fiche id (defined AFTER EPISODES_DB/EPISODES_DB_NORM)
+const EPISODES_ID_DB = {
+  'serie1': EPISODES_DB['Alex'],
+  'serie2': EPISODES_DB['Lawless Legend'],
+  'serie3': EPISODES_DB['Les Aventures de Jean‑Michel Content']
+};
+
 // Cache index.html in-session to avoid repeated network/file reads
 let __INDEX_HTML_CACHE = null;
 async function fetchIndexHtmlCached() {
@@ -445,15 +487,24 @@ function renderFiche(container, item) {
   buttons.className = 'button-group';
   if (item.watchUrl) {
     const a = document.createElement('a');
-    try {
-      a.href = item.watchUrl;
-    } catch {
-      a.href = item.watchUrl || '';
-    }
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
     a.className = 'button';
-    a.textContent = '▶ Regarder';
+    // If this fiche is a series, route to episodes section instead of external watch
+    if ((item.type === 'série') || /^serie/i.test(item.id || '')) {
+      a.href = '#episodes-section';
+      a.textContent = 'Voir les épisodes';
+      a.addEventListener('click', function(e){
+        // Open the episodes panel immediately
+        try { e.preventDefault(); } catch {}
+        try { window.__wantEpisodes = true; } catch {}
+        try { location.hash = '#episodes-section'; } catch {}
+        try { window.dispatchEvent(new CustomEvent('open-episodes')); } catch { try { window.dispatchEvent(new Event('open-episodes')); } catch {} }
+      });
+    } else {
+      try { a.href = item.watchUrl; } catch { a.href = item.watchUrl || ''; }
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.textContent = '▶ Regarder';
+    }
     buttons.appendChild(a);
   }
 
@@ -526,7 +577,7 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   if (!Array.isArray(similarItems)) similarItems = [];
   const section = document.createElement('section');
   section.className = 'section';
-  // Header avec boutons de bascule (Contenu similaire / Acteurs)
+  // Header avec boutons de bascule (Contenu similaire / Épisodes / Acteurs)
   const header = document.createElement('div');
   header.className = 'section-header';
   const similarBtn = document.createElement('button');
@@ -535,6 +586,16 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   similarBtn.textContent = 'Contenu similaire';
   similarBtn.setAttribute('aria-expanded', 'true');
   header.appendChild(similarBtn);
+  // Episodes toggle (only for series with known episodes)
+  const titleForMatch = (currentItem && currentItem.title) || '';
+  const idForMatch = (currentItem && currentItem.id) || '';
+  const hasEpisodes = !!(currentItem && (currentItem.type === 'série' || /serie/i.test(idForMatch)) && (EPISODES_DB_NORM[normalizeTitleKey(titleForMatch)] || EPISODES_ID_DB[idForMatch]));
+  const episodesBtn = document.createElement('button');
+  episodesBtn.type = 'button';
+  episodesBtn.className = 'button secondary episodes-toggle';
+  episodesBtn.textContent = 'Épisodes';
+  episodesBtn.setAttribute('aria-expanded', 'false');
+  if (hasEpisodes) header.appendChild(episodesBtn);
   const actorsBtn = document.createElement('button');
   actorsBtn.type = 'button';
   actorsBtn.className = 'button secondary actors-toggle';
@@ -556,6 +617,27 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   actorsGrid.className = 'actors-grid';
   actorsPanel.appendChild(actorsGrid);
   section.appendChild(actorsPanel);
+
+  // Episodes panel (hidden by default)
+  const episodesPanel = document.createElement('div');
+  episodesPanel.className = 'episodes-panel';
+  episodesPanel.id = 'episodes-section';
+  episodesPanel.hidden = true;
+  episodesPanel.style.display = 'none';
+  episodesPanel.setAttribute('aria-hidden', 'true');
+  const episodesTitle = document.createElement('h3');
+  episodesTitle.textContent = 'Épisodes';
+  episodesPanel.appendChild(episodesTitle);
+  const episodesRail = document.createElement('div');
+  episodesRail.className = 'episodes-rail';
+  // Stack episode buttons vertically
+  episodesRail.style.display = 'flex';
+  episodesRail.style.flexDirection = 'column';
+  episodesRail.style.gap = '10px';
+  episodesRail.style.alignItems = 'flex-start';
+  episodesRail.style.padding = '8px 0';
+  episodesPanel.appendChild(episodesRail);
+  if (hasEpisodes) section.appendChild(episodesPanel);
 
   const rail = document.createElement('div');
   rail.className = 'rail';
@@ -691,6 +773,30 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   };
 
   placeSimilar();
+  // Default view: show Similar by default; open Episodes only when explicitly requested.
+  // If a leftover hash exists from a previous navigation, clear it to avoid jumping on load.
+  try {
+    if (location.hash === '#episodes-section') {
+      try { history.replaceState(null, '', location.pathname + location.search); }
+      catch { location.hash = ''; }
+    }
+  } catch {}
+  showSimilar();
+  function openEpisodesIfRequested(scroll){
+    if (!hasEpisodes) return;
+    try {
+      if (window.__wantEpisodes) {
+        showEpisodes();
+        if (scroll) {
+          const el = episodesPanel;
+          if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        window.__wantEpisodes = false;
+      }
+    } catch {}
+  }
+  openEpisodesIfRequested(true);
+  try { window.addEventListener('open-episodes', function(){ openEpisodesIfRequested(true); }); } catch {}
   // Gestion du bouton Acteurs
   function populateActors() {
     actorsGrid.innerHTML = '';
@@ -822,10 +928,14 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     actorsPanel.hidden = true;
     actorsPanel.style.display = 'none';
     actorsPanel.setAttribute('aria-hidden', 'true');
+    if (hasEpisodes) { episodesPanel.hidden = true; episodesPanel.style.display = 'none'; episodesPanel.setAttribute('aria-hidden','true'); }
     section.classList.remove('actors-open');
+    section.classList.remove('episodes-open');
     similarBtn.classList.add('active');
+    if (hasEpisodes) episodesBtn.classList.remove('active');
     actorsBtn.classList.remove('active');
     similarBtn.setAttribute('aria-expanded', 'true');
+    if (hasEpisodes) episodesBtn.setAttribute('aria-expanded', 'false');
     actorsBtn.setAttribute('aria-expanded', 'false');
   }
   function showActors() {
@@ -837,14 +947,58 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     actorsPanel.hidden = false;
     actorsPanel.style.display = '';
     actorsPanel.setAttribute('aria-hidden', 'false');
+    if (hasEpisodes) { episodesPanel.hidden = true; episodesPanel.style.display = 'none'; episodesPanel.setAttribute('aria-hidden','true'); }
     section.classList.add('actors-open');
+    section.classList.remove('episodes-open');
     actorsBtn.classList.add('active');
     similarBtn.classList.remove('active');
+    if (hasEpisodes) episodesBtn.classList.remove('active');
     actorsBtn.setAttribute('aria-expanded', 'true');
     similarBtn.setAttribute('aria-expanded', 'false');
+    if (hasEpisodes) episodesBtn.setAttribute('aria-expanded', 'false');
+  }
+  function populateEpisodes(){
+    episodesRail.innerHTML = '';
+    const title = (currentItem && currentItem.title) || '';
+    const idForMatch = (currentItem && currentItem.id) || '';
+    let list = EPISODES_DB_NORM[normalizeTitleKey(title)] || [];
+    if (!list.length) list = EPISODES_ID_DB[idForMatch] || [];
+    if (!list.length) {
+      const empty = document.createElement('p');
+      empty.className = 'actors-empty';
+      empty.textContent = "Aucun épisode disponible.";
+      episodesRail.appendChild(empty);
+      return;
+    }
+    list.forEach(ep => {
+      const a = document.createElement('a');
+      a.href = ep.url;
+      a.className = 'button';
+      const label = ep && ep.title ? `Épisode ${ep.n} — ${ep.title}` : `Épisode ${ep.n}`;
+      a.textContent = label;
+      a.setAttribute('data-title', `${title} – Épisode ${ep.n}` + (ep && ep.title ? ` — ${ep.title}` : ''));
+      a.style.display = 'block';
+      episodesRail.appendChild(a);
+    });
+  }
+  function showEpisodes(){
+    if (!hasEpisodes) return;
+    populateEpisodes();
+    rail.hidden = true; rail.style.display = 'none'; rail.setAttribute('aria-hidden','true');
+    actorsPanel.hidden = true; actorsPanel.style.display = 'none'; actorsPanel.setAttribute('aria-hidden','true');
+    episodesPanel.hidden = false; episodesPanel.style.display = ''; episodesPanel.setAttribute('aria-hidden','false');
+    section.classList.add('episodes-open');
+    section.classList.remove('actors-open');
+    similarBtn.classList.remove('active');
+    actorsBtn.classList.remove('active');
+    episodesBtn.classList.add('active');
+    similarBtn.setAttribute('aria-expanded', 'false');
+    actorsBtn.setAttribute('aria-expanded', 'false');
+    episodesBtn.setAttribute('aria-expanded', 'true');
   }
   actorsBtn.addEventListener('click', showActors);
   similarBtn.addEventListener('click', showSimilar);
+  if (hasEpisodes) episodesBtn.addEventListener('click', showEpisodes);
   if (mq) {
     if (typeof mq.addEventListener === 'function') {
       mq.addEventListener('change', placeSimilar);
@@ -1055,8 +1209,8 @@ const container = document.getElementById('fiche-container');
     console.warn('Impossible de générer le contenu similaire', e);
   }
 
-  // Intro interstitial: play intro.mp4 before opening YouTube links on fiche page
-  (function installIntroBeforeYouTube(){
+  // On-site player: play intro.mp4 then embed the YouTube video in a full-screen overlay (fiche page)
+  (function installOnsitePlayer(){
     try {
       if (window.__introHookInstalled) return; // idempotent across this page
       window.__introHookInstalled = true;
@@ -1071,59 +1225,111 @@ const container = document.getElementById('fiche-container');
         } catch { return false; }
       }
 
-      function showIntroThenNavigate(targetHref, targetAttr){
+      function ensurePlayerOverlay(){
+        let overlay = document.querySelector('.player-overlay');
+        if (overlay) return overlay;
+        overlay = document.createElement('div');
+        overlay.className = 'player-overlay';
+        const shell = document.createElement('div'); shell.className = 'player-shell';
+        const top = document.createElement('div'); top.className = 'player-topbar';
+        const titleEl = document.createElement('h4'); titleEl.className = 'player-title'; titleEl.textContent = 'Lecture';
+        const closeBtn = document.createElement('button'); closeBtn.className = 'player-close'; closeBtn.setAttribute('aria-label','Fermer le lecteur'); closeBtn.textContent = '✕';
+        top.appendChild(titleEl); top.appendChild(closeBtn);
+        const stage = document.createElement('div'); stage.className = 'player-stage';
+        const footer = document.createElement('div'); footer.className = 'player-footer'; footer.textContent = 'Appuyez sur Échap ou ✕ pour fermer.';
+        shell.appendChild(top); shell.appendChild(stage); shell.appendChild(footer);
+        overlay.appendChild(shell); document.body.appendChild(overlay);
+        const close = ()=>{
+          try { if (typeof overlay.__activeCleanup === 'function') overlay.__activeCleanup(); } catch {}
+          try { document.body.classList.remove('player-open'); document.documentElement.classList.remove('player-open'); } catch {}
+          overlay.classList.remove('open');
+          try { stage.querySelectorAll('video').forEach(v=>{ try { v.pause(); } catch{} }); } catch{}
+          try { stage.querySelectorAll('iframe').forEach(f=>{ f.src = 'about:blank'; }); } catch{}
+          stage.innerHTML = '';
+        };
+        closeBtn.addEventListener('click', close);
+        overlay.addEventListener('click', (e)=>{ if (e.target === overlay) close(); });
+        document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape' && overlay.classList.contains('open')) close(); }, { passive: true });
+        overlay.__close = close;
+        return overlay;
+      }
+
+      function toEmbedUrl(href){
+        try {
+          const url = href.startsWith('http') ? new URL(href) : new URL(href, location.href);
+          const h = (url.hostname||'').toLowerCase();
+          const params = new URLSearchParams(url.search);
+          // Start paused by default (autoplay=0)
+          const common = '&autoplay=0&rel=0&modestbranding=1&controls=1&playsinline=1';
+          if (h.includes('youtu.be')){
+            const id = url.pathname.replace(/^\//,'');
+            return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?enablejsapi=1' + common;
+          }
+          if (h.includes('youtube.com')){
+            if (url.pathname.startsWith('/watch')){
+              const id = params.get('v') || '';
+              return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?enablejsapi=1' + common;
+            }
+            if (url.pathname.startsWith('/playlist')){
+              const list = params.get('list') || '';
+              return 'https://www.youtube.com/embed/videoseries?list=' + encodeURIComponent(list) + common;
+            }
+          }
+        } catch {}
+        return href;
+      }
+
+      function showIntroThenPlay(targetHref, linkTitle){
         try { if (window.__introShowing) return; } catch {}
         window.__introShowing = true;
-        const overlay = document.createElement('div');
-        Object.assign(overlay.style, { position: 'fixed', inset: '0', zIndex: '99999', background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' });
-        overlay.setAttribute('role', 'dialog');
-        overlay.setAttribute('aria-label', 'Intro');
-        const box = document.createElement('div');
-        Object.assign(box.style, { position: 'relative', background: 'black', boxShadow: '0 10px 30px rgba(0,0,0,0.6)', borderRadius: '8px', overflow: 'hidden' });
-        // Dynamically size the box to use up to 90% of viewport while preserving 16:9
-        function sizeBox(){
-          try {
-            const vw = window.innerWidth || document.documentElement.clientWidth || 0;
-            const vh = window.innerHeight || document.documentElement.clientHeight || 0;
-            const maxW = Math.max(0, vw * 0.90);
-            const maxH = Math.max(0, vh * 0.90);
-            const wFromH = maxH * (16/9);
-            const hFromW = maxW * (9/16);
-            const useW = Math.min(maxW, wFromH);
-            const useH = Math.min(maxH, hFromW);
-            box.style.width = Math.round(useW) + 'px';
-            box.style.height = Math.round(useH) + 'px';
-          } catch {}
+        const overlay = ensurePlayerOverlay();
+        const titleEl = overlay.querySelector('.player-title');
+        const stage = overlay.querySelector('.player-stage');
+        if (titleEl && linkTitle) titleEl.textContent = linkTitle;
+        try { document.body.classList.add('player-open'); document.documentElement.classList.add('player-open'); } catch {}
+        overlay.classList.add('open');
+        stage.innerHTML = '';
+        const intro = document.createElement('video');
+        intro.src = 'intro.mp4'; intro.autoplay = true; intro.playsInline = true; intro.controls = false; intro.preload = 'auto';
+        try { intro.muted = false; intro.defaultMuted = false; intro.volume = 1.0; } catch {}
+        Object.assign(intro.style, { width: '100%', height: '100%', objectFit: 'cover', display: 'block' });
+        const skip = document.createElement('button'); skip.textContent = 'Passer l\'intro'; skip.className = 'button';
+        Object.assign(skip.style, { position: 'absolute', right: '12px', bottom: '12px', background: '#111', color: '#fff', border: '1px solid rgba(255,255,255,0.25)', padding: '10px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', opacity: '0.9', zIndex: 2 });
+        let started = false;
+        let cleaned = false;
+        function cleanupActive(){
+          if (cleaned) return; cleaned = true;
+          try { clearTimeout(watchdog); } catch {}
+          try { intro.removeEventListener('ended', startMain); } catch {}
+          try { intro.removeEventListener('error', startMain); } catch {}
+          try { skip.removeEventListener('click', startMain); } catch {}
+          started = true;
         }
-        sizeBox();
-        try { window.addEventListener('resize', sizeBox, { passive: true }); } catch { window.addEventListener('resize', sizeBox); }
-        const video = document.createElement('video');
-        video.src = 'intro.mp4';
-        video.autoplay = true;
-        video.playsInline = true;
-        video.controls = false;
-        video.preload = 'auto';
-        try { video.muted = false; video.defaultMuted = false; video.volume = 1.0; } catch {}
-        Object.assign(video.style, { width: '100%', height: '100%', objectFit: 'cover', display: 'block' });
-        const skip = document.createElement('button');
-        skip.textContent = 'Passer l\'intro';
-        skip.className = 'button';
-        Object.assign(skip.style, { position: 'absolute', right: '12px', bottom: '12px', background: '#111', color: '#fff', border: '1px solid rgba(255,255,255,0.25)', padding: '10px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', opacity: '0.9' });
-        function cleanupAndGo(){
-          try { video.pause(); } catch {}
-          try { overlay.remove(); } catch {}
+        function startMain(){
+          if (started) return; started = true;
+          try { cleanupActive(); } catch {}
+          try { intro.pause(); } catch {}
+          stage.innerHTML = '';
+          const iframe = document.createElement('iframe');
+          iframe.allowFullscreen = true;
+          iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
+          iframe.src = toEmbedUrl(targetHref);
+          stage.appendChild(iframe);
           window.__introShowing = false;
-          try { if (targetAttr === '_blank') window.open(targetHref, '_blank', 'noopener'); else window.location.href = targetHref; } catch { window.location.href = targetHref; }
         }
-        skip.addEventListener('click', cleanupAndGo);
-        overlay.addEventListener('click', (e)=>{ if (e.target === overlay) cleanupAndGo(); });
-        video.addEventListener('ended', cleanupAndGo);
-        video.addEventListener('error', cleanupAndGo);
-        setTimeout(()=>{ try { if (!video || video.ended) return; } catch {}; cleanupAndGo(); }, 20000);
-        box.appendChild(video); box.appendChild(skip);
-        overlay.appendChild(box); document.body.appendChild(overlay);
-        try { video.muted = false; video.defaultMuted = false; video.volume = 1.0; } catch {}
-        try { const p = video.play(); if (p && typeof p.catch === 'function') p.catch(()=>{}); } catch {}
+        skip.addEventListener('click', startMain, { once: true });
+        intro.addEventListener('ended', startMain, { once: true });
+        intro.addEventListener('error', startMain, { once: true });
+        const watchdog = setTimeout(()=>{
+          try {
+            const progressed = (intro.currentTime||0) > 0.1;
+            if (!progressed && !intro.ended && !started) startMain();
+          } catch { startMain(); }
+        }, 8000);
+        try { overlay.__activeCleanup = cleanupActive; } catch {}
+        stage.appendChild(intro);
+        stage.appendChild(skip);
+        try { const p = intro.play(); if (p && typeof p.catch === 'function') p.catch(()=>{}); } catch {}
       }
 
       document.addEventListener('click', function(e){
@@ -1134,9 +1340,8 @@ const container = document.getElementById('fiche-container');
           if (!isYouTubeUrl(href)) return;
           if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || (e.button && e.button !== 0)) return;
           e.preventDefault();
-          const tgt = (a.getAttribute('target') || '').toLowerCase();
-          const targetAttr = tgt === '_blank' ? '_blank' : '_self';
-          showIntroThenNavigate(href, targetAttr);
+          const title = (a.closest('.fiche-right')?.querySelector('h3')?.textContent || a.getAttribute('data-title') || '').trim();
+          showIntroThenPlay(href, title);
         } catch {}
       }, true);
     } catch {}

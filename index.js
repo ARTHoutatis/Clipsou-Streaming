@@ -1303,8 +1303,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   // removed scroll buttons logic
   
-  // Intro interstitial: play intro.mp4 before opening YouTube links
-  (function installIntroBeforeYouTube(){
+  // On-site player: play intro.mp4 then embed the YouTube video in a full-screen overlay
+  (function installOnsitePlayer(){
     try {
       if (window.__introHookInstalled) return; // idempotent
       window.__introHookInstalled = true;
@@ -1323,91 +1323,140 @@ document.addEventListener('DOMContentLoaded', async function () {
         } catch { return false; }
       }
 
-      function showIntroThenNavigate(targetHref, targetAttr){
+      function ensurePlayerOverlay(){
+        let overlay = document.querySelector('.player-overlay');
+        if (overlay) return overlay;
+        overlay = document.createElement('div');
+        overlay.className = 'player-overlay';
+        const shell = document.createElement('div');
+        shell.className = 'player-shell';
+        const top = document.createElement('div');
+        top.className = 'player-topbar';
+        const titleEl = document.createElement('h4');
+        titleEl.className = 'player-title';
+        titleEl.textContent = 'Lecture';
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'player-close';
+        closeBtn.setAttribute('aria-label','Fermer le lecteur');
+        closeBtn.textContent = '✕';
+        top.appendChild(titleEl);
+        top.appendChild(closeBtn);
+        const stage = document.createElement('div');
+        stage.className = 'player-stage';
+        const footer = document.createElement('div');
+        footer.className = 'player-footer';
+        footer.textContent = 'Appuyez sur Échap ou ✕ pour fermer.';
+        shell.appendChild(top);
+        shell.appendChild(stage);
+        shell.appendChild(footer);
+        overlay.appendChild(shell);
+        document.body.appendChild(overlay);
+        // Close behavior
+        const close = ()=>{
+          try { if (typeof overlay.__activeCleanup === 'function') overlay.__activeCleanup(); } catch {}
+          try { document.body.classList.remove('player-open'); document.documentElement.classList.remove('player-open'); } catch {}
+          overlay.classList.remove('open');
+          // stop any media
+          try { stage.querySelectorAll('video').forEach(v=>{ try { v.pause(); } catch{} }); } catch{}
+          try { stage.querySelectorAll('iframe').forEach(f=>{ f.src = 'about:blank'; }); } catch{}
+          stage.innerHTML = '';
+        };
+        closeBtn.addEventListener('click', close);
+        overlay.addEventListener('click', (e)=>{ if (e.target === overlay) close(); });
+        document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape' && overlay.classList.contains('open')) close(); }, { passive: true });
+        overlay.__close = close;
+        return overlay;
+      }
+
+      function toEmbedUrl(href){
+        try {
+          const url = href.startsWith('http') ? new URL(href) : new URL(href, location.href);
+          const h = (url.hostname||'').toLowerCase();
+          const params = new URLSearchParams(url.search);
+          const autoplay = '1';
+          const common = '&autoplay=1&rel=0&modestbranding=1&controls=1&playsinline=1';
+          if (h.includes('youtu.be')){
+            const id = url.pathname.replace(/^\//,'');
+            return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?enablejsapi=1' + common;
+          }
+          if (h.includes('youtube.com')){
+            if (url.pathname.startsWith('/watch')){
+              const id = params.get('v') || '';
+              return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?enablejsapi=1' + common;
+            }
+            if (url.pathname.startsWith('/playlist')){
+              const list = params.get('list') || '';
+              return 'https://www.youtube.com/embed/videoseries?list=' + encodeURIComponent(list) + common;
+            }
+          }
+        } catch {}
+        return href; // fallback
+      }
+
+      function showIntroThenPlay(targetHref, linkTitle){
         try { if (window.__introShowing) return; } catch {}
         window.__introShowing = true;
+        const overlay = ensurePlayerOverlay();
+        const titleEl = overlay.querySelector('.player-title');
+        const stage = overlay.querySelector('.player-stage');
+        if (titleEl && linkTitle) titleEl.textContent = linkTitle;
+        try { document.body.classList.add('player-open'); document.documentElement.classList.add('player-open'); } catch {}
+        overlay.classList.add('open');
 
-        // Create overlay
-        const overlay = document.createElement('div');
-        Object.assign(overlay.style, {
-          position: 'fixed', inset: '0', zIndex: '99999',
-          background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center'
-        });
-        overlay.setAttribute('role', 'dialog');
-        overlay.setAttribute('aria-label', 'Intro');
-
-        // Container to maintain aspect ratio on mobile
-        const box = document.createElement('div');
-        Object.assign(box.style, {
-          position: 'relative',
-          background: 'black', boxShadow: '0 10px 30px rgba(0,0,0,0.6)', borderRadius: '8px', overflow: 'hidden'
-        });
-        // Dynamically size the box to use up to 90% of viewport while preserving 16:9
-        function sizeBox(){
-          try {
-            const vw = window.innerWidth || document.documentElement.clientWidth || 0;
-            const vh = window.innerHeight || document.documentElement.clientHeight || 0;
-            const maxW = Math.max(0, vw * 0.90);
-            const maxH = Math.max(0, vh * 0.90);
-            const wFromH = maxH * (16/9);
-            const hFromW = maxW * (9/16);
-            const useW = Math.min(maxW, wFromH);
-            const useH = Math.min(maxH, hFromW);
-            box.style.width = Math.round(useW) + 'px';
-            box.style.height = Math.round(useH) + 'px';
-          } catch {}
-        }
-        sizeBox();
-        try { window.addEventListener('resize', sizeBox, { passive: true }); } catch { window.addEventListener('resize', sizeBox); }
-
-        const video = document.createElement('video');
-        video.src = 'intro.mp4';
-        video.autoplay = true;
-        video.playsInline = true;
-        video.controls = false;
-        video.preload = 'auto';
-        // Ensure sound is enabled
-        try { video.muted = false; video.defaultMuted = false; video.volume = 1.0; } catch {}
-        Object.assign(video.style, { width: '100%', height: '100%', objectFit: 'cover', display: 'block' });
-
-        // Skip button
+        // Clear stage and show intro video first
+        stage.innerHTML = '';
+        const intro = document.createElement('video');
+        intro.src = 'intro.mp4';
+        intro.autoplay = true;
+        intro.playsInline = true;
+        intro.controls = false;
+        intro.preload = 'auto';
+        try { intro.muted = false; intro.defaultMuted = false; intro.volume = 1.0; } catch {}
+        Object.assign(intro.style, { width: '100%', height: '100%', objectFit: 'cover', display: 'block' });
         const skip = document.createElement('button');
         skip.textContent = 'Passer l\'intro';
         skip.className = 'button';
-        Object.assign(skip.style, {
-          position: 'absolute', right: '12px', bottom: '12px',
-          background: '#111', color: '#fff', border: '1px solid rgba(255,255,255,0.25)',
-          padding: '10px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', opacity: '0.9'
-        });
+        Object.assign(skip.style, { position: 'absolute', right: '12px', bottom: '12px', background: '#111', color: '#fff', border: '1px solid rgba(255,255,255,0.25)', padding: '10px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', opacity: '0.9', zIndex: 2 });
 
-
-        function cleanupAndGo(){
-          try { video.pause(); } catch {}
-          try { overlay.remove(); } catch {}
+        let started = false;
+        let cleaned = false;
+        function cleanupActive(){
+          if (cleaned) return; cleaned = true;
+          try { clearTimeout(watchdog); } catch {}
+          try { intro.removeEventListener('ended', startMain); } catch {}
+          try { intro.removeEventListener('error', startMain); } catch {}
+          try { skip.removeEventListener('click', startMain); } catch {}
+          started = true; // block any late transitions
+        }
+        function startMain(){
+          if (started) return; started = true;
+          try { cleanupActive(); } catch {}
+          try { intro.pause(); } catch {}
+          stage.innerHTML = '';
+          const iframe = document.createElement('iframe');
+          iframe.allowFullscreen = true;
+          iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
+          iframe.src = toEmbedUrl(targetHref);
+          stage.appendChild(iframe);
           window.__introShowing = false;
-          // Navigate according to target
-          try {
-            if (targetAttr === '_blank') window.open(targetHref, '_blank', 'noopener');
-            else window.location.href = targetHref;
-          } catch { window.location.href = targetHref; }
         }
 
-        skip.addEventListener('click', cleanupAndGo);
-        overlay.addEventListener('click', (e)=>{ if (e.target === overlay) cleanupAndGo(); });
-        video.addEventListener('ended', cleanupAndGo);
-        video.addEventListener('error', cleanupAndGo);
-
-        // Safety timeout in case metadata stalls
-        setTimeout(()=>{ try { if (!video || video.ended) return; } catch {}; cleanupAndGo(); }, 20000);
-
-        box.appendChild(video);
-        box.appendChild(skip);
-        overlay.appendChild(box);
-        document.body.appendChild(overlay);
-
-        // Ensure play() after user gesture, with sound
-        try { video.muted = false; video.defaultMuted = false; video.volume = 1.0; } catch {}
-        try { const p = video.play(); if (p && typeof p.catch === 'function') p.catch(()=>{}); } catch {}
+        // Transition triggers
+        skip.addEventListener('click', startMain, { once: true });
+        intro.addEventListener('ended', startMain, { once: true });
+        intro.addEventListener('error', startMain, { once: true });
+        // Watchdog: if after 8s nothing has started (no progress), start main
+        const watchdog = setTimeout(()=>{
+          try {
+            const progressed = (intro.currentTime||0) > 0.1;
+            if (!progressed && !intro.ended && !started) startMain();
+          } catch { startMain(); }
+        }, 8000);
+        // register active cleanup on overlay so closing cancels pending transitions
+        try { const ol = overlay; ol.__activeCleanup = cleanupActive; } catch {}
+        stage.appendChild(intro);
+        stage.appendChild(skip);
+        try { const p = intro.play(); if (p && typeof p.catch === 'function') p.catch(()=>{}); } catch {}
       }
 
       document.addEventListener('click', function(e){
@@ -1419,9 +1468,8 @@ document.addEventListener('DOMContentLoaded', async function () {
           // Allow modifier clicks (open in new tab via Ctrl/Cmd, middle click)
           if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || (e.button && e.button !== 0)) return;
           e.preventDefault();
-          const tgt = (a.getAttribute('target') || '').toLowerCase();
-          const targetAttr = tgt === '_blank' ? '_blank' : '_self';
-          showIntroThenNavigate(href, targetAttr);
+          const title = (a.closest('.fiche-right')?.querySelector('h3')?.textContent || a.getAttribute('data-title') || '').trim();
+          showIntroThenPlay(href, title);
         } catch {}
       }, true);
     } catch {}
