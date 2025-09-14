@@ -1013,16 +1013,23 @@
 
     function renderList(targetTbody, list){
       if (!targetTbody) return;
+      try { console.debug('[admin] rendering list len=', Array.isArray(list)?list.length:0); } catch {}
       list.forEach(r => {
-        const tr = document.createElement('tr');
-        const g3 = (r.data.genres||[]).slice(0,3).join(', ');
-        tr.innerHTML = `
-          <td>${r.data.title||''}</td>
-          <td>${r.data.type||''}</td>
-          <td>${g3}</td>
-          <td>${(typeof r.data.rating==='number')?r.data.rating:''}</td>
-          <td class="row-actions"></td>
-        `;
+        try {
+          if (!r || !r.data || typeof r.data !== 'object') return;
+          const title = (r.data.title||'').trim();
+          const type = (r.data.type||'').trim();
+          const genresArr = Array.isArray(r.data.genres) ? r.data.genres : [];
+          const g3 = genresArr.filter(Boolean).slice(0,3).join(', ');
+          const note = (typeof r.data.rating==='number') ? r.data.rating : '';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${title}</td>
+            <td>${type}</td>
+            <td>${g3}</td>
+            <td>${note}</td>
+            <td class="row-actions"></td>
+          `;
         const actions = tr.querySelector('.row-actions');
         const editBtn = document.createElement('button'); editBtn.className='btn secondary'; editBtn.textContent='Modifier';
         const delBtn = document.createElement('button'); delBtn.className='btn secondary'; delBtn.textContent='Supprimer';
@@ -1107,7 +1114,8 @@
           // For unapprove, immediate refresh
           if (found.status==='pending') renderTable();
         });
-        targetTbody.appendChild(tr);
+          targetTbody.appendChild(tr);
+        } catch(e) { try { console.warn('[admin] render row error', e); } catch {} }
       });
     }
 
