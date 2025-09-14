@@ -4,6 +4,13 @@
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
+  // ===== Public submission endpoint (Cloudflare Worker) =====
+  // Set this to your deployed Worker URL, e.g. https://clipsou-worker.yourname.workers.dev
+  // The Worker should accept { action: 'request', data: <payload> } without auth and write to data/requests.json
+  const PUBLIC_SUBMIT_URL = (function(){
+    try { return window.__CLIPSOU_PUBLIC_SUBMIT_URL__ || ''; } catch { return ''; }
+  })();
+
   // ===== Cloudinary unsigned upload (public) =====
   const APP_KEY_CLD = 'clipsou_admin_cloudinary_v1'; // reuse admin storage key if set on this browser
   // Defaults aligned with admin
@@ -196,51 +203,46 @@
       try { $('.confirm-box').remove(); } catch{}
     });
 
-    form.addEventListener('submit', (e)=>{
+    form.addEventListener('submit', async (e)=>{
       e.preventDefault();
       const data = collectForm();
       const v = validateData(data);
       if (!v.ok) { alert('Veuillez corriger les erreurs avant de soumettre:\n\n' + v.message); return; }
-      // Prepare a payload that admins can approve easily later
-      const payload = {
-        action: 'request',
-        submittedAt: new Date().toISOString(),
-        data
-      };
-      // Show a confirmation with a JSON preview and copy/download options
-      let box = $('.confirm-box');
-      if (!box) {
-        box = document.createElement('div');
-        box.className = 'confirm-box';
-        form.insertAdjacentElement('afterend', box);
+      if (!PUBLIC_SUBMIT_URL) {
+        alert("Le service de soumission n'est pas configuré. Veuillez réessayer plus tard.");
+        return;
       }
-      const pretty = JSON.stringify(payload, null, 2);
-      box.innerHTML = '';
-      const p = document.createElement('p'); p.textContent = 'Merci ! Votre demande est prête. Vous pouvez copier ce JSON et nous l’envoyer sur Discord ou par email pour traitement rapide :';
-      const pre = document.createElement('pre'); pre.textContent = pretty;
-      const actions = document.createElement('div'); actions.style.display = 'flex'; actions.style.gap = '8px'; actions.style.marginTop = '8px';
-      const copyBtn = document.createElement('button'); copyBtn.type='button'; copyBtn.className='btn'; copyBtn.textContent='Copier';
-      const dlBtn = document.createElement('button'); dlBtn.type='button'; dlBtn.className='btn secondary'; dlBtn.textContent='Télécharger JSON';
-      copyBtn.addEventListener('click', async ()=>{ try { await navigator.clipboard.writeText(pretty); copyBtn.textContent='Copié !'; setTimeout(()=>copyBtn.textContent='Copier', 1500); } catch{} });
-      dlBtn.addEventListener('click', ()=>{
-        try {
-          const blob = new Blob([pretty], {type:'application/json'});
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url; a.download = 'proposition-film.json'; a.click();
-          URL.revokeObjectURL(url);
-        } catch{}
-      });
-      actions.appendChild(copyBtn); actions.appendChild(dlBtn);
-      box.appendChild(p); box.appendChild(pre); box.appendChild(actions);
-      // Also store locally so user doesn't lose their submission if they refresh
+      // Submit directly to Cloudflare Worker
+      const payload = { action: 'request', data, submittedAt: new Date().toISOString() };
+      // Disable UI while sending
+      try { $$('.btn').forEach(b=>b.disabled=true); } catch {}
       try {
-        const KEY='clipsou_user_submissions_v1';
-        const arr = JSON.parse(localStorage.getItem(KEY)||'[]')||[];
-        arr.unshift(payload);
-        localStorage.setItem(KEY, JSON.stringify(arr));
-      } catch {}
-      alert('Votre demande a été préparée ! Copiez/téléchargez le JSON et envoyez-le à l’équipe.');
+        const res = await fetch(PUBLIC_SUBMIT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const txt = await res.text().catch(()=>String(res.status));
+          throw new Error('HTTP '+res.status+': '+txt);
+        }
+        // Success UX
+        try { form.reset(); } catch{}
+        try { $('#submitForm').dataset.actors = '[]'; } catch{}
+        renderActors([]);
+        setPreview(portraitPreview, '');
+        setPreview(landscapePreview, '');
+        setPreview(studioPreview, '');
+        let box = document.querySelector('.confirm-box');
+        if (!box) { box = document.createElement('div'); box.className = 'confirm-box'; form.insertAdjacentElement('afterend', box); }
+        box.innerHTML = '<p>Merci ! Votre demande a été envoyée. Elle sera examinée par l\'équipe.</p>';
+        alert('Merci ! Votre demande a été envoyée.');
+      } catch(err){
+        console.error(err);
+        alert("Échec de l'envoi: " + (err && err.message ? err.message : 'inconnu'));
+      } finally {
+        try { $$('.btn').forEach(b=>b.disabled=false); } catch {}
+      }
     });
 
     // Optional: pre-fill studio badge default
