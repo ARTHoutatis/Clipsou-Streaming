@@ -662,12 +662,14 @@
           exists.data = { ...exists.data, ...item };
           if (!exists.meta) exists.meta = { source: 'user' };
           else exists.meta.source = 'user';
+          // If it was previously marked deleted locally, revive it
+          try { if (exists.meta.deleted) exists.meta.deleted = false; } catch {}
         } else {
           const req = {
             requestId: 'u_'+(item.id || keyTitle(item.title) || Math.random().toString(36).slice(2,8)),
             status: 'pending',
             data: item,
-            meta: { source: 'user' }
+            meta: { source: 'user', deleted: false }
           };
           local.push(req);
           byKey.set(k, req);
