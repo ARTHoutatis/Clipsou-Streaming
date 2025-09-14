@@ -1116,7 +1116,14 @@
               // Prevent revival by hydration for a short TTL
               const normKey = 't:'+normalizeTitleKey(r && r.data && r.data.title);
               suppressTitleKey(normKey);
-              await deleteRequestOnline(r.data);
+              const okRemote = await deleteRequestOnline(r.data);
+              // Extra local prune by normalized title to avoid any lingering duplicates
+              try {
+                const normTitle = normalizeTitleKey(r && r.data && r.data.title);
+                let cur = getRequests();
+                cur = cur.filter(x => normalizeTitleKey(x && x.data && x.data.title) !== normTitle);
+                setRequests(cur);
+              } catch {}
             }
           } catch {}
           try { if ((r && r.data && r.data.id) === getLastEditedId()) clearLastEditedId(); } catch{}
