@@ -11,9 +11,6 @@
 <body>
   <main class="container" id="app" hidden>
     <h1>Clipsou Streaming – Admin</h1>
-    <div class="actions" style="margin-top: 8px;">
-      <button type="button" id="gotoRequestsBtn" class="btn">Demandes</button>
-    </div>
 
     <section class="auth">
       <p class="muted">Accès restreint. Votre session admin est active.</p>
@@ -161,13 +158,9 @@
       <datalist id="actorNamesDatalist"></datalist>
     </section>
 
-    <section class="requests" id="requests">
-      <h2 style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">Requêtes d'ajout
-        <button type="button" id="refreshRequestsBtn" class="btn secondary" title="Rafraîchir les demandes utilisateurs">Rafraîchir</button>
-      </h2>
-
-      <h3>Demandes utilisateurs</h3>
-      <table class="table" id="requestsTableUser" aria-describedby="requestsHelpUser">
+    <section class="requests">
+      <h2>Requêtes d'ajout</h2>
+      <table class="table" id="requestsTable" aria-describedby="requestsHelp">
         <thead>
           <tr>
             <th>Titre</th>
@@ -179,23 +172,6 @@
         </thead>
         <tbody></tbody>
       </table>
-      <p id="requestsHelpUser" class="muted small">Soumissions envoyées depuis la page publique.</p>
-
-      <h3>Demandes admin</h3>
-      <table class="table" id="requestsTableAdmin" aria-describedby="requestsHelpAdmin">
-        <thead>
-          <tr>
-            <th>Titre</th>
-            <th>Type</th>
-            <th>Genres</th>
-            <th>Note</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <p id="requestsHelpAdmin" class="muted small">Brouillons ou requêtes créées depuis cette interface.</p>
-
       <p id="requestsHelp" class="muted">Approuvez une requête pour la publier. Vous pouvez modifier ou supprimer à tout moment.</p>
     </section>
   </main>
