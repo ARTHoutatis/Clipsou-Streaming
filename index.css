@@ -543,8 +543,8 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
 .fiche-content {
     width: 90%;
     max-width: 2000px;
-    /* Keep popup vertically centered by respecting the fixed nav height */
-    max-height: calc(100dvh - 110px);
+    /* Center on full viewport height (ignore nav height), with small breathing room */
+    max-height: calc(100dvh - 40px);
     background: #1a2332; /* opaque */
     border-radius: 16px;
     display: grid;
@@ -556,19 +556,19 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
     margin: auto; /* ensure centering even if container alignment is overridden */
 }
 
-/* Override AFTER base popup styles so nav stays fully opaque while popup is open */
+/* Popups should be centered on the full page (including under the nav) */
 @media (min-width: 769px) {
   .fiche-popup {
-    top: 70px !important; /* desktop nav height */
-    height: calc(100vh - 70px) !important;
-    min-height: auto !important;
+    top: 0 !important;
+    height: 100vh !important;
+    min-height: 100vh !important;
   }
 }
 @media (max-width: 768px) {
   .fiche-popup {
-    top: 60px !important; /* mobile nav height */
-    height: calc(100vh - 60px) !important;
-    min-height: auto !important;
+    top: 0 !important;
+    height: 100vh !important;
+    min-height: 100vh !important;
   }
 }
 /* ... */

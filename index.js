@@ -1331,10 +1331,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         const overlay = document.createElement('div');
         Object.assign(overlay.style, {
           position: 'fixed', inset: '0', zIndex: '99999',
-          background: 'rgba(0,0,0,0.96)', display: 'flex', alignItems: 'center', justifyContent: 'center'
+          background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center'
         });
         overlay.setAttribute('role', 'dialog');
-        overlay.setAttribute('aria-label', 'Intro Clipsou Streaming');
+        overlay.setAttribute('aria-label', 'Intro');
 
         // Container to maintain aspect ratio on mobile
         const box = document.createElement('div');
@@ -1380,13 +1380,6 @@ document.addEventListener('DOMContentLoaded', async function () {
           padding: '10px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', opacity: '0.9'
         });
 
-        // Branding small corner
-        const brand = document.createElement('div');
-        brand.textContent = 'Clipsou Streaming';
-        Object.assign(brand.style, {
-          position: 'absolute', left: '12px', top: '12px', color: 'rgba(255,255,255,0.85)',
-          fontWeight: '600', letterSpacing: '0.3px', fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif'
-        });
 
         function cleanupAndGo(){
           try { video.pause(); } catch {}
@@ -1409,7 +1402,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         box.appendChild(video);
         box.appendChild(skip);
-        box.appendChild(brand);
         overlay.appendChild(box);
         document.body.appendChild(overlay);
 

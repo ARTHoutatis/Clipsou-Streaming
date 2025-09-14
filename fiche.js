@@ -1075,9 +1075,9 @@ const container = document.getElementById('fiche-container');
         try { if (window.__introShowing) return; } catch {}
         window.__introShowing = true;
         const overlay = document.createElement('div');
-        Object.assign(overlay.style, { position: 'fixed', inset: '0', zIndex: '99999', background: 'rgba(0,0,0,0.96)', display: 'flex', alignItems: 'center', justifyContent: 'center' });
+        Object.assign(overlay.style, { position: 'fixed', inset: '0', zIndex: '99999', background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' });
         overlay.setAttribute('role', 'dialog');
-        overlay.setAttribute('aria-label', 'Intro Clipsou Streaming');
+        overlay.setAttribute('aria-label', 'Intro');
         const box = document.createElement('div');
         Object.assign(box.style, { position: 'relative', background: 'black', boxShadow: '0 10px 30px rgba(0,0,0,0.6)', borderRadius: '8px', overflow: 'hidden' });
         // Dynamically size the box to use up to 90% of viewport while preserving 16:9
@@ -1109,9 +1109,6 @@ const container = document.getElementById('fiche-container');
         skip.textContent = 'Passer l\'intro';
         skip.className = 'button';
         Object.assign(skip.style, { position: 'absolute', right: '12px', bottom: '12px', background: '#111', color: '#fff', border: '1px solid rgba(255,255,255,0.25)', padding: '10px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', opacity: '0.9' });
-        const brand = document.createElement('div');
-        brand.textContent = 'Clipsou Streaming';
-        Object.assign(brand.style, { position: 'absolute', left: '12px', top: '12px', color: 'rgba(255,255,255,0.85)', fontWeight: '600', letterSpacing: '0.3px', fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif' });
         function cleanupAndGo(){
           try { video.pause(); } catch {}
           try { overlay.remove(); } catch {}
@@ -1123,7 +1120,7 @@ const container = document.getElementById('fiche-container');
         video.addEventListener('ended', cleanupAndGo);
         video.addEventListener('error', cleanupAndGo);
         setTimeout(()=>{ try { if (!video || video.ended) return; } catch {}; cleanupAndGo(); }, 20000);
-        box.appendChild(video); box.appendChild(skip); box.appendChild(brand);
+        box.appendChild(video); box.appendChild(skip);
         overlay.appendChild(box); document.body.appendChild(overlay);
         try { video.muted = false; video.defaultMuted = false; video.volume = 1.0; } catch {}
         try { const p = video.play(); if (p && typeof p.catch === 'function') p.catch(()=>{}); } catch {}
