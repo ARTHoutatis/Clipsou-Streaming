@@ -11,6 +11,7 @@
   const APP_KEY_PUB = 'clipsou_admin_publish_api_v1';
   const APP_KEY_PUB_TIMES = 'clipsou_admin_publish_times_v1';
   const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
+  const APP_KEY_LAST_EDIT = 'clipsou_admin_last_edit_v1';
   const APP_KEY_ACTOR_PHOTOS = 'clipsou_admin_actor_photos_v1';
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
@@ -447,6 +448,16 @@
   }
   function saveJSON(key, value){
     localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  function getLastEditedId(){
+    try { return String(localStorage.getItem(APP_KEY_LAST_EDIT) || ''); } catch { return ''; }
+  }
+  function setLastEditedId(id){
+    try { if (id) localStorage.setItem(APP_KEY_LAST_EDIT, String(id)); } catch {}
+  }
+  function clearLastEditedId(){
+    try { localStorage.removeItem(APP_KEY_LAST_EDIT); } catch {}
   }
 
   function getActorPhotoMap(){
@@ -895,7 +906,7 @@
       actions.appendChild(editBtn); actions.appendChild(delBtn); actions.appendChild(approveBtn);
 
       // No status cell anymore
-      editBtn.addEventListener('click', ()=>{ fillForm(r.data); });
+      editBtn.addEventListener('click', ()=>{ fillForm(r.data); try { setLastEditedId(r.data && r.data.id); } catch{} });
       delBtn.addEventListener('click', ()=>{
         if (!confirm('Supprimer cette requête ?')) return;
         let list = getRequests().filter(x=>x.requestId!==r.requestId);
@@ -903,6 +914,7 @@
         const deleted = { ...r, meta: { ...(r.meta||{}), updatedAt: Date.now(), deleted: true } };
         list.unshift(deleted);
         setRequests(list);
+        try { if ((r && r.data && r.data.id) === getLastEditedId()) clearLastEditedId(); } catch{}
         if (r.status==='approved') {
           const apr = getApproved().filter(x=>x.id!==r.data.id);
           setApproved(apr);
@@ -1269,6 +1281,7 @@
         }
         else { list.unshift(stampUpdatedAt({ requestId: reqId, status: 'pending', data })); }
         setRequests(list);
+        try { setLastEditedId(data && data.id); } catch{}
         // If already approved, keep approved in sync
         if (wasApproved) {
           let apr = getApproved();
@@ -1343,6 +1356,24 @@
     populateActorNamesDatalist();
     // Hydrate actor photos from public approved.json to ensure chips display known avatars
     try { hydrateActorPhotoMapFromPublic(); } catch {}
+    // If no draft is present, restore the last edited item into the form for continuity
+    try {
+      const draft = loadJSON(APP_KEY_DRAFT, null);
+      if (!draft) {
+        const lastId = getLastEditedId();
+        if (lastId) {
+          const reqs = getRequests();
+          const foundReq = (reqs||[]).find(x => x && x.data && x.data.id === lastId && !(x.meta && x.meta.deleted));
+          if (foundReq && foundReq.data) {
+            fillForm(foundReq.data);
+          } else {
+            const apr = getApproved();
+            const foundApr = (apr||[]).find(x => x && x.id === lastId);
+            if (foundApr) fillForm(foundApr);
+          }
+        }
+      }
+    } catch {}
   }
 
   // Boot
