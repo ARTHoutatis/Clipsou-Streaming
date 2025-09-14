@@ -496,9 +496,52 @@
     const wrap = $('#actorsList');
     wrap.innerHTML = '';
     const photoMap = getActorPhotoMap();
+    // Local drag source index for reordering within this render cycle
+    let dragSrcIndex = null;
     (list||[]).forEach((a, idx) => {
       const chip = document.createElement('div');
       chip.className = 'actor-chip';
+      // Make each chip draggable for reordering
+      chip.setAttribute('draggable', 'true');
+      chip.addEventListener('dragstart', (e) => {
+        dragSrcIndex = idx;
+        try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(idx)); } catch {}
+        chip.classList.add('dragging');
+      });
+      chip.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        try { e.dataTransfer.dropEffect = 'move'; } catch {}
+        chip.classList.add('drop-target');
+      });
+      chip.addEventListener('dragleave', () => {
+        chip.classList.remove('drop-target');
+      });
+      chip.addEventListener('drop', (e) => {
+        e.preventDefault();
+        chip.classList.remove('drop-target');
+        let from = (dragSrcIndex!=null) ? dragSrcIndex : -1;
+        try {
+          if (from < 0) from = parseInt((e.dataTransfer && e.dataTransfer.getData('text/plain'))||'-1', 10);
+        } catch {}
+        const to = idx;
+        if (isNaN(from) || from < 0 || from === to) return;
+        // Reorder list in place
+        const moved = list.splice(from, 1)[0];
+        list.splice(to, 0, moved);
+        // Persist into form dataset and rerender to refresh indices
+        try { $('#contentForm').dataset.actors = JSON.stringify(list); } catch {}
+        try { saveDraft(); } catch {}
+        // Re-enable submit button to reflect unsaved changes
+        try {
+          const btn = document.querySelector('#contentForm .actions .btn[type="submit"], #contentForm .actions button[type="submit"]');
+          if (btn) { btn.disabled = false; btn.removeAttribute('disabled'); btn.style.pointerEvents = ''; }
+        } catch {}
+        renderActors(list);
+      });
+      chip.addEventListener('dragend', () => {
+        chip.classList.remove('dragging');
+        dragSrcIndex = null;
+      });
       // Optional avatar if a.photo is present
       const effectivePhoto = (a && a.photo) || (photoMap && photoMap[a && a.name || '']);
       if (effectivePhoto) {
