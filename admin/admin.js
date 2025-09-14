@@ -28,6 +28,22 @@
     } catch (_) {
       return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '').trim();
     }
+
+  // Remove a request from the shared online requests.json via Worker API
+  async function deleteRequestOnline(item){
+    try {
+      const cfg = await ensurePublishConfig();
+      if (!cfg || !cfg.url || !cfg.secret) return false;
+      const payload = { action: 'deleteRequest' };
+      if (item && item.id) payload.id = item.id; else if (item && item.title) payload.title = item.title;
+      const res = await fetch(cfg.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.secret },
+        body: JSON.stringify(payload)
+      });
+      return res.ok;
+    } catch { return false; }
+  }
   }
 
   // Fetch public approved.json to hydrate actor photos map for admin UI
@@ -820,6 +836,12 @@
       }
     } catch {}
 
+    // Periodically refresh online user requests so all admins see updates
+    try {
+      setInterval(()=>{ try { hydrateRequestsFromOnline(); } catch {} }, 30000);
+      window.addEventListener('focus', ()=>{ try { hydrateRequestsFromOnline(); } catch {} });
+    } catch {}
+
     showLogin();
     const btn = $('#loginBtn');
     const pwdInput = $('#passwordInput');
@@ -970,13 +992,15 @@
 
         // No status cell anymore
         editBtn.addEventListener('click', ()=>{ fillForm(r.data); try { setLastEditedId(r.data && r.data.id); } catch{} });
-        delBtn.addEventListener('click', ()=>{
+        delBtn.addEventListener('click', async ()=>{
           if (!confirm('Supprimer cette requête ?')) return;
           let list = getRequests().filter(x=>x.requestId!==r.requestId);
           // Stamp and sync
           const deleted = { ...r, meta: { ...(r.meta||{}), updatedAt: Date.now(), deleted: true } };
           list.unshift(deleted);
           setRequests(list);
+          // If it came from online user requests, also remove it remotely
+          try { if (r && r.meta && r.meta.source === 'user') await deleteRequestOnline(r.data); } catch {}
           try { if ((r && r.data && r.data.id) === getLastEditedId()) clearLastEditedId(); } catch{}
           if (r.status==='approved') {
             const apr = getApproved().filter(x=>x.id!==r.data.id);
@@ -1024,6 +1048,8 @@
             const ok = await publishApproved(found.data);
             if (ok) {
               approveBtn.textContent = 'Retirer';
+              // If approved from a user-sourced request, remove it from online requests
+              try { if (found && found.meta && found.meta.source === 'user') await deleteRequestOnline(found.data); } catch {}
               setTimeout(()=>{ renderTable(); }, 300);
             } else {
               // Revert local approval on failure
