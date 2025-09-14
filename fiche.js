@@ -1259,8 +1259,8 @@ const container = document.getElementById('fiche-container');
           const url = href.startsWith('http') ? new URL(href) : new URL(href, location.href);
           const h = (url.hostname||'').toLowerCase();
           const params = new URLSearchParams(url.search);
-          // Start paused by default (autoplay=0)
-          const common = '&autoplay=0&rel=0&modestbranding=1&controls=1&playsinline=1';
+          // Autoplay enabled
+          const common = '&autoplay=1&rel=0&modestbranding=1&controls=1&playsinline=1';
           if (h.includes('youtu.be')){
             const id = url.pathname.replace(/^\//,'');
             return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?enablejsapi=1' + common;
