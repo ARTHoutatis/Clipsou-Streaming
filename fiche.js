@@ -497,6 +497,8 @@ function renderFiche(container, item) {
         try { e.preventDefault(); } catch {}
         try { window.__wantEpisodes = true; } catch {}
         try { location.hash = '#episodes-section'; } catch {}
+        // Prefer direct opener if available to avoid any race
+        try { if (typeof window.__openEpisodes === 'function') { window.__openEpisodes(); return; } } catch {}
         try { window.dispatchEvent(new CustomEvent('open-episodes')); } catch { try { window.dispatchEvent(new Event('open-episodes')); } catch {} }
       });
     } else {
@@ -995,7 +997,13 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     similarBtn.setAttribute('aria-expanded', 'false');
     actorsBtn.setAttribute('aria-expanded', 'false');
     episodesBtn.setAttribute('aria-expanded', 'true');
+    // Smooth scroll to the episodes section for a clear animation down the page
+    try {
+      setTimeout(() => { if (episodesPanel && episodesPanel.scrollIntoView) episodesPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 0);
+    } catch {}
   }
+  // Expose a global opener so external buttons (e.g., "Voir les épisodes") can invoke it reliably
+  try { window.__openEpisodes = function(){ try { showEpisodes(); } catch {} }; } catch {}
   actorsBtn.addEventListener('click', showActors);
   similarBtn.addEventListener('click', showSimilar);
   if (hasEpisodes) episodesBtn.addEventListener('click', showEpisodes);
