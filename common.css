@@ -142,6 +142,20 @@ body.drawer-open nav[aria-label="Navigation principale"] {
     flex: 1 1 48%;
   }
 }
+/* Submit Film button (actual link to page) */
+.drawer nav .cta-row a.button[href="film-proposition.html"] {
+  flex: 1 1 220px;              /* same width behavior as Partenariats/Soutenir */
+  font-weight: 700;             /* emphasized */
+  letter-spacing: .2px;
+  background: var(--brand-1) !important; /* blue like brand */
+  border-color: rgba(43,34,238,0.45) !important;
+}
+.drawer nav .cta-row a.button[href="film-proposition.html"]:hover { background: #241DE0 !important; }
+@media (max-width: 768px) {
+  .drawer nav .cta-row a.button[href="film-proposition.html"] {
+    flex: 1 1 48%;              /* share row on mobile */
+  }
+}
 @media (max-width: 768px) {
   .drawer nav .cta-row a.button[href="#submit-film"] {
     flex: 1 1 48%;

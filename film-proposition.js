@@ -138,6 +138,8 @@
     const portraitPreview = $('#portraitPreview');
     const landscapePreview = $('#landscapePreview');
     const studioPreview = $('#studioBadgePreview');
+    const actorPhotoFile = $('#actorPhotoFile');
+    const actorPhotoPreview = $('#actorPhotoPreview');
 
     function wireTextPreview(inputEl, previewEl){
       if (!inputEl || !previewEl) return;
@@ -175,6 +177,26 @@
     if (studioBadgeFileInput) {
       studioBadgeFileInput.addEventListener('change', async (e)=>{ const f = e.target.files && e.target.files[0]; if (f) await handleUpload('studio', f); e.target.value=''; });
     }
+    // Actor photo upload (per-actor temporary image)
+    if (actorPhotoFile) {
+      actorPhotoFile.addEventListener('change', async (e)=>{
+        const f = e.target.files && e.target.files[0];
+        if (!f) return;
+        try {
+          setAllButtonsDisabled(true);
+          const url = await uploadImageToCloudinary(f);
+          // Stash temporarily on the form element until user clicks "Ajouter"
+          $('#submitForm').dataset.actorPhotoTemp = url;
+          if (actorPhotoPreview) { actorPhotoPreview.hidden = false; actorPhotoPreview.src = url; }
+        } catch(err) {
+          console.error(err);
+          alert("Échec de l'upload de la photo acteur: " + (err && err.message ? err.message : 'inconnu'));
+        } finally {
+          setAllButtonsDisabled(false);
+          e.target.value = '';
+        }
+      });
+    }
     const portraitClearBtn = $('#portraitClearBtn');
     const landscapeClearBtn = $('#landscapeClearBtn');
     const studioBadgeClearBtn = $('#studioBadgeClearBtn');
@@ -187,9 +209,20 @@
       const role = $('#actorRole').value.trim();
       if (!name) return;
       const actors = JSON.parse($('#submitForm').dataset.actors || '[]');
-      actors.push({ name, role });
+      // Include uploaded temp photo if available
+      let photo = '';
+      try { photo = $('#submitForm').dataset.actorPhotoTemp || ''; } catch {}
+      if (photo) {
+        actors.push({ name, role, photo });
+      } else {
+        actors.push({ name, role });
+      }
       $('#submitForm').dataset.actors = JSON.stringify(actors);
       $('#actorName').value=''; $('#actorRole').value='';
+      // Clear temp photo + inputs + preview
+      try { delete $('#submitForm').dataset.actorPhotoTemp; } catch {}
+      if (actorPhotoFile) actorPhotoFile.value = '';
+      if (actorPhotoPreview) { actorPhotoPreview.hidden = true; actorPhotoPreview.removeAttribute('src'); }
       renderActors(actors);
     });
 
@@ -200,6 +233,9 @@
       setPreview(portraitPreview, '');
       setPreview(landscapePreview, '');
       setPreview(studioPreview, '');
+      try { delete $('#submitForm').dataset.actorPhotoTemp; } catch {}
+      if (actorPhotoFile) actorPhotoFile.value = '';
+      if (actorPhotoPreview) { actorPhotoPreview.hidden = true; actorPhotoPreview.removeAttribute('src'); }
       try { $('.confirm-box').remove(); } catch{}
     });
 
@@ -233,6 +269,9 @@
         setPreview(portraitPreview, '');
         setPreview(landscapePreview, '');
         setPreview(studioPreview, '');
+        try { delete $('#submitForm').dataset.actorPhotoTemp; } catch {}
+        if (actorPhotoFile) actorPhotoFile.value = '';
+        if (actorPhotoPreview) { actorPhotoPreview.hidden = true; actorPhotoPreview.removeAttribute('src'); }
         let box = document.querySelector('.confirm-box');
         if (!box) { box = document.createElement('div'); box.className = 'confirm-box'; form.insertAdjacentElement('afterend', box); }
         box.innerHTML = '<p>Merci ! Votre demande a été envoyée. Elle sera examinée par l\'équipe.</p>';
