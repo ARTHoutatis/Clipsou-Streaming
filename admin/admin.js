@@ -1007,8 +1007,9 @@
     // Exclude requests marked as deleted from the UI
     const all = getRequests().filter(r => !(r && r.meta && r.meta.deleted));
 
-    const userReqs = all.filter(r => r && r.meta && r.meta.source === 'user');
-    const adminReqs = all.filter(r => !(r && r.meta && r.meta.source === 'user'));
+    const looksUser = (r)=> !!(r && ((r.meta && r.meta.source === 'user') || (r.requestId && /^u_/.test(String(r.requestId)))));
+    const userReqs = all.filter(looksUser);
+    const adminReqs = all.filter(r => !looksUser(r));
 
     function renderList(targetTbody, list){
       if (!targetTbody) return;
