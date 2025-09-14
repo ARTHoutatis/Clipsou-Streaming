@@ -44,6 +44,9 @@
   // Prefer configured Worker URL; if absent, use project default
   const DEFAULT_WORKER_URL = 'https://clipsou-publish.arthurcapon54.workers.dev';
 
+  // Shared validity check for incoming id values
+  function isValidIdValue(v){ return !!v && v !== 'undefined' && v !== 'null'; }
+
   // ===== Utilities: normalization, validation, and deduplication =====
   function normalizeTitleKey(s) {
     try {
@@ -63,13 +66,24 @@
       const cfg = await ensurePublishConfig();
       if (!cfg || !cfg.url || !cfg.secret) return false;
       const payload = { action: 'deleteRequest' };
-      if (item && item.id) payload.id = item.id; else if (item && item.title) payload.title = item.title;
+      // Always send title; send id only if it looks valid
+      if (item && isValidIdValue(item.id)) payload.id = item.id;
+      if (item && item.title) payload.title = item.title;
+      console.debug('[admin] deleteRequestOnline payload:', payload);
       const res = await fetch(cfg.url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.secret },
         body: JSON.stringify(payload)
       });
-      return res.ok;
+      if (!res.ok) {
+        const txt = await res.text().catch(()=>String(res.status));
+        console.warn('[admin] deleteRequestOnline failed:', res.status, txt);
+        alert('Suppression distante échouée ('+res.status+'). Vérifiez le SHARED_SECRET et les logs Worker.');
+        return false;
+      }
+      // Schedule a hydration to reflect remote deletion
+      setTimeout(()=>{ try { hydrateRequestsFromOnline(); } catch {} }, 1200);
+      return true;
     } catch { return false; }
   }
   }
