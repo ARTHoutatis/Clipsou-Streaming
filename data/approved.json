@@ -219,6 +219,50 @@
     ]
   },
   {
+    "id": "custom-test-jxgo",
+    "title": "test",
+    "type": "film",
+    "rating": 2,
+    "genres": [
+      "Action",
+      "Comédie",
+      "Aventure"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757699048/fdxtuxsxztgd88bkcsp5.avif",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757699050/rzkupw2qt62cxrhmryrb.webp",
+    "description": "test",
+    "watchUrl": "https://www.youtube.com/shorts/v8O-_YuEi58",
+    "actors": [
+      {
+        "name": "Arth",
+        "role": "testeur"
+      },
+      {
+        "name": "Liam Roxxor",
+        "role": "testeur"
+      },
+      {
+        "name": "Stranger Art",
+        "role": "testeur"
+      },
+      {
+        "name": "Ferrisbu",
+        "role": ""
+      },
+      {
+        "name": "Steve Animation",
+        "role": "",
+        "photo": "steve-animation.webp"
+      },
+      {
+        "name": "Winter7th",
+        "role": "",
+        "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757835089/kx8kkpndtpu2hu7foras.jpg"
+      }
+    ],
+    "studioBadge": "clipsoustudio.png"
+  },
+  {
     "id": "custom-the-psycho-teacher-q2q6",
     "title": "The Psycho Teacher",
     "type": "film",
