@@ -397,10 +397,82 @@
   }
 
   function getActorPhotoMap(){
-    try { return JSON.parse(localStorage.getItem(APP_KEY_ACTOR_PHOTOS) || '{}'); } catch { return {}; }
+    // Merge sources: manual overrides (local), requests, approved. Manual overrides take precedence.
+    let out = {};
+    try { out = JSON.parse(localStorage.getItem(APP_KEY_ACTOR_PHOTOS) || '{}') || {}; } catch { out = {}; }
+    // Robust normalization for matching actor names
+    const normalizeActorKey = (s) => {
+      try {
+        return String(s||'')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g,'')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g,'')
+          .trim();
+      } catch {
+        return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim();
+      }
+    };
+    // Helper to set if absent (case-insensitive awareness)
+    const setIfEmpty = (name, url) => {
+      if (!name || !url) return;
+      const key = normalizeActorKey(name);
+      if (!key) return;
+      if (!(key in out)) out[key] = url;
+    };
+    // Normalize any pre-existing manual overrides to normalized keys
+    try {
+      const rebuilt = {};
+      for (const k in out) {
+        if (!Object.prototype.hasOwnProperty.call(out,k)) continue;
+        const nk = normalizeActorKey(k);
+        if (!nk) continue;
+        if (!(nk in rebuilt)) rebuilt[nk] = out[k];
+      }
+      out = rebuilt;
+    } catch {}
+    // From requests
+    try {
+      const reqs = getRequests();
+      (reqs||[]).forEach(r => {
+        const actors = r && r.data && Array.isArray(r.data.actors) ? r.data.actors : [];
+        actors.forEach(a => { if (a && a.name && a.photo) setIfEmpty(a.name, a.photo); });
+      });
+    } catch {}
+    // From approved
+    try {
+      const apr = getApproved();
+      (apr||[]).forEach(it => {
+        const actors = it && Array.isArray(it.actors) ? it.actors : [];
+        actors.forEach(a => { if (a && a.name && a.photo) setIfEmpty(a.name, a.photo); });
+      });
+    } catch {}
+    return out;
   }
   function setActorPhotoMap(map){
     try { localStorage.setItem(APP_KEY_ACTOR_PHOTOS, JSON.stringify(map||{})); } catch {}
+  }
+
+  // Resolve a photo for a given actor name using case-insensitive lookup
+  function resolveActorPhoto(photoMap, name){
+    try {
+      if (!name) return '';
+      // Use the same normalization as in the map
+      const key = (function(){
+        try {
+          return String(name)
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g,'')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g,'')
+            .trim();
+        } catch {
+          return String(name).toLowerCase().replace(/[^a-z0-9]+/g,'').trim();
+        }
+      })();
+      if (!key) return '';
+      return (photoMap && photoMap[key]) || '';
+    } catch { return ''; }
   }
 
   function uid(){ return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8); }
@@ -543,14 +615,32 @@
         dragSrcIndex = null;
       });
       // Optional avatar if a.photo is present
-      const effectivePhoto = (a && a.photo) || (photoMap && photoMap[a && a.name || '']);
+      const effectivePhoto = (a && a.photo) || resolveActorPhoto(photoMap, a && a.name || '');
       if (effectivePhoto) {
         const img = document.createElement('img');
         img.className = 'avatar';
         img.alt = a.name || 'acteur';
         img.loading = 'lazy';
         img.decoding = 'async';
-        try { img.src = effectivePhoto; } catch { img.src = effectivePhoto || ''; }
+        try {
+          const isHttp = /^https?:\/\//i.test(String(effectivePhoto));
+          const base = String(effectivePhoto || '');
+          const first = isHttp ? base : ('../' + base);
+          const second = isHttp ? '' : base; // same folder fallback
+          const third = isHttp ? '' : ('/' + base); // absolute root fallback (when served via HTTP)
+          img.dataset._attempt = '0';
+          img.onerror = () => {
+            try {
+              const attempt = parseInt(img.dataset._attempt || '0', 10);
+              if (attempt === 0 && second) { img.dataset._attempt = '1'; img.src = second; return; }
+              if (attempt === 1 && third) { img.dataset._attempt = '2'; img.src = third; return; }
+              img.onerror = null; // give up
+            } catch { img.onerror = null; }
+          };
+          img.src = first;
+        } catch {
+          img.src = effectivePhoto || '';
+        }
         chip.appendChild(img);
       }
       const nameSpan = document.createElement('span'); nameSpan.textContent = a.name || '';
@@ -854,7 +944,11 @@
               const nm = (nameInput && nameInput.value || '').trim();
               if (nm) {
                 const map = getActorPhotoMap();
-                map[nm] = url;
+                const key = (function(){
+                  try { return String(nm).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); }
+                  catch { return String(nm).toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); }
+                })();
+                if (key) map[key] = url;
                 setActorPhotoMap(map);
               }
             } catch {}
@@ -869,7 +963,7 @@
           const nm = (nameInput && nameInput.value || '').trim();
           if (!nm) return;
           const map = getActorPhotoMap();
-          const url = map[nm];
+          const url = resolveActorPhoto(map, nm);
           if (url) {
             $('#contentForm').dataset.actorPhotoTemp = url;
             if (preview) { preview.hidden = false; preview.src = url.startsWith('http')? url : ('../'+url); }
@@ -890,7 +984,7 @@
       let photo = $('#contentForm').dataset.actorPhotoTemp || '';
       // If no temp photo but default exists for this name, use it
       if (!photo) {
-        try { const map = getActorPhotoMap(); photo = map[name] || ''; } catch {}
+        try { const map = getActorPhotoMap(); photo = resolveActorPhoto(map, name) || ''; } catch {}
       }
       actors.push(photo ? { name, role, photo } : { name, role });
       $('#contentForm').dataset.actors = JSON.stringify(actors);
