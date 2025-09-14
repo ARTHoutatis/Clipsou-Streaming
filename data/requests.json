@@ -1,0 +1,25 @@
+[
+  {
+    "id": "undefined",
+    "title": "test",
+    "type": "film",
+    "rating": 3,
+    "genres": [
+      "Action",
+      "Comédie",
+      "Drame"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757843208/v5quieb3m5jtlydkultb.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757843210/kr2s6jv38iqiuckmufxj.png",
+    "description": "test",
+    "watchUrl": "https://www.youtube.com/shorts/v8O-_YuEi58",
+    "actors": [
+      {
+        "name": "test",
+        "role": "testeur"
+      }
+    ],
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757843215/jbujlxjq0fqw6j5k2t2v.png",
+    "submittedAt": "2025-09-14T09:47:06.161Z"
+  }
+]
