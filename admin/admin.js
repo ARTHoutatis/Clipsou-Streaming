@@ -883,102 +883,114 @@
   }
 
   function renderTable(){
-    const tbody = $('#requestsTable tbody');
+    const tbodyUser = document.querySelector('#requestsTableUser tbody');
+    const tbodyAdmin = document.querySelector('#requestsTableAdmin tbody');
+    if (tbodyUser) tbodyUser.innerHTML = '';
+    if (tbodyAdmin) tbodyAdmin.innerHTML = '';
     // Exclude requests marked as deleted from the UI
-    const reqs = getRequests().filter(r => !(r && r.meta && r.meta.deleted));
-    tbody.innerHTML = '';
-    reqs.forEach(r => {
-      const tr = document.createElement('tr');
-      const g3 = (r.data.genres||[]).slice(0,3).join(', ');
-      tr.innerHTML = `
-        <td>${r.data.title||''}</td>
-        <td>${r.data.type||''}</td>
-        <td>${g3}</td>
-        <td>${(typeof r.data.rating==='number')?r.data.rating:''}</td>
-        <td class="row-actions"></td>
-      `;
-      const actions = tr.querySelector('.row-actions');
-      const editBtn = document.createElement('button'); editBtn.className='btn secondary'; editBtn.textContent='Modifier';
-      const delBtn = document.createElement('button'); delBtn.className='btn secondary'; delBtn.textContent='Supprimer';
-      const approveBtn = document.createElement('button'); approveBtn.className='btn';
-      // Simplified labels without status dots
-      approveBtn.textContent = (r.status === 'approved') ? 'Retirer' : 'Approuver';
-      actions.appendChild(editBtn); actions.appendChild(delBtn); actions.appendChild(approveBtn);
+    const all = getRequests().filter(r => !(r && r.meta && r.meta.deleted));
 
-      // No status cell anymore
-      editBtn.addEventListener('click', ()=>{ fillForm(r.data); try { setLastEditedId(r.data && r.data.id); } catch{} });
-      delBtn.addEventListener('click', ()=>{
-        if (!confirm('Supprimer cette requête ?')) return;
-        let list = getRequests().filter(x=>x.requestId!==r.requestId);
-        // Stamp and sync
-        const deleted = { ...r, meta: { ...(r.meta||{}), updatedAt: Date.now(), deleted: true } };
-        list.unshift(deleted);
-        setRequests(list);
-        try { if ((r && r.data && r.data.id) === getLastEditedId()) clearLastEditedId(); } catch{}
-        if (r.status==='approved') {
-          const apr = getApproved().filter(x=>x.id!==r.data.id);
-          setApproved(apr);
-        }
-        renderTable(); emptyForm();
-      });
-      approveBtn.addEventListener('click', async ()=>{
-        const list = getRequests();
-        const found = list.find(x=>x.requestId===r.requestId);
-        if (!found) return;
-        if (found.status==='approved') {
-          // Unapprove
-          found.status = 'pending';
-          stampUpdatedAt(found);
-          setRequests(list);
-          const apr = getApproved().filter(x=>x.id!==found.data.id);
-          setApproved(apr);
-          // Remove from shared approved.json
-          showPublishWaitHint();
-          await deleteApproved(found.data.id);
-          approveBtn.textContent = 'Approuver';
-          // No status cell to refresh
-          // Sync removed
-        } else {
-          // Show publishing indicator and disable button during network call
-          const originalHtml = approveBtn.innerHTML;
-          approveBtn.disabled = true;
-          // Keep the button label unchanged; the hint is displayed elsewhere
-          approveBtn.innerHTML = originalHtml;
-          showPublishWaitHint();
+    const userReqs = all.filter(r => r && r.meta && r.meta.source === 'user');
+    const adminReqs = all.filter(r => !(r && r.meta && r.meta.source === 'user'));
 
-          // Optimistically set approved locally
-          found.status = 'approved';
-          stampUpdatedAt(found);
+    function renderList(targetTbody, list){
+      if (!targetTbody) return;
+      list.forEach(r => {
+        const tr = document.createElement('tr');
+        const g3 = (r.data.genres||[]).slice(0,3).join(', ');
+        tr.innerHTML = `
+          <td>${r.data.title||''}</td>
+          <td>${r.data.type||''}</td>
+          <td>${g3}</td>
+          <td>${(typeof r.data.rating==='number')?r.data.rating:''}</td>
+          <td class="row-actions"></td>
+        `;
+        const actions = tr.querySelector('.row-actions');
+        const editBtn = document.createElement('button'); editBtn.className='btn secondary'; editBtn.textContent='Modifier';
+        const delBtn = document.createElement('button'); delBtn.className='btn secondary'; delBtn.textContent='Supprimer';
+        const approveBtn = document.createElement('button'); approveBtn.className='btn';
+        // Simplified labels without status dots
+        approveBtn.textContent = (r.status === 'approved') ? 'Retirer' : 'Approuver';
+        actions.appendChild(editBtn); actions.appendChild(delBtn); actions.appendChild(approveBtn);
+
+        // No status cell anymore
+        editBtn.addEventListener('click', ()=>{ fillForm(r.data); try { setLastEditedId(r.data && r.data.id); } catch{} });
+        delBtn.addEventListener('click', ()=>{
+          if (!confirm('Supprimer cette requête ?')) return;
+          let list = getRequests().filter(x=>x.requestId!==r.requestId);
+          // Stamp and sync
+          const deleted = { ...r, meta: { ...(r.meta||{}), updatedAt: Date.now(), deleted: true } };
+          list.unshift(deleted);
           setRequests(list);
-          let apr = getApproved();
-          const key = normalizeTitleKey(found.data && found.data.title);
-          // Remove any existing approved with same normalized title or different item with same id
-          apr = apr.filter(x => x && x.id !== found.data.id && normalizeTitleKey(x.title) !== key);
-          apr.push(found.data);
-          setApproved(dedupeByIdAndTitle(apr));
-          // Sync removed
-          // Publish through API for everyone and reflect final status
-          const ok = await publishApproved(found.data);
-          if (ok) {
-            approveBtn.textContent = 'Retirer';
-            setTimeout(()=>{ renderTable(); }, 300);
-          } else {
-            // Revert local approval on failure
-            found.status = 'pending';
-            setRequests(list);
-            const apr2 = getApproved().filter(x=>x.id!==found.data.id);
-            setApproved(apr2);
-            approveBtn.textContent = 'Approuver';
-            renderTable();
+          try { if ((r && r.data && r.data.id) === getLastEditedId()) clearLastEditedId(); } catch{}
+          if (r.status==='approved') {
+            const apr = getApproved().filter(x=>x.id!==r.data.id);
+            setApproved(apr);
           }
-          // Re-enable only if global 30s lock is not active
-          try { approveBtn.disabled = isPublishLocked(); } catch { approveBtn.disabled = false; }
-        }
-        // For unapprove, immediate refresh
-        if (found.status==='pending') renderTable();
+          renderTable(); emptyForm();
+        });
+        approveBtn.addEventListener('click', async ()=>{
+          const list = getRequests();
+          const found = list.find(x=>x.requestId===r.requestId);
+          if (!found) return;
+          if (found.status==='approved') {
+            // Unapprove
+            found.status = 'pending';
+            stampUpdatedAt(found);
+            setRequests(list);
+            const apr = getApproved().filter(x=>x.id!==found.data.id);
+            setApproved(apr);
+            // Remove from shared approved.json
+            showPublishWaitHint();
+            await deleteApproved(found.data.id);
+            approveBtn.textContent = 'Approuver';
+            // No status cell to refresh
+            // Sync removed
+          } else {
+            // Show publishing indicator and disable button during network call
+            const originalHtml = approveBtn.innerHTML;
+            approveBtn.disabled = true;
+            // Keep the button label unchanged; the hint is displayed elsewhere
+            approveBtn.innerHTML = originalHtml;
+            showPublishWaitHint();
+
+            // Optimistically set approved locally
+            found.status = 'approved';
+            stampUpdatedAt(found);
+            setRequests(list);
+            let apr = getApproved();
+            const key = normalizeTitleKey(found.data && found.data.title);
+            // Remove any existing approved with same normalized title or different item with same id
+            apr = apr.filter(x => x && x.id !== found.data.id && normalizeTitleKey(x.title) !== key);
+            apr.push(found.data);
+            setApproved(dedupeByIdAndTitle(apr));
+            // Sync removed
+            // Publish through API for everyone and reflect final status
+            const ok = await publishApproved(found.data);
+            if (ok) {
+              approveBtn.textContent = 'Retirer';
+              setTimeout(()=>{ renderTable(); }, 300);
+            } else {
+              // Revert local approval on failure
+              found.status = 'pending';
+              setRequests(list);
+              const apr2 = getApproved().filter(x=>x.id!==found.data.id);
+              setApproved(apr2);
+              approveBtn.textContent = 'Approuver';
+              renderTable();
+            }
+            // Re-enable only if global 30s lock is not active
+            try { approveBtn.disabled = isPublishLocked(); } catch { approveBtn.disabled = false; }
+          }
+          // For unapprove, immediate refresh
+          if (found.status==='pending') renderTable();
+        });
+        targetTbody.appendChild(tr);
       });
-      tbody.appendChild(tr);
-    });
+    }
+
+    renderList(tbodyUser, userReqs);
+    renderList(tbodyAdmin, adminReqs);
     populateActorNamesDatalist();
     // Apply global 30s lock state to any newly rendered buttons
     try { applyPublishLockUI(); } catch {}
@@ -1299,7 +1311,10 @@
           if (wasApproved) existing.status = 'pending';
           stampUpdatedAt(existing);
         }
-        else { list.unshift(stampUpdatedAt({ requestId: reqId, status: 'pending', data })); }
+        else {
+          const base = { requestId: reqId, status: 'pending', data, meta: { source: 'admin' } };
+          list.unshift(stampUpdatedAt(base));
+        }
         setRequests(list);
         try { setLastEditedId(data && data.id); } catch{}
         // If already approved, keep approved in sync

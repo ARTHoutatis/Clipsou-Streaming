@@ -163,7 +163,9 @@
 
     <section class="requests" id="requests">
       <h2>Requêtes d'ajout</h2>
-      <table class="table" id="requestsTable" aria-describedby="requestsHelp">
+
+      <h3>Demandes utilisateurs</h3>
+      <table class="table" id="requestsTableUser" aria-describedby="requestsHelpUser">
         <thead>
           <tr>
             <th>Titre</th>
@@ -175,6 +177,23 @@
         </thead>
         <tbody></tbody>
       </table>
+      <p id="requestsHelpUser" class="muted small">Soumissions envoyées depuis la page publique.</p>
+
+      <h3>Demandes admin</h3>
+      <table class="table" id="requestsTableAdmin" aria-describedby="requestsHelpAdmin">
+        <thead>
+          <tr>
+            <th>Titre</th>
+            <th>Type</th>
+            <th>Genres</th>
+            <th>Note</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p id="requestsHelpAdmin" class="muted small">Brouillons ou requêtes créées depuis cette interface.</p>
+
       <p id="requestsHelp" class="muted">Approuvez une requête pour la publier. Vous pouvez modifier ou supprimer à tout moment.</p>
     </section>
   </main>
