@@ -773,12 +773,12 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
         img.setAttribute('data-slug', baseSlug);
       }
       img.alt = a.name;
-      // Strong inline sizing to win against any external CSS and prevent cropping
-      img.style.width = 'auto';
+      // Strong inline sizing to enforce perfect square thumbnails filled by the image
+      img.style.width = '100%';
       img.style.height = '100%';
       img.style.maxWidth = '100%';
       img.style.maxHeight = '100%';
-      img.style.objectFit = 'contain';
+      img.style.objectFit = 'cover';
       img.style.objectPosition = 'center center';
       img.style.display = 'block';
       img.decoding = 'async';
