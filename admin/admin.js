@@ -1,3 +1,27 @@
+  // ===== Deleted-user requests suppression to avoid revival during hydration =====
+  function loadSuppressionMap(){
+    try { return JSON.parse(localStorage.getItem(APP_KEY_REQ_SUPPRESS)||'{}') || {}; } catch { return {}; }
+  }
+  function saveSuppressionMap(map){
+    try { localStorage.setItem(APP_KEY_REQ_SUPPRESS, JSON.stringify(map||{})); } catch {}
+  }
+  function suppressTitleKey(key){
+    try {
+      const m = loadSuppressionMap();
+      m[String(key)||''] = Date.now();
+      saveSuppressionMap(m);
+    } catch {}
+  }
+  function isSuppressed(key, ttlMs){
+    try {
+      const m = loadSuppressionMap();
+      const t = m[String(key)||''];
+      if (!t) return false;
+      const ttl = typeof ttlMs==='number' ? ttlMs : 2*60*60*1000; // 2h default
+      return (Date.now() - t) < ttl;
+    } catch { return false; }
+  }
+
 'use strict';
 
 (function(){
@@ -13,6 +37,7 @@
   const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
   const APP_KEY_LAST_EDIT = 'clipsou_admin_last_edit_v1';
   const APP_KEY_ACTOR_PHOTOS = 'clipsou_admin_actor_photos_v1';
+  const APP_KEY_REQ_SUPPRESS = 'clipsou_requests_suppress_v1';
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
@@ -656,6 +681,9 @@
         if (!item) return;
         const hasId = validId(item.id);
         const k = hasId ? ('id:'+item.id) : ('t:'+keyTitle(item.title));
+        // Skip revival if the normalized title is suppressed (recently deleted locally)
+        const normKey = 't:'+keyTitle(item.title);
+        if (isSuppressed(normKey)) return;
         const exists = byKey.get(k);
         if (exists) {
           // Update data from online for visibility but preserve local meta/status/requestId
@@ -675,6 +703,25 @@
           byKey.set(k, req);
         }
       });
+      // Deduplicate by normalized title: keep first non-deleted entry
+      try {
+        const seen = new Set();
+        const out = [];
+        for (const r of local) {
+          const k = 't:'+keyTitle(r && r.data && r.data.title);
+          if (!seen.has(k)) { out.push(r); seen.add(k); }
+          else {
+            // If existing kept one was deleted but current is not, replace it
+            const idx = out.findIndex(x=>('t:'+keyTitle(x && x.data && x.data.title))===k);
+            if (idx>=0) {
+              const kept = out[idx];
+              const keepCurrent = (!!r && !(r.meta && r.meta.deleted)) && (!!kept && (kept.meta && kept.meta.deleted));
+              if (keepCurrent) out[idx] = r;
+            }
+          }
+        }
+        local = out;
+      } catch {}
       setRequests(local);
       renderTable();
     } catch {}
