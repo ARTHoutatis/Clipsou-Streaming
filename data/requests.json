@@ -1,25 +1,26 @@
 [
   {
     "id": "undefined",
-    "title": "test",
+    "title": "eFSEDF",
     "type": "film",
-    "rating": 3,
+    "rating": 5,
     "genres": [
-      "Action",
       "Comédie",
-      "Drame"
+      "Aventure",
+      "Familial"
     ],
-    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757843208/v5quieb3m5jtlydkultb.webp",
-    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757843210/kr2s6jv38iqiuckmufxj.png",
-    "description": "test",
-    "watchUrl": "https://www.youtube.com/shorts/v8O-_YuEi58",
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757844155/z8xrhehehmxkqh27elyo.jpg",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757844158/yborvpjhqwlmcsvrqv05.png",
+    "description": "SEDFSDFSDFSDFSDGRTGFDFRRGD",
+    "watchUrl": "https://youtu.be/fiqxEb_URX0?si=X8eaauv_XuytMEhi",
     "actors": [
       {
-        "name": "test",
-        "role": "testeur"
+        "name": "efefef",
+        "role": "efefef",
+        "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757844183/p2cpglsfr8n7jawhzdmz.jpg"
       }
     ],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757843215/jbujlxjq0fqw6j5k2t2v.png",
-    "submittedAt": "2025-09-14T09:47:06.161Z"
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757844175/pdpcj2j0fvioo3fcghcy.png",
+    "submittedAt": "2025-09-14T10:03:20.055Z"
   }
 ]
