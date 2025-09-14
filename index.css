@@ -33,7 +33,27 @@
   background: linear-gradient(180deg, rgba(0,0,0,0.7), rgba(0,0,0,0));
 }
 .player-title { font-size: 16px; font-weight: 700; color: #fff; margin: 0; }
-.player-close { background: transparent; color: #fff; border: 0; font-size: 22px; cursor: pointer; }
+.player-close {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-1);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.12);
+  font-size: 16.8px; /* 1.2x */
+  line-height: 1;
+  padding: 9.6px 14.4px; /* 1.2x */
+  border-radius: 9.6px; /* 1.2x */
+  cursor: pointer;
+  outline: none;
+  box-shadow: none;
+}
+.player-close:hover, .player-close:focus {
+  background: var(--bg-2);
+  border-color: rgba(255,255,255,0.18);
+  outline: none;
+  box-shadow: none;
+}
 .player-stage { position: relative; width: 100%; height: 100%; background: #000; }
 .player-stage video, .player-stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; display: block; border: 0; object-fit: cover; }
 .player-footer { padding: 10px 16px; color: rgba(255,255,255,0.8); font-size: 13px; background: linear-gradient(0deg, rgba(0,0,0,0.7), rgba(0,0,0,0)); }

@@ -1233,11 +1233,13 @@ const container = document.getElementById('fiche-container');
         const shell = document.createElement('div'); shell.className = 'player-shell';
         const top = document.createElement('div'); top.className = 'player-topbar';
         const titleEl = document.createElement('h4'); titleEl.className = 'player-title'; titleEl.textContent = 'Lecture';
-        const closeBtn = document.createElement('button'); closeBtn.className = 'player-close'; closeBtn.setAttribute('aria-label','Fermer le lecteur'); closeBtn.textContent = '✕';
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'player-close';
+        closeBtn.setAttribute('aria-label','Fermer le film en cours');
+        closeBtn.textContent = '✕ Fermer';
         top.appendChild(titleEl); top.appendChild(closeBtn);
         const stage = document.createElement('div'); stage.className = 'player-stage';
-        const footer = document.createElement('div'); footer.className = 'player-footer'; footer.textContent = 'Appuyez sur Échap ou ✕ pour fermer.';
-        shell.appendChild(top); shell.appendChild(stage); shell.appendChild(footer);
+        shell.appendChild(top); shell.appendChild(stage);
         overlay.appendChild(shell); document.body.appendChild(overlay);
         const close = ()=>{
           try { if (typeof overlay.__activeCleanup === 'function') overlay.__activeCleanup(); } catch {}
@@ -1293,8 +1295,6 @@ const container = document.getElementById('fiche-container');
         intro.src = 'intro.mp4'; intro.autoplay = true; intro.playsInline = true; intro.controls = false; intro.preload = 'auto';
         try { intro.muted = false; intro.defaultMuted = false; intro.volume = 1.0; } catch {}
         Object.assign(intro.style, { width: '100%', height: '100%', objectFit: 'cover', display: 'block' });
-        const skip = document.createElement('button'); skip.textContent = 'Passer l\'intro'; skip.className = 'button';
-        Object.assign(skip.style, { position: 'absolute', right: '12px', bottom: '12px', background: '#111', color: '#fff', border: '1px solid rgba(255,255,255,0.25)', padding: '10px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', opacity: '0.9', zIndex: 2 });
         let started = false;
         let cleaned = false;
         function cleanupActive(){
@@ -1302,7 +1302,6 @@ const container = document.getElementById('fiche-container');
           try { clearTimeout(watchdog); } catch {}
           try { intro.removeEventListener('ended', startMain); } catch {}
           try { intro.removeEventListener('error', startMain); } catch {}
-          try { skip.removeEventListener('click', startMain); } catch {}
           started = true;
         }
         function startMain(){
@@ -1317,7 +1316,6 @@ const container = document.getElementById('fiche-container');
           stage.appendChild(iframe);
           window.__introShowing = false;
         }
-        skip.addEventListener('click', startMain, { once: true });
         intro.addEventListener('ended', startMain, { once: true });
         intro.addEventListener('error', startMain, { once: true });
         const watchdog = setTimeout(()=>{
@@ -1328,7 +1326,6 @@ const container = document.getElementById('fiche-container');
         }, 8000);
         try { overlay.__activeCleanup = cleanupActive; } catch {}
         stage.appendChild(intro);
-        stage.appendChild(skip);
         try { const p = intro.play(); if (p && typeof p.catch === 'function') p.catch(()=>{}); } catch {}
       }
 
