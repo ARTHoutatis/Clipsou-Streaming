@@ -592,10 +592,15 @@
   // ===== Online requests (public submissions) =====
   async function fetchOnlineRequestsArray(){
     // Try common relative paths; same-origin fetch, no credentials beyond same-origin
+    const origin = (function(){ try { return window.location.origin; } catch { return ''; } })();
     const tryUrls = [
+      // absolute first (CDN/static hosting)
+      origin ? origin + '/data/requests.json' : null,
+      'https://clipsoustreaming.com/data/requests.json',
+      // relative fallbacks
       '../data/requests.json',
       'data/requests.json'
-    ];
+    ].filter(Boolean);
     for (const u of tryUrls) {
       try {
         const res = await fetch(u + '?v=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' });
@@ -617,11 +622,18 @@
       if (!online || !online.length) return;
       let local = getRequests() || [];
       const keyTitle = (t)=>normalizeTitleKey(t||'');
+      const validId = (v)=>{ return !!v && v !== 'undefined' && v !== 'null'; };
       const byKey = new Map();
-      local.forEach(r=>{ if (!r||!r.data) return; const k = r.data.id ? ('id:'+r.data.id) : ('t:'+keyTitle(r.data.title)); if (!byKey.has(k)) byKey.set(k, r); });
+      local.forEach(r=>{
+        if (!r||!r.data) return;
+        const hasId = validId(r.data.id);
+        const k = hasId ? ('id:'+r.data.id) : ('t:'+keyTitle(r.data.title));
+        if (!byKey.has(k)) byKey.set(k, r);
+      });
       online.forEach(item => {
         if (!item) return;
-        const k = item.id ? ('id:'+item.id) : ('t:'+keyTitle(item.title));
+        const hasId = validId(item.id);
+        const k = hasId ? ('id:'+item.id) : ('t:'+keyTitle(item.title));
         const exists = byKey.get(k);
         if (exists) {
           // Update data from online for visibility but preserve local meta/status/requestId
@@ -834,6 +846,12 @@
         initApp();
         return;
       }
+    } catch {}
+
+    // Manual refresh button for online user requests
+    try {
+      const btn = document.querySelector('#refreshRequestsBtn');
+      if (btn) btn.addEventListener('click', ()=>{ try { hydrateRequestsFromOnline(); } catch {} });
     } catch {}
 
     // Periodically refresh online user requests so all admins see updates
