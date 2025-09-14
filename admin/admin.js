@@ -573,6 +573,61 @@
   function getApproved(){ return loadJSON(APP_KEY_APPROVED, []); }
   function setApproved(list){ saveJSON(APP_KEY_APPROVED, list); }
 
+  // ===== Online requests (public submissions) =====
+  async function fetchOnlineRequestsArray(){
+    // Try common relative paths; same-origin fetch, no credentials beyond same-origin
+    const tryUrls = [
+      '../data/requests.json',
+      'data/requests.json'
+    ];
+    for (const u of tryUrls) {
+      try {
+        const res = await fetch(u + '?v=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' });
+        if (!res.ok) continue;
+        const json = await res.json();
+        if (Array.isArray(json)) return json;
+        if (json && typeof json === 'object') {
+          if (Array.isArray(json.requests)) return json.requests;
+          if (Array.isArray(json.data)) return json.data;
+        }
+      } catch {}
+    }
+    return [];
+  }
+
+  async function hydrateRequestsFromOnline(){
+    try {
+      const online = await fetchOnlineRequestsArray();
+      if (!online || !online.length) return;
+      let local = getRequests() || [];
+      const keyTitle = (t)=>normalizeTitleKey(t||'');
+      const byKey = new Map();
+      local.forEach(r=>{ if (!r||!r.data) return; const k = r.data.id ? ('id:'+r.data.id) : ('t:'+keyTitle(r.data.title)); if (!byKey.has(k)) byKey.set(k, r); });
+      online.forEach(item => {
+        if (!item) return;
+        const k = item.id ? ('id:'+item.id) : ('t:'+keyTitle(item.title));
+        const exists = byKey.get(k);
+        if (exists) {
+          // Update data from online for visibility but preserve local meta/status/requestId
+          exists.data = { ...exists.data, ...item };
+          if (!exists.meta) exists.meta = { source: 'user' };
+          else exists.meta.source = 'user';
+        } else {
+          const req = {
+            requestId: 'u_'+(item.id || keyTitle(item.title) || Math.random().toString(36).slice(2,8)),
+            status: 'pending',
+            data: item,
+            meta: { source: 'user' }
+          };
+          local.push(req);
+          byKey.set(k, req);
+        }
+      });
+      setRequests(local);
+      renderTable();
+    } catch {}
+  }
+
   function getPublishConfig(){
     try { return JSON.parse(localStorage.getItem(APP_KEY_PUB) || 'null') || {}; } catch { return {}; }
   }
@@ -1385,6 +1440,8 @@
 
     emptyForm();
     renderTable();
+    // Pull online user requests and merge into local list (marked as source:user)
+    try { hydrateRequestsFromOnline(); } catch {}
     // Shared requests sync removed
     populateGenresDatalist();
     restoreDraft();
