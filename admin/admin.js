@@ -1097,7 +1097,14 @@
           list.unshift(deleted);
           setRequests(list);
           // If it came from online user requests, also remove it remotely
-          try { if (r && r.meta && r.meta.source === 'user') await deleteRequestOnline(r.data); } catch {}
+          try {
+            if (r && r.meta && r.meta.source === 'user') {
+              // Prevent revival by hydration for a short TTL
+              const normKey = 't:'+normalizeTitleKey(r && r.data && r.data.title);
+              suppressTitleKey(normKey);
+              await deleteRequestOnline(r.data);
+            }
+          } catch {}
           try { if ((r && r.data && r.data.id) === getLastEditedId()) clearLastEditedId(); } catch{}
           if (r.status==='approved') {
             const apr = getApproved().filter(x=>x.id!==r.data.id);
