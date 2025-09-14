@@ -424,13 +424,29 @@ body.popup-open nav[aria-label="Navigation principale"] {
   padding: 10px 16px;
   border-radius: 8px;
   min-height: 40px;
+  outline: none;
+  box-shadow: none;
+  text-shadow: none;
 }
 .button.secondary:hover { 
   background: rgba(255,255,255,0.08); 
+  outline: none;
+  box-shadow: none;
+  filter: none;
 }
 .button.secondary.active {
   background: #2B22EE;
   border-color: #2B22EE;
+  outline: none;
+  box-shadow: none;
+}
+
+/* Remove focus ring/glow on keyboard/mouse focus */
+.button.secondary:focus,
+.button.secondary:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  filter: none !important;
 }
 
 /* Actors panel */
@@ -467,6 +483,21 @@ body.popup-open nav[aria-label="Navigation principale"] {
   display: block !important;
   width: 100% !important;
   text-align: left;
+  background: var(--bg-1) !important; /* same as top bar */
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  color: #ffffff !important;
+  outline: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+.episodes-panel .episodes-rail .button:hover,
+.episodes-panel .episodes-rail .button:focus {
+  background: var(--bg-2) !important; /* subtle hover matching theme */
+  border-color: rgba(255,255,255,0.16) !important;
+  outline: none !important;
+  box-shadow: none !important; /* remove any glow */
+  filter: none !important;
 }
 
 .actors-grid {
