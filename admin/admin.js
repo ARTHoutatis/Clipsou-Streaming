@@ -16,6 +16,9 @@
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
+  // Prefer configured Worker URL; if absent, use project default
+  const DEFAULT_WORKER_URL = 'https://clipsou-publish.arthurcapon54.workers.dev';
+
   // ===== Utilities: normalization, validation, and deduplication =====
   function normalizeTitleKey(s) {
     try {
@@ -594,8 +597,9 @@
     // 1) Try Cloudflare Worker (no auth) to bypass CORS/origin issues when admin is opened via file:// or localhost
     try {
       const cfg = getPublishConfig();
-      if (cfg && cfg.url) {
-        const res = await fetch(cfg.url, {
+      const apiUrl = (cfg && cfg.url) ? cfg.url : DEFAULT_WORKER_URL;
+      if (apiUrl) {
+        const res = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'getRequests' })
