@@ -79,7 +79,7 @@ const LOCAL_FALLBACK_DB = [
     rating: 2.5,
     type: 'film',
     description: "Timmy, un enfant espiègle, nous fait visiter son village dans un monde entièrement construit en briques LEGO. Mais chaque coin de rue réserve son lot de gags et de surprises ! Une aventure familiale pleine d'humour et de tendresse qui ravira petits et grands.",
-    watchUrl: 'https://www.youtube.com/watch?v=XtqzuhtuH2E'
+    watchUrl: 'https://youtu.be/XtqzuhtuH2E?si=e-89Qu0t_vrO0RzG'
   },
   {
     id: 'film2',
@@ -1243,6 +1243,7 @@ const container = document.getElementById('fiche-container');
         overlay.appendChild(shell); document.body.appendChild(overlay);
         const close = ()=>{
           try { if (typeof overlay.__activeCleanup === 'function') overlay.__activeCleanup(); } catch {}
+          try { window.__introShowing = false; } catch {}
           try { document.body.classList.remove('player-open'); document.documentElement.classList.remove('player-open'); } catch {}
           overlay.classList.remove('open');
           try { stage.querySelectorAll('video').forEach(v=>{ try { v.pause(); } catch{} }); } catch{}
@@ -1302,6 +1303,7 @@ const container = document.getElementById('fiche-container');
           try { clearTimeout(watchdog); } catch {}
           try { intro.removeEventListener('ended', startMain); } catch {}
           try { intro.removeEventListener('error', startMain); } catch {}
+          try { window.__introShowing = false; } catch {}
           started = true;
         }
         function startMain(){
