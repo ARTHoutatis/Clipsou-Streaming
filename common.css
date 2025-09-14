@@ -133,6 +133,20 @@ body.drawer-open nav[aria-label="Navigation principale"] {
   }
 }
 
+/* Mobile-specific sizing for drawer and overlay to match 60px navbar and handle dynamic viewport */
+@media (max-width: 768px) {
+  /* Align the overlay and drawer with the 60px mobile nav, and use dynamic viewport height */
+  .drawer-overlay { top: 60px; }
+  .drawer {
+    top: 60px;
+    height: calc(100dvh - 60px);
+  }
+  /* Give extra bottom padding so the last buttons (ex: Infos) are fully reachable above the bottom safe area */
+  .drawer nav {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  }
+}
+
 /* Ensure Partenariats can share the row with the donation button */
 .drawer nav .cta-row a.button[href="#partenariats"] {
   flex: 1 1 220px;

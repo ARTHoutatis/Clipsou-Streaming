@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       try { document.addEventListener('keydown', unlock, { once: true }); } catch {}
     } catch {}
   })();
-
+  // ===== Preserve scroll position when opening/closing popups =====
   // ===== Preserve scroll position when opening/closing popups =====
   (function setupPopupScrollKeeper(){
     let lastPopupScrollY = null;
@@ -1303,6 +1303,136 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   // removed scroll buttons logic
   
-  // Note: watch links now open directly to external URLs (YouTube, playlists, etc.).
-  // No intro interstitial or click interception is used anymore.
+  // Intro interstitial: play intro.mp4 before opening YouTube links
+  (function installIntroBeforeYouTube(){
+    try {
+      if (window.__introHookInstalled) return; // idempotent
+      window.__introHookInstalled = true;
+
+      function isYouTubeUrl(href){
+        try {
+          if (!href) return false;
+          if (/^javascript:/i.test(href)) return false;
+          // Accept both absolute and protocol-relative
+          const url = href.startsWith('http') ? new URL(href) : new URL(href, location.href);
+          const h = (url.hostname || '').toLowerCase();
+          return (
+            h.includes('youtube.com') ||
+            h.includes('youtu.be')
+          );
+        } catch { return false; }
+      }
+
+      function showIntroThenNavigate(targetHref, targetAttr){
+        try { if (window.__introShowing) return; } catch {}
+        window.__introShowing = true;
+
+        // Create overlay
+        const overlay = document.createElement('div');
+        Object.assign(overlay.style, {
+          position: 'fixed', inset: '0', zIndex: '99999',
+          background: 'rgba(0,0,0,0.96)', display: 'flex', alignItems: 'center', justifyContent: 'center'
+        });
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-label', 'Intro Clipsou Streaming');
+
+        // Container to maintain aspect ratio on mobile
+        const box = document.createElement('div');
+        Object.assign(box.style, {
+          position: 'relative',
+          background: 'black', boxShadow: '0 10px 30px rgba(0,0,0,0.6)', borderRadius: '8px', overflow: 'hidden'
+        });
+        // Dynamically size the box to use up to 90% of viewport while preserving 16:9
+        function sizeBox(){
+          try {
+            const vw = window.innerWidth || document.documentElement.clientWidth || 0;
+            const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+            const maxW = Math.max(0, vw * 0.90);
+            const maxH = Math.max(0, vh * 0.90);
+            const wFromH = maxH * (16/9);
+            const hFromW = maxW * (9/16);
+            const useW = Math.min(maxW, wFromH);
+            const useH = Math.min(maxH, hFromW);
+            box.style.width = Math.round(useW) + 'px';
+            box.style.height = Math.round(useH) + 'px';
+          } catch {}
+        }
+        sizeBox();
+        try { window.addEventListener('resize', sizeBox, { passive: true }); } catch { window.addEventListener('resize', sizeBox); }
+
+        const video = document.createElement('video');
+        video.src = 'intro.mp4';
+        video.autoplay = true;
+        video.playsInline = true;
+        video.controls = false;
+        video.preload = 'auto';
+        // Ensure sound is enabled
+        try { video.muted = false; video.defaultMuted = false; video.volume = 1.0; } catch {}
+        Object.assign(video.style, { width: '100%', height: '100%', objectFit: 'cover', display: 'block' });
+
+        // Skip button
+        const skip = document.createElement('button');
+        skip.textContent = 'Passer l\'intro';
+        skip.className = 'button';
+        Object.assign(skip.style, {
+          position: 'absolute', right: '12px', bottom: '12px',
+          background: '#111', color: '#fff', border: '1px solid rgba(255,255,255,0.25)',
+          padding: '10px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', opacity: '0.9'
+        });
+
+        // Branding small corner
+        const brand = document.createElement('div');
+        brand.textContent = 'Clipsou Streaming';
+        Object.assign(brand.style, {
+          position: 'absolute', left: '12px', top: '12px', color: 'rgba(255,255,255,0.85)',
+          fontWeight: '600', letterSpacing: '0.3px', fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif'
+        });
+
+        function cleanupAndGo(){
+          try { video.pause(); } catch {}
+          try { overlay.remove(); } catch {}
+          window.__introShowing = false;
+          // Navigate according to target
+          try {
+            if (targetAttr === '_blank') window.open(targetHref, '_blank', 'noopener');
+            else window.location.href = targetHref;
+          } catch { window.location.href = targetHref; }
+        }
+
+        skip.addEventListener('click', cleanupAndGo);
+        overlay.addEventListener('click', (e)=>{ if (e.target === overlay) cleanupAndGo(); });
+        video.addEventListener('ended', cleanupAndGo);
+        video.addEventListener('error', cleanupAndGo);
+
+        // Safety timeout in case metadata stalls
+        setTimeout(()=>{ try { if (!video || video.ended) return; } catch {}; cleanupAndGo(); }, 20000);
+
+        box.appendChild(video);
+        box.appendChild(skip);
+        box.appendChild(brand);
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+
+        // Ensure play() after user gesture, with sound
+        try { video.muted = false; video.defaultMuted = false; video.volume = 1.0; } catch {}
+        try { const p = video.play(); if (p && typeof p.catch === 'function') p.catch(()=>{}); } catch {}
+      }
+
+      document.addEventListener('click', function(e){
+        try {
+          const a = e.target && (e.target.closest ? e.target.closest('a') : null);
+          if (!a) return;
+          const href = a.getAttribute('href') || '';
+          if (!isYouTubeUrl(href)) return;
+          // Allow modifier clicks (open in new tab via Ctrl/Cmd, middle click)
+          if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || (e.button && e.button !== 0)) return;
+          e.preventDefault();
+          const tgt = (a.getAttribute('target') || '').toLowerCase();
+          const targetAttr = tgt === '_blank' ? '_blank' : '_self';
+          showIntroThenNavigate(href, targetAttr);
+        } catch {}
+      }, true);
+    } catch {}
+  })();
+
 });

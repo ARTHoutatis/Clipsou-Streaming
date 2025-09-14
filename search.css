@@ -132,6 +132,8 @@
     .home-link::before { width: 20px; height: 20px; }
 
     .search-container { padding: 0 16px; margin: 0 auto; }
+    /* Move the title down on mobile */
+    .search-header { margin-top: 24px; }
     .search-header h1 { font-size: 1.8rem; color: #2B22EE; }
     .search-input-container { flex-direction: row; gap: 10px; align-items: center; }
     .search-icon { width: 24px; height: 24px; opacity: .95; }
