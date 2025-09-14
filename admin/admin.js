@@ -12,8 +12,6 @@
   const APP_KEY_PUB_TIMES = 'clipsou_admin_publish_times_v1';
   const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
   const APP_KEY_ACTOR_PHOTOS = 'clipsou_admin_actor_photos_v1';
-  // Duration to display the deployment-in-progress hint after an approval
-  const DEPLOY_HINT_MS = 2 * 60 * 60 * 1000; // 2 hours to account for slower GitHub Pages/CI deployments
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
@@ -29,6 +27,61 @@
     } catch (_) {
       return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '').trim();
     }
+  }
+
+  // Fetch public approved.json to hydrate actor photos map for admin UI
+  async function fetchPublicApprovedArray(){
+    const cfg = getPublishConfig();
+    const tryUrls = [
+      cfg && cfg.publicApprovedUrl ? cfg.publicApprovedUrl : null,
+      '../data/approved.json'
+    ].filter(Boolean);
+    for (const u of tryUrls) {
+      try {
+        const res = await fetch(u + '?v=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' });
+        if (!res.ok) continue;
+        const json = await res.json();
+        if (Array.isArray(json)) return json;
+        if (json && typeof json === 'object') {
+          if (Array.isArray(json.approved)) return json.approved;
+          if (Array.isArray(json.items)) return json.items;
+          if (Array.isArray(json.data)) return json.data;
+        }
+      } catch {}
+    }
+    return [];
+  }
+
+  function buildActorPhotoMapFromArray(arr) {
+    // Note: keep normalization consistent with getActorPhotoMap()
+    const map = {};
+    const norm = (s)=>{
+      try { return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); }
+      catch { return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); }
+    };
+    (arr || []).forEach(it => {
+      const actors = Array.isArray(it && it.actors) ? it.actors : [];
+      actors.forEach(a => { if (a && a.name && a.photo) { const k = norm(a.name); if (k && !map[k]) map[k] = a.photo; } });
+    });
+    return map;
+  }
+
+  async function hydrateActorPhotoMapFromPublic(){
+    try {
+      const items = await fetchPublicApprovedArray();
+      if (!items || !items.length) return;
+      const current = getActorPhotoMap();
+      const fromPublic = buildActorPhotoMapFromArray(items);
+      const merged = { ...fromPublic, ...current }; // local overrides win
+      setActorPhotoMap(merged);
+      // If form currently has actors, re-render to show avatars
+      try {
+        const dataActors = JSON.parse($('#contentForm').dataset.actors || '[]');
+        if (Array.isArray(dataActors) && dataActors.length) {
+          renderActors(dataActors);
+        }
+      } catch {}
+    } catch {}
   }
 
   function isValidImageLike(url) {
@@ -420,6 +473,29 @@
       if (!key) return;
       if (!(key in out)) out[key] = url;
     };
+    // Seed with default local assets for common actors (filenames in site root)
+    try {
+      const def = (function(){
+        const norm = (s)=>{ try { return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); } catch { return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); } };
+        const map = {};
+        // Known assets available in project root
+        const pairs = [
+          ['Liam Roxxor','liam-roxxor.webp'],
+          ['Kassielator','kassielator.webp'],
+          ['Ferrisbu','ferrisbu.webp'],
+          ['Clone Prod','clone-prod.webp'],
+          ['Raiback','raiback.webp'],
+          ['Beat Vortex','beat-vortex.webp'],
+          ['Arth','arth.webp'],
+          ['Steve Animation','steve-animation.webp'],
+          ["Le Zebre'ifique",'le-zebre-ifique.webp']
+        ];
+        pairs.forEach(([name, file])=>{ const k = norm(name); if (k && !map[k]) map[k] = file; });
+        return map;
+      })();
+      // Defaults fill missing values only; existing manual entries keep priority
+      out = { ...def, ...out };
+    } catch {}
     // Normalize any pre-existing manual overrides to normalized keys
     try {
       const rebuilt = {};
@@ -623,21 +699,9 @@
         img.loading = 'lazy';
         img.decoding = 'async';
         try {
-          const isHttp = /^https?:\/\//i.test(String(effectivePhoto));
-          const base = String(effectivePhoto || '');
-          const first = isHttp ? base : ('../' + base);
-          const second = isHttp ? '' : base; // same folder fallback
-          const third = isHttp ? '' : ('/' + base); // absolute root fallback (when served via HTTP)
-          img.dataset._attempt = '0';
-          img.onerror = () => {
-            try {
-              const attempt = parseInt(img.dataset._attempt || '0', 10);
-              if (attempt === 0 && second) { img.dataset._attempt = '1'; img.src = second; return; }
-              if (attempt === 1 && third) { img.dataset._attempt = '2'; img.src = third; return; }
-              img.onerror = null; // give up
-            } catch { img.onerror = null; }
-          };
-          img.src = first;
+          const full = String(effectivePhoto).startsWith('http') ? effectivePhoto : ('../' + effectivePhoto);
+          img.src = full;
+          img.onerror = () => { try { /* silent */ } catch{} img.remove(); };
         } catch {
           img.src = effectivePhoto || '';
         }
@@ -1277,6 +1341,8 @@
     populateGenresDatalist();
     restoreDraft();
     populateActorNamesDatalist();
+    // Hydrate actor photos from public approved.json to ensure chips display known avatars
+    try { hydrateActorPhotoMapFromPublic(); } catch {}
   }
 
   // Boot
