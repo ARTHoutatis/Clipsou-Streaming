@@ -11,6 +11,9 @@
 <body>
   <main class="container" id="app" hidden>
     <h1>Clipsou Streaming – Admin</h1>
+    <div class="actions" style="margin-top: 8px;">
+      <button type="button" id="gotoRequestsBtn" class="btn">Demandes</button>
+    </div>
 
     <section class="auth">
       <p class="muted">Accès restreint. Votre session admin est active.</p>
@@ -158,7 +161,7 @@
       <datalist id="actorNamesDatalist"></datalist>
     </section>
 
-    <section class="requests">
+    <section class="requests" id="requests">
       <h2>Requêtes d'ajout</h2>
       <table class="table" id="requestsTable" aria-describedby="requestsHelp">
         <thead>

@@ -988,6 +988,26 @@
     const app = $('#app');
     app.hidden = false;
 
+    // Top quick access: go to requests list
+    try {
+      const gotoBtn = $('#gotoRequestsBtn');
+      if (gotoBtn) {
+        gotoBtn.addEventListener('click', () => {
+          try {
+            const sec = document.getElementById('requests');
+            if (!sec) return;
+            sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Temporary highlight and focus for accessibility
+            sec.setAttribute('tabindex', '-1');
+            sec.focus({ preventScroll: true });
+            sec.style.boxShadow = '0 0 0 2px #60a5fa inset';
+            sec.style.transition = 'box-shadow .3s ease';
+            setTimeout(() => { try { sec.style.boxShadow = ''; sec.removeAttribute('tabindex'); } catch {} }, 1200);
+          } catch {}
+        });
+      }
+    } catch {}
+
     // Logout button returns to login
     try {
       const logoutBtn = $('#logoutBtn');
