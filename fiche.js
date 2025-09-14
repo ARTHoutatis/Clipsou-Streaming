@@ -496,9 +496,6 @@ function renderFiche(container, item) {
         // Open the episodes panel immediately
         try { e.preventDefault(); } catch {}
         try { window.__wantEpisodes = true; } catch {}
-        try { location.hash = '#episodes-section'; } catch {}
-        // Prefer direct opener if available to avoid any race
-        try { if (typeof window.__openEpisodes === 'function') { window.__openEpisodes(); return; } } catch {}
         try { window.dispatchEvent(new CustomEvent('open-episodes')); } catch { try { window.dispatchEvent(new Event('open-episodes')); } catch {} }
       });
     } else {
@@ -1001,9 +998,17 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     try {
       setTimeout(() => { if (episodesPanel && episodesPanel.scrollIntoView) episodesPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 0);
     } catch {}
+    // After scrolling, set the hash without triggering the browser's immediate jump
+    try {
+      setTimeout(() => {
+        if (history && history.replaceState) {
+          history.replaceState(null, '', location.pathname + location.search + '#episodes-section');
+        } else {
+          location.hash = '#episodes-section';
+        }
+      }, 150);
+    } catch {}
   }
-  // Expose a global opener so external buttons (e.g., "Voir les épisodes") can invoke it reliably
-  try { window.__openEpisodes = function(){ try { showEpisodes(); } catch {} }; } catch {}
   actorsBtn.addEventListener('click', showActors);
   similarBtn.addEventListener('click', showSimilar);
   if (hasEpisodes) episodesBtn.addEventListener('click', showEpisodes);
