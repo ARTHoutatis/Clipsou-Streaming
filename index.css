@@ -64,6 +64,15 @@ body.player-open, html.player-open {
   height: 100vh !important;
 }
 
+/* Player topbar tweaks on mobile: keep close button compact */
+@media (max-width: 768px) {
+  .player-close {
+    padding: 8px 10px;
+    gap: 0;
+    font-size: 18px; /* slightly larger cross for touch */
+  }
+}
+
 /* Overlay covers full viewport (including nav) so nav is dimmed under popup */
 
 /* ===== Desktop-only rail arrows ===== */
@@ -436,6 +445,18 @@ body.popup-open nav[aria-label="Navigation principale"] {
   margin: 0 40px 16px;
 }
 
+/* On mobile: allow header buttons to wrap and avoid stretching due to long text */
+@media (max-width: 768px) {
+  .section-header { flex-wrap: wrap; }
+  .section-header .button.secondary {
+    flex: 1 1 48%;
+    max-width: 48%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
 /* Secondary button style for header actions */
 .button.secondary {
   background: transparent;
@@ -510,6 +531,11 @@ body.popup-open nav[aria-label="Navigation principale"] {
   box-shadow: none !important;
   text-shadow: none !important;
   filter: none !important;
+  /* Prevent text from overflowing the rounded frame; allow wrapping of long words */
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  hyphens: auto !important;
 }
 .episodes-panel .episodes-rail .button:hover,
 .episodes-panel .episodes-rail .button:focus {
@@ -518,6 +544,21 @@ body.popup-open nav[aria-label="Navigation principale"] {
   outline: none !important;
   box-shadow: none !important; /* remove any glow */
   filter: none !important;
+}
+
+/* Mobile: widen and center episodes buttons */
+@media (max-width: 768px) {
+  .episodes-panel { margin: 0 16px 20px; }
+  .episodes-panel .episodes-rail {
+    align-items: center; /* center children horizontally */
+    width: 100%;
+  }
+  .episodes-panel .episodes-rail .button {
+    width: 100% !important;     /* use full panel width */
+    max-width: 680px;           /* but keep a readable line length */
+    margin-left: auto;          /* center when narrower than container */
+    margin-right: auto;
+  }
 }
 
 .actors-grid {
@@ -1013,6 +1054,13 @@ html {
     body.fiche-page-view #fiche { padding-bottom: 0 !important; margin-bottom: 0 !important; }
     body.fiche-page-view #fiche .section > :last-child { margin-bottom: 0 !important; padding-bottom: 0 !important; }
     body.fiche-page-view #fiche .section-header + .actors-panel:last-child { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+    /* Remove sticky watch button gap on mobile */
+    .button-group {
+        position: static !important;
+        bottom: auto !important;
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
+    }
     
     /* Footer on mobile: visible, stacked lines, left aligned, tight padding */
     .footer { 

@@ -1249,7 +1249,27 @@ const container = document.getElementById('fiche-container');
         const closeBtn = document.createElement('button');
         closeBtn.className = 'player-close';
         closeBtn.setAttribute('aria-label','Fermer le film en cours');
-        closeBtn.textContent = '✕ Fermer';
+        // Label adaptatif: sur mobile, n'afficher que la croix pour gagner de la place
+        (function(){
+          try {
+            const mqClose = (window.matchMedia ? window.matchMedia('(max-width: 768px)') : null);
+            const applyCloseLabel = () => {
+              try { closeBtn.textContent = (mqClose && mqClose.matches) ? '✕' : '✕ Fermer'; } catch {}
+            };
+            applyCloseLabel();
+            if (mqClose) {
+              if (typeof mqClose.addEventListener === 'function') {
+                mqClose.addEventListener('change', applyCloseLabel);
+              } else if (typeof mqClose.addListener === 'function') {
+                // Fallback older browsers
+                mqClose.addListener(applyCloseLabel);
+              }
+            }
+          } catch {
+            // Fallback si matchMedia indisponible
+            closeBtn.textContent = '✕ Fermer';
+          }
+        })();
         top.appendChild(titleEl); top.appendChild(closeBtn);
         const stage = document.createElement('div'); stage.className = 'player-stage';
         shell.appendChild(top); shell.appendChild(stage);
