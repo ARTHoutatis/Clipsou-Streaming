@@ -1288,6 +1288,8 @@ const container = document.getElementById('fiche-container');
         return new Promise((resolve)=>{
           try {
             let overlay = document.querySelector('.resume-dialog-overlay');
+            let done = false;
+            const resolveOnce = (val)=>{ if (done) return; done = true; try { overlay && overlay.classList.remove('open'); } catch {} resolve(val); };
             if (!overlay) {
               overlay = document.createElement('div');
               overlay.className = 'resume-dialog-overlay';
@@ -1301,12 +1303,13 @@ const container = document.getElementById('fiche-container');
               box.appendChild(h); box.appendChild(p); box.appendChild(actions);
               overlay.appendChild(box); document.body.appendChild(overlay);
               // Click outside: close without starting playback (cancel)
-              overlay.addEventListener('click', (e)=>{ if (e.target === overlay) { overlay.classList.remove('open'); resolve(null); } });
+              overlay.addEventListener('click', (e)=>{ if (e.target === overlay) { resolveOnce(null); } });
               // Escape key also cancels
-              overlay.addEventListener('keydown', (e)=>{ try { if (e.key === 'Escape') { overlay.classList.remove('open'); resolve(null); } } catch {} });
+              overlay.addEventListener('keydown', (e)=>{ try { if (e.key === 'Escape') { resolveOnce(null); } } catch {} });
               // Explicit choices
-              noBtn.addEventListener('click', ()=>{ overlay.classList.remove('open'); resolve(false); });
-              yesBtn.addEventListener('click', ()=>{ overlay.classList.remove('open'); resolve(true); });
+              const disable = ()=>{ try { noBtn.disabled = true; yesBtn.disabled = true; } catch{} };
+              noBtn.addEventListener('click', ()=>{ disable(); resolveOnce(false); });
+              yesBtn.addEventListener('click', ()=>{ disable(); resolveOnce(true); });
             }
             const total = Math.max(0, Math.floor(seconds||0));
             const m = Math.floor(total / 60);
@@ -1439,7 +1442,6 @@ const container = document.getElementById('fiche-container');
         // Decide if we should bypass intro before attaching any skip button
         let shouldBypassIntro = false;
         try { shouldBypassIntro = (window.__resumeOverride === 'yes') && ((window.__resumeSeconds||0) > 5); } catch {}
-        // Do not clear flags yet; player onReady may need them to seek. We'll clear them after playback starts.
         // If resuming, bypass the intro and start main content directly
         try {
           if (shouldBypassIntro) {
@@ -1751,30 +1753,19 @@ const container = document.getElementById('fiche-container');
             const entry = Array.isArray(list) ? list.find(x => x && x.id === keyId3) : null;
             const seconds = entry && typeof entry.seconds === 'number' ? entry.seconds : 0;
             if (seconds > 0) {
+              try { window.__resumeOverride = 'pending'; window.__resumeSeconds = 0; } catch {}
               askResume(seconds).then((res)=>{
                 // If user clicked outside or pressed Escape, cancel entirely
-                if (res === null) return;
+                if (res === null) { try { window.__resumeOverride = 'no'; window.__resumeSeconds = 0; } catch {} return; }
                 const yes = !!res;
                 try { window.__resumeOverride = yes ? 'yes' : 'no'; } catch {}
                 try { window.__resumeSeconds = yes ? seconds : 0; } catch {}
-                // Defer to next task to ensure flags are visible to player setup reliably
-                try {
-                  setTimeout(()=> {
-                    showIntroThenPlay(href, title);
-                    // Clear flags after player has been initialized
-                    try { setTimeout(()=>{ window.__resumeOverride = undefined; window.__resumeSeconds = undefined; }, 1200); } catch {}
-                  }, 0);
-                } catch { showIntroThenPlay(href, title); }
+                showIntroThenPlay(href, title);
               });
             } else {
               try { window.__resumeOverride = 'yes'; } catch {}
               try { window.__resumeSeconds = 0; } catch {}
-              try {
-                setTimeout(()=> {
-                  showIntroThenPlay(href, title);
-                  try { setTimeout(()=>{ window.__resumeOverride = undefined; window.__resumeSeconds = undefined; }, 1200); } catch {}
-                }, 0);
-              } catch { showIntroThenPlay(href, title); }
+              showIntroThenPlay(href, title);
             }
           } catch {
             showIntroThenPlay(href, title);
