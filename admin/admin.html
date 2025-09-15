@@ -14,15 +14,7 @@
 
     <section class="auth">
       <p class="muted">Accès restreint. Votre session admin est active.</p>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between">
-        <div style="display:flex;gap:10px;align-items:center">
-          <button id="logoutBtn" type="button" class="btn">Se déconnecter</button>
-          <button id="googleLinkBtn" class="btn secondary" type="button" onclick="window.__fbSignIn && window.__fbSignIn()">Se connecter avec Google</button>
-          <span id="googleStatusTop" class="small muted"></span>
-          <span id="authNoticeTop" style="display:none;padding:2px 8px;border-radius:12px;background:#16a34a;color:#fff;font-size:12px;">Connecté</span>
-        </div>
-        <img id="googleAvatarTop" alt="avatar" style="width:32px;height:32px;border-radius:50%;object-fit:cover;display:none"/>
-      </div>
+      <button id="logoutBtn" type="button" class="btn">Se déconnecter</button>
     </section>
 
     <section class="form-section">
@@ -187,101 +179,16 @@
   <div id="login" class="login">
     <h1>Admin – Connexion</h1>
     <p class="muted">Entrez le mot de passe admin pour accéder à l’interface.</p>
-    <input id="passwordInput" type="password" placeholder="Mot de passe" value="20Blabla30">
+    <input id="passwordInput" type="password" placeholder="Mot de passe">
     <div style="display:flex; gap:12px; justify-content:center; align-items:center; margin:8px 0;">
       <label style="display:flex; gap:6px; align-items:center;">
-        <input id="showPwd" type="checkbox" onclick="(function(){var c=document.getElementById('showPwd');var p=document.getElementById('passwordInput');if(p){p.type=(c&&c.checked)?'text':'password';}})()">
+        <input id="showPwd" type="checkbox">
         <span>Afficher le mot de passe</span>
       </label>
     </div>
-    <button id="loginBtn" class="btn" type="button" onclick="(function(){
-      try { if (window.__doLogin) return window.__doLogin(); } catch(e){}
-      try {
-        var pwdEl = document.getElementById('passwordInput');
-        var app = document.getElementById('app');
-        var login = document.getElementById('login');
-        var pwd = (pwdEl && pwdEl.value) || '';
-        if (pwd === '20Blabla30') {
-          try { sessionStorage.setItem('clipsou_admin_session_v1','1'); localStorage.setItem('clipsou_admin_remember_v1','1'); } catch(e){}
-          if (login) login.hidden = true;
-          if (app) app.hidden = false;
-        } else { alert('Mot de passe incorrect.'); }
-      } catch(e){}
-    })()">Se connecter</button>
-
-    
+    <button id="loginBtn" class="btn">Se connecter</button>
   </div>
 
-  <!-- Google Identity Services for Sign in With Google -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script type="module">
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-    // TODO: Add SDKs for Firebase products that you want to use
-    // https://firebase.google.com/docs/web/setup#available-libraries
-
-    // Your web app's Firebase configuration
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-    const firebaseConfig = {
-      apiKey: "AIzaSyAwnc0bRBdspspUA3Ksuy-rVWGA7nAiRoI",
-      authDomain: "clipsoustreaming-52bc4.firebaseapp.com",
-      projectId: "clipsoustreaming-52bc4",
-      storageBucket: "clipsoustreaming-52bc4.firebasestorage.app",
-      messagingSenderId: "115181244019",
-      appId: "1:115181244019:web:850162fc7f6f1a0f3ea406",
-      measurementId: "G-SKP5SSYV97"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    try { const analytics = getAnalytics(app); } catch {}
-    // Expose Auth globally for admin.js
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    window.__fbAuth = auth;
-    window.__fbDB = db;
-    window.__GoogleAuthProvider = GoogleAuthProvider;
-    window.__signInWithPopup = signInWithPopup;
-    window.__onAuthStateChanged = onAuthStateChanged;
-    window.__fbSignOut = signOut;
-    // Firestore helpers
-    window.__fsDoc = doc;
-    window.__fsGetDoc = getDoc;
-    window.__fsSetDoc = setDoc;
-    window.__fsServerTs = serverTimestamp;
-    // Provide a global sign-in function used by the inline onclick fallback
-    window.__fbSignIn = async function(){
-      try {
-        if (window.__signingIn) return; // prevent concurrent popups
-        window.__signingIn = true;
-        const provider = new GoogleAuthProvider();
-        // Mobile browsers can block popups -> use redirect
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-        if (isMobile) {
-          await signInWithRedirect(auth, provider);
-          return; // flow continues after redirect
-        }
-        await signInWithPopup(auth, provider);
-      } catch(e) {
-        console.error('Firebase sign-in failed', e);
-        alert('Connexion Google impossible. Vérifiez que les popups ne sont pas bloquées.');
-      }
-      finally { window.__signingIn = false; }
-    };
-
-    // Handle redirect result if any (mobile)
-    (async () => {
-      try {
-        const res = await getRedirectResult(auth);
-        if (res && res.user) {
-          console.log('Signed in via redirect');
-        }
-      } catch(e) { /* ignore */ }
-    })();
-  </script>
-  <script src="admin.js?v=20250916" defer></script>
+  <script src="admin.js" defer></script>
 </body>
 </html>

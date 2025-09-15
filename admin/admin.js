@@ -13,9 +13,6 @@
   const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
   const APP_KEY_LAST_EDIT = 'clipsou_admin_last_edit_v1';
   const APP_KEY_ACTOR_PHOTOS = 'clipsou_admin_actor_photos_v1';
-  const APP_KEY_GOOGLE_PROFILE = 'clipsou_admin_google_profile_v1';
-  const APP_KEY_GOOGLE_CLIENT = 'clipsou_admin_google_client_v1';
-  const APP_KEY_UPDATED = 'clipsou_admin_updated_v1';
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
@@ -31,57 +28,6 @@
     } catch (_) {
       return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '').trim();
     }
-  }
-  // ===== Google Sign-In (optional, to remember admin profile) =====
-  function getGoogleClientId(){ try { return localStorage.getItem(APP_KEY_GOOGLE_CLIENT) || ''; } catch { return ''; } }
-  function setGoogleClientId(id){ try { localStorage.setItem(APP_KEY_GOOGLE_CLIENT, String(id||'')); } catch {} }
-  function getGoogleProfile(){ try { return JSON.parse(localStorage.getItem(APP_KEY_GOOGLE_PROFILE)||'null') || null; } catch { return null; } }
-  function setGoogleProfile(p){ try { localStorage.setItem(APP_KEY_GOOGLE_PROFILE, JSON.stringify(p||{})); } catch {} }
-  function clearGoogleProfile(){ try { localStorage.removeItem(APP_KEY_GOOGLE_PROFILE); } catch {} }
-  function ensureGoogleClientId(){
-    let cid = getGoogleClientId();
-    if (!cid) {
-      cid = prompt('Entrez votre Google OAuth Client ID Web (ex: 1234-abcdef.apps.googleusercontent.com):', '') || '';
-      if (cid) setGoogleClientId(cid.trim());
-    }
-    return getGoogleClientId();
-  }
-  function decodeJwtPayload(jwt){
-    try {
-      const parts = String(jwt||'').split('.');
-      if (parts.length !== 3) return null;
-      const payload = parts[1].replace(/-/g,'+').replace(/_/g,'/');
-      const json = decodeURIComponent(atob(payload).split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-      return JSON.parse(json);
-    } catch { return null; }
-  }
-  function initGoogle(callback){
-    const cid = getGoogleClientId();
-    if (!cid) return false;
-    if (!(window && window.google && google.accounts && google.accounts.id)) return false;
-    try {
-      google.accounts.id.initialize({
-        client_id: cid,
-        callback: (response)=>{
-          try {
-            const payload = decodeJwtPayload(response && response.credential);
-            if (payload && payload.sub) {
-              const profile = {
-                id: payload.sub,
-                email: payload.email || '',
-                name: payload.name || '',
-                picture: payload.picture || ''
-              };
-              setGoogleProfile(profile);
-              const stTop = document.getElementById('googleStatusTop');
-              if (stTop) stTop.textContent = profile.email ? ('Compte Google lié: ' + profile.email) : 'Compte Google lié';
-          }
-          } catch {}
-          if (typeof callback === 'function') callback();
-        }
-      });
-      return true;
-    } catch { return false; }
   }
 
   // Fetch public approved.json to hydrate actor photos map for admin UI
@@ -623,77 +569,9 @@
   }
 
   function getRequests(){ return loadJSON(APP_KEY_REQ, []); }
+  function setRequests(list){ saveJSON(APP_KEY_REQ, list); }
   function getApproved(){ return loadJSON(APP_KEY_APPROVED, []); }
-  function getLocalUpdatedMs(){ try { return Number(localStorage.getItem(APP_KEY_UPDATED)||0) || 0; } catch { return 0; } }
-  function markLocalUpdated(){ try { localStorage.setItem(APP_KEY_UPDATED, String(Date.now())); } catch {}
-  // Debounced cloud push
-  function scheduleCloudPush(){
-    try {
-      if (!(window.__fbAuth && window.__fbAuth.currentUser && window.__fbDB)) return;
-      if (window.__cloudPushTO) clearTimeout(window.__cloudPushTO);
-      window.__cloudPushTO = setTimeout(async ()=>{ try { await cloudPush(); } catch {} }, 500);
-    } catch {}
-  }
-  function setRequests(list){
-    saveJSON(APP_KEY_REQ, list);
-    markLocalUpdated();
-    scheduleCloudPush();
-  }
-  function setApproved(list){
-    saveJSON(APP_KEY_APPROVED, list);
-    markLocalUpdated();
-    scheduleCloudPush();
-  }
-
-  // ===== Firestore Sync (cross-device) =====
-  function isSignedIn(){ try { return !!(window.__fbAuth && window.__fbAuth.currentUser); } catch { return false; } }
-  function cloudDocRef(){
-    try {
-      const u = window.__fbAuth.currentUser; if (!u) return null;
-      return window.__fsDoc(window.__fbDB, 'adminSync', u.uid);
-    } catch { return null; }
-  }
-  async function cloudPull(){
-    try { const ref = cloudDocRef(); if (!ref) return null; const snap = await window.__fsGetDoc(ref); return snap.exists() ? (snap.data()||null) : null; } catch { return null; }
-  }
-  async function cloudPush(){
-    try {
-      const ref = cloudDocRef(); if (!ref) return false;
-      const payload = {
-        requests: getRequests(),
-        approved: getApproved(),
-        updatedAtMs: getLocalUpdatedMs(),
-        updatedAt: window.__fsServerTs()
-      };
-      await window.__fsSetDoc(ref, payload, { merge: true });
-      return true;
-    } catch { return false; }
-  }
-  async function tryCloudSyncOnLogin(){
-    try {
-      const cloud = await cloudPull();
-      const localReq = getRequests();
-      const localApr = getApproved();
-      const localTs = getLocalUpdatedMs();
-      const emptyLocal = (!localReq || localReq.length===0) && (!localApr || localApr.length===0);
-      if (cloud && (Array.isArray(cloud.requests) || Array.isArray(cloud.approved))) {
-        const cloudTs = Number(cloud.updatedAtMs||0);
-        const cloudReq = Array.isArray(cloud.requests) ? cloud.requests : [];
-        const cloudApr = Array.isArray(cloud.approved) ? cloud.approved : [];
-        if (emptyLocal || cloudTs > localTs) {
-          // Pull from cloud
-          saveJSON(APP_KEY_REQ, cloudReq);
-          saveJSON(APP_KEY_APPROVED, cloudApr);
-          markLocalUpdated();
-          try { renderTable(); } catch {}
-          return 'pulled';
-        }
-      }
-      // Otherwise, push local up
-      await cloudPush();
-      return 'pushed';
-    } catch { return 'error'; }
-  }
+  function setApproved(list){ saveJSON(APP_KEY_APPROVED, list); }
 
   function getPublishConfig(){
     try { return JSON.parse(localStorage.getItem(APP_KEY_PUB) || 'null') || {}; } catch { return {}; }
@@ -871,55 +749,6 @@
     const login = $('#login');
     function showLogin(){ if (app) app.hidden = true; if (login) login.hidden = false; }
     function showApp(){ if (login) login.hidden = true; if (app) app.hidden = false; }
-    // Helper to update header UI based on Firebase user
-    function updateAuthUI(user){
-      try {
-        const gStatusTop = document.getElementById('googleStatusTop');
-        const avatar = document.getElementById('googleAvatarTop');
-        const notice = document.getElementById('authNoticeTop');
-        if (gStatusTop) {
-          if (user && user.email) {
-            gStatusTop.textContent = 'Connecté avec Google: ' + user.email;
-            gStatusTop.classList.remove('muted');
-          } else {
-            gStatusTop.textContent = '';
-            gStatusTop.classList.add('muted');
-          }
-        }
-        if (avatar) {
-          if (user && user.photoURL) { avatar.src = user.photoURL; avatar.style.display = ''; }
-          else { avatar.removeAttribute('src'); avatar.style.display = 'none'; }
-        }
-        if (notice) {
-          notice.style.display = (user ? '' : 'none');
-        }
-      } catch {}
-    }
-
-    // Simple notice line inside login box
-    function showNotice(msg){
-      try {
-        let st = document.getElementById('loginStatus');
-        if (!st) return;
-        st.textContent = msg || '';
-      } catch {}
-    }
-
-    // Firebase Auth: reflect session state
-    try {
-      if (window.__onAuthStateChanged && window.__fbAuth) {
-        window.__onAuthStateChanged(window.__fbAuth, async (user)=>{
-          updateAuthUI(user);
-          if (user) {
-            showApp();
-            initApp();
-            showNotice('Connecté avec Google');
-            // Attempt cloud sync on login
-            try { await tryCloudSyncOnLogin(); } catch {}
-          }
-        });
-      }
-    } catch {}
     // Existing session
     try {
       // If "remember" is set, auto-login without prompting
@@ -940,22 +769,6 @@
     const btn = $('#loginBtn');
     const pwdInput = $('#passwordInput');
     const showPwd = $('#showPwd');
-    const gBtnTop = $('#googleLinkBtn');
-    const logoutBtn = $('#logoutBtn');
-    const gStatusTop = $('#googleStatusTop');
-    // Create a tiny status line for diagnostics
-    try {
-      let st = document.getElementById('loginStatus');
-      const loginBox = document.getElementById('login');
-      if (!st && loginBox) {
-        st = document.createElement('p');
-        st.id = 'loginStatus';
-        st.className = 'small muted';
-        st.style.margin = '8px 0 0';
-        loginBox.appendChild(st);
-      }
-      if (st) st.textContent = 'UI prête (handler en cours de liaison)';
-    } catch {}
 
     // Prefill password if previously remembered
     try {
@@ -971,41 +784,6 @@
       });
     }
 
-    // If Firebase already has a user, show email/avatar immediately
-    try {
-      const u = (window.__fbAuth && window.__fbAuth.currentUser) || null;
-      updateAuthUI(u);
-    } catch {}
-
-    // Wire Google Sign-In button (Firebase Auth)
-    if (gBtnTop) {
-      gBtnTop.addEventListener('click', async () => {
-        try {
-          if (!(window.__fbAuth && window.__GoogleAuthProvider && window.__signInWithPopup)) {
-            alert('Firebase Auth non initialisé.');
-            return;
-          }
-          const provider = new window.__GoogleAuthProvider();
-          const cred = await window.__signInWithPopup(window.__fbAuth, provider);
-          try { updateAuthUI(cred && cred.user); showNotice('Connecté avec Google'); } catch {}
-          // onAuthStateChanged will fire and show the app
-        } catch (e) {
-          alert('Connexion Google impossible.');
-        }
-      });
-    }
-    // Wire logout to Firebase signOut when available
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', async ()=>{
-        try { if (window.__fbSignOut && window.__fbAuth) await window.__fbSignOut(window.__fbAuth); } catch {}
-        try { sessionStorage.removeItem(APP_KEY_SESSION); } catch {}
-        try { updateAuthUI(null); showNotice('Déconnecté'); } catch {}
-        showLogin();
-      });
-    }
-
-
-
     function doLogin(){
       const pwd = (pwdInput && pwdInput.value) || '';
       if (pwd === '20Blabla30') {
@@ -1018,31 +796,8 @@
         alert('Mot de passe incorrect.');
       }
     }
-    // Expose globally as a fallback
-    try { window.__doLogin = doLogin; } catch {}
-    if (btn) {
-      try { btn.removeEventListener('click', doLogin); } catch {}
-      btn.addEventListener('click', doLogin);
-      // Fallback inline handler in case addEventListener fails in some browsers
-      try { btn.onclick = doLogin; } catch {}
-    }
+    if (btn) btn.addEventListener('click', doLogin);
     if (pwdInput) pwdInput.addEventListener('keydown', (e)=>{ if (e.key==='Enter') { e.preventDefault(); doLogin(); } });
-    // Delegated fallback on the whole login box
-    try {
-      const loginBox = document.getElementById('login');
-      if (loginBox && !loginBox.__delegateWired) {
-        loginBox.addEventListener('click', (e)=>{
-          const t = e.target;
-          if (t && (t.id === 'loginBtn' || t.closest && t.closest('#loginBtn'))) {
-            e.preventDefault();
-            doLogin();
-          }
-        }, true);
-        loginBox.__delegateWired = true;
-      }
-    } catch {}
-    // Update status
-    try { const st = document.getElementById('loginStatus'); if (st) st.textContent = 'Handler prêt'; } catch {}
   }
 
   function fillForm(data){
@@ -1640,4 +1395,69 @@
   } else {
     ensureAuth();
   }
+})();
+
+// ===== Extra helpers: genres datalist & actor names =====
+(function(){
+  const $ = (sel, root=document) => root.querySelector(sel);
+
+  async function collectGenresFromIndex(){
+    try {
+      const res = await fetch('../index.html', { credentials: 'same-origin', cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP '+res.status);
+      const html = await res.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const set = new Set();
+      doc.querySelectorAll('.fiche-popup .rating-genres .genres .genre-tag').forEach(el => {
+        const g = (el.textContent || '').trim(); if (g) set.add(g);
+      });
+      return Array.from(set);
+    } catch { return []; }
+  }
+
+  function collectGenresFromStorage(){
+    try {
+      const set = new Set();
+      const reqs = JSON.parse(localStorage.getItem('clipsou_requests_v1')||'[]') || [];
+      reqs.forEach(r => (r && r.data && Array.isArray(r.data.genres)) && r.data.genres.forEach(g=>g&&set.add(g)));
+      const apr = JSON.parse(localStorage.getItem('clipsou_items_approved_v1')||'[]') || [];
+      apr.forEach(r => (r && Array.isArray(r.genres)) && r.genres.forEach(g=>g&&set.add(g)));
+      return Array.from(set);
+    } catch { return []; }
+  }
+
+  window.populateGenresDatalist = async function populateGenresDatalist(){
+    const el = $('#genresDatalist');
+    if (!el) return;
+    const [fromIndex, fromStore] = await Promise.all([
+      collectGenresFromIndex(),
+      Promise.resolve(collectGenresFromStorage())
+    ]);
+    const set = new Set([ ...fromIndex, ...fromStore, 'Action','Comédie','Drame','Horreur','Aventure','Fantastique','Familial','Thriller','Psychologique','Western','Mystère','Ambience','Enfants','Super-héros' ]);
+    el.innerHTML = Array.from(set).sort((a,b)=>String(a).localeCompare(String(b),'fr')).map(g=>`<option value="${g}"></option>`).join('');
+  };
+
+  // No image import: fields accept file names or URLs only
+  function collectActorNames(){
+    const set = new Set();
+    try {
+      const reqs = JSON.parse(localStorage.getItem('clipsou_requests_v1')||'[]') || [];
+      reqs.forEach(r => (r && r.data && Array.isArray(r.data.actors)) && r.data.actors.forEach(a=>a&&a.name&&set.add(a.name)));
+    } catch {}
+    try {
+      const apr = JSON.parse(localStorage.getItem('clipsou_items_approved_v1')||'[]') || [];
+      apr.forEach(r => (r && Array.isArray(r.actors)) && r.actors.forEach(a=>a&&a.name&&set.add(a.name)));
+    } catch {}
+    // Preset common actors
+    ['Liam Roxxor','Kassielator','Ferrisbu','Clone prod','Raiback','Beat Vortex','Arth','Stranger Art','Steve Animation','Calvlego','Atrochtiraptor','Mordecai','Paleo Brick','Brickmaniak',"Le Zebre'ifique"].forEach(n=>set.add(n));
+    return Array.from(set).sort((a,b)=>String(a).localeCompare(String(b),'fr'));
+  }
+
+  window.populateActorNamesDatalist = function populateActorNamesDatalist(){
+    const el = document.querySelector('#actorNamesDatalist');
+    if (!el) return;
+    const names = collectActorNames();
+    el.innerHTML = names.map(n=>`<option value="${n}"></option>`).join('');
+  };
 })();
