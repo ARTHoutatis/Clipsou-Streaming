@@ -99,6 +99,24 @@ body.player-open, html.player-open {
 /* Overlay covers full viewport (including nav) so nav is dimmed under popup */
 
 /* ===== Desktop-only rail arrows ===== */
+
+/* ===== Actors & Doublers: enforce square thumbnails ===== */
+.actor-card { display: flex; flex-direction: column; }
+.actor-card .actor-photo {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1; /* force perfect square */
+  overflow: hidden;     /* crop overflow to square */
+}
+.actor-card .actor-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
 @media (min-width: 769px) {
   .section { position: relative; }
   .rail-arrow {
