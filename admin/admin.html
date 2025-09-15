@@ -14,10 +14,13 @@
 
     <section class="auth">
       <p class="muted">Accès restreint. Votre session admin est active.</p>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
-        <button id="logoutBtn" type="button" class="btn">Se déconnecter</button>
-        <button id="googleLinkBtn" class="btn secondary" type="button">Se connecter avec Google</button>
-        <span id="googleStatusTop" class="small muted"></span>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between">
+        <div style="display:flex;gap:10px;align-items:center">
+          <button id="logoutBtn" type="button" class="btn">Se déconnecter</button>
+          <button id="googleLinkBtn" class="btn secondary" type="button">Se connecter avec Google</button>
+          <span id="googleStatusTop" class="small muted"></span>
+        </div>
+        <img id="googleAvatarTop" alt="avatar" style="width:32px;height:32px;border-radius:50%;object-fit:cover;display:none"/>
       </div>
     </section>
 
