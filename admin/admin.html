@@ -190,7 +190,7 @@
     <input id="passwordInput" type="password" placeholder="Mot de passe" value="20Blabla30">
     <div style="display:flex; gap:12px; justify-content:center; align-items:center; margin:8px 0;">
       <label style="display:flex; gap:6px; align-items:center;">
-        <input id="showPwd" type="checkbox">
+        <input id="showPwd" type="checkbox" onclick="(function(){var c=document.getElementById('showPwd');var p=document.getElementById('passwordInput');if(p){p.type=(c&&c.checked)?'text':'password';}})()">
         <span>Afficher le mot de passe</span>
       </label>
     </div>
@@ -282,6 +282,6 @@
       } catch(e) { /* ignore */ }
     })();
   </script>
-  <script src="admin.js?v=20250915" defer></script>
+  <script src="admin.js?v=20250916" defer></script>
 </body>
 </html>
