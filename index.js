@@ -747,7 +747,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             const imgName = (landscapeImage || portraitImage || '').split('/').pop();
             const baseName = (imgName || '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/\d+$/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
             const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-            items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || 'apercu.png', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '', studioBadge: c.studioBadge || '' });
+            items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || 'apercu.webp', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '', studioBadge: c.studioBadge || '' });
           });
           sharedLoaded = true;
         }
@@ -768,7 +768,7 @@ document.addEventListener('DOMContentLoaded', async function () {
               const imgName = (landscapeImage || portraitImage || '').split('/').pop();
               const baseName = (imgName || '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/\d+$/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
               const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-              items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || 'apercu.png', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '', studioBadge: c.studioBadge || '' });
+              items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || 'apercu.webp', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '', studioBadge: c.studioBadge || '' });
             });
           }
         }
@@ -791,7 +791,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (!m) return src;
         const base = m[1];
         const originalExt = m[3].toLowerCase();
-        const candidates = [base + '.webp', base + '.jpg', base + '.jpeg', base + '.png', base + '.' + originalExt];
+        const candidates = [base + '.webp', base + '.jpg', base + '.jpeg', base + '.' + originalExt];
         return candidates.filter((v, i, a) => a.indexOf(v) === i);
       } catch { return [src]; }
     }
@@ -802,8 +802,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (!m) return [src];
         const base = m[1];
         const originalExt = m[3].toLowerCase();
-        const withOne = [base + '1.webp', base + '1.jpg', base + '1.jpeg', base + '1.png'];
-        const withoutOne = [base + '.webp', base + '.jpg', base + '.jpeg', base + '.png', base + '.' + originalExt];
+        const withOne = [base + '1.webp', base + '1.jpg', base + '1.jpeg'];
+        const withoutOne = [base + '.webp', base + '.jpg', base + '.jpeg', base + '.' + originalExt];
         const seq = [...withOne, ...withoutOne, src];
         return seq.filter((v, i, a) => a.indexOf(v) === i);
       } catch { return [src]; }
@@ -816,13 +816,13 @@ document.addEventListener('DOMContentLoaded', async function () {
       const img = document.createElement('img');
       const primaryPortrait = item.portraitImage || '';
       const thumbs = primaryPortrait ? [primaryPortrait] : deriveThumbnail(item.image);
-      let idx = 0; img.src = (thumbs && thumbs[0]) || item.image || 'apercu.png';
-      img.onerror = function () { if (idx < thumbs.length - 1) { idx += 1; this.src = thumbs[idx]; } else if (this.src !== 'apercu.png') { this.src = 'apercu.png'; } };
+      let idx = 0; img.src = (thumbs && thumbs[0]) || item.image || 'apercu.webp';
+      img.onerror = function () { if (idx < thumbs.length - 1) { idx += 1; this.src = thumbs[idx]; } else if (this.src !== 'apercu.webp') { this.src = 'apercu.webp'; } };
       img.setAttribute('alt', `Affiche de ${item.title}`);
       img.setAttribute('loading', 'lazy'); img.setAttribute('decoding', 'async');
       const info = document.createElement('div'); info.className = 'card-info'; info.setAttribute('data-type', item.type || 'film'); if (typeof item.rating !== 'undefined') info.setAttribute('data-rating', String(item.rating)); if (item.studioBadge) info.setAttribute('data-studio-badge', String(item.studioBadge));
       const media = document.createElement('div'); media.className = 'card-media';
-      const badge = document.createElement('div'); badge.className = 'brand-badge'; const logo = document.createElement('img'); logo.src = (item.studioBadge && String(item.studioBadge).trim()) || 'clipsoustudio.png'; logo.alt = 'Studio'; logo.setAttribute('loading', 'lazy'); logo.setAttribute('decoding', 'async'); badge.appendChild(logo);
+      const badge = document.createElement('div'); badge.className = 'brand-badge'; const logo = document.createElement('img'); logo.src = (item.studioBadge && String(item.studioBadge).trim()) || 'clipsoustudio.webp'; logo.alt = 'Studio'; logo.setAttribute('loading', 'lazy'); logo.setAttribute('decoding', 'async'); badge.appendChild(logo);
       media.appendChild(img); media.appendChild(badge); a.appendChild(media); a.appendChild(info); card.appendChild(a); return card;
     }
 
@@ -1124,7 +1124,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         const info = a.querySelector('.card-info');
         desired = (info && info.getAttribute('data-studio-badge')) || '';
       } catch {}
-      if (!desired) desired = 'clipsoustudio.png';
+      if (!desired) desired = 'clipsoustudio.webp';
       if (logo && logo.src !== desired) { logo.src = desired; logo.alt = 'Studio'; }
     });
   })();

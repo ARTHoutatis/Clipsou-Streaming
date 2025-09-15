@@ -430,7 +430,7 @@ function renderFiche(container, item) {
   const mediaWrap = document.createElement('div');
   mediaWrap.className = 'fiche-media-wrap';
   const img = document.createElement('img');
-  img.src = item.image || 'apercu.png';
+  img.src = item.image || 'apercu.webp';
   img.alt = 'Image de ' + (item.title || 'la fiche');
   img.loading = 'lazy';
   img.decoding = 'async';
@@ -699,19 +699,19 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       candidates = dedupe(candidates);
       // Helper to safely apply src (encode local paths with spaces)
       function applySrc(c){
-        if (!c) return 'apercu.png';
+        if (!c) return 'apercu.webp';
         if (/^(data:|https?:)/i.test(c)) return c;
         try { return encodeURI(c); } catch { return c; }
       }
       let cIdx = 0;
-      img.src = applySrc(candidates[cIdx]) || 'apercu.png';
+      img.src = applySrc(candidates[cIdx]) || 'apercu.webp';
       img.onerror = function(){
         cIdx += 1;
         if (cIdx < candidates.length) {
           this.src = applySrc(candidates[cIdx]);
         } else {
           this.onerror = null;
-          this.src = 'apercu.png';
+          this.src = 'apercu.webp';
         }
       };
       img.alt = 'Affiche de ' + (it.title || '');
@@ -724,9 +724,9 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       const logo = document.createElement('img');
       // Use configured studio badge if present, otherwise default to absolute URL
       try {
-        const src = it.studioBadge || 'https://clipsoustreaming.com/clipsoustudio.png';
+        const src = it.studioBadge || 'https://clipsoustreaming.com/clipsoustudio.webp';
         logo.src = src;
-      } catch { logo.src = 'https://clipsoustreaming.com/clipsoustudio.png'; }
+      } catch { logo.src = 'https://clipsoustreaming.com/clipsoustudio.webp'; }
       logo.alt = 'Clipsou Studio';
       logo.loading = 'lazy';
       logo.decoding = 'async';
@@ -1043,14 +1043,14 @@ function renderList(container, items, titleText) {
     const media = document.createElement('div');
     media.className = 'card-media';
     const img = document.createElement('img');
-    img.src = it.image || 'apercu.png';
+    img.src = it.image || 'apercu.webp';
     img.alt = 'Affiche de ' + (it.title || '');
     img.loading = 'lazy';
     img.decoding = 'async';
     const badge = document.createElement('div');
     badge.className = 'brand-badge';
     const logo = document.createElement('img');
-    logo.src = 'clipsoustudio.png';
+    logo.src = 'clipsoustudio.webp';
     logo.alt = 'Clipsou Studio';
     logo.loading = 'lazy';
     logo.decoding = 'async';
@@ -1076,7 +1076,7 @@ function updateHeadSEO(item) {
   document.title = `${item.title} – ${baseTitle}`;
   const desc = item.description || 'Fiche du film ou de la série';
   const url = new URL(location.href);
-  const imageAbs = new URL(item.image || 'apercu.png', location.origin + location.pathname.replace(/[^\/]+$/, ''));
+  const imageAbs = new URL(item.image || 'apercu.webp', location.origin + location.pathname.replace(/[^\/]+$/, ''));
 
   setMetaTag('meta[name="description"]', 'content', desc);
   setMetaTag('meta[property="og:title"]', 'content', document.title);
