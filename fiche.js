@@ -1243,7 +1243,13 @@ const container = document.getElementById('fiche-container');
       function extractVideoId(hrefOrSrc){
         try {
           const s = String(hrefOrSrc || '');
-          const m = s.match(/[?&]v=([\w-]{6,})/i) || s.match(/embed\/([\w-]{6,})/i) || s.match(/youtu\.be\/([\w-]{6,})/i);
+          // Support: watch?v=, embed/<id>, youtu.be/<id>, shorts/<id>, live/<id>
+          const m =
+            s.match(/[?&]v=([\w-]{6,})/i) ||
+            s.match(/embed\/([\w-]{6,})/i) ||
+            s.match(/youtu\.be\/([\w-]{6,})/i) ||
+            s.match(/\/shorts\/([\w-]{6,})/i) ||
+            s.match(/\/live\/([\w-]{6,})/i);
           return m ? m[1] : '';
         } catch { return ''; }
       }
@@ -1399,6 +1405,15 @@ const container = document.getElementById('fiche-container');
           if (h.includes('youtube.com')){
             if (url.pathname.startsWith('/watch')){
               const id = params.get('v') || '';
+              return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?enablejsapi=1' + common;
+            }
+            // Convert Shorts and Live to standard embed
+            if (url.pathname.startsWith('/shorts/')){
+              const id = url.pathname.split('/')[2] || '';
+              return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?enablejsapi=1' + common;
+            }
+            if (url.pathname.startsWith('/live/')){
+              const id = url.pathname.split('/')[2] || '';
               return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?enablejsapi=1' + common;
             }
             if (url.pathname.startsWith('/playlist')){
@@ -1636,12 +1651,10 @@ const container = document.getElementById('fiche-container');
                               try {
                                 if (window.__resumeOverride !== 'no') {
                                   const ficheId2 = new URLSearchParams(location.search).get('id') || '';
-                                  // Include episode key to target the right entry
                                   let vid2 = '';
                                   try {
                                     const src2 = iframe ? (iframe.src || '') : '';
-                                    const m2 = src2.match(/[?&]v=([\w-]{6,})/i) || src2.match(/embed\/([\w-]{6,})/i);
-                                    if (m2) vid2 = m2[1];
+                                    vid2 = extractVideoId(src2) || '';
                                   } catch {}
                                   const keyId = ficheId2 + (vid2 ? ('::' + vid2) : '');
                                   const raw = localStorage.getItem('clipsou_watch_progress_v1');
@@ -1730,10 +1743,7 @@ const container = document.getElementById('fiche-container');
             const ficheId = new URLSearchParams(location.search).get('id') || '';
             // Include episode key using the TARGET href (the episode being launched)
             let vid3 = '';
-            try {
-              const m3 = href.match(/[?&]v=([\w-]{6,})/i) || href.match(/embed\/([\w-]{6,})/i);
-              if (m3) vid3 = m3[1];
-            } catch {}
+            try { vid3 = extractVideoId(href) || ''; } catch {}
             const keyId3 = ficheId + (vid3 ? ('::' + vid3) : '');
             const raw = localStorage.getItem('clipsou_watch_progress_v1');
             const list = raw ? JSON.parse(raw) : [];
