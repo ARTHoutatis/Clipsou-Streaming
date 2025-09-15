@@ -1699,6 +1699,34 @@ document.addEventListener('DOMContentLoaded', async function () {
         return href; // fallback
       }
 
+      // Progress meta builder (best-effort using surrounding popup)
+      function buildProgressMetaFromPopup(ficheId, anchor, href){
+        const popup = (anchor && anchor.closest) ? anchor.closest('.fiche-popup') : null;
+        const title = (()=>{ try { return (popup?.querySelector('.fiche-right h3')?.textContent||'').trim(); } catch { return ''; } })();
+        const image = (()=>{ try { return popup?.querySelector('.fiche-left img')?.getAttribute('src')||''; } catch { return ''; } })();
+        const vid = extractVideoId(href||'');
+        const id = (ficheId||'') + (vid ? ('::' + vid) : '');
+        return { id, title, image, landscapeImage: image||'', type: '' };
+      }
+
+      function writeProgressList(list){
+        try { localStorage.setItem('clipsou_watch_progress_v1', JSON.stringify(list||[])); } catch {}
+      }
+
+      function ensureYT(){
+        return new Promise((resolve)=>{
+          try {
+            if (window.YT && window.YT.Player) { resolve(); return; }
+            const prev = document.querySelector('script[src*="youtube.com/iframe_api"]');
+            if (!prev) {
+              const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s);
+            }
+            const check = ()=>{ if (window.YT && window.YT.Player) resolve(); else setTimeout(check, 100); };
+            check();
+          } catch { resolve(); }
+        });
+      }
+
       function showIntroThenPlay(targetHref, linkTitle){
         try { if (window.__introShowing) return; } catch {}
         window.__introShowing = true;
@@ -1708,11 +1736,99 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (titleEl && linkTitle) titleEl.textContent = linkTitle;
         try { document.body.classList.add('player-open'); document.documentElement.classList.add('player-open'); } catch {}
         overlay.classList.add('open');
-        // Immediately lock zoom on mobile and try to enter fullscreen on the overlay
-        try { lockNoZoom(true); } catch {}
-        try { if (window.innerWidth <= 1024) { tryEnterFullscreen(overlay); } } catch {}
+        
+        // Helper: install YT progress tracking on the created iframe
+        function setupWatchProgress(iframe, anchor){
+          try {
+            const popup = anchor && anchor.closest ? anchor.closest('.fiche-popup') : null;
+            const ficheId = popup && popup.id ? popup.id : '';
+            const meta = buildProgressMetaFromPopup(ficheId, anchor, iframe ? iframe.src : '');
+            if (!meta.id) return;
+            function writeList(list){ return writeProgressList(list); }
+            function readList(){ return readProgressList(); }
+            function upsertProgress(seconds, duration){
+              const now = Date.now();
+              const d = Math.max(0, duration||0);
+              const s = Math.max(0, seconds||0);
+              if (s < 1) return;
+              let list = readList();
+              if (d > 0 && s / d >= 0.99) { list = list.filter(x => x && x.id !== meta.id); writeList(list); return; }
+              let found = false; list = list.filter(x => x && x.id);
+              for (let i=0;i<list.length;i++) {
+                if (list[i].id === meta.id) {
+                  const prev = list[i] || {};
+                  const sEff = Math.max(s, prev.seconds||0);
+                  const dEff = Math.max(d, prev.duration||0);
+                  const percent = dEff > 0 ? (sEff / dEff) : 0;
+                  list[i] = { ...prev, ...meta, seconds: sEff, duration: dEff, percent, updatedAt: now };
+                  found = true; break;
+                }
+              }
+              if (!found) {
+                const percent = d > 0 ? (s / d) : 0;
+                list.unshift({ ...meta, seconds: s, duration: d, percent, updatedAt: now });
+              }
+              if (list.length > 50) list = list.slice(0,50);
+              writeList(list);
+            }
+            function writeFinalProgress(seconds, duration){
+              const now = Date.now();
+              const d = Math.max(0, duration||0);
+              const s = Math.max(0, seconds||0);
+              if (s < 1) return;
+              let list = readList();
+              if (d > 0 && s / d >= 0.99) { list = list.filter(x => x && x.id !== meta.id); writeList(list); return; }
+              let updated = false; list = list.filter(x => x && x.id);
+              for (let i=0;i<list.length;i++) {
+                if (list[i].id === meta.id) {
+                  const percent = d > 0 ? (s / d) : 0;
+                  list[i] = { ...list[i], ...meta, seconds: s, duration: d, percent, updatedAt: now };
+                  updated = true; break;
+                }
+              }
+              if (!updated) {
+                const percent = d > 0 ? (s / d) : 0;
+                list.unshift({ ...meta, seconds: s, duration: d, percent, updatedAt: now });
+              }
+              if (list.length > 50) list = list.slice(0,50);
+              writeList(list);
+            }
+            ensureYT().then(()=>{
+              try {
+                const pid = iframe.id || (iframe.id = 'ytp_' + Date.now());
+                setTimeout(()=>{
+                  try {
+                    const player = new window.YT.Player(pid, { events: { onReady: function(){ try { const d = player.getDuration?player.getDuration():0; const c = player.getCurrentTime?player.getCurrentTime():0; upsertProgress(c,d); const resumeAt = Math.max(0, Math.min((window.__resumeSeconds||0), (player.getDuration?player.getDuration():d) - 1)); if (window.__resumeOverride !== 'no' && resumeAt > 5 && player.seekTo) player.seekTo(resumeAt, true); } catch {} }, onStateChange: function(){} } });
+                    try { overlay.__playerRef = player; } catch {}
+                    let stopped = false;
+                    overlay.__activeCleanup = (function(prev){ return function(){ try { const p = overlay.__playerRef; if (p && p.getCurrentTime) { const d = p.getDuration ? p.getDuration() : 0; const c = p.getCurrentTime(); writeFinalProgress(c, d); } } catch {} stopped = true; if (typeof prev === 'function') try { prev(); } catch {} }; })(overlay.__activeCleanup);
+                    const tick = ()=>{ if (stopped) return; try { const d = player.getDuration?player.getDuration():0; const c = player.getCurrentTime?player.getCurrentTime():0; upsertProgress(c,d); if (d>0 && c/d>=0.995) { try { overlay.__close && overlay.__close(); } catch {} return; } } catch {} setTimeout(tick, 5000); };
+                    setTimeout(tick, 5000);
+                  } catch {}
+                }, 50);
+              } catch {}
+            });
+          } catch {}
+        }
 
-        // Clear stage and show intro video first
+        function startMainWithTracking(anchorEl){
+          stage.innerHTML = '';
+          const iframe = document.createElement('iframe');
+          iframe.allowFullscreen = true;
+          iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
+          iframe.src = toEmbedUrl(targetHref);
+          try { iframe.id = 'ytp_' + Date.now(); } catch {}
+          stage.appendChild(iframe);
+          window.__introShowing = false;
+          setupWatchProgress(iframe, anchorEl);
+        }
+
+        // If resuming significantly, bypass intro
+        let shouldBypassIntro = false;
+        try { shouldBypassIntro = (window.__resumeOverride === 'yes') && ((window.__resumeSeconds||0) > 5); } catch {}
+        if (shouldBypassIntro) { startMainWithTracking(document.activeElement); return; }
+
+        // Otherwise play intro then main
         stage.innerHTML = '';
         const intro = document.createElement('video');
         intro.src = 'intro.mp4';
@@ -1735,78 +1851,23 @@ document.addEventListener('DOMContentLoaded', async function () {
           try { intro.removeEventListener('ended', startMain); } catch {}
           try { intro.removeEventListener('error', startMain); } catch {}
           try { skip.removeEventListener('click', startMain); } catch {}
-          started = true; // block any late transitions
+          started = true;
         }
-        function startMain(){
-          if (started) return; started = true;
-          try { cleanupActive(); } catch {}
-          try { intro.pause(); } catch {}
-          stage.innerHTML = '';
-          const iframe = document.createElement('iframe');
-          iframe.allowFullscreen = true;
-          iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
-          iframe.src = toEmbedUrl(targetHref);
-          stage.appendChild(iframe);
-          window.__introShowing = false;
-        }
+        function startMain(){ if (started) return; started = true; try { cleanupActive(); } catch {} try { intro.pause(); } catch {} startMainWithTracking(document.activeElement); }
 
-        // Transition triggers
         skip.addEventListener('click', startMain, { once: true });
         intro.addEventListener('ended', startMain, { once: true });
         intro.addEventListener('error', startMain, { once: true });
-        // Watchdog: if after 8s nothing has started (no progress), start main
-        const watchdog = setTimeout(()=>{
-          try {
-            const progressed = (intro.currentTime||0) > 0.1;
-            if (!progressed && !intro.ended && !started) startMain();
-          } catch { startMain(); }
-        }, 8000);
-        // register active cleanup on overlay so closing cancels pending transitions
+        const watchdog = setTimeout(()=>{ try { const progressed = (intro.currentTime||0) > 0.1; if (!progressed && !intro.ended && !started) startMain(); } catch { startMain(); } }, 8000);
         try { const ol = overlay; ol.__activeCleanup = cleanupActive; } catch {}
         stage.appendChild(intro);
         stage.appendChild(skip);
         try { const p = intro.play(); if (p && typeof p.catch === 'function') p.catch(()=>{}); } catch {}
-        // On iOS, request fullscreen on the video element itself once it starts
         try {
           const kickFs = ()=>{ try { if (window.innerWidth <= 1024) tryEnterFullscreen(intro); } catch {} };
           intro.addEventListener('play', kickFs, { once: true });
           intro.addEventListener('loadedmetadata', kickFs, { once: true });
         } catch {}
-      }
-
-      // Small confirm dialog to resume from last position (shared with homepage)
-      function askResume(seconds){
-        return new Promise((resolve)=>{
-          try {
-            let overlay = document.querySelector('.resume-dialog-overlay');
-            if (!overlay) {
-              overlay = document.createElement('div');
-              overlay.className = 'resume-dialog-overlay';
-              const box = document.createElement('div'); box.className = 'resume-dialog-box';
-              const h = document.createElement('h4'); h.textContent = 'Reprendre la lecture ?';
-              const p = document.createElement('p'); p.className = 'resume-dialog-text';
-              const actions = document.createElement('div'); actions.className = 'resume-dialog-actions';
-              const noBtn = document.createElement('button'); noBtn.type = 'button'; noBtn.className = 'button secondary'; noBtn.textContent = 'Non, depuis le début';
-              const yesBtn = document.createElement('button'); yesBtn.type = 'button'; yesBtn.className = 'button'; yesBtn.textContent = 'Oui, reprendre';
-              actions.appendChild(noBtn); actions.appendChild(yesBtn);
-              box.appendChild(h); box.appendChild(p); box.appendChild(actions);
-              overlay.appendChild(box); document.body.appendChild(overlay);
-              // Dismiss behaviors
-              overlay.addEventListener('click', (ev)=>{ if (ev.target === overlay) { overlay.classList.remove('open'); resolve(null); } });
-              overlay.addEventListener('keydown', (ev)=>{ try { if (ev.key === 'Escape') { overlay.classList.remove('open'); resolve(null); } } catch {} });
-              noBtn.addEventListener('click', ()=>{ overlay.classList.remove('open'); resolve(false); });
-              yesBtn.addEventListener('click', ()=>{ overlay.classList.remove('open'); resolve(true); });
-            }
-            const total = Math.max(0, Math.floor(seconds||0));
-            const m = Math.floor(total / 60);
-            const s = String(total % 60).padStart(2, '0');
-            const text = overlay.querySelector('.resume-dialog-text');
-            if (text) text.textContent = `Voulez-vous reprendre à ${m}:${s} ?`;
-            overlay.classList.add('open');
-            try { overlay.setAttribute('tabindex','-1'); overlay.focus(); } catch {}
-          } catch { resolve(false); }
-        });
-      }
 
       document.addEventListener('click', function(e){
         try {
@@ -1818,37 +1879,18 @@ document.addEventListener('DOMContentLoaded', async function () {
           if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || (e.button && e.button !== 0)) return;
           e.preventDefault();
           const title = (a.closest('.fiche-right')?.querySelector('h3')?.textContent || a.getAttribute('data-title') || '').trim();
-
-          // Lookup saved progress (same keying scheme as fiche.js when possible)
-          let baseId = '';
-          try {
-            const pop = a.closest('.fiche-popup');
-            if (pop && pop.id) baseId = String(pop.id);
-          } catch {}
-          // Fallback: attempt to parse fiche id from URL if present in query
-          if (!baseId) {
-            try {
-              const u = new URL(location.href);
-              const fid = u.searchParams.get('id');
-              if (fid) baseId = fid;
-            } catch {}
-          }
-          // Extract YouTube video id from href if available
-          let vid = '';
-          try {
-            const m1 = href.match(/[?&]v=([\w-]{6,})/i) || href.match(/embed\/([\w-]{6,})/i);
-            if (m1) vid = m1[1];
-          } catch {}
-          const keyId = baseId ? (baseId + (vid ? ('::' + vid) : '')) : (vid || '');
+          // Determine fiche id from enclosing popup if any (matches how progress keys are saved on fiche page)
+          let ficheId = '';
+          try { const popup = a.closest && a.closest('.fiche-popup'); if (popup && popup.id) ficheId = popup.id; } catch {}
+          const vid = extractVideoId(href);
+          const keyId = ficheId + (vid ? ('::' + vid) : '');
           let seconds = 0;
           try {
-            const raw = localStorage.getItem('clipsou_watch_progress_v1');
-            const list = raw ? JSON.parse(raw) : [];
-            const entry = Array.isArray(list) ? list.find(x => x && (x.id === keyId || (!baseId && vid && x.id && String(x.id).endsWith('::'+vid)))) : null;
+            const list = readProgressList();
+            const entry = Array.isArray(list) ? list.find(x => x && x.id === keyId) : null;
             seconds = entry && typeof entry.seconds === 'number' ? entry.seconds : 0;
           } catch {}
-
-          const proceed = () => { showIntroThenPlay(href, title); };
+          const proceed = () => showIntroThenPlay(href, title);
           if (seconds > 0) {
             askResume(seconds).then((res)=>{
               if (res === null) return; // cancelled
