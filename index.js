@@ -1774,6 +1774,40 @@ document.addEventListener('DOMContentLoaded', async function () {
         } catch {}
       }
 
+      // Small confirm dialog to resume from last position (shared with homepage)
+      function askResume(seconds){
+        return new Promise((resolve)=>{
+          try {
+            let overlay = document.querySelector('.resume-dialog-overlay');
+            if (!overlay) {
+              overlay = document.createElement('div');
+              overlay.className = 'resume-dialog-overlay';
+              const box = document.createElement('div'); box.className = 'resume-dialog-box';
+              const h = document.createElement('h4'); h.textContent = 'Reprendre la lecture ?';
+              const p = document.createElement('p'); p.className = 'resume-dialog-text';
+              const actions = document.createElement('div'); actions.className = 'resume-dialog-actions';
+              const noBtn = document.createElement('button'); noBtn.type = 'button'; noBtn.className = 'button secondary'; noBtn.textContent = 'Non, depuis le début';
+              const yesBtn = document.createElement('button'); yesBtn.type = 'button'; yesBtn.className = 'button'; yesBtn.textContent = 'Oui, reprendre';
+              actions.appendChild(noBtn); actions.appendChild(yesBtn);
+              box.appendChild(h); box.appendChild(p); box.appendChild(actions);
+              overlay.appendChild(box); document.body.appendChild(overlay);
+              // Dismiss behaviors
+              overlay.addEventListener('click', (ev)=>{ if (ev.target === overlay) { overlay.classList.remove('open'); resolve(null); } });
+              overlay.addEventListener('keydown', (ev)=>{ try { if (ev.key === 'Escape') { overlay.classList.remove('open'); resolve(null); } } catch {} });
+              noBtn.addEventListener('click', ()=>{ overlay.classList.remove('open'); resolve(false); });
+              yesBtn.addEventListener('click', ()=>{ overlay.classList.remove('open'); resolve(true); });
+            }
+            const total = Math.max(0, Math.floor(seconds||0));
+            const m = Math.floor(total / 60);
+            const s = String(total % 60).padStart(2, '0');
+            const text = overlay.querySelector('.resume-dialog-text');
+            if (text) text.textContent = `Voulez-vous reprendre à ${m}:${s} ?`;
+            overlay.classList.add('open');
+            try { overlay.setAttribute('tabindex','-1'); overlay.focus(); } catch {}
+          } catch { resolve(false); }
+        });
+      }
+
       document.addEventListener('click', function(e){
         try {
           const a = e.target && (e.target.closest ? e.target.closest('a') : null);
@@ -1784,7 +1818,50 @@ document.addEventListener('DOMContentLoaded', async function () {
           if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || (e.button && e.button !== 0)) return;
           e.preventDefault();
           const title = (a.closest('.fiche-right')?.querySelector('h3')?.textContent || a.getAttribute('data-title') || '').trim();
-          showIntroThenPlay(href, title);
+
+          // Lookup saved progress (same keying scheme as fiche.js when possible)
+          let baseId = '';
+          try {
+            const pop = a.closest('.fiche-popup');
+            if (pop && pop.id) baseId = String(pop.id);
+          } catch {}
+          // Fallback: attempt to parse fiche id from URL if present in query
+          if (!baseId) {
+            try {
+              const u = new URL(location.href);
+              const fid = u.searchParams.get('id');
+              if (fid) baseId = fid;
+            } catch {}
+          }
+          // Extract YouTube video id from href if available
+          let vid = '';
+          try {
+            const m1 = href.match(/[?&]v=([\w-]{6,})/i) || href.match(/embed\/([\w-]{6,})/i);
+            if (m1) vid = m1[1];
+          } catch {}
+          const keyId = baseId ? (baseId + (vid ? ('::' + vid) : '')) : (vid || '');
+          let seconds = 0;
+          try {
+            const raw = localStorage.getItem('clipsou_watch_progress_v1');
+            const list = raw ? JSON.parse(raw) : [];
+            const entry = Array.isArray(list) ? list.find(x => x && (x.id === keyId || (!baseId && vid && x.id && String(x.id).endsWith('::'+vid)))) : null;
+            seconds = entry && typeof entry.seconds === 'number' ? entry.seconds : 0;
+          } catch {}
+
+          const proceed = () => { showIntroThenPlay(href, title); };
+          if (seconds > 0) {
+            askResume(seconds).then((res)=>{
+              if (res === null) return; // cancelled
+              const yes = !!res;
+              try { window.__resumeOverride = yes ? 'yes' : 'no'; } catch {}
+              try { window.__resumeSeconds = yes ? seconds : 0; } catch {}
+              proceed();
+            });
+          } else {
+            try { window.__resumeOverride = 'yes'; } catch {}
+            try { window.__resumeSeconds = 0; } catch {}
+            proceed();
+          }
         } catch {}
       }, true);
     } catch {}
