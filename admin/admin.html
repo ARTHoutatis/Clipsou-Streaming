@@ -219,6 +219,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
     // TODO: Add SDKs for Firebase products that you want to use
     // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -239,11 +240,18 @@
     try { const analytics = getAnalytics(app); } catch {}
     // Expose Auth globally for admin.js
     const auth = getAuth(app);
+    const db = getFirestore(app);
     window.__fbAuth = auth;
+    window.__fbDB = db;
     window.__GoogleAuthProvider = GoogleAuthProvider;
     window.__signInWithPopup = signInWithPopup;
     window.__onAuthStateChanged = onAuthStateChanged;
     window.__fbSignOut = signOut;
+    // Firestore helpers
+    window.__fsDoc = doc;
+    window.__fsGetDoc = getDoc;
+    window.__fsSetDoc = setDoc;
+    window.__fsServerTs = serverTimestamp;
     // Provide a global sign-in function used by the inline onclick fallback
     window.__fbSignIn = async function(){
       try {

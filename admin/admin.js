@@ -15,6 +15,7 @@
   const APP_KEY_ACTOR_PHOTOS = 'clipsou_admin_actor_photos_v1';
   const APP_KEY_GOOGLE_PROFILE = 'clipsou_admin_google_profile_v1';
   const APP_KEY_GOOGLE_CLIENT = 'clipsou_admin_google_client_v1';
+  const APP_KEY_UPDATED = 'clipsou_admin_updated_v1';
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
@@ -622,9 +623,77 @@
   }
 
   function getRequests(){ return loadJSON(APP_KEY_REQ, []); }
-  function setRequests(list){ saveJSON(APP_KEY_REQ, list); }
   function getApproved(){ return loadJSON(APP_KEY_APPROVED, []); }
-  function setApproved(list){ saveJSON(APP_KEY_APPROVED, list); }
+  function getLocalUpdatedMs(){ try { return Number(localStorage.getItem(APP_KEY_UPDATED)||0) || 0; } catch { return 0; } }
+  function markLocalUpdated(){ try { localStorage.setItem(APP_KEY_UPDATED, String(Date.now())); } catch {}
+  // Debounced cloud push
+  function scheduleCloudPush(){
+    try {
+      if (!(window.__fbAuth && window.__fbAuth.currentUser && window.__fbDB)) return;
+      if (window.__cloudPushTO) clearTimeout(window.__cloudPushTO);
+      window.__cloudPushTO = setTimeout(async ()=>{ try { await cloudPush(); } catch {} }, 500);
+    } catch {}
+  }
+  function setRequests(list){
+    saveJSON(APP_KEY_REQ, list);
+    markLocalUpdated();
+    scheduleCloudPush();
+  }
+  function setApproved(list){
+    saveJSON(APP_KEY_APPROVED, list);
+    markLocalUpdated();
+    scheduleCloudPush();
+  }
+
+  // ===== Firestore Sync (cross-device) =====
+  function isSignedIn(){ try { return !!(window.__fbAuth && window.__fbAuth.currentUser); } catch { return false; } }
+  function cloudDocRef(){
+    try {
+      const u = window.__fbAuth.currentUser; if (!u) return null;
+      return window.__fsDoc(window.__fbDB, 'adminSync', u.uid);
+    } catch { return null; }
+  }
+  async function cloudPull(){
+    try { const ref = cloudDocRef(); if (!ref) return null; const snap = await window.__fsGetDoc(ref); return snap.exists() ? (snap.data()||null) : null; } catch { return null; }
+  }
+  async function cloudPush(){
+    try {
+      const ref = cloudDocRef(); if (!ref) return false;
+      const payload = {
+        requests: getRequests(),
+        approved: getApproved(),
+        updatedAtMs: getLocalUpdatedMs(),
+        updatedAt: window.__fsServerTs()
+      };
+      await window.__fsSetDoc(ref, payload, { merge: true });
+      return true;
+    } catch { return false; }
+  }
+  async function tryCloudSyncOnLogin(){
+    try {
+      const cloud = await cloudPull();
+      const localReq = getRequests();
+      const localApr = getApproved();
+      const localTs = getLocalUpdatedMs();
+      const emptyLocal = (!localReq || localReq.length===0) && (!localApr || localApr.length===0);
+      if (cloud && (Array.isArray(cloud.requests) || Array.isArray(cloud.approved))) {
+        const cloudTs = Number(cloud.updatedAtMs||0);
+        const cloudReq = Array.isArray(cloud.requests) ? cloud.requests : [];
+        const cloudApr = Array.isArray(cloud.approved) ? cloud.approved : [];
+        if (emptyLocal || cloudTs > localTs) {
+          // Pull from cloud
+          saveJSON(APP_KEY_REQ, cloudReq);
+          saveJSON(APP_KEY_APPROVED, cloudApr);
+          markLocalUpdated();
+          try { renderTable(); } catch {}
+          return 'pulled';
+        }
+      }
+      // Otherwise, push local up
+      await cloudPush();
+      return 'pushed';
+    } catch { return 'error'; }
+  }
 
   function getPublishConfig(){
     try { return JSON.parse(localStorage.getItem(APP_KEY_PUB) || 'null') || {}; } catch { return {}; }
@@ -839,9 +908,15 @@
     // Firebase Auth: reflect session state
     try {
       if (window.__onAuthStateChanged && window.__fbAuth) {
-        window.__onAuthStateChanged(window.__fbAuth, (user)=>{
+        window.__onAuthStateChanged(window.__fbAuth, async (user)=>{
           updateAuthUI(user);
-          if (user) { showApp(); initApp(); showNotice('Connecté avec Google'); }
+          if (user) {
+            showApp();
+            initApp();
+            showNotice('Connecté avec Google');
+            // Attempt cloud sync on login
+            try { await tryCloudSyncOnLogin(); } catch {}
+          }
         });
       }
     } catch {}
