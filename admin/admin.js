@@ -889,14 +889,27 @@
     tbody.innerHTML = '';
     reqs.forEach(r => {
       const tr = document.createElement('tr');
-      const g3 = (r.data.genres||[]).slice(0,3).join(', ');
+      const g3 = (r.data.genres||[]).slice(0,3).filter(Boolean).map(g=>String(g));
       tr.innerHTML = `
         <td>${r.data.title||''}</td>
         <td>${r.data.type||''}</td>
-        <td>${g3}</td>
+        <td class="genres-cell"></td>
         <td>${(typeof r.data.rating==='number')?r.data.rating:''}</td>
         <td class="row-actions"></td>
       `;
+      // Fill genres as span elements for responsive layout
+      try {
+        const tdGenres = tr.querySelector('.genres-cell');
+        if (tdGenres) {
+          tdGenres.innerHTML = '';
+          g3.forEach((g, i) => {
+            const span = document.createElement('span');
+            span.className = 'genre';
+            span.textContent = g;
+            tdGenres.appendChild(span);
+          });
+        }
+      } catch {}
       const actions = tr.querySelector('.row-actions');
       const editBtn = document.createElement('button'); editBtn.className='btn secondary'; editBtn.textContent='Modifier';
       const delBtn = document.createElement('button'); delBtn.className='btn secondary'; delBtn.textContent='Supprimer';
