@@ -30,7 +30,6 @@
     } catch (_) {
       return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '').trim();
     }
-  }
   // ===== Google Sign-In (optional, to remember admin profile) =====
   function getGoogleClientId(){ try { return localStorage.getItem(APP_KEY_GOOGLE_CLIENT) || ''; } catch { return ''; } }
   function setGoogleClientId(id){ try { localStorage.setItem(APP_KEY_GOOGLE_CLIENT, String(id||'')); } catch {} }
@@ -824,6 +823,19 @@
     const showPwd = $('#showPwd');
     const gBtnTop = $('#googleLinkBtn');
     const gStatusTop = $('#googleStatusTop');
+    // Create a tiny status line for diagnostics
+    try {
+      let st = document.getElementById('loginStatus');
+      const loginBox = document.getElementById('login');
+      if (!st && loginBox) {
+        st = document.createElement('p');
+        st.id = 'loginStatus';
+        st.className = 'small muted';
+        st.style.margin = '8px 0 0';
+        loginBox.appendChild(st);
+      }
+      if (st) st.textContent = 'UI prête (handler en cours de liaison)';
+    } catch {}
 
     // Prefill password if previously remembered
     try {
@@ -861,6 +873,8 @@
       });
     }
 
+
+
     function doLogin(){
       const pwd = (pwdInput && pwdInput.value) || '';
       if (pwd === '20Blabla30') {
@@ -873,8 +887,31 @@
         alert('Mot de passe incorrect.');
       }
     }
-    if (btn) btn.addEventListener('click', doLogin);
+    // Expose globally as a fallback
+    try { window.__doLogin = doLogin; } catch {}
+    if (btn) {
+      try { btn.removeEventListener('click', doLogin); } catch {}
+      btn.addEventListener('click', doLogin);
+      // Fallback inline handler in case addEventListener fails in some browsers
+      try { btn.onclick = doLogin; } catch {}
+    }
     if (pwdInput) pwdInput.addEventListener('keydown', (e)=>{ if (e.key==='Enter') { e.preventDefault(); doLogin(); } });
+    // Delegated fallback on the whole login box
+    try {
+      const loginBox = document.getElementById('login');
+      if (loginBox && !loginBox.__delegateWired) {
+        loginBox.addEventListener('click', (e)=>{
+          const t = e.target;
+          if (t && (t.id === 'loginBtn' || t.closest && t.closest('#loginBtn'))) {
+            e.preventDefault();
+            doLogin();
+          }
+        }, true);
+        loginBox.__delegateWired = true;
+      }
+    } catch {}
+    // Update status
+    try { const st = document.getElementById('loginStatus'); if (st) st.textContent = 'Handler prêt'; } catch {}
   }
 
   function fillForm(data){
