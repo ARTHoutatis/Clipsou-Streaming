@@ -1310,6 +1310,14 @@ const container = document.getElementById('fiche-container');
               const disable = ()=>{ try { noBtn.disabled = true; yesBtn.disabled = true; } catch{} };
               noBtn.addEventListener('click', ()=>{ disable(); resolveOnce(false); });
               yesBtn.addEventListener('click', ()=>{ disable(); resolveOnce(true); });
+            } else {
+              // If overlay already exists, ensure buttons are re-enabled for this session
+              try {
+                const noBtn = overlay.querySelector('.resume-dialog-actions .button.secondary');
+                const yesBtn = overlay.querySelector('.resume-dialog-actions .button');
+                if (noBtn) noBtn.disabled = false;
+                if (yesBtn) yesBtn.disabled = false;
+              } catch {}
             }
             const total = Math.max(0, Math.floor(seconds||0));
             const m = Math.floor(total / 60);
@@ -1659,11 +1667,13 @@ const container = document.getElementById('fiche-container');
                                     const src2 = iframe ? (iframe.src || '') : '';
                                     vid2 = extractVideoId(src2) || '';
                                   } catch {}
-                                  const keyId = ficheId2 + (vid2 ? ('::' + vid2) : '');
+                                  const keyComposite = ficheId2 + (vid2 ? ('::' + vid2) : '');
+                                  const keyLegacy = ficheId2; // fallback without ::videoId
                                   const raw = localStorage.getItem('clipsou_watch_progress_v1');
                                   const list = raw ? JSON.parse(raw) : [];
                                   if (Array.isArray(list)) {
-                                    const entry = list.find(x => x && x.id === keyId);
+                                    let entry = list.find(x => x && x.id === keyComposite);
+                                    if (!entry) entry = list.find(x => x && x.id === keyLegacy);
                                     if (entry && typeof entry.seconds === 'number' && entry.seconds > 5) {
                                       const target = Math.max(0, Math.min(entry.seconds, (player.getDuration?player.getDuration():entry.duration||0) - 1));
                                       if (player.seekTo) player.seekTo(target, true);
@@ -1750,7 +1760,11 @@ const container = document.getElementById('fiche-container');
             const keyId3 = ficheId + (vid3 ? ('::' + vid3) : '');
             const raw = localStorage.getItem('clipsou_watch_progress_v1');
             const list = raw ? JSON.parse(raw) : [];
-            const entry = Array.isArray(list) ? list.find(x => x && x.id === keyId3) : null;
+            let entry = Array.isArray(list) ? list.find(x => x && x.id === keyId3) : null;
+            if (!entry) {
+              // Fallback to legacy key without ::videoId to support older saved progress
+              entry = Array.isArray(list) ? list.find(x => x && x.id === ficheId) : null;
+            }
             const seconds = entry && typeof entry.seconds === 'number' ? entry.seconds : 0;
             if (seconds > 0) {
               try { window.__resumeOverride = 'pending'; window.__resumeSeconds = 0; } catch {}
