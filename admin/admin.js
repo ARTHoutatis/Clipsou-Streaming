@@ -801,6 +801,18 @@
     const login = $('#login');
     function showLogin(){ if (app) app.hidden = true; if (login) login.hidden = false; }
     function showApp(){ if (login) login.hidden = true; if (app) app.hidden = false; }
+    // Firebase Auth: reflect session state
+    try {
+      if (window.__onAuthStateChanged && window.__fbAuth) {
+        window.__onAuthStateChanged(window.__fbAuth, (user)=>{
+          try {
+            const gStatusTop = document.getElementById('googleStatusTop');
+            if (gStatusTop) gStatusTop.textContent = user && user.email ? ('Connecté: ' + user.email) : '';
+          } catch {}
+          if (user) { showApp(); initApp(); }
+        });
+      }
+    } catch {}
     // Existing session
     try {
       // If "remember" is set, auto-login without prompting
@@ -822,6 +834,7 @@
     const pwdInput = $('#passwordInput');
     const showPwd = $('#showPwd');
     const gBtnTop = $('#googleLinkBtn');
+    const logoutBtn = $('#logoutBtn');
     const gStatusTop = $('#googleStatusTop');
     // Create a tiny status line for diagnostics
     try {
@@ -851,25 +864,34 @@
       });
     }
 
-    // Show previously saved Google profile info
+    // If Firebase already has a user, show email
     try {
-      const gp = getGoogleProfile();
-      if (gp && gStatusTop) gStatusTop.textContent = gp.email ? ('Compte Google lié: ' + gp.email) : 'Compte Google lié';
+      const u = (window.__fbAuth && window.__fbAuth.currentUser) || null;
+      if (u && gStatusTop) gStatusTop.textContent = u.email ? ('Connecté: ' + u.email) : 'Connecté';
     } catch {}
 
-    // Wire Google Sign-In button
+    // Wire Google Sign-In button (Firebase Auth)
     if (gBtnTop) {
-      gBtnTop.addEventListener('click', () => {
-        const cid = ensureGoogleClientId();
-        if (!cid) { alert('Client ID Google manquant.'); return; }
-        const ok = initGoogle(() => {
-          try {
-            const gp = getGoogleProfile();
-            if (gp && gStatusTop) gStatusTop.textContent = gp.email ? ('Compte Google lié: ' + gp.email) : 'Compte Google lié';
-          } catch {}
-        });
-        if (!ok) { alert('Google Identity non disponible. Vérifiez le chargement de la page et réessayez.'); return; }
-        try { google.accounts.id.prompt(); } catch {}
+      gBtnTop.addEventListener('click', async () => {
+        try {
+          if (!(window.__fbAuth && window.__GoogleAuthProvider && window.__signInWithPopup)) {
+            alert('Firebase Auth non initialisé.');
+            return;
+          }
+          const provider = new window.__GoogleAuthProvider();
+          await window.__signInWithPopup(window.__fbAuth, provider);
+          // onAuthStateChanged will fire and show the app
+        } catch (e) {
+          alert('Connexion Google impossible.');
+        }
+      });
+    }
+    // Wire logout to Firebase signOut when available
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async ()=>{
+        try { if (window.__fbSignOut && window.__fbAuth) await window.__fbSignOut(window.__fbAuth); } catch {}
+        try { sessionStorage.removeItem(APP_KEY_SESSION); } catch {}
+        showLogin();
       });
     }
 
