@@ -884,7 +884,7 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       img.style.maxWidth = '100%';
       img.style.maxHeight = '100%';
       img.style.objectFit = 'cover';
-      img.style.objectPosition = 'center center';
+      img.style.objectPosition = 'center top';
       img.style.display = 'block';
       img.decoding = 'async';
       // Fallback automatique multi-extensions puis Unknown (only for slug-based images)
