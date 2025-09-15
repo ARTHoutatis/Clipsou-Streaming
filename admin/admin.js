@@ -806,6 +806,7 @@
       try {
         const gStatusTop = document.getElementById('googleStatusTop');
         const avatar = document.getElementById('googleAvatarTop');
+        const notice = document.getElementById('authNoticeTop');
         if (gStatusTop) {
           if (user && user.email) {
             gStatusTop.textContent = 'Connecté avec Google: ' + user.email;
@@ -818,6 +819,9 @@
         if (avatar) {
           if (user && user.photoURL) { avatar.src = user.photoURL; avatar.style.display = ''; }
           else { avatar.removeAttribute('src'); avatar.style.display = 'none'; }
+        }
+        if (notice) {
+          notice.style.display = (user ? '' : 'none');
         }
       } catch {}
     }

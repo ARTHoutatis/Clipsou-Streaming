@@ -19,6 +19,7 @@
           <button id="logoutBtn" type="button" class="btn">Se déconnecter</button>
           <button id="googleLinkBtn" class="btn secondary" type="button" onclick="window.__fbSignIn && window.__fbSignIn()">Se connecter avec Google</button>
           <span id="googleStatusTop" class="small muted"></span>
+          <span id="authNoticeTop" style="display:none;padding:2px 8px;border-radius:12px;background:#16a34a;color:#fff;font-size:12px;">Connecté</span>
         </div>
         <img id="googleAvatarTop" alt="avatar" style="width:32px;height:32px;border-radius:50%;object-fit:cover;display:none"/>
       </div>
@@ -217,7 +218,7 @@
     // Import the functions you need from the SDKs you need
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
     // TODO: Add SDKs for Firebase products that you want to use
     // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -246,13 +247,32 @@
     // Provide a global sign-in function used by the inline onclick fallback
     window.__fbSignIn = async function(){
       try {
+        if (window.__signingIn) return; // prevent concurrent popups
+        window.__signingIn = true;
         const provider = new GoogleAuthProvider();
+        // Mobile browsers can block popups -> use redirect
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (isMobile) {
+          await signInWithRedirect(auth, provider);
+          return; // flow continues after redirect
+        }
         await signInWithPopup(auth, provider);
       } catch(e) {
         console.error('Firebase sign-in failed', e);
         alert('Connexion Google impossible. Vérifiez que les popups ne sont pas bloquées.');
       }
+      finally { window.__signingIn = false; }
     };
+
+    // Handle redirect result if any (mobile)
+    (async () => {
+      try {
+        const res = await getRedirectResult(auth);
+        if (res && res.user) {
+          console.log('Signed in via redirect');
+        }
+      } catch(e) { /* ignore */ }
+    })();
   </script>
   <script src="admin.js" defer></script>
 </body>
