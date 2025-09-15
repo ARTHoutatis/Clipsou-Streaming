@@ -5,6 +5,39 @@
     --brand-2: #6c5ce7;
 }
 
+/* Continue Watching: use fades that match the box background color (#151D28) */
+@media (min-width: 769px) {
+  /* Desktop: make rail a masked scroll container for arrow navigation */
+  #continue-watching .rail { overflow-x: hidden !important; overflow-y: visible !important; }
+  /* In Continue Watching, extend the fades across the full box height */
+  #continue-watching .rail-fade {
+    top: 0 !important;
+    height: 100% !important;
+  }
+  #continue-watching .rail-fade.left {
+    background: linear-gradient(90deg,
+      rgba(21,29,40,0.96) 0%,
+      rgba(21,29,40,0.82) 38%,
+      rgba(21,29,40,0.58) 60%,
+      rgba(21,29,40,0.00) 100%
+    ) !important;
+  }
+  #continue-watching .rail-fade.right {
+    background: linear-gradient(270deg,
+      rgba(21,29,40,0.96) 0%,
+      rgba(21,29,40,0.82) 38%,
+      rgba(21,29,40,0.58) 60%,
+      rgba(21,29,40,0.00) 100%
+    ) !important;
+  }
+  /* Match arrow fill as well inside the box */
+  #continue-watching .rail-arrow {
+    background: rgba(21,29,40,0.85) !important;
+    border-color: rgba(255,255,255,0.12) !important;
+  }
+  #continue-watching .rail-arrow:hover { background: rgba(21,29,40,1) !important; }
+}
+
 /* ===== Full-screen Player Overlay ===== */
 .player-overlay {
   position: fixed;
@@ -231,6 +264,30 @@ body {
     line-height: 1.6;
     -webkit-tap-highlight-color: transparent;
 }
+
+/* ===== Resume confirm dialog (fiche page) ===== */
+.resume-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 11500;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.resume-dialog-overlay.open { display: flex; }
+.resume-dialog-box {
+  background: #1a2332;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  padding: 16px;
+  width: min(92vw, 420px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+}
+.resume-dialog-box h4 { margin: 0 0 8px 0; font-size: 18px; }
+.resume-dialog-box p { margin: 0 0 14px 0; font-size: 14px; color: rgba(255,255,255,0.9); }
+.resume-dialog-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.resume-dialog-actions .button { min-width: 90px; }
 
 /* .sr-only moved to common.css */
 
@@ -459,6 +516,60 @@ body.popup-open nav[aria-label="Navigation principale"] {
 
 .section h2 { margin: 0 40px 30px; font-size: 32px; font-weight: 700; color: #ffffff; display: inline-block; padding-bottom: 0; border: none; }
 
+/* Boxed styling for Continue Watching */
+#continue-watching {
+  background: rgba(26,35,50,0.65);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 0 40px 40px; /* align with other sections */
+  position: relative; /* create stacking context for title above fades */
+}
+#continue-watching > h2 {
+  margin: 0 0 16px 0; /* heading inside the box */
+  position: relative;
+  z-index: 20; /* above rail fades */
+}
+#continue-watching .rail {
+  padding: 8px 0 0 0;    /* top space so lifted cards aren't clipped */
+  margin: 0;             /* flush content */
+  display: flex;         /* ensure horizontal layout */
+  gap: 22px;             /* larger spacing between cards */
+  position: relative;    /* layer below title but above background */
+  z-index: 2;
+  overflow: visible;     /* default; overridden per-viewport below */
+}
+/* Wrapper for each continue-watching entry: card + caption */
+#continue-watching .resume-item { display: flex; flex-direction: column; }
+#continue-watching .resume-item .card { margin-bottom: 6px; }
+/* Remaining time caption below cards */
+#continue-watching .resume-remaining {
+  margin-top: 8px;
+  margin-left: 2px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.9);
+}
+/* Film title under time remaining */
+#continue-watching .resume-title {
+  margin-top: 4px;
+  margin-left: 2px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+}
+@media (max-width: 768px) {
+  #continue-watching { margin: 0 16px 24px; padding: 12px; }
+  #continue-watching > h2 { margin-bottom: 12px; }
+  /* Mobile: enable horizontal scroll in the rail */
+  #continue-watching .rail {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity; /* optional smoother alignment */
+  }
+  #continue-watching .rail .resume-item { scroll-snap-align: start; }
+}
+
 /* Section header with right-aligned button (e.g., Acteurs) */
 .section-header {
   display: flex;
@@ -682,6 +793,57 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
 
 /* Hide film title text on index cards as requested */
 .card .card-info span { display: none; }
+
+/* ===== Continue Watching: progress bar on card ===== */
+#continue-watching .card .progress {
+  position: absolute; /* overlay on image */
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  height: 8px;
+  background: rgba(0,0,0,0.45); /* darker track over image */
+  border-radius: 999px;
+  overflow: hidden;
+}
+#continue-watching .card .progress .bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #2B22EE, #6c5ce7);
+  transition: width .3s ease;
+}
+
+/* Hide any leftover brand badge in Continue Watching */
+#continue-watching .card .brand-badge { display: none !important; }
+
+/* Make Continue Watching cards larger than default */
+#continue-watching .rail .resume-item {
+  width: 360px !important;   /* landscape cards */
+  flex: 0 0 360px !important;/* fixed width item in horizontal rail */
+}
+#continue-watching .resume-item .card { width: 100% !important; }
+@media (max-width: 768px) {
+  #continue-watching .rail .resume-item { width: 280px !important; flex: 0 0 280px !important; }
+}
+
+/* Landscape media ratio for Continue Watching only (override portrait default) */
+#continue-watching .card .card-media { aspect-ratio: 16/9 !important; }
+
+/* Titre/legend overlay for continue watching (optional) */
+.card .resume-legend {
+  position: absolute;
+  left: 8px;
+  bottom: 10px;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+/* Continue Watching: suppress default 'Catégorie' and rating after for resume info bar */
+.card .card-info.resume-info::before,
+.card .card-info.resume-info::after { content: none !important; }
 
 .stars { 
     color: #2B22EE; 

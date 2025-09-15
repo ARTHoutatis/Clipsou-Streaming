@@ -541,6 +541,7 @@ function renderFiche(container, item) {
   wrap.appendChild(left);
   wrap.appendChild(right);
   container.appendChild(wrap);
+  try { window.__currentFicheItem = item; } catch {}
 }
 
 // ===== Similar content (by shared genres) =====
@@ -1238,6 +1239,78 @@ const container = document.getElementById('fiche-container');
         } catch { return false; }
       }
 
+      // --- Shared helpers (extract video id, progress list IO, meta builder) ---
+      function extractVideoId(hrefOrSrc){
+        try {
+          const s = String(hrefOrSrc || '');
+          const m = s.match(/[?&]v=([\w-]{6,})/i) || s.match(/embed\/([\w-]{6,})/i) || s.match(/youtu\.be\/([\w-]{6,})/i);
+          return m ? m[1] : '';
+        } catch { return ''; }
+      }
+      function readProgressList(){
+        try { const raw = localStorage.getItem('clipsou_watch_progress_v1'); const arr = raw ? JSON.parse(raw) : []; return Array.isArray(arr) ? arr : []; } catch { return []; }
+      }
+      function writeProgressList(list){
+        try { localStorage.setItem('clipsou_watch_progress_v1', JSON.stringify(list||[])); } catch {}
+      }
+      function buildProgressMeta(ficheId, item, iframeOrHref){
+        const it = item || {};
+        const vid = extractVideoId(iframeOrHref && iframeOrHref.src ? iframeOrHref.src : iframeOrHref);
+        const id = (ficheId || (it.id || '')) + (vid ? ('::' + vid) : '');
+        // Try to resolve episode number from DB using current item and video id
+        let episode = null;
+        try {
+          const seriesList = EPISODES_DB_NORM[normalizeTitleKey(it.title || '')] || EPISODES_ID_DB[(it.id||'')] || [];
+          if (vid && Array.isArray(seriesList)) {
+            const found = seriesList.find(ep => (ep.url||'').includes(vid));
+            if (found && typeof found.n === 'number') episode = found.n;
+          }
+        } catch {}
+        return {
+          id,
+          title: it.title || '',
+          image: it.image || '',
+          landscapeImage: it.landscapeImage || it.image || '',
+          type: it.type || '',
+          studioBadge: it.studioBadge || '',
+          episode
+        };
+      }
+
+      // Small confirm dialog to resume from last position
+      function askResume(seconds){
+        return new Promise((resolve)=>{
+          try {
+            let overlay = document.querySelector('.resume-dialog-overlay');
+            if (!overlay) {
+              overlay = document.createElement('div');
+              overlay.className = 'resume-dialog-overlay';
+              const box = document.createElement('div'); box.className = 'resume-dialog-box';
+              const h = document.createElement('h4'); h.textContent = 'Reprendre la lecture ?';
+              const p = document.createElement('p'); p.className = 'resume-dialog-text';
+              const actions = document.createElement('div'); actions.className = 'resume-dialog-actions';
+              const noBtn = document.createElement('button'); noBtn.type = 'button'; noBtn.className = 'button secondary'; noBtn.textContent = 'Non, depuis le début';
+              const yesBtn = document.createElement('button'); yesBtn.type = 'button'; yesBtn.className = 'button'; yesBtn.textContent = 'Oui, reprendre';
+              actions.appendChild(noBtn); actions.appendChild(yesBtn);
+              box.appendChild(h); box.appendChild(p); box.appendChild(actions);
+              overlay.appendChild(box); document.body.appendChild(overlay);
+              // Click outside: close without starting playback (cancel)
+              overlay.addEventListener('click', (e)=>{ if (e.target === overlay) { overlay.classList.remove('open'); resolve(null); } });
+              // Escape key also cancels
+              overlay.addEventListener('keydown', (e)=>{ try { if (e.key === 'Escape') { overlay.classList.remove('open'); resolve(null); } } catch {} });
+              // Explicit choices
+              noBtn.addEventListener('click', ()=>{ overlay.classList.remove('open'); resolve(false); });
+              yesBtn.addEventListener('click', ()=>{ overlay.classList.remove('open'); resolve(true); });
+            }
+            const minutes = Math.max(0, Math.floor((seconds||0)/60));
+            const text = overlay.querySelector('.resume-dialog-text');
+            if (text) text.textContent = `Voulez-vous reprendre à ${minutes} min ?`;
+            overlay.classList.add('open');
+            try { overlay.setAttribute('tabindex','-1'); overlay.focus(); } catch {}
+          } catch { resolve(false); }
+        });
+      }
+
       function ensurePlayerOverlay(){
         let overlay = document.querySelector('.player-overlay');
         if (overlay) return overlay;
@@ -1346,8 +1419,111 @@ const container = document.getElementById('fiche-container');
         overlay.classList.add('open');
         try { overlay.classList.add('intro-mode'); } catch {}
         stage.innerHTML = '';
-        // Re-attach Skip Intro button inside the stage after clearing content
+        // Decide if we should bypass intro before attaching any skip button
+        let shouldBypassIntro = false;
+        try { shouldBypassIntro = (window.__resumeOverride === 'yes') && ((window.__resumeSeconds||0) > 5); } catch {}
+        // If resuming, bypass the intro and start main content directly
+        try {
+          if (shouldBypassIntro) {
+            const iframe = document.createElement('iframe');
+            iframe.allowFullscreen = true;
+            iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
+            iframe.src = toEmbedUrl(targetHref);
+            try { iframe.id = 'ytp_' + Date.now(); } catch {}
+            stage.appendChild(iframe);
+            window.__introShowing = false;
+            try { if (overlay.__skipBtn) { overlay.__skipBtn.hidden = true; overlay.__skipBtn.onclick = null; } } catch {}
+            // Prevent intro mode visuals
+            try { overlay.classList.remove('intro-mode'); } catch {}
+            // Install progress tracking and resume seek via existing setup
+            (function setupWatchProgressImmediate(){
+              try {
+                const ficheId = new URLSearchParams(location.search).get('id') || '';
+                const meta = buildProgressMeta(ficheId, (window.__currentFicheItem || {}), document.querySelector('.player-stage iframe') || document.querySelector('iframe'));
+                if (!meta.id) return;
+                function readList(){ return readProgressList(); }
+                function writeList(list){ return writeProgressList(list); }
+                function upsertProgress(seconds, duration){
+                  const now = Date.now();
+                  const d = Math.max(0, duration||0);
+                  const s = Math.max(0, seconds||0);
+                  if (s < 1) return;
+                  let list = readList();
+                  if (d > 0 && s / d >= 0.99) { list = list.filter(x => x && x.id !== meta.id); writeList(list); return; }
+                  let found = false; list = list.filter(x => x && x.id);
+                  for (let i=0;i<list.length;i++) {
+                    if (list[i].id === meta.id) {
+                      const prev = list[i] || {};
+                      const sEff = Math.max(s, prev.seconds||0);
+                      const dEff = Math.max(d, prev.duration||0);
+                      const percent = dEff > 0 ? (sEff / dEff) : 0;
+                      list[i] = { ...prev, ...meta, seconds: sEff, duration: dEff, percent, updatedAt: now };
+                      found = true; break;
+                    }
+                  }
+                  if (!found) {
+                    const percent = d > 0 ? (s / d) : 0;
+                    list.unshift({ ...meta, seconds: s, duration: d, percent, updatedAt: now });
+                  }
+                  if (list.length > 50) list = list.slice(0,50); writeList(list);
+                }
+                function writeFinalProgress(seconds, duration){
+                  const now = Date.now();
+                  const d = Math.max(0, duration||0);
+                  const s = Math.max(0, seconds||0);
+                  if (s < 1) return;
+                  let list = readList();
+                  if (d > 0 && s / d >= 0.99) { list = list.filter(x => x && x.id !== meta.id); writeList(list); return; }
+                  let updated = false; list = list.filter(x => x && x.id);
+                  for (let i=0;i<list.length;i++) {
+                    if (list[i].id === meta.id) {
+                      const percent = d > 0 ? (s / d) : 0;
+                      list[i] = { ...list[i], ...meta, seconds: s, duration: d, percent, updatedAt: now };
+                      updated = true; break;
+                    }
+                  }
+                  if (!updated) {
+                    const percent = d > 0 ? (s / d) : 0;
+                    list.unshift({ ...meta, seconds: s, duration: d, percent, updatedAt: now });
+                  }
+                  if (list.length > 50) list = list.slice(0,50); writeList(list);
+                }
+                function ensureYT(){ return new Promise((resolve)=>{ try { if (window.YT && window.YT.Player) { resolve(); return; } const prev = document.querySelector('script[src*="youtube.com/iframe_api"]'); if (!prev) { const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s); } const check = ()=>{ if (window.YT && window.YT.Player) resolve(); else setTimeout(check, 100); }; check(); } catch { resolve(); } }); }
+                ensureYT().then(()=>{
+                  try {
+                    const pid = iframe.id; if (!pid || !(window.YT && window.YT.Player)) return;
+                    setTimeout(()=>{
+                      try {
+                        const player = new window.YT.Player(pid, { events: { onReady: function(){ try { const d = player.getDuration?player.getDuration():0; const c = player.getCurrentTime?player.getCurrentTime():0; upsertProgress(c,d); const resumeAt = Math.max(0, Math.min((window.__resumeSeconds||0), (player.getDuration?player.getDuration():d) - 1)); if (resumeAt > 5 && player.seekTo) player.seekTo(resumeAt, true); } catch {} }, onStateChange: function(){} } });
+                        // Expose player to overlay for final flush
+                        try { overlay.__playerRef = player; } catch {}
+                        let stopped = false; overlay.__activeCleanup = (function(prev){ return function(){
+                          try {
+                            // Flush last known time instantly on close
+                            const p = overlay.__playerRef;
+                            if (p && p.getCurrentTime) {
+                              const d = p.getDuration ? p.getDuration() : 0;
+                              const c = p.getCurrentTime();
+                              writeFinalProgress(c, d);
+                            }
+                          } catch {}
+                          stopped = true; if (typeof prev === 'function') try { prev(); } catch {}
+                        }; })(overlay.__activeCleanup);
+                        const tick = ()=>{ if (stopped) return; try { const d = player.getDuration?player.getDuration():0; const c = player.getCurrentTime?player.getCurrentTime():0; upsertProgress(c,d); if (d>0 && c/d>=0.995) { try { overlay.__close && overlay.__close(); } catch {} return; } } catch {} setTimeout(tick, 5000); };
+                        setTimeout(tick, 5000);
+                      } catch {}
+                    }, 50);
+                  } catch {}
+                });
+              } catch {}
+            })();
+            return; // Do not create or play intro
+          }
+        } catch {}
+
+        // Not resuming: attach Skip Intro button now
         try { if (overlay.__skipBtn && !overlay.__skipBtn.parentNode) stage.appendChild(overlay.__skipBtn); } catch {}
+
         const intro = document.createElement('video');
         intro.src = 'intro.mp4'; intro.autoplay = true; intro.playsInline = true; intro.controls = false; intro.preload = 'auto';
         try { intro.muted = false; intro.defaultMuted = false; intro.volume = 1.0; } catch {}
@@ -1371,10 +1547,150 @@ const container = document.getElementById('fiche-container');
           iframe.allowFullscreen = true;
           iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
           iframe.src = toEmbedUrl(targetHref);
+          // Give it an id so YT API can attach to it
+          try { iframe.id = 'ytp_' + Date.now(); } catch {}
           stage.appendChild(iframe);
           window.__introShowing = false;
           // Hide skip when main starts
           try { if (overlay.__skipBtn) { overlay.__skipBtn.hidden = true; overlay.__skipBtn.onclick = null; } } catch {}
+
+          // ----- Watch progress tracking -----
+          (function setupWatchProgress(){
+            try {
+              const ficheId = new URLSearchParams(location.search).get('id') || '';
+              const meta = buildProgressMeta(ficheId, (window.__currentFicheItem || {}), document.querySelector('.player-stage iframe') || document.querySelector('iframe'));
+              if (!meta.id) return;
+
+              function readList(){ return readProgressList(); }
+              function writeList(list){ return writeProgressList(list); }
+              function upsertProgress(seconds, duration){
+                const now = Date.now();
+                const d = Math.max(0, duration||0);
+                const s = Math.max(0, seconds||0);
+                // Ignore noisy near-zero writes
+                if (s < 1) return;
+                let list = readList();
+                // Remove if basically finished
+                if (d > 0 && s / d >= 0.99) {
+                  list = list.filter(x => x && x.id !== meta.id);
+                  writeList(list);
+                  return;
+                }
+                // Insert/update keeping the maximum progressed time
+                let found = false;
+                list = list.filter(x => x && x.id); // sanitize
+                for (let i=0;i<list.length;i++) {
+                  if (list[i].id === meta.id) {
+                    const prev = list[i] || {};
+                    const sEff = Math.max(s, prev.seconds||0);
+                    const dEff = Math.max(d, prev.duration||0);
+                    const percent = dEff > 0 ? (sEff / dEff) : 0;
+                    list[i] = { ...prev, ...meta, seconds: sEff, duration: dEff, percent, updatedAt: now };
+                    found = true; break;
+                  }
+                }
+                if (!found) {
+                  const percent = d > 0 ? (s / d) : 0;
+                  list.unshift({ ...meta, seconds: s, duration: d, percent, updatedAt: now });
+                }
+                // Trim
+                if (list.length > 50) list = list.slice(0,50);
+                writeList(list);
+              }
+
+              function ensureYT(){
+                return new Promise((resolve)=>{
+                  try {
+                    if (window.YT && window.YT.Player) { resolve(); return; }
+                    const prev = document.querySelector('script[src*="youtube.com/iframe_api"]');
+                    if (!prev) {
+                      const s = document.createElement('script');
+                      s.src = 'https://www.youtube.com/iframe_api';
+                      document.head.appendChild(s);
+                    }
+                    const check = () => { if (window.YT && window.YT.Player) resolve(); else setTimeout(check, 100); };
+                    check();
+                  } catch { resolve(); }
+                });
+              }
+
+              ensureYT().then(()=>{
+                try {
+                  // Attach player to the existing iframe
+                  const pid = iframe.id;
+                  if (!pid || !(window.YT && window.YT.Player)) return;
+                  // Some browsers need a tiny delay for iframe to be fully ready
+                  setTimeout(()=>{
+                    try {
+                      const player = new window.YT.Player(pid, {
+                        events: {
+                          onReady: function(){
+                            try {
+                              // Initial write after ready
+                              const d = player.getDuration ? player.getDuration() : 0;
+                              const c = player.getCurrentTime ? player.getCurrentTime() : 0;
+                              upsertProgress(c, d);
+                              // Resume from saved position if exists and not explicitly declined
+                              try {
+                                if (window.__resumeOverride !== 'no') {
+                                  const ficheId2 = new URLSearchParams(location.search).get('id') || '';
+                                  // Include episode key to target the right entry
+                                  let vid2 = '';
+                                  try {
+                                    const src2 = iframe ? (iframe.src || '') : '';
+                                    const m2 = src2.match(/[?&]v=([\w-]{6,})/i) || src2.match(/embed\/([\w-]{6,})/i);
+                                    if (m2) vid2 = m2[1];
+                                  } catch {}
+                                  const keyId = ficheId2 + (vid2 ? ('::' + vid2) : '');
+                                  const raw = localStorage.getItem('clipsou_watch_progress_v1');
+                                  const list = raw ? JSON.parse(raw) : [];
+                                  if (Array.isArray(list)) {
+                                    const entry = list.find(x => x && x.id === keyId);
+                                    if (entry && typeof entry.seconds === 'number' && entry.seconds > 5) {
+                                      const target = Math.max(0, Math.min(entry.seconds, (player.getDuration?player.getDuration():entry.duration||0) - 1));
+                                      if (player.seekTo) player.seekTo(target, true);
+                                    }
+                                  }
+                                }
+                              } catch {}
+                            } catch {}
+                          },
+                          onStateChange: function(){ /* no-op */ }
+                        }
+                      });
+                      // Expose player to overlay for final flush
+                      try { overlay.__playerRef = player; } catch {}
+                      // Poll current time every 5s
+                      let stopped = false;
+                      overlay.__activeCleanup = (function(prev){ return function(){
+                        try {
+                          const p = overlay.__playerRef;
+                          if (p && p.getCurrentTime) {
+                            const d = p.getDuration ? p.getDuration() : 0;
+                            const c = p.getCurrentTime();
+                            upsertProgress(c, d);
+                          }
+                        } catch {}
+                        stopped = true; if (typeof prev === 'function') try { prev(); } catch {}
+                      }; })(overlay.__activeCleanup);
+                      const tick = () => {
+                        if (stopped) return;
+                        try {
+                          const d = player.getDuration ? player.getDuration() : 0;
+                          const c = player.getCurrentTime ? player.getCurrentTime() : 0;
+                          upsertProgress(c, d);
+                          // If nearly finished, also close overlay automatically
+                          if (d > 0 && c/d >= 0.995) { try { overlay.__close && overlay.__close(); } catch {} return; }
+                        } catch {}
+                        setTimeout(tick, 5000);
+                      };
+                      setTimeout(tick, 5000);
+                    } catch {}
+                  }, 50);
+                } catch {}
+              });
+            } catch {}
+          })();
         }
         intro.addEventListener('ended', startMain, { once: true });
         intro.addEventListener('error', startMain, { once: true });
@@ -1407,7 +1723,37 @@ const container = document.getElementById('fiche-container');
           if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || (e.button && e.button !== 0)) return;
           e.preventDefault();
           const title = (a.closest('.fiche-right')?.querySelector('h3')?.textContent || a.getAttribute('data-title') || '').trim();
-          showIntroThenPlay(href, title);
+          // Check saved progress and ask before starting
+          try {
+            const ficheId = new URLSearchParams(location.search).get('id') || '';
+            // Include episode key using the TARGET href (the episode being launched)
+            let vid3 = '';
+            try {
+              const m3 = href.match(/[?&]v=([\w-]{6,})/i) || href.match(/embed\/([\w-]{6,})/i);
+              if (m3) vid3 = m3[1];
+            } catch {}
+            const keyId3 = ficheId + (vid3 ? ('::' + vid3) : '');
+            const raw = localStorage.getItem('clipsou_watch_progress_v1');
+            const list = raw ? JSON.parse(raw) : [];
+            const entry = Array.isArray(list) ? list.find(x => x && x.id === keyId3) : null;
+            const seconds = entry && typeof entry.seconds === 'number' ? entry.seconds : 0;
+            if (seconds > 30) {
+              askResume(seconds).then((res)=>{
+                // If user clicked outside or pressed Escape, cancel entirely
+                if (res === null) return;
+                const yes = !!res;
+                try { window.__resumeOverride = yes ? 'yes' : 'no'; } catch {}
+                try { window.__resumeSeconds = yes ? seconds : 0; } catch {}
+                showIntroThenPlay(href, title);
+              });
+            } else {
+              try { window.__resumeOverride = 'yes'; } catch {}
+              try { window.__resumeSeconds = 0; } catch {}
+              showIntroThenPlay(href, title);
+            }
+          } catch {
+            showIntroThenPlay(href, title);
+          }
         } catch {}
       }, true);
     } catch {}

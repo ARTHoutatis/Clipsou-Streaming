@@ -1,3 +1,48 @@
+    // --- Shared small helpers (scoped) ---
+    function getVid2Ep(){
+      // Memoize on window so we don't recreate it
+      if (window.__VID2EP) return window.__VID2EP;
+      const map = {
+        // Lawless Legend
+        'I21K4Ksf_4A': 1,
+        'jfbOQ7kWKw0': 2,
+        'JCW8qyJCqbA': 3,
+        // Alex
+        'Uynd10bGS6I': 1,
+        'QfTsODE-HIU': 2,
+        'up7Q2jBlSOo': 3,
+        'DmUG8oVmzMk': 4,
+        'JzPlADBeDto': 5,
+        'Jm-Mwy6733Y': 6,
+        'RYM7vH96y1I': 7,
+        'yMYoD9I1xs0': 8,
+        'IQXjgoYKyYU': 9,
+        // Les Aventures de Jean‑Michel Content
+        'OgLRqt_iRkI': 1,
+        'Sa_3VceEqaI': 2
+      };
+      try { window.__VID2EP = map; } catch {}
+      return map;
+    }
+    function applyCwCacheBuster(src){
+      if (!src) return 'apercu.webp';
+      if (/^(data:|https?:)/i.test(src)) return src;
+      const v = (window.__cw_ver || (window.__cw_ver = Date.now())) + '';
+      return src + (src.includes('?') ? '&' : '?') + 'cw=' + v;
+    }
+    function deriveExts(src){
+      const m = (src||'').match(/^(.*?)(\d+)?\.(jpg|jpeg|png|webp)$/i);
+      if (!m) return [];
+      const base = m[1]; const ext = (m[3]||'').toLowerCase();
+      const order = ext === 'webp' ? ['webp','jpg','jpeg','png'] : ['jpg','jpeg','png'];
+      return order.map(e => base + '.' + e);
+    }
+    function prependLandscapeVariants(list, src){
+      const m = (src||'').match(/^(.*?)(\.(?:jpg|jpeg|png|webp))$/i);
+      if (!m) return;
+      const base = m[1];
+      ['webp','jpg','jpeg','png'].slice().reverse().forEach(e => { list.unshift(base + '1.' + e); });
+    }
 document.addEventListener('DOMContentLoaded', async function () {
   // Always start at the top on load/refresh (avoid browser restoring scroll)
   try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch {}
@@ -82,6 +127,201 @@ document.addEventListener('DOMContentLoaded', async function () {
         try { de.style.scrollBehavior = 'auto'; b.style.scrollBehavior = 'auto'; } catch {}
       } catch {}
     }
+
+  // ===== Continue Watching Section =====
+  (function buildContinueWatching(){
+    try {
+      const wrap = document.querySelector('#continue-watching');
+      const rail = wrap ? wrap.querySelector('.rail') : null;
+      if (!wrap || !rail) return;
+
+      function readProgress(){
+        try {
+          const raw = localStorage.getItem('clipsou_watch_progress_v1');
+          const arr = raw ? JSON.parse(raw) : [];
+          if (Array.isArray(arr)) return arr;
+        } catch {}
+        return [];
+      }
+      function saveProgressList(list){
+        try { localStorage.setItem('clipsou_watch_progress_v1', JSON.stringify(list||[])); } catch {}
+      }
+      // Cleanup any fully-watched or invalid entries
+      let items = readProgress()
+        .filter(it => it && it.id && typeof it.percent === 'number' && it.percent > 0 && it.percent < 0.99)
+        .sort((a,b)=> (b.updatedAt||0) - (a.updatedAt||0));
+
+      // Deduplicate by id (keep latest)
+      const seen = new Set();
+      items = items.filter(it => { if (seen.has(it.id)) return false; seen.add(it.id); return true; });
+
+      // Remove legacy non-episode entries when per-episode ones exist for the same base id
+      (function dropLegacyIfCompositeExists(){
+        try {
+          const baseHasComposite = new Map(); // base -> boolean
+          for (const it of items) {
+            if (!it || !it.id) continue;
+            const base = String(it.id).split('::')[0];
+            if (String(it.id).includes('::')) baseHasComposite.set(base, true);
+            if (!baseHasComposite.has(base)) baseHasComposite.set(base, false);
+          }
+          items = items.filter(it => {
+            const id = String(it.id||'');
+            const base = id.split('::')[0];
+            const hasComposite = !!baseHasComposite.get(base);
+            // If there is at least one composite for this base, drop the plain id entry
+            if (hasComposite && !id.includes('::')) return false;
+            return true;
+          });
+        } catch {}
+      })();
+
+      // Episode enrichment: map known video IDs to episode numbers
+      (function enrichEpisodes(){
+        try {
+          const VID2EP = getVid2Ep();
+          for (const it of items) {
+            if (!it) continue;
+            if (it.episode !== undefined && it.episode !== null && it.episode !== '' && it.episode !== 0) continue;
+            const m = String(it.id||'').match(/::([\w-]{6,})$/);
+            const vid = m ? m[1] : '';
+            if (vid && VID2EP[vid]) it.episode = VID2EP[vid];
+          }
+        } catch {}
+      })();
+
+      // If nothing to show, hide the section
+      if (!items.length) { wrap.style.display = 'none'; return; }
+
+      wrap.style.display = '';
+      rail.innerHTML = '';
+
+      // Helper: build card
+      function createCard(it){
+        const card = document.createElement('div');
+        card.className = 'card';
+        const a = document.createElement('a');
+        const baseId = String(it.id || '').split('::')[0];
+        a.href = `fiche.html?id=${encodeURIComponent(baseId)}&from=continue`;
+        const media = document.createElement('div');
+        media.className = 'card-media';
+        try { media.style.aspectRatio = '16 / 9'; } catch {}
+        // Image candidates: stored image -> derived extensions -> fallback
+        const img = document.createElement('img');
+        const applySrc = applyCwCacheBuster;
+        const candidates = [];
+        // Deterministic overrides from portrait base to landscape file present in repo
+        const landscapeOverrides = {
+          'al': 'Al1.webp',
+          'ba': 'Ba1.webp',
+          'bac': 'Bac1.webp',
+          'dé': 'Dé1.webp',
+          'ja': 'Ja1.webp',
+          'je': 'Je1.webp',
+          'ka': 'Ka1.webp',
+          'la': 'La1.webp',
+          'law': 'Law1.webp',
+          'ur': 'Ur1.webp'
+        };
+        const getBaseKey = (p)=>{
+          try {
+            const name = (p||'').split('/').pop().split('\\').pop();
+            const base = name.replace(/\.(jpg|jpeg|png|webp)$/i,'');
+            const letters = base.replace(/[^A-Za-zÀ-ÿ]/g,'');
+            const lower = letters.toLowerCase();
+            // test longest keys first
+            const keys = Object.keys(landscapeOverrides).sort((a,b)=>b.length-a.length);
+            for (const k of keys) { if (lower.startsWith(k)) return k; }
+          } catch {}
+          return null;
+        };
+        // If we can determine a known base, force its override file first
+        try {
+          const key = getBaseKey(it.image || it.title || '');
+          if (key && landscapeOverrides[key]) {
+            candidates.unshift(landscapeOverrides[key]);
+          }
+        } catch {}
+        const addDerived = (src)=>{ deriveExts(src).forEach(s=>candidates.push(s)); };
+        const addLandscapeVariant = (src)=>{ prependLandscapeVariants(candidates, src); };
+        // Prefer landscape first for Continue Watching
+        if (it.landscapeImage) addDerived(it.landscapeImage);
+        if (it.image) {
+          // Generate a potential landscape variant from the portrait filename
+          addLandscapeVariant(it.image);
+          addDerived(it.image);
+        }
+        if (it.landscapeImage) candidates.push(it.landscapeImage);
+        if (it.image) candidates.push(it.image);
+        // Force try '<base>1.webp' exactly first (e.g., 'Dé1.webp')
+        let preferred = null;
+        try {
+          if (it && it.image && /\.(jpg|jpeg|png|webp)$/i.test(it.image)) {
+            preferred = it.image.replace(/\.(jpg|jpeg|png|webp)$/i, '1.webp');
+          }
+        } catch {}
+        if (preferred) candidates.unshift(preferred);
+        let cIdx = 0;
+        img.src = applySrc(candidates[cIdx]) || applySrc(it.image) || 'apercu.webp';
+        img.onerror = function(){ cIdx++; if (cIdx < candidates.length) this.src = applySrc(candidates[cIdx]); else { this.onerror=null; this.src='apercu.webp'; } };
+        img.alt = 'Affiche de ' + (it.title || 'contenu');
+        img.loading = 'lazy'; img.decoding = 'async';
+        media.appendChild(img);
+        a.appendChild(media);
+
+        // Progress bar
+        const prog = document.createElement('div'); prog.className = 'progress';
+        const bar = document.createElement('div'); bar.className = 'bar';
+        const pct = Math.max(0, Math.min(99, Math.round((it.percent||0)*100)));
+        bar.style.width = pct + '%';
+        prog.appendChild(bar);
+        card.appendChild(a);
+        card.appendChild(prog);
+
+        // No bottom info bar for continue watching cards
+
+        // Remaining time caption outside the card (precise M:SS)
+        const total = Math.max(0, Math.round(it.duration || 0));
+        const watched = Math.max(0, Math.round(it.seconds || 0));
+        const remainingSec = Math.max(0, total - watched);
+        // Create wrapper to place text under the card
+        const wrapper = document.createElement('div');
+        wrapper.className = 'resume-item';
+        wrapper.appendChild(card);
+        if (remainingSec > 0) {
+          const m = Math.floor(remainingSec / 60);
+          const s = String(remainingSec % 60).padStart(2, '0');
+          const caption = document.createElement('div');
+          caption.className = 'resume-remaining';
+          caption.textContent = `${m}:${s} restant`;
+          wrapper.appendChild(caption);
+        }
+        // Title below time remaining
+        const title = document.createElement('div');
+        title.className = 'resume-title';
+        const t = it.title || '';
+        // Use only saved 'episode' field from progress entries to avoid mis-detection
+        let epNum = null;
+        const epRaw = (it.episode !== undefined && it.episode !== null && it.episode !== '') ? it.episode : null;
+        if (epRaw != null) {
+          const n = parseInt(epRaw, 10);
+          if (!Number.isNaN(n)) epNum = n;
+        }
+        title.textContent = epNum != null ? `${t} - ep${epNum}` : t;
+        wrapper.appendChild(title);
+
+        return wrapper;
+      }
+
+      items.slice(0, 20).forEach(it => { rail.appendChild(createCard(it)); });
+
+      // Keep list trimmed in storage to avoid growth
+      try {
+        const trimmed = items.slice(0, 50);
+        saveProgressList(trimmed);
+      } catch {}
+    } catch {}
+  })();
 
     // Removed global scroll blocking: popup content should be scrollable immediately
 
@@ -896,10 +1136,12 @@ document.addEventListener('DOMContentLoaded', async function () {
       'super-heros': 'Super‑héros',
       'psychologique': 'Psychologique',
     };
-    const prettyGenre = (name) => PRETTY_MAP[normalizeGenre(name).replace(/\s+/g,'-')] || (function(){
+    const prettyGenre = (name) => PRETTY_MAP[normalizeGenre(name).replace(/\s+/g,'-')] || capitalize(name);
+
+    function capitalize(name) {
       const n = (name||'').trim();
       return n.charAt(0).toUpperCase() + n.slice(1);
-    })();
+    }
 
     // Group by normalized genre and ensure sections
     const firstPopup = document.querySelector('.fiche-popup');
@@ -935,7 +1177,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // After all rails are (re)built, add desktop-only arrows and wire scroll
     function enhanceRailsWithArrows(){
       if (window.innerWidth <= 768) return; // desktop only
-      document.querySelectorAll('.section').forEach(section => {
+      document.querySelectorAll('.section, #continue-watching').forEach(section => {
         const rail = section.querySelector('.rail');
         if (!rail) return;
         // Avoid duplicates
@@ -1323,6 +1565,64 @@ document.addEventListener('DOMContentLoaded', async function () {
         } catch { return false; }
       }
 
+      // ============== Mobile fullscreen + zoom lock helpers ==============
+      // Temporarily disable pinch-zoom and double-tap zoom while player is open.
+      let __playerZoomCleanup = null;
+      function lockNoZoom(enable){
+        try {
+          if (!enable) {
+            if (typeof __playerZoomCleanup === 'function') { __playerZoomCleanup(); __playerZoomCleanup = null; }
+            return;
+          }
+          // If already installed, do nothing
+          if (typeof __playerZoomCleanup === 'function') return;
+
+          const meta = document.querySelector('meta[name="viewport"]');
+          const original = meta ? meta.getAttribute('content') : '';
+
+          // Apply strict viewport
+          if (meta) {
+            const content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover';
+            try { meta.setAttribute('content', content); } catch {}
+          }
+
+          // Intercept pinch and double-tap zoom
+          const onGesture = (e) => { try { e.preventDefault(); } catch {} };
+          const onWheel = (e) => { try { if (e.ctrlKey) e.preventDefault(); } catch {} };
+          let lastTouchEnd = 0;
+          const onTouchEnd = (e) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 350) { try { e.preventDefault(); } catch {} }
+            lastTouchEnd = now;
+          };
+          window.addEventListener('gesturestart', onGesture, { passive: false });
+          window.addEventListener('gesturechange', onGesture, { passive: false });
+          window.addEventListener('gestureend', onGesture, { passive: false });
+          window.addEventListener('wheel', onWheel, { passive: false });
+          window.addEventListener('touchend', onTouchEnd, { passive: false });
+
+          __playerZoomCleanup = function(){
+            try { window.removeEventListener('gesturestart', onGesture); } catch {}
+            try { window.removeEventListener('gesturechange', onGesture); } catch {}
+            try { window.removeEventListener('gestureend', onGesture); } catch {}
+            try { window.removeEventListener('wheel', onWheel); } catch {}
+            try { window.removeEventListener('touchend', onTouchEnd); } catch {}
+            if (meta) { try { meta.setAttribute('content', original || 'width=device-width, initial-scale=1, viewport-fit=cover'); } catch {} }
+          };
+        } catch {}
+      }
+
+      async function tryEnterFullscreen(el){
+        if (!el) return false;
+        try {
+          if (el.requestFullscreen) { await el.requestFullscreen(); return true; }
+        } catch {}
+        // iOS Safari special cases
+        try { if (el.webkitRequestFullscreen) { el.webkitRequestFullscreen(); return true; } } catch {}
+        try { if (el.webkitEnterFullscreen) { el.webkitEnterFullscreen(); return true; } } catch {}
+        return false;
+      }
+
       function ensurePlayerOverlay(){
         let overlay = document.querySelector('.player-overlay');
         if (overlay) return overlay;
@@ -1355,6 +1655,12 @@ document.addEventListener('DOMContentLoaded', async function () {
         const close = ()=>{
           try { if (typeof overlay.__activeCleanup === 'function') overlay.__activeCleanup(); } catch {}
           try { document.body.classList.remove('player-open'); document.documentElement.classList.remove('player-open'); } catch {}
+          // Exit fullscreen where supported
+          try {
+            if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
+          } catch {}
+          // Restore zoom behavior
+          try { lockNoZoom(false); } catch {}
           overlay.classList.remove('open');
           // stop any media
           try { stage.querySelectorAll('video').forEach(v=>{ try { v.pause(); } catch{} }); } catch{}
@@ -1402,6 +1708,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (titleEl && linkTitle) titleEl.textContent = linkTitle;
         try { document.body.classList.add('player-open'); document.documentElement.classList.add('player-open'); } catch {}
         overlay.classList.add('open');
+        // Immediately lock zoom on mobile and try to enter fullscreen on the overlay
+        try { lockNoZoom(true); } catch {}
+        try { if (window.innerWidth <= 1024) { tryEnterFullscreen(overlay); } } catch {}
 
         // Clear stage and show intro video first
         stage.innerHTML = '';
@@ -1457,6 +1766,12 @@ document.addEventListener('DOMContentLoaded', async function () {
         stage.appendChild(intro);
         stage.appendChild(skip);
         try { const p = intro.play(); if (p && typeof p.catch === 'function') p.catch(()=>{}); } catch {}
+        // On iOS, request fullscreen on the video element itself once it starts
+        try {
+          const kickFs = ()=>{ try { if (window.innerWidth <= 1024) tryEnterFullscreen(intro); } catch {} };
+          intro.addEventListener('play', kickFs, { once: true });
+          intro.addEventListener('loadedmetadata', kickFs, { once: true });
+        } catch {}
       }
 
       document.addEventListener('click', function(e){
