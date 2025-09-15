@@ -1,27 +1,3 @@
-  // ===== Deleted-user requests suppression to avoid revival during hydration =====
-  function loadSuppressionMap(){
-    try { return JSON.parse(localStorage.getItem(APP_KEY_REQ_SUPPRESS)||'{}') || {}; } catch { return {}; }
-  }
-  function saveSuppressionMap(map){
-    try { localStorage.setItem(APP_KEY_REQ_SUPPRESS, JSON.stringify(map||{})); } catch {}
-  }
-  function suppressTitleKey(key){
-    try {
-      const m = loadSuppressionMap();
-      m[String(key)||''] = Date.now();
-      saveSuppressionMap(m);
-    } catch {}
-  }
-  function isSuppressed(key, ttlMs){
-    try {
-      const m = loadSuppressionMap();
-      const t = m[String(key)||''];
-      if (!t) return false;
-      const ttl = typeof ttlMs==='number' ? ttlMs : 2*60*60*1000; // 2h default
-      return (Date.now() - t) < ttl;
-    } catch { return false; }
-  }
-
 'use strict';
 
 (function(){
@@ -37,47 +13,10 @@
   const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
   const APP_KEY_LAST_EDIT = 'clipsou_admin_last_edit_v1';
   const APP_KEY_ACTOR_PHOTOS = 'clipsou_admin_actor_photos_v1';
-  const APP_KEY_REQ_SUPPRESS = 'clipsou_requests_suppress_v1';
+  const APP_KEY_GOOGLE_PROFILE = 'clipsou_admin_google_profile_v1';
+  const APP_KEY_GOOGLE_CLIENT = 'clipsou_admin_google_client_v1';
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
-
-  // Prefer configured Worker URL; if absent, use project default
-  const DEFAULT_WORKER_URL = 'https://clipsou-publish.arthurcapon54.workers.dev';
-
-  // Shared validity check for incoming id values
-  function isValidIdValue(v){ return !!v && v !== 'undefined' && v !== 'null'; }
-
-  // Create a stable id from a title when missing/invalid
-  function makeIdFromTitle(title){
-    try {
-      const base = String(title||'')
-        .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-        .toLowerCase().replace(/[^a-z0-9]+/g,'-')
-        .replace(/(^-|-$)/g,'');
-      return (base || 'req') + '-' + Math.random().toString(36).slice(2,8);
-    } catch { return 'req-' + Math.random().toString(36).slice(2,8); }
-  }
-
-  // Normalize item before publishing so it passes Worker validation
-  function normalizeForPublish(item){
-    if (!item || typeof item !== 'object') return item;
-    // Ensure id
-    if (!isValidIdValue(item.id)) item.id = makeIdFromTitle(item.title);
-    // Clamp and round rating to 0..5 step 0.5
-    if (typeof item.rating === 'number'){
-      let r = item.rating;
-      if (isNaN(r)) { delete item.rating; }
-      else {
-        r = Math.max(0, Math.min(5, r));
-        r = Math.round(r*2)/2;
-        item.rating = r;
-      }
-    }
-    // Ensure arrays are arrays
-    if (!Array.isArray(item.genres)) item.genres = item.genres ? [item.genres].filter(Boolean) : [];
-    if (!Array.isArray(item.actors)) item.actors = [];
-    return item;
-  }
 
   // ===== Utilities: normalization, validation, and deduplication =====
   function normalizeTitleKey(s) {
@@ -91,33 +30,56 @@
     } catch (_) {
       return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '').trim();
     }
-
-  // Remove a request from the shared online requests.json via Worker API
-  async function deleteRequestOnline(item){
+  // ===== Google Sign-In (optional, to remember admin profile) =====
+  function getGoogleClientId(){ try { return localStorage.getItem(APP_KEY_GOOGLE_CLIENT) || ''; } catch { return ''; } }
+  function setGoogleClientId(id){ try { localStorage.setItem(APP_KEY_GOOGLE_CLIENT, String(id||'')); } catch {} }
+  function getGoogleProfile(){ try { return JSON.parse(localStorage.getItem(APP_KEY_GOOGLE_PROFILE)||'null') || null; } catch { return null; } }
+  function setGoogleProfile(p){ try { localStorage.setItem(APP_KEY_GOOGLE_PROFILE, JSON.stringify(p||{})); } catch {} }
+  function clearGoogleProfile(){ try { localStorage.removeItem(APP_KEY_GOOGLE_PROFILE); } catch {} }
+  function ensureGoogleClientId(){
+    let cid = getGoogleClientId();
+    if (!cid) {
+      cid = prompt('Entrez votre Google OAuth Client ID Web (ex: 1234-abcdef.apps.googleusercontent.com):', '') || '';
+      if (cid) setGoogleClientId(cid.trim());
+    }
+    return getGoogleClientId();
+  }
+  function decodeJwtPayload(jwt){
     try {
-      const cfg = await ensurePublishConfig();
-      if (!cfg || !cfg.url || !cfg.secret) return false;
-      const payload = { action: 'deleteRequest' };
-      // Always send title; send id only if it looks valid
-      if (item && isValidIdValue(item.id)) payload.id = item.id;
-      if (item && item.title) payload.title = item.title;
-      console.debug('[admin] deleteRequestOnline payload:', payload);
-      const res = await fetch(cfg.url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.secret },
-        body: JSON.stringify(payload)
+      const parts = String(jwt||'').split('.');
+      if (parts.length !== 3) return null;
+      const payload = parts[1].replace(/-/g,'+').replace(/_/g,'/');
+      const json = decodeURIComponent(atob(payload).split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+      return JSON.parse(json);
+    } catch { return null; }
+  }
+  function initGoogle(callback){
+    const cid = getGoogleClientId();
+    if (!cid) return false;
+    if (!(window && window.google && google.accounts && google.accounts.id)) return false;
+    try {
+      google.accounts.id.initialize({
+        client_id: cid,
+        callback: (response)=>{
+          try {
+            const payload = decodeJwtPayload(response && response.credential);
+            if (payload && payload.sub) {
+              const profile = {
+                id: payload.sub,
+                email: payload.email || '',
+                name: payload.name || '',
+                picture: payload.picture || ''
+              };
+              setGoogleProfile(profile);
+              const stTop = document.getElementById('googleStatusTop');
+              if (stTop) stTop.textContent = profile.email ? ('Compte Google lié: ' + profile.email) : 'Compte Google lié';
+          }
+          } catch {}
+          if (typeof callback === 'function') callback();
+        }
       });
-      if (!res.ok) {
-        const txt = await res.text().catch(()=>String(res.status));
-        console.warn('[admin] deleteRequestOnline failed:', res.status, txt);
-        alert('Suppression distante échouée ('+res.status+'). Vérifiez le SHARED_SECRET et les logs Worker.');
-        return false;
-      }
-      // Schedule a hydration to reflect remote deletion
-      setTimeout(()=>{ try { hydrateRequestsFromOnline(); } catch {} }, 1200);
       return true;
     } catch { return false; }
-  }
   }
 
   // Fetch public approved.json to hydrate actor photos map for admin UI
@@ -663,116 +625,6 @@
   function getApproved(){ return loadJSON(APP_KEY_APPROVED, []); }
   function setApproved(list){ saveJSON(APP_KEY_APPROVED, list); }
 
-  // ===== Online requests (public submissions) =====
-  async function fetchOnlineRequestsArray(){
-    // 1) Try Cloudflare Worker (no auth) to bypass CORS/origin issues when admin is opened via file:// or localhost
-    try {
-      const cfg = getPublishConfig();
-      const apiUrl = (cfg && cfg.url) ? cfg.url : DEFAULT_WORKER_URL;
-      if (apiUrl) {
-        const res = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'getRequests' })
-        });
-        if (res.ok) {
-          const json = await res.json();
-          if (Array.isArray(json)) return json;
-          if (json && typeof json === 'object') {
-            if (Array.isArray(json.requests)) return json.requests;
-            if (Array.isArray(json.data)) return json.data;
-          }
-        }
-      }
-    } catch {}
-
-    // 2) Try common site URLs (same-origin preferred)
-    const origin = (function(){ try { return window.location.origin; } catch { return ''; } })();
-    const tryUrls = [
-      origin ? origin + '/data/requests.json' : null,
-      'https://clipsoustreaming.com/data/requests.json',
-      '../data/requests.json',
-      'data/requests.json'
-    ].filter(Boolean);
-    for (const u of tryUrls) {
-      try {
-        const res = await fetch(u + '?v=' + Date.now(), { cache: 'no-store' });
-        if (!res.ok) continue;
-        const json = await res.json();
-        if (Array.isArray(json)) return json;
-        if (json && typeof json === 'object') {
-          if (Array.isArray(json.requests)) return json.requests;
-          if (Array.isArray(json.data)) return json.data;
-        }
-      } catch {}
-    }
-    return [];
-  }
-
-  async function hydrateRequestsFromOnline(){
-    try {
-      const online = await fetchOnlineRequestsArray();
-      if (!online || !online.length) return;
-      let local = getRequests() || [];
-      const keyTitle = (t)=>normalizeTitleKey(t||'');
-      const validId = (v)=>{ return !!v && v !== 'undefined' && v !== 'null'; };
-      const byKey = new Map();
-      local.forEach(r=>{
-        if (!r||!r.data) return;
-        const hasId = validId(r.data.id);
-        const k = hasId ? ('id:'+r.data.id) : ('t:'+keyTitle(r.data.title));
-        if (!byKey.has(k)) byKey.set(k, r);
-      });
-      online.forEach(item => {
-        if (!item) return;
-        const hasId = validId(item.id);
-        const k = hasId ? ('id:'+item.id) : ('t:'+keyTitle(item.title));
-        // Skip revival if the normalized title is suppressed (recently deleted locally)
-        const normKey = 't:'+keyTitle(item.title);
-        if (isSuppressed(normKey)) return;
-        const exists = byKey.get(k);
-        if (exists) {
-          // Update data from online for visibility but preserve local meta/status/requestId
-          exists.data = { ...exists.data, ...item };
-          if (!exists.meta) exists.meta = { source: 'user' };
-          else exists.meta.source = 'user';
-          // If it was previously marked deleted locally, revive it
-          try { if (exists.meta.deleted) exists.meta.deleted = false; } catch {}
-        } else {
-          const req = {
-            requestId: 'u_'+(item.id || keyTitle(item.title) || Math.random().toString(36).slice(2,8)),
-            status: 'pending',
-            data: item,
-            meta: { source: 'user', deleted: false }
-          };
-          local.push(req);
-          byKey.set(k, req);
-        }
-      });
-      // Deduplicate by normalized title: keep first non-deleted entry
-      try {
-        const seen = new Set();
-        const out = [];
-        for (const r of local) {
-          const k = 't:'+keyTitle(r && r.data && r.data.title);
-          if (!seen.has(k)) { out.push(r); seen.add(k); }
-          else {
-            // If existing kept one was deleted but current is not, replace it
-            const idx = out.findIndex(x=>('t:'+keyTitle(x && x.data && x.data.title))===k);
-            if (idx>=0) {
-              const kept = out[idx];
-              const keepCurrent = (!!r && !(r.meta && r.meta.deleted)) && (!!kept && (kept.meta && kept.meta.deleted));
-              if (keepCurrent) out[idx] = r;
-            }
-          }
-        }
-        local = out;
-      } catch {}
-      setRequests(local);
-      renderTable();
-    } catch {}
-  }
-
   function getPublishConfig(){
     try { return JSON.parse(localStorage.getItem(APP_KEY_PUB) || 'null') || {}; } catch { return {}; }
   }
@@ -949,6 +801,23 @@
     const login = $('#login');
     function showLogin(){ if (app) app.hidden = true; if (login) login.hidden = false; }
     function showApp(){ if (login) login.hidden = true; if (app) app.hidden = false; }
+    // Firebase Auth: reflect session state
+    try {
+      if (window.__onAuthStateChanged && window.__fbAuth) {
+        window.__onAuthStateChanged(window.__fbAuth, (user)=>{
+          try {
+            const gStatusTop = document.getElementById('googleStatusTop');
+            const avatar = document.getElementById('googleAvatarTop');
+            if (gStatusTop) gStatusTop.textContent = user && user.email ? ('Connecté: ' + user.email) : '';
+            if (avatar) {
+              if (user && user.photoURL) { avatar.src = user.photoURL; avatar.style.display = ''; }
+              else { avatar.removeAttribute('src'); avatar.style.display = 'none'; }
+            }
+          } catch {}
+          if (user) { showApp(); initApp(); }
+        });
+      }
+    } catch {}
     // Existing session
     try {
       // If "remember" is set, auto-login without prompting
@@ -965,22 +834,26 @@
       }
     } catch {}
 
-    // Manual refresh button for online user requests
-    try {
-      const btn = document.querySelector('#refreshRequestsBtn');
-      if (btn) btn.addEventListener('click', ()=>{ try { hydrateRequestsFromOnline(); } catch {} });
-    } catch {}
-
-    // Periodically refresh online user requests so all admins see updates
-    try {
-      setInterval(()=>{ try { hydrateRequestsFromOnline(); } catch {} }, 30000);
-      window.addEventListener('focus', ()=>{ try { hydrateRequestsFromOnline(); } catch {} });
-    } catch {}
-
     showLogin();
     const btn = $('#loginBtn');
     const pwdInput = $('#passwordInput');
     const showPwd = $('#showPwd');
+    const gBtnTop = $('#googleLinkBtn');
+    const logoutBtn = $('#logoutBtn');
+    const gStatusTop = $('#googleStatusTop');
+    // Create a tiny status line for diagnostics
+    try {
+      let st = document.getElementById('loginStatus');
+      const loginBox = document.getElementById('login');
+      if (!st && loginBox) {
+        st = document.createElement('p');
+        st.id = 'loginStatus';
+        st.className = 'small muted';
+        st.style.margin = '8px 0 0';
+        loginBox.appendChild(st);
+      }
+      if (st) st.textContent = 'UI prête (handler en cours de liaison)';
+    } catch {}
 
     // Prefill password if previously remembered
     try {
@@ -996,6 +869,45 @@
       });
     }
 
+    // If Firebase already has a user, show email
+    try {
+      const u = (window.__fbAuth && window.__fbAuth.currentUser) || null;
+      const avatar = document.getElementById('googleAvatarTop');
+      if (u && gStatusTop) gStatusTop.textContent = u.email ? ('Connecté: ' + u.email) : 'Connecté';
+      if (avatar) {
+        if (u && u.photoURL) { avatar.src = u.photoURL; avatar.style.display = ''; }
+        else { avatar.removeAttribute('src'); avatar.style.display = 'none'; }
+      }
+    } catch {}
+
+    // Wire Google Sign-In button (Firebase Auth)
+    if (gBtnTop) {
+      gBtnTop.addEventListener('click', async () => {
+        try {
+          if (!(window.__fbAuth && window.__GoogleAuthProvider && window.__signInWithPopup)) {
+            alert('Firebase Auth non initialisé.');
+            return;
+          }
+          const provider = new window.__GoogleAuthProvider();
+          await window.__signInWithPopup(window.__fbAuth, provider);
+          // onAuthStateChanged will fire and show the app
+        } catch (e) {
+          alert('Connexion Google impossible.');
+        }
+      });
+    }
+    // Wire logout to Firebase signOut when available
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async ()=>{
+        try { if (window.__fbSignOut && window.__fbAuth) await window.__fbSignOut(window.__fbAuth); } catch {}
+        try { sessionStorage.removeItem(APP_KEY_SESSION); } catch {}
+        try { const avatar = document.getElementById('googleAvatarTop'); if (avatar) { avatar.removeAttribute('src'); avatar.style.display = 'none'; } } catch {}
+        showLogin();
+      });
+    }
+
+
+
     function doLogin(){
       const pwd = (pwdInput && pwdInput.value) || '';
       if (pwd === '20Blabla30') {
@@ -1008,8 +920,31 @@
         alert('Mot de passe incorrect.');
       }
     }
-    if (btn) btn.addEventListener('click', doLogin);
+    // Expose globally as a fallback
+    try { window.__doLogin = doLogin; } catch {}
+    if (btn) {
+      try { btn.removeEventListener('click', doLogin); } catch {}
+      btn.addEventListener('click', doLogin);
+      // Fallback inline handler in case addEventListener fails in some browsers
+      try { btn.onclick = doLogin; } catch {}
+    }
     if (pwdInput) pwdInput.addEventListener('keydown', (e)=>{ if (e.key==='Enter') { e.preventDefault(); doLogin(); } });
+    // Delegated fallback on the whole login box
+    try {
+      const loginBox = document.getElementById('login');
+      if (loginBox && !loginBox.__delegateWired) {
+        loginBox.addEventListener('click', (e)=>{
+          const t = e.target;
+          if (t && (t.id === 'loginBtn' || t.closest && t.closest('#loginBtn'))) {
+            e.preventDefault();
+            doLogin();
+          }
+        }, true);
+        loginBox.__delegateWired = true;
+      }
+    } catch {}
+    // Update status
+    try { const st = document.getElementById('loginStatus'); if (st) st.textContent = 'Handler prêt'; } catch {}
   }
 
   function fillForm(data){
@@ -1027,7 +962,7 @@
     $('#watchUrl').value = data.watchUrl || '';
     // New: studio badge
     const studioBadgeEl = $('#studioBadge');
-    if (studioBadgeEl) studioBadgeEl.value = data.studioBadge || 'https://clipsoustreaming.com/clipsoustudio.png';
+    if (studioBadgeEl) studioBadgeEl.value = data.studioBadge || 'https://clipsoustreaming.com/clipsoustudio.webp';
     // Preview studio badge
     setPreview($('#studioBadgePreview'), (studioBadgeEl && studioBadgeEl.value) || '');
     const actors = Array.isArray(data.actors) ? data.actors.slice() : [];
@@ -1065,7 +1000,7 @@
     // New: studio badge with default
     let studioBadge = '';
     try { studioBadge = String($('#studioBadge').value || '').trim(); } catch {}
-    if (!studioBadge) studioBadge = 'https://clipsoustreaming.com/clipsoustudio.png';
+    if (!studioBadge) studioBadge = 'https://clipsoustreaming.com/clipsoustudio.webp';
     return {
       id,
       requestId: $('#requestId').value || '',
@@ -1095,143 +1030,115 @@
   }
 
   function renderTable(){
-    const tbodyUser = document.querySelector('#requestsTableUser tbody');
-    const tbodyAdmin = document.querySelector('#requestsTableAdmin tbody');
-    if (tbodyUser) tbodyUser.innerHTML = '';
-    if (tbodyAdmin) tbodyAdmin.innerHTML = '';
+    const tbody = $('#requestsTable tbody');
     // Exclude requests marked as deleted from the UI
-    const all = getRequests().filter(r => !(r && r.meta && r.meta.deleted));
+    const reqs = getRequests().filter(r => !(r && r.meta && r.meta.deleted));
+    tbody.innerHTML = '';
+    reqs.forEach(r => {
+      const tr = document.createElement('tr');
+      const g3 = (r.data.genres||[]).slice(0,3).filter(Boolean).map(g=>String(g));
+      tr.innerHTML = `
+        <td>${r.data.title||''}</td>
+        <td>${r.data.type||''}</td>
+        <td class="genres-cell"></td>
+        <td>${(typeof r.data.rating==='number')?r.data.rating:''}</td>
+        <td class="row-actions"></td>
+      `;
+      // Fill genres as span elements for responsive layout
+      try {
+        const tdGenres = tr.querySelector('.genres-cell');
+        if (tdGenres) {
+          tdGenres.innerHTML = '';
+          g3.forEach((g, i) => {
+            const span = document.createElement('span');
+            span.className = 'genre';
+            span.textContent = g;
+            tdGenres.appendChild(span);
+          });
+        }
+      } catch {}
+      const actions = tr.querySelector('.row-actions');
+      const editBtn = document.createElement('button'); editBtn.className='btn secondary'; editBtn.textContent='Modifier';
+      const delBtn = document.createElement('button'); delBtn.className='btn secondary'; delBtn.textContent='Supprimer';
+      const approveBtn = document.createElement('button'); approveBtn.className='btn';
+      // Simplified labels without status dots
+      approveBtn.textContent = (r.status === 'approved') ? 'Retirer' : 'Approuver';
+      actions.appendChild(editBtn); actions.appendChild(delBtn); actions.appendChild(approveBtn);
 
-    const looksUser = (r)=> !!(r && ((r.meta && r.meta.source === 'user') || (r.requestId && /^u_/.test(String(r.requestId)))));
-    const userReqs = all.filter(looksUser);
-    const adminReqs = all.filter(r => !looksUser(r));
-
-    function renderList(targetTbody, list){
-      if (!targetTbody) return;
-      try { console.debug('[admin] rendering list len=', Array.isArray(list)?list.length:0); } catch {}
-      list.forEach(r => {
-        try {
-          if (!r || !r.data || typeof r.data !== 'object') return;
-          const title = (r.data.title||'').trim();
-          const type = (r.data.type||'').trim();
-          const genresArr = Array.isArray(r.data.genres) ? r.data.genres : [];
-          const g3 = genresArr.filter(Boolean).slice(0,3).join(', ');
-          const note = (typeof r.data.rating==='number') ? r.data.rating : '';
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${title}</td>
-            <td>${type}</td>
-            <td>${g3}</td>
-            <td>${note}</td>
-            <td class="row-actions"></td>
-          `;
-        const actions = tr.querySelector('.row-actions');
-        const editBtn = document.createElement('button'); editBtn.className='btn secondary'; editBtn.textContent='Modifier';
-        const delBtn = document.createElement('button'); delBtn.className='btn secondary'; delBtn.textContent='Supprimer';
-        const approveBtn = document.createElement('button'); approveBtn.className='btn';
-        // Simplified labels without status dots
-        approveBtn.textContent = (r.status === 'approved') ? 'Retirer' : 'Approuver';
-        actions.appendChild(editBtn); actions.appendChild(delBtn); actions.appendChild(approveBtn);
-
-        // No status cell anymore
-        editBtn.addEventListener('click', ()=>{ fillForm(r.data); try { setLastEditedId(r.data && r.data.id); } catch{} });
-        delBtn.addEventListener('click', async ()=>{
-          if (!confirm('Supprimer cette requête ?')) return;
-          let list = getRequests().filter(x=>x.requestId!==r.requestId);
-          // Stamp and sync
-          const deleted = { ...r, meta: { ...(r.meta||{}), updatedAt: Date.now(), deleted: true } };
-          list.unshift(deleted);
-          setRequests(list);
-          // If it came from online user requests, also remove it remotely
-          try {
-            if (r && r.meta && r.meta.source === 'user') {
-              // Prevent revival by hydration for a short TTL
-              const normKey = 't:'+normalizeTitleKey(r && r.data && r.data.title);
-              suppressTitleKey(normKey);
-              const okRemote = await deleteRequestOnline(r.data);
-              // Extra local prune by normalized title to avoid any lingering duplicates
-              try {
-                const normTitle = normalizeTitleKey(r && r.data && r.data.title);
-                let cur = getRequests();
-                cur = cur.filter(x => normalizeTitleKey(x && x.data && x.data.title) !== normTitle);
-                setRequests(cur);
-              } catch {}
-            }
-          } catch {}
-          try { if ((r && r.data && r.data.id) === getLastEditedId()) clearLastEditedId(); } catch{}
-          if (r.status==='approved') {
-            const apr = getApproved().filter(x=>x.id!==r.data.id);
-            setApproved(apr);
-          }
-          renderTable(); emptyForm();
-        });
-        approveBtn.addEventListener('click', async ()=>{
-          const list = getRequests();
-          const found = list.find(x=>x.requestId===r.requestId);
-          if (!found) return;
-          if (found.status==='approved') {
-            // Unapprove
-            found.status = 'pending';
-            stampUpdatedAt(found);
-            setRequests(list);
-            const apr = getApproved().filter(x=>x.id!==found.data.id);
-            setApproved(apr);
-            // Remove from shared approved.json
-            showPublishWaitHint();
-            await deleteApproved(found.data.id);
-            approveBtn.textContent = 'Approuver';
-            // No status cell to refresh
-            // Sync removed
-          } else {
-            // Show publishing indicator and disable button during network call
-            const originalHtml = approveBtn.innerHTML;
-            approveBtn.disabled = true;
-            // Keep the button label unchanged; the hint is displayed elsewhere
-            approveBtn.innerHTML = originalHtml;
-            showPublishWaitHint();
-
-            // Optimistically set approved locally
-            found.status = 'approved';
-            stampUpdatedAt(found);
-            setRequests(list);
-            let apr = getApproved();
-            const key = normalizeTitleKey(found.data && found.data.title);
-            // Remove any existing approved with same normalized title or different item with same id
-            apr = apr.filter(x => x && x.id !== found.data.id && normalizeTitleKey(x.title) !== key);
-            apr.push(found.data);
-            setApproved(dedupeByIdAndTitle(apr));
-            // Sync removed
-            // Publish through API for everyone and reflect final status
-            // Normalize item (ensure id and valid rating) before publish
-            normalizeForPublish(found.data);
-            const ok = await publishApproved(found.data);
-            if (ok) {
-              approveBtn.textContent = 'Retirer';
-              // If approved from a user-sourced request, remove it from online requests
-              try { if (found && found.meta && found.meta.source === 'user') await deleteRequestOnline(found.data); } catch {}
-              setTimeout(()=>{ renderTable(); }, 300);
-            } else {
-              // Revert local approval on failure
-              found.status = 'pending';
-              setRequests(list);
-              const apr2 = getApproved().filter(x=>x.id!==found.data.id);
-              setApproved(apr2);
-              approveBtn.textContent = 'Approuver';
-              renderTable();
-            }
-            // Re-enable only if global 30s lock is not active
-            try { approveBtn.disabled = isPublishLocked(); } catch { approveBtn.disabled = false; }
-          }
-          // For unapprove, immediate refresh
-          if (found.status==='pending') renderTable();
-        });
-          targetTbody.appendChild(tr);
-        } catch(e) { try { console.warn('[admin] render row error', e); } catch {} }
+      // No status cell anymore
+      editBtn.addEventListener('click', ()=>{ fillForm(r.data); try { setLastEditedId(r.data && r.data.id); } catch{} });
+      delBtn.addEventListener('click', ()=>{
+        if (!confirm('Supprimer cette requête ?')) return;
+        let list = getRequests().filter(x=>x.requestId!==r.requestId);
+        // Stamp and sync
+        const deleted = { ...r, meta: { ...(r.meta||{}), updatedAt: Date.now(), deleted: true } };
+        list.unshift(deleted);
+        setRequests(list);
+        try { if ((r && r.data && r.data.id) === getLastEditedId()) clearLastEditedId(); } catch{}
+        if (r.status==='approved') {
+          const apr = getApproved().filter(x=>x.id!==r.data.id);
+          setApproved(apr);
+        }
+        renderTable(); emptyForm();
       });
-    }
+      approveBtn.addEventListener('click', async ()=>{
+        const list = getRequests();
+        const found = list.find(x=>x.requestId===r.requestId);
+        if (!found) return;
+        if (found.status==='approved') {
+          // Unapprove
+          found.status = 'pending';
+          stampUpdatedAt(found);
+          setRequests(list);
+          const apr = getApproved().filter(x=>x.id!==found.data.id);
+          setApproved(apr);
+          // Remove from shared approved.json
+          showPublishWaitHint();
+          await deleteApproved(found.data.id);
+          approveBtn.textContent = 'Approuver';
+          // No status cell to refresh
+          // Sync removed
+        } else {
+          // Show publishing indicator and disable button during network call
+          const originalHtml = approveBtn.innerHTML;
+          approveBtn.disabled = true;
+          // Keep the button label unchanged; the hint is displayed elsewhere
+          approveBtn.innerHTML = originalHtml;
+          showPublishWaitHint();
 
-    renderList(tbodyUser, userReqs);
-    renderList(tbodyAdmin, adminReqs);
+          // Optimistically set approved locally
+          found.status = 'approved';
+          stampUpdatedAt(found);
+          setRequests(list);
+          let apr = getApproved();
+          const key = normalizeTitleKey(found.data && found.data.title);
+          // Remove any existing approved with same normalized title or different item with same id
+          apr = apr.filter(x => x && x.id !== found.data.id && normalizeTitleKey(x.title) !== key);
+          apr.push(found.data);
+          setApproved(dedupeByIdAndTitle(apr));
+          // Sync removed
+          // Publish through API for everyone and reflect final status
+          const ok = await publishApproved(found.data);
+          if (ok) {
+            approveBtn.textContent = 'Retirer';
+            setTimeout(()=>{ renderTable(); }, 300);
+          } else {
+            // Revert local approval on failure
+            found.status = 'pending';
+            setRequests(list);
+            const apr2 = getApproved().filter(x=>x.id!==found.data.id);
+            setApproved(apr2);
+            approveBtn.textContent = 'Approuver';
+            renderTable();
+          }
+          // Re-enable only if global 30s lock is not active
+          try { approveBtn.disabled = isPublishLocked(); } catch { approveBtn.disabled = false; }
+        }
+        // For unapprove, immediate refresh
+        if (found.status==='pending') renderTable();
+      });
+      tbody.appendChild(tr);
+    });
     populateActorNamesDatalist();
     // Apply global 30s lock state to any newly rendered buttons
     try { applyPublishLockUI(); } catch {}
@@ -1240,26 +1147,6 @@
   function initApp(){
     const app = $('#app');
     app.hidden = false;
-
-    // Top quick access: go to requests list
-    try {
-      const gotoBtn = $('#gotoRequestsBtn');
-      if (gotoBtn) {
-        gotoBtn.addEventListener('click', () => {
-          try {
-            const sec = document.getElementById('requests');
-            if (!sec) return;
-            sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            // Temporary highlight and focus for accessibility
-            sec.setAttribute('tabindex', '-1');
-            sec.focus({ preventScroll: true });
-            sec.style.boxShadow = '0 0 0 2px #60a5fa inset';
-            sec.style.transition = 'box-shadow .3s ease';
-            setTimeout(() => { try { sec.style.boxShadow = ''; sec.removeAttribute('tabindex'); } catch {} }, 1200);
-          } catch {}
-        });
-      }
-    } catch {}
 
     // Logout button returns to login
     try {
@@ -1552,10 +1439,7 @@
           if (wasApproved) existing.status = 'pending';
           stampUpdatedAt(existing);
         }
-        else {
-          const base = { requestId: reqId, status: 'pending', data, meta: { source: 'admin' } };
-          list.unshift(stampUpdatedAt(base));
-        }
+        else { list.unshift(stampUpdatedAt({ requestId: reqId, status: 'pending', data })); }
         setRequests(list);
         try { setLastEditedId(data && data.id); } catch{}
         // If already approved, keep approved in sync
@@ -1626,8 +1510,6 @@
 
     emptyForm();
     renderTable();
-    // Pull online user requests and merge into local list (marked as source:user)
-    try { hydrateRequestsFromOnline(); } catch {}
     // Shared requests sync removed
     populateGenresDatalist();
     restoreDraft();
@@ -1660,69 +1542,4 @@
   } else {
     ensureAuth();
   }
-})();
-
-// ===== Extra helpers: genres datalist & actor names =====
-(function(){
-  const $ = (sel, root=document) => root.querySelector(sel);
-
-  async function collectGenresFromIndex(){
-    try {
-      const res = await fetch('../index.html', { credentials: 'same-origin', cache: 'no-store' });
-      if (!res.ok) throw new Error('HTTP '+res.status);
-      const html = await res.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const set = new Set();
-      doc.querySelectorAll('.fiche-popup .rating-genres .genres .genre-tag').forEach(el => {
-        const g = (el.textContent || '').trim(); if (g) set.add(g);
-      });
-      return Array.from(set);
-    } catch { return []; }
-  }
-
-  function collectGenresFromStorage(){
-    try {
-      const set = new Set();
-      const reqs = JSON.parse(localStorage.getItem('clipsou_requests_v1')||'[]') || [];
-      reqs.forEach(r => (r && r.data && Array.isArray(r.data.genres)) && r.data.genres.forEach(g=>g&&set.add(g)));
-      const apr = JSON.parse(localStorage.getItem('clipsou_items_approved_v1')||'[]') || [];
-      apr.forEach(r => (r && Array.isArray(r.genres)) && r.genres.forEach(g=>g&&set.add(g)));
-      return Array.from(set);
-    } catch { return []; }
-  }
-
-  window.populateGenresDatalist = async function populateGenresDatalist(){
-    const el = $('#genresDatalist');
-    if (!el) return;
-    const [fromIndex, fromStore] = await Promise.all([
-      collectGenresFromIndex(),
-      Promise.resolve(collectGenresFromStorage())
-    ]);
-    const set = new Set([ ...fromIndex, ...fromStore, 'Action','Comédie','Drame','Horreur','Aventure','Fantastique','Familial','Thriller','Psychologique','Western','Mystère','Ambience','Enfants','Super-héros' ]);
-    el.innerHTML = Array.from(set).sort((a,b)=>String(a).localeCompare(String(b),'fr')).map(g=>`<option value="${g}"></option>`).join('');
-  };
-
-  // No image import: fields accept file names or URLs only
-  function collectActorNames(){
-    const set = new Set();
-    try {
-      const reqs = JSON.parse(localStorage.getItem('clipsou_requests_v1')||'[]') || [];
-      reqs.forEach(r => (r && r.data && Array.isArray(r.data.actors)) && r.data.actors.forEach(a=>a&&a.name&&set.add(a.name)));
-    } catch {}
-    try {
-      const apr = JSON.parse(localStorage.getItem('clipsou_items_approved_v1')||'[]') || [];
-      apr.forEach(r => (r && Array.isArray(r.actors)) && r.actors.forEach(a=>a&&a.name&&set.add(a.name)));
-    } catch {}
-    // Preset common actors
-    ['Liam Roxxor','Kassielator','Ferrisbu','Clone prod','Raiback','Beat Vortex','Arth','Stranger Art','Steve Animation','Calvlego','Atrochtiraptor','Mordecai','Paleo Brick','Brickmaniak',"Le Zebre'ifique"].forEach(n=>set.add(n));
-    return Array.from(set).sort((a,b)=>String(a).localeCompare(String(b),'fr'));
-  }
-
-  window.populateActorNamesDatalist = function populateActorNamesDatalist(){
-    const el = document.querySelector('#actorNamesDatalist');
-    if (!el) return;
-    const names = collectActorNames();
-    el.innerHTML = names.map(n=>`<option value="${n}"></option>`).join('');
-  };
 })();
