@@ -14,7 +14,11 @@
 
     <section class="auth">
       <p class="muted">Accès restreint. Votre session admin est active.</p>
-      <button id="logoutBtn" type="button" class="btn">Se déconnecter</button>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+        <button id="logoutBtn" type="button" class="btn">Se déconnecter</button>
+        <button id="googleLinkBtn" class="btn secondary" type="button">Se connecter avec Google</button>
+        <span id="googleStatusTop" class="small muted"></span>
+      </div>
     </section>
 
     <section class="form-section">
@@ -187,8 +191,12 @@
       </label>
     </div>
     <button id="loginBtn" class="btn">Se connecter</button>
+
+    
   </div>
 
+  <!-- Google Identity Services for Sign in With Google -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="admin.js" defer></script>
 </body>
 </html>

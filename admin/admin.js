@@ -13,6 +13,8 @@
   const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
   const APP_KEY_LAST_EDIT = 'clipsou_admin_last_edit_v1';
   const APP_KEY_ACTOR_PHOTOS = 'clipsou_admin_actor_photos_v1';
+  const APP_KEY_GOOGLE_PROFILE = 'clipsou_admin_google_profile_v1';
+  const APP_KEY_GOOGLE_CLIENT = 'clipsou_admin_google_client_v1';
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
@@ -28,6 +30,57 @@
     } catch (_) {
       return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '').trim();
     }
+  }
+  // ===== Google Sign-In (optional, to remember admin profile) =====
+  function getGoogleClientId(){ try { return localStorage.getItem(APP_KEY_GOOGLE_CLIENT) || ''; } catch { return ''; } }
+  function setGoogleClientId(id){ try { localStorage.setItem(APP_KEY_GOOGLE_CLIENT, String(id||'')); } catch {} }
+  function getGoogleProfile(){ try { return JSON.parse(localStorage.getItem(APP_KEY_GOOGLE_PROFILE)||'null') || null; } catch { return null; } }
+  function setGoogleProfile(p){ try { localStorage.setItem(APP_KEY_GOOGLE_PROFILE, JSON.stringify(p||{})); } catch {} }
+  function clearGoogleProfile(){ try { localStorage.removeItem(APP_KEY_GOOGLE_PROFILE); } catch {} }
+  function ensureGoogleClientId(){
+    let cid = getGoogleClientId();
+    if (!cid) {
+      cid = prompt('Entrez votre Google OAuth Client ID Web (ex: 1234-abcdef.apps.googleusercontent.com):', '') || '';
+      if (cid) setGoogleClientId(cid.trim());
+    }
+    return getGoogleClientId();
+  }
+  function decodeJwtPayload(jwt){
+    try {
+      const parts = String(jwt||'').split('.');
+      if (parts.length !== 3) return null;
+      const payload = parts[1].replace(/-/g,'+').replace(/_/g,'/');
+      const json = decodeURIComponent(atob(payload).split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+      return JSON.parse(json);
+    } catch { return null; }
+  }
+  function initGoogle(callback){
+    const cid = getGoogleClientId();
+    if (!cid) return false;
+    if (!(window && window.google && google.accounts && google.accounts.id)) return false;
+    try {
+      google.accounts.id.initialize({
+        client_id: cid,
+        callback: (response)=>{
+          try {
+            const payload = decodeJwtPayload(response && response.credential);
+            if (payload && payload.sub) {
+              const profile = {
+                id: payload.sub,
+                email: payload.email || '',
+                name: payload.name || '',
+                picture: payload.picture || ''
+              };
+              setGoogleProfile(profile);
+              const stTop = document.getElementById('googleStatusTop');
+              if (stTop) stTop.textContent = profile.email ? ('Compte Google lié: ' + profile.email) : 'Compte Google lié';
+          }
+          } catch {}
+          if (typeof callback === 'function') callback();
+        }
+      });
+      return true;
+    } catch { return false; }
   }
 
   // Fetch public approved.json to hydrate actor photos map for admin UI
@@ -769,6 +822,8 @@
     const btn = $('#loginBtn');
     const pwdInput = $('#passwordInput');
     const showPwd = $('#showPwd');
+    const gBtnTop = $('#googleLinkBtn');
+    const gStatusTop = $('#googleStatusTop');
 
     // Prefill password if previously remembered
     try {
@@ -781,6 +836,28 @@
     if (showPwd && pwdInput) {
       showPwd.addEventListener('change', () => {
         pwdInput.type = showPwd.checked ? 'text' : 'password';
+      });
+    }
+
+    // Show previously saved Google profile info
+    try {
+      const gp = getGoogleProfile();
+      if (gp && gStatusTop) gStatusTop.textContent = gp.email ? ('Compte Google lié: ' + gp.email) : 'Compte Google lié';
+    } catch {}
+
+    // Wire Google Sign-In button
+    if (gBtnTop) {
+      gBtnTop.addEventListener('click', () => {
+        const cid = ensureGoogleClientId();
+        if (!cid) { alert('Client ID Google manquant.'); return; }
+        const ok = initGoogle(() => {
+          try {
+            const gp = getGoogleProfile();
+            if (gp && gStatusTop) gStatusTop.textContent = gp.email ? ('Compte Google lié: ' + gp.email) : 'Compte Google lié';
+          } catch {}
+        });
+        if (!ok) { alert('Google Identity non disponible. Vérifiez le chargement de la page et réessayez.'); return; }
+        try { google.accounts.id.prompt(); } catch {}
       });
     }
 
@@ -1395,69 +1472,4 @@
   } else {
     ensureAuth();
   }
-})();
-
-// ===== Extra helpers: genres datalist & actor names =====
-(function(){
-  const $ = (sel, root=document) => root.querySelector(sel);
-
-  async function collectGenresFromIndex(){
-    try {
-      const res = await fetch('../index.html', { credentials: 'same-origin', cache: 'no-store' });
-      if (!res.ok) throw new Error('HTTP '+res.status);
-      const html = await res.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const set = new Set();
-      doc.querySelectorAll('.fiche-popup .rating-genres .genres .genre-tag').forEach(el => {
-        const g = (el.textContent || '').trim(); if (g) set.add(g);
-      });
-      return Array.from(set);
-    } catch { return []; }
-  }
-
-  function collectGenresFromStorage(){
-    try {
-      const set = new Set();
-      const reqs = JSON.parse(localStorage.getItem('clipsou_requests_v1')||'[]') || [];
-      reqs.forEach(r => (r && r.data && Array.isArray(r.data.genres)) && r.data.genres.forEach(g=>g&&set.add(g)));
-      const apr = JSON.parse(localStorage.getItem('clipsou_items_approved_v1')||'[]') || [];
-      apr.forEach(r => (r && Array.isArray(r.genres)) && r.genres.forEach(g=>g&&set.add(g)));
-      return Array.from(set);
-    } catch { return []; }
-  }
-
-  window.populateGenresDatalist = async function populateGenresDatalist(){
-    const el = $('#genresDatalist');
-    if (!el) return;
-    const [fromIndex, fromStore] = await Promise.all([
-      collectGenresFromIndex(),
-      Promise.resolve(collectGenresFromStorage())
-    ]);
-    const set = new Set([ ...fromIndex, ...fromStore, 'Action','Comédie','Drame','Horreur','Aventure','Fantastique','Familial','Thriller','Psychologique','Western','Mystère','Ambience','Enfants','Super-héros' ]);
-    el.innerHTML = Array.from(set).sort((a,b)=>String(a).localeCompare(String(b),'fr')).map(g=>`<option value="${g}"></option>`).join('');
-  };
-
-  // No image import: fields accept file names or URLs only
-  function collectActorNames(){
-    const set = new Set();
-    try {
-      const reqs = JSON.parse(localStorage.getItem('clipsou_requests_v1')||'[]') || [];
-      reqs.forEach(r => (r && r.data && Array.isArray(r.data.actors)) && r.data.actors.forEach(a=>a&&a.name&&set.add(a.name)));
-    } catch {}
-    try {
-      const apr = JSON.parse(localStorage.getItem('clipsou_items_approved_v1')||'[]') || [];
-      apr.forEach(r => (r && Array.isArray(r.actors)) && r.actors.forEach(a=>a&&a.name&&set.add(a.name)));
-    } catch {}
-    // Preset common actors
-    ['Liam Roxxor','Kassielator','Ferrisbu','Clone prod','Raiback','Beat Vortex','Arth','Stranger Art','Steve Animation','Calvlego','Atrochtiraptor','Mordecai','Paleo Brick','Brickmaniak',"Le Zebre'ifique"].forEach(n=>set.add(n));
-    return Array.from(set).sort((a,b)=>String(a).localeCompare(String(b),'fr'));
-  }
-
-  window.populateActorNamesDatalist = function populateActorNamesDatalist(){
-    const el = document.querySelector('#actorNamesDatalist');
-    if (!el) return;
-    const names = collectActorNames();
-    el.innerHTML = names.map(n=>`<option value="${n}"></option>`).join('');
-  };
 })();
