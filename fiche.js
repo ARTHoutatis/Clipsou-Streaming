@@ -1294,19 +1294,35 @@ const container = document.getElementById('fiche-container');
               actions.appendChild(noBtn); actions.appendChild(yesBtn);
               box.appendChild(h); box.appendChild(p); box.appendChild(actions);
               overlay.appendChild(box); document.body.appendChild(overlay);
+              // Idempotent handlers that always use the CURRENT resolver stored on the overlay
+              function resolveAndClose(val){
+                try { overlay.classList.remove('open'); } catch {}
+                const r = overlay.__resolver;
+                overlay.__resolver = null;
+                if (typeof r === 'function') r(val);
+              }
               // Click outside: close without starting playback (cancel)
-              overlay.addEventListener('click', (e)=>{ if (e.target === overlay) { overlay.classList.remove('open'); resolve(null); } });
+              overlay.addEventListener('click', (e)=>{ if (e.target === overlay) { resolveAndClose(null); } });
               // Escape key also cancels
-              overlay.addEventListener('keydown', (e)=>{ try { if (e.key === 'Escape') { overlay.classList.remove('open'); resolve(null); } } catch {} });
+              overlay.addEventListener('keydown', (e)=>{ try { if (e.key === 'Escape') { resolveAndClose(null); } } catch {} });
               // Explicit choices
-              noBtn.addEventListener('click', ()=>{ overlay.classList.remove('open'); resolve(false); });
-              yesBtn.addEventListener('click', ()=>{ overlay.classList.remove('open'); resolve(true); });
+              noBtn.addEventListener('click', ()=>{ resolveAndClose(false); });
+              yesBtn.addEventListener('click', ()=>{ resolveAndClose(true); });
             }
             const total = Math.max(0, Math.floor(seconds||0));
             const m = Math.floor(total / 60);
             const s = String(total % 60).padStart(2, '0');
             const text = overlay.querySelector('.resume-dialog-text');
             if (text) text.textContent = `Voulez-vous reprendre à ${m}:${s} ?`;
+            // Store current resolver and ensure buttons point to it
+            try { overlay.__resolver = resolve; } catch {}
+            // Also rebind per-call onclicks on existing overlay buttons, to be extra-safe if previous code attached closures
+            try {
+              const noBtn2 = overlay.querySelector('.resume-dialog-actions .button.secondary');
+              const yesBtn2 = overlay.querySelector('.resume-dialog-actions .button:not(.secondary)');
+              if (noBtn2) noBtn2.onclick = function(){ try { overlay.classList.remove('open'); } catch {} const r = overlay.__resolver; overlay.__resolver = null; if (typeof r === 'function') r(false); };
+              if (yesBtn2) yesBtn2.onclick = function(){ try { overlay.classList.remove('open'); } catch {} const r = overlay.__resolver; overlay.__resolver = null; if (typeof r === 'function') r(true); };
+            } catch {}
             overlay.classList.add('open');
             try { overlay.setAttribute('tabindex','-1'); overlay.focus(); } catch {}
           } catch { resolve(false); }
