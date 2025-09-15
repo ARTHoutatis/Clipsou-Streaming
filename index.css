@@ -99,31 +99,6 @@ body.player-open, html.player-open {
 /* Overlay covers full viewport (including nav) so nav is dimmed under popup */
 
 /* ===== Desktop-only rail arrows ===== */
-
-/* ===== Actors & Doublers: enforce square thumbnails ===== */
-.actor-card { display: flex; flex-direction: column; align-items: center; width: auto; }
-.actor-card .actor-photo {
-  position: relative;
-  width: 100%;              /* fill available width */
-  max-width: 160px;         /* visual cap so all look similar */
-  aspect-ratio: 1 / 1;      /* perfect square box */
-  overflow: hidden;         /* crop overflow */
-  border-radius: 8px;
-  background: transparent;
-  margin: 0 auto 10px;      /* centered */
-}
-.actor-card .actor-photo img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center top;
-  display: block;
-}
-@media (max-width: 768px) {
-  .actor-card .actor-photo { max-width: 132px; }
-}
 @media (min-width: 769px) {
   .section { position: relative; }
   .rail-arrow {

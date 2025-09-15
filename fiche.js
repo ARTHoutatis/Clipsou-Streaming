@@ -859,11 +859,10 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       card.className = 'actor-card';
       const imgWrap = document.createElement('div');
       imgWrap.className = 'actor-photo';
-      // Strict fixed-size box, the image itself is absolutely positioned to fill it
-      imgWrap.style.display = 'block';
-      imgWrap.style.alignItems = '';
-      imgWrap.style.justifyContent = '';
-      // Wrapper styles are controlled by CSS (.actor-card .actor-photo) to enforce a square box
+      // Center content inside photo box to avoid any cropping issues on mobile
+      imgWrap.style.display = 'flex';
+      imgWrap.style.alignItems = 'center';
+      imgWrap.style.justifyContent = 'center';
       const img = document.createElement('img');
       const nameRaw = String(a.name || '').trim();
       const baseSlug = ACTOR_IMAGE_MAP[nameRaw] || ACTOR_IMAGE_MAP['Unknown'];
@@ -885,7 +884,7 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       img.style.maxWidth = '100%';
       img.style.maxHeight = '100%';
       img.style.objectFit = 'cover';
-      img.style.objectPosition = 'center top';
+      img.style.objectPosition = 'center center';
       img.style.display = 'block';
       img.decoding = 'async';
       // Fallback automatique multi-extensions puis Unknown (only for slug-based images)
