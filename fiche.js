@@ -1439,6 +1439,7 @@ const container = document.getElementById('fiche-container');
         // Decide if we should bypass intro before attaching any skip button
         let shouldBypassIntro = false;
         try { shouldBypassIntro = (window.__resumeOverride === 'yes') && ((window.__resumeSeconds||0) > 5); } catch {}
+        // Do not clear flags yet; player onReady may need them to seek. We'll clear them after playback starts.
         // If resuming, bypass the intro and start main content directly
         try {
           if (shouldBypassIntro) {
@@ -1756,12 +1757,24 @@ const container = document.getElementById('fiche-container');
                 const yes = !!res;
                 try { window.__resumeOverride = yes ? 'yes' : 'no'; } catch {}
                 try { window.__resumeSeconds = yes ? seconds : 0; } catch {}
-                showIntroThenPlay(href, title);
+                // Defer to next task to ensure flags are visible to player setup reliably
+                try {
+                  setTimeout(()=> {
+                    showIntroThenPlay(href, title);
+                    // Clear flags after player has been initialized
+                    try { setTimeout(()=>{ window.__resumeOverride = undefined; window.__resumeSeconds = undefined; }, 1200); } catch {}
+                  }, 0);
+                } catch { showIntroThenPlay(href, title); }
               });
             } else {
               try { window.__resumeOverride = 'yes'; } catch {}
               try { window.__resumeSeconds = 0; } catch {}
-              showIntroThenPlay(href, title);
+              try {
+                setTimeout(()=> {
+                  showIntroThenPlay(href, title);
+                  try { setTimeout(()=>{ window.__resumeOverride = undefined; window.__resumeSeconds = undefined; }, 1200); } catch {}
+                }, 0);
+              } catch { showIntroThenPlay(href, title); }
             }
           } catch {
             showIntroThenPlay(href, title);
