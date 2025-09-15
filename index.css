@@ -1160,7 +1160,7 @@ html {
 
     .carousel-container { min-height: 220px; }
     .carousel-content { padding: 16px; }
-    .carousel-title { font-size: 1.4rem; }
+    .carousel-title { font-size: clamp(1rem, 4.6vw, 1.2rem); line-height: 1.15; margin: 0 0 8px; }
     .carousel-description { display: none; }
 
     /* Footer: stack actions under text on mobile (one column) */
