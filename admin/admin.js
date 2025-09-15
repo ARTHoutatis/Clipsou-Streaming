@@ -815,7 +815,7 @@
     $('#watchUrl').value = data.watchUrl || '';
     // New: studio badge
     const studioBadgeEl = $('#studioBadge');
-    if (studioBadgeEl) studioBadgeEl.value = data.studioBadge || 'https://clipsoustreaming.com/clipsoustudio.png';
+    if (studioBadgeEl) studioBadgeEl.value = data.studioBadge || 'https://clipsoustreaming.com/clipsoustudio.webp';
     // Preview studio badge
     setPreview($('#studioBadgePreview'), (studioBadgeEl && studioBadgeEl.value) || '');
     const actors = Array.isArray(data.actors) ? data.actors.slice() : [];
@@ -853,7 +853,7 @@
     // New: studio badge with default
     let studioBadge = '';
     try { studioBadge = String($('#studioBadge').value || '').trim(); } catch {}
-    if (!studioBadge) studioBadge = 'https://clipsoustreaming.com/clipsoustudio.png';
+    if (!studioBadge) studioBadge = 'https://clipsoustreaming.com/clipsoustudio.webp';
     return {
       id,
       requestId: $('#requestId').value || '',
