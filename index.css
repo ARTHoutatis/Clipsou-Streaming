@@ -101,15 +101,16 @@ body.player-open, html.player-open {
 /* ===== Desktop-only rail arrows ===== */
 
 /* ===== Actors & Doublers: enforce square thumbnails ===== */
-.actor-card { display: flex; flex-direction: column; align-items: center; width: 160px; }
+.actor-card { display: flex; flex-direction: column; align-items: center; width: auto; }
 .actor-card .actor-photo {
   position: relative;
-  width: 140px;
-  height: 140px;            /* fixed square for absolute consistency */
-  overflow: hidden;
+  width: 100%;              /* fill available width */
+  max-width: 160px;         /* visual cap so all look similar */
+  aspect-ratio: 1 / 1;      /* perfect square box */
+  overflow: hidden;         /* crop overflow */
   border-radius: 8px;
   background: transparent;
-  margin: 0 auto 10px;
+  margin: 0 auto 10px;      /* centered */
 }
 .actor-card .actor-photo img {
   position: absolute;
@@ -121,12 +122,7 @@ body.player-open, html.player-open {
   display: block;
 }
 @media (max-width: 768px) {
-  .actor-card { width: 130px; }
-  .actor-card .actor-photo {
-    width: 110px;
-    height: 110px;
-    border-radius: 8px;
-  }
+  .actor-card .actor-photo { max-width: 132px; }
 }
 @media (min-width: 769px) {
   .section { position: relative; }
