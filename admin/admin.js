@@ -801,15 +801,42 @@
     const login = $('#login');
     function showLogin(){ if (app) app.hidden = true; if (login) login.hidden = false; }
     function showApp(){ if (login) login.hidden = true; if (app) app.hidden = false; }
+    // Helper to update header UI based on Firebase user
+    function updateAuthUI(user){
+      try {
+        const gStatusTop = document.getElementById('googleStatusTop');
+        const avatar = document.getElementById('googleAvatarTop');
+        if (gStatusTop) {
+          if (user && user.email) {
+            gStatusTop.textContent = 'Connecté avec Google: ' + user.email;
+            gStatusTop.classList.remove('muted');
+          } else {
+            gStatusTop.textContent = '';
+            gStatusTop.classList.add('muted');
+          }
+        }
+        if (avatar) {
+          if (user && user.photoURL) { avatar.src = user.photoURL; avatar.style.display = ''; }
+          else { avatar.removeAttribute('src'); avatar.style.display = 'none'; }
+        }
+      } catch {}
+    }
+
+    // Simple notice line inside login box
+    function showNotice(msg){
+      try {
+        let st = document.getElementById('loginStatus');
+        if (!st) return;
+        st.textContent = msg || '';
+      } catch {}
+    }
+
     // Firebase Auth: reflect session state
     try {
       if (window.__onAuthStateChanged && window.__fbAuth) {
         window.__onAuthStateChanged(window.__fbAuth, (user)=>{
-          try {
-            const gStatusTop = document.getElementById('googleStatusTop');
-            if (gStatusTop) gStatusTop.textContent = user && user.email ? ('Connecté: ' + user.email) : '';
-          } catch {}
-          if (user) { showApp(); initApp(); }
+          updateAuthUI(user);
+          if (user) { showApp(); initApp(); showNotice('Connecté avec Google'); }
         });
       }
     } catch {}
@@ -864,10 +891,10 @@
       });
     }
 
-    // If Firebase already has a user, show email
+    // If Firebase already has a user, show email/avatar immediately
     try {
       const u = (window.__fbAuth && window.__fbAuth.currentUser) || null;
-      if (u && gStatusTop) gStatusTop.textContent = u.email ? ('Connecté: ' + u.email) : 'Connecté';
+      updateAuthUI(u);
     } catch {}
 
     // Wire Google Sign-In button (Firebase Auth)
@@ -879,7 +906,8 @@
             return;
           }
           const provider = new window.__GoogleAuthProvider();
-          await window.__signInWithPopup(window.__fbAuth, provider);
+          const cred = await window.__signInWithPopup(window.__fbAuth, provider);
+          try { updateAuthUI(cred && cred.user); showNotice('Connecté avec Google'); } catch {}
           // onAuthStateChanged will fire and show the app
         } catch (e) {
           alert('Connexion Google impossible.');
@@ -891,6 +919,7 @@
       logoutBtn.addEventListener('click', async ()=>{
         try { if (window.__fbSignOut && window.__fbAuth) await window.__fbSignOut(window.__fbAuth); } catch {}
         try { sessionStorage.removeItem(APP_KEY_SESSION); } catch {}
+        try { updateAuthUI(null); showNotice('Déconnecté'); } catch {}
         showLogin();
       });
     }
