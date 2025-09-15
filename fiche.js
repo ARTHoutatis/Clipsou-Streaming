@@ -1243,7 +1243,12 @@ const container = document.getElementById('fiche-container');
       function extractVideoId(hrefOrSrc){
         try {
           const s = String(hrefOrSrc || '');
-          const m = s.match(/[?&]v=([\w-]{6,})/i) || s.match(/embed\/([\w-]{6,})/i) || s.match(/youtu\.be\/([\w-]{6,})/i);
+          // Support: watch?v=, embed/, youtu.be/, shorts/
+          const m =
+            s.match(/[?&]v=([\w-]{6,})/i) ||
+            s.match(/embed\/([\w-]{6,})/i) ||
+            s.match(/youtu\.be\/([\w-]{6,})/i) ||
+            s.match(/\/shorts\/([\w-]{6,})/i);
           return m ? m[1] : '';
         } catch { return ''; }
       }
@@ -1388,7 +1393,9 @@ const container = document.getElementById('fiche-container');
       function toEmbedUrl(href){
         try {
           const url = href.startsWith('http') ? new URL(href) : new URL(href, location.href);
-          const h = (url.hostname||'').toLowerCase();
+          let h = (url.hostname||'').toLowerCase();
+          // Normalize mobile hostnames like m.youtube.com
+          if (h === 'm.youtube.com') h = 'youtube.com';
           const params = new URLSearchParams(url.search);
           // Autoplay enabled
           const common = '&autoplay=1&rel=0&modestbranding=1&controls=1&playsinline=1';
@@ -1400,6 +1407,10 @@ const container = document.getElementById('fiche-container');
             if (url.pathname.startsWith('/watch')){
               const id = params.get('v') || '';
               return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?enablejsapi=1' + common;
+            }
+            if (url.pathname.startsWith('/shorts/')){
+              const id = (url.pathname.split('/shorts/')[1] || '').split('/')[0] || '';
+              if (id) return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?enablejsapi=1' + common;
             }
             if (url.pathname.startsWith('/playlist')){
               const list = params.get('list') || '';
