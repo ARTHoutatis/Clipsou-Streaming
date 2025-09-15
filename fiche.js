@@ -859,10 +859,26 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       card.className = 'actor-card';
       const imgWrap = document.createElement('div');
       imgWrap.className = 'actor-photo';
-      // Center content inside photo box to avoid any cropping issues on mobile
-      imgWrap.style.display = 'flex';
-      imgWrap.style.alignItems = 'center';
-      imgWrap.style.justifyContent = 'center';
+      // Strict fixed-size box, the image itself is absolutely positioned to fill it
+      imgWrap.style.display = 'block';
+      imgWrap.style.alignItems = '';
+      imgWrap.style.justifyContent = '';
+      // Enforce identical square size inline (overrides any external CSS discrepancies)
+      try {
+        const mqMobile = window.matchMedia && window.matchMedia('(max-width: 768px)');
+        const applySize = (e) => {
+          const isMobile = e && e.matches !== undefined ? e.matches : (window.innerWidth <= 768);
+          const sz = isMobile ? 110 : 140;
+          imgWrap.style.width = sz + 'px';
+          imgWrap.style.height = sz + 'px';
+          imgWrap.style.overflow = 'hidden';
+          imgWrap.style.borderRadius = '8px';
+          imgWrap.style.position = 'relative';
+        };
+        applySize(mqMobile || { matches: (window.innerWidth <= 768) });
+        if (mqMobile && typeof mqMobile.addEventListener === 'function') mqMobile.addEventListener('change', applySize);
+        else if (mqMobile && typeof mqMobile.addListener === 'function') mqMobile.addListener(applySize);
+      } catch {}
       const img = document.createElement('img');
       const nameRaw = String(a.name || '').trim();
       const baseSlug = ACTOR_IMAGE_MAP[nameRaw] || ACTOR_IMAGE_MAP['Unknown'];
