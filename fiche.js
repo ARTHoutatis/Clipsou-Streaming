@@ -1243,13 +1243,7 @@ const container = document.getElementById('fiche-container');
       function extractVideoId(hrefOrSrc){
         try {
           const s = String(hrefOrSrc || '');
-          // Support: watch?v=, embed/<id>, youtu.be/<id>, shorts/<id>, live/<id>
-          const m =
-            s.match(/[?&]v=([\w-]{6,})/i) ||
-            s.match(/embed\/([\w-]{6,})/i) ||
-            s.match(/youtu\.be\/([\w-]{6,})/i) ||
-            s.match(/\/shorts\/([\w-]{6,})/i) ||
-            s.match(/\/live\/([\w-]{6,})/i);
+          const m = s.match(/[?&]v=([\w-]{6,})/i) || s.match(/embed\/([\w-]{6,})/i) || s.match(/youtu\.be\/([\w-]{6,})/i);
           return m ? m[1] : '';
         } catch { return ''; }
       }
@@ -1288,8 +1282,6 @@ const container = document.getElementById('fiche-container');
         return new Promise((resolve)=>{
           try {
             let overlay = document.querySelector('.resume-dialog-overlay');
-            let done = false;
-            const resolveOnce = (val)=>{ if (done) return; done = true; try { overlay && overlay.classList.remove('open'); } catch {} resolve(val); };
             if (!overlay) {
               overlay = document.createElement('div');
               overlay.className = 'resume-dialog-overlay';
@@ -1303,21 +1295,12 @@ const container = document.getElementById('fiche-container');
               box.appendChild(h); box.appendChild(p); box.appendChild(actions);
               overlay.appendChild(box); document.body.appendChild(overlay);
               // Click outside: close without starting playback (cancel)
-              overlay.addEventListener('click', (e)=>{ if (e.target === overlay) { resolveOnce(null); } });
+              overlay.addEventListener('click', (e)=>{ if (e.target === overlay) { overlay.classList.remove('open'); resolve(null); } });
               // Escape key also cancels
-              overlay.addEventListener('keydown', (e)=>{ try { if (e.key === 'Escape') { resolveOnce(null); } } catch {} });
+              overlay.addEventListener('keydown', (e)=>{ try { if (e.key === 'Escape') { overlay.classList.remove('open'); resolve(null); } } catch {} });
               // Explicit choices
-              const disable = ()=>{ try { noBtn.disabled = true; yesBtn.disabled = true; } catch{} };
-              noBtn.addEventListener('click', ()=>{ disable(); resolveOnce(false); });
-              yesBtn.addEventListener('click', ()=>{ disable(); resolveOnce(true); });
-            } else {
-              // If overlay already exists, ensure buttons are re-enabled for this session
-              try {
-                const noBtn = overlay.querySelector('.resume-dialog-actions .button.secondary');
-                const yesBtn = overlay.querySelector('.resume-dialog-actions .button');
-                if (noBtn) noBtn.disabled = false;
-                if (yesBtn) yesBtn.disabled = false;
-              } catch {}
+              noBtn.addEventListener('click', ()=>{ overlay.classList.remove('open'); resolve(false); });
+              yesBtn.addEventListener('click', ()=>{ overlay.classList.remove('open'); resolve(true); });
             }
             const total = Math.max(0, Math.floor(seconds||0));
             const m = Math.floor(total / 60);
@@ -1416,15 +1399,6 @@ const container = document.getElementById('fiche-container');
           if (h.includes('youtube.com')){
             if (url.pathname.startsWith('/watch')){
               const id = params.get('v') || '';
-              return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?enablejsapi=1' + common;
-            }
-            // Convert Shorts and Live to standard embed
-            if (url.pathname.startsWith('/shorts/')){
-              const id = url.pathname.split('/')[2] || '';
-              return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?enablejsapi=1' + common;
-            }
-            if (url.pathname.startsWith('/live/')){
-              const id = url.pathname.split('/')[2] || '';
               return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?enablejsapi=1' + common;
             }
             if (url.pathname.startsWith('/playlist')){
@@ -1662,18 +1636,18 @@ const container = document.getElementById('fiche-container');
                               try {
                                 if (window.__resumeOverride !== 'no') {
                                   const ficheId2 = new URLSearchParams(location.search).get('id') || '';
+                                  // Include episode key to target the right entry
                                   let vid2 = '';
                                   try {
                                     const src2 = iframe ? (iframe.src || '') : '';
-                                    vid2 = extractVideoId(src2) || '';
+                                    const m2 = src2.match(/[?&]v=([\w-]{6,})/i) || src2.match(/embed\/([\w-]{6,})/i);
+                                    if (m2) vid2 = m2[1];
                                   } catch {}
-                                  const keyComposite = ficheId2 + (vid2 ? ('::' + vid2) : '');
-                                  const keyLegacy = ficheId2; // fallback without ::videoId
+                                  const keyId = ficheId2 + (vid2 ? ('::' + vid2) : '');
                                   const raw = localStorage.getItem('clipsou_watch_progress_v1');
                                   const list = raw ? JSON.parse(raw) : [];
                                   if (Array.isArray(list)) {
-                                    let entry = list.find(x => x && x.id === keyComposite);
-                                    if (!entry) entry = list.find(x => x && x.id === keyLegacy);
+                                    const entry = list.find(x => x && x.id === keyId);
                                     if (entry && typeof entry.seconds === 'number' && entry.seconds > 5) {
                                       const target = Math.max(0, Math.min(entry.seconds, (player.getDuration?player.getDuration():entry.duration||0) - 1));
                                       if (player.seekTo) player.seekTo(target, true);
@@ -1756,21 +1730,19 @@ const container = document.getElementById('fiche-container');
             const ficheId = new URLSearchParams(location.search).get('id') || '';
             // Include episode key using the TARGET href (the episode being launched)
             let vid3 = '';
-            try { vid3 = extractVideoId(href) || ''; } catch {}
+            try {
+              const m3 = href.match(/[?&]v=([\w-]{6,})/i) || href.match(/embed\/([\w-]{6,})/i);
+              if (m3) vid3 = m3[1];
+            } catch {}
             const keyId3 = ficheId + (vid3 ? ('::' + vid3) : '');
             const raw = localStorage.getItem('clipsou_watch_progress_v1');
             const list = raw ? JSON.parse(raw) : [];
-            let entry = Array.isArray(list) ? list.find(x => x && x.id === keyId3) : null;
-            if (!entry) {
-              // Fallback to legacy key without ::videoId to support older saved progress
-              entry = Array.isArray(list) ? list.find(x => x && x.id === ficheId) : null;
-            }
+            const entry = Array.isArray(list) ? list.find(x => x && x.id === keyId3) : null;
             const seconds = entry && typeof entry.seconds === 'number' ? entry.seconds : 0;
             if (seconds > 0) {
-              try { window.__resumeOverride = 'pending'; window.__resumeSeconds = 0; } catch {}
               askResume(seconds).then((res)=>{
                 // If user clicked outside or pressed Escape, cancel entirely
-                if (res === null) { try { window.__resumeOverride = 'no'; window.__resumeSeconds = 0; } catch {} return; }
+                if (res === null) return;
                 const yes = !!res;
                 try { window.__resumeOverride = yes ? 'yes' : 'no'; } catch {}
                 try { window.__resumeSeconds = yes ? seconds : 0; } catch {}
