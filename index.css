@@ -33,6 +33,22 @@
   background: linear-gradient(180deg, rgba(0,0,0,0.7), rgba(0,0,0,0));
 }
 .player-title { font-size: 16px; font-weight: 700; color: #fff; margin: 0; }
+.player-skip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.18);
+  font-size: 18px;
+  line-height: 1;
+  padding: 12px 16px;
+  border-radius: 0;
+  cursor: pointer;
+  outline: none;
+  box-shadow: none;
+}
+.player-skip:hover, .player-skip:focus { border-color: rgba(255,255,255,0.26); background: rgba(255,255,255,0.10); }
 .player-close {
   display: inline-flex;
   align-items: center;
@@ -56,6 +72,12 @@
 }
 .player-stage { position: relative; width: 100%; height: 100%; background: #000; }
 .player-stage video, .player-stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; display: block; border: 0; object-fit: cover; }
+.player-stage .player-skip {
+  position: absolute;
+  right: 16px;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  z-index: 2;
+}
 .player-footer { padding: 10px 16px; color: rgba(255,255,255,0.8); font-size: 13px; background: linear-gradient(0deg, rgba(0,0,0,0.7), rgba(0,0,0,0)); }
 
 /* Lock background when player is open */
@@ -66,6 +88,7 @@ body.player-open, html.player-open {
 
 /* Player topbar tweaks on mobile: keep close button compact */
 @media (max-width: 768px) {
+  .player-skip { font-size: 16px; padding: 10px 14px; }
   .player-close {
     padding: 8px 10px;
     gap: 0;

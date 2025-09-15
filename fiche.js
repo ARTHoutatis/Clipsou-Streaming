@@ -1270,9 +1270,19 @@ const container = document.getElementById('fiche-container');
             closeBtn.textContent = '✕ Fermer';
           }
         })();
+        // Skip Intro button (hidden by default; only visible during intro)
+        const skipBtn = document.createElement('button');
+        skipBtn.className = 'player-skip';
+        skipBtn.type = 'button';
+        skipBtn.textContent = '⏭ Passer l\'intro';
+        skipBtn.hidden = true;
+        // Expose on overlay for lifecycle control
+        try { overlay.__skipBtn = skipBtn; } catch {}
         top.appendChild(titleEl); top.appendChild(closeBtn);
         const stage = document.createElement('div'); stage.className = 'player-stage';
         shell.appendChild(top); shell.appendChild(stage);
+        // Place Skip Intro button inside the stage so it overlays bottom-right of the video
+        try { stage.appendChild(skipBtn); } catch {}
         overlay.appendChild(shell); document.body.appendChild(overlay);
         const close = ()=>{
           try { if (typeof overlay.__activeCleanup === 'function') overlay.__activeCleanup(); } catch {}
@@ -1283,6 +1293,15 @@ const container = document.getElementById('fiche-container');
           try { stage.querySelectorAll('iframe').forEach(f=>{ f.src = 'about:blank'; }); } catch{}
           stage.innerHTML = '';
           try { overlay.classList.remove('intro-mode'); } catch {}
+          // Hide and detach skip button
+          try {
+            if (overlay.__skipBtn) {
+              overlay.__skipBtn.hidden = true;
+              overlay.__skipBtn.onclick = null;
+              overlay.__skipBtn.disabled = false;
+            }
+            delete overlay.__skipIntro;
+          } catch {}
         };
         closeBtn.addEventListener('click', close);
         overlay.addEventListener('click', (e)=>{ if (e.target === overlay) close(); });
@@ -1327,6 +1346,8 @@ const container = document.getElementById('fiche-container');
         overlay.classList.add('open');
         try { overlay.classList.add('intro-mode'); } catch {}
         stage.innerHTML = '';
+        // Re-attach Skip Intro button inside the stage after clearing content
+        try { if (overlay.__skipBtn && !overlay.__skipBtn.parentNode) stage.appendChild(overlay.__skipBtn); } catch {}
         const intro = document.createElement('video');
         intro.src = 'intro.mp4'; intro.autoplay = true; intro.playsInline = true; intro.controls = false; intro.preload = 'auto';
         try { intro.muted = false; intro.defaultMuted = false; intro.volume = 1.0; } catch {}
@@ -1352,6 +1373,8 @@ const container = document.getElementById('fiche-container');
           iframe.src = toEmbedUrl(targetHref);
           stage.appendChild(iframe);
           window.__introShowing = false;
+          // Hide skip when main starts
+          try { if (overlay.__skipBtn) { overlay.__skipBtn.hidden = true; overlay.__skipBtn.onclick = null; } } catch {}
         }
         intro.addEventListener('ended', startMain, { once: true });
         intro.addEventListener('error', startMain, { once: true });
@@ -1361,7 +1384,16 @@ const container = document.getElementById('fiche-container');
             if (!progressed && !intro.ended && !started) startMain();
           } catch { startMain(); }
         }, 8000);
-        try { overlay.__activeCleanup = cleanupActive; } catch {}
+        try {
+          overlay.__activeCleanup = cleanupActive;
+          // Wire the skip button for this session
+          overlay.__skipIntro = startMain;
+          if (overlay.__skipBtn) {
+            overlay.__skipBtn.hidden = false;
+            overlay.__skipBtn.disabled = false;
+            overlay.__skipBtn.onclick = (e)=>{ try { e.preventDefault(); e.stopPropagation(); } catch{} startMain(); };
+          }
+        } catch {}
         stage.appendChild(intro);
         try { const p = intro.play(); if (p && typeof p.catch === 'function') p.catch(()=>{}); } catch {}
       }
