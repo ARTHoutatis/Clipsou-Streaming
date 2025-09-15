@@ -1302,9 +1302,11 @@ const container = document.getElementById('fiche-container');
               noBtn.addEventListener('click', ()=>{ overlay.classList.remove('open'); resolve(false); });
               yesBtn.addEventListener('click', ()=>{ overlay.classList.remove('open'); resolve(true); });
             }
-            const minutes = Math.max(0, Math.floor((seconds||0)/60));
+            const total = Math.max(0, Math.floor(seconds||0));
+            const m = Math.floor(total / 60);
+            const s = String(total % 60).padStart(2, '0');
             const text = overlay.querySelector('.resume-dialog-text');
-            if (text) text.textContent = `Voulez-vous reprendre à ${minutes} min ?`;
+            if (text) text.textContent = `Voulez-vous reprendre à ${m}:${s} ?`;
             overlay.classList.add('open');
             try { overlay.setAttribute('tabindex','-1'); overlay.focus(); } catch {}
           } catch { resolve(false); }
@@ -1737,7 +1739,7 @@ const container = document.getElementById('fiche-container');
             const list = raw ? JSON.parse(raw) : [];
             const entry = Array.isArray(list) ? list.find(x => x && x.id === keyId3) : null;
             const seconds = entry && typeof entry.seconds === 'number' ? entry.seconds : 0;
-            if (seconds > 30) {
+            if (seconds > 0) {
               askResume(seconds).then((res)=>{
                 // If user clicked outside or pressed Escape, cancel entirely
                 if (res === null) return;
