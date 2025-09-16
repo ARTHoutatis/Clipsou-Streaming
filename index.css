@@ -817,12 +817,12 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
 
 /* Make Continue Watching cards larger than default */
 #continue-watching .rail .resume-item {
-  width: 360px !important;   /* landscape cards */
-  flex: 0 0 360px !important;/* fixed width item in horizontal rail */
+  width: 300px !important;   /* landscape cards */
+  flex: 0 0 300px !important;/* fixed width item in horizontal rail */
 }
 #continue-watching .resume-item .card { width: 100% !important; }
 @media (max-width: 768px) {
-  #continue-watching .rail .resume-item { width: 280px !important; flex: 0 0 280px !important; }
+  #continue-watching .rail .resume-item { width: 240px !important; flex: 0 0 240px !important; }
 }
 
 /* Landscape media ratio for Continue Watching only (override portrait default) */
