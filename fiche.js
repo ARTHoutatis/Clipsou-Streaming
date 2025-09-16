@@ -1808,6 +1808,17 @@ const container = document.getElementById('fiche-container');
                 const yes = !!res;
                 try { window.__resumeOverride = yes ? 'yes' : 'no'; } catch {}
                 try { window.__resumeSeconds = yes ? seconds : 0; } catch {}
+                // If user chose "Non, depuis le début", drop any previous saved progress for this key
+                if (!yes) {
+                  try {
+                    const raw2 = localStorage.getItem('clipsou_watch_progress_v1');
+                    const list2 = raw2 ? JSON.parse(raw2) : [];
+                    if (Array.isArray(list2)) {
+                      const next = list2.filter(x => x && x.id !== keyId3);
+                      localStorage.setItem('clipsou_watch_progress_v1', JSON.stringify(next));
+                    }
+                  } catch {}
+                }
                 showIntroThenPlay(href, title);
               });
             } else {
