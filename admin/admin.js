@@ -657,9 +657,13 @@
     const photoMap = getActorPhotoMap();
     // Local drag source index for reordering within this render cycle
     let dragSrcIndex = null;
+    // Read current editing index to highlight the chip
+    let editingIndex = -1;
+    try { const v = parseInt(String(($('#contentForm').dataset.actorEditIndex)||''), 10); if (!Number.isNaN(v)) editingIndex = v; } catch {}
     (list||[]).forEach((a, idx) => {
       const chip = document.createElement('div');
       chip.className = 'actor-chip';
+      if (idx === editingIndex) chip.classList.add('editing');
       // Make each chip draggable for reordering
       chip.setAttribute('draggable', 'true');
       chip.addEventListener('dragstart', (e) => {
@@ -722,14 +726,54 @@
       const roleSpan = document.createElement('span'); roleSpan.className = 'muted small'; roleSpan.textContent = a.role || '';
       chip.appendChild(nameSpan);
       chip.appendChild(roleSpan);
+      // Inline edit button (pencil) inside the chip
+      const ed = document.createElement('button');
+      ed.className = 'edit';
+      ed.type = 'button';
+      ed.textContent = '✏️';
+      ed.title = 'Modifier cet acteur';
+      // Prevent drag when interacting with the edit button
+      ed.addEventListener('pointerdown', (e)=>{ e.stopPropagation(); });
+      ed.addEventListener('click', ()=>{
+        try {
+          const nameInput = $('#actorName');
+          const roleInput = $('#actorRole');
+          if (nameInput) nameInput.value = a.name || '';
+          if (roleInput) roleInput.value = a.role || '';
+          // Set edit mode index and change button label
+          try { $('#contentForm').dataset.actorEditIndex = String(idx); } catch {}
+          try { const addBtn = $('#addActorBtn'); if (addBtn) addBtn.textContent = 'Modifier'; } catch {}
+          // Prefill preview using explicit photo or global map
+          const preview = $('#actorPhotoPreview');
+          const tempPhoto = (a && a.photo) || resolveActorPhoto(photoMap, a && a.name || '');
+          if (tempPhoto) {
+            try { $('#contentForm').dataset.actorPhotoTemp = tempPhoto; } catch {}
+            if (preview) { preview.hidden = false; preview.src = tempPhoto.startsWith('http') ? tempPhoto : ('../' + tempPhoto); }
+          } else {
+            try { delete $('#contentForm').dataset.actorPhotoTemp; } catch {}
+            if (preview) { preview.hidden = true; preview.removeAttribute('src'); }
+          }
+          // Focus name for quick edit
+          try { nameInput && nameInput.focus && nameInput.focus(); } catch {}
+          // Re-render to reflect chip highlight
+          renderActors(list);
+        } catch {}
+      });
+      chip.appendChild(ed);
       const rm = document.createElement('button');
       rm.className = 'remove';
       rm.type = 'button';
       rm.textContent = '✕';
+      rm.addEventListener('pointerdown', (e)=>{ e.stopPropagation(); });
       rm.addEventListener('click', () => {
         list.splice(idx,1);
         // Persist new list into form dataset immediately so submit/draft reflect removal
         try { $('#contentForm').dataset.actors = JSON.stringify(list); } catch {}
+        // If we deleted the one being edited, exit edit mode
+        try {
+          const cur = parseInt(String(($('#contentForm').dataset.actorEditIndex)||''), 10);
+          if (!Number.isNaN(cur)) { delete $('#contentForm').dataset.actorEditIndex; const addBtn = $('#addActorBtn'); if (addBtn) addBtn.textContent = 'Ajouter'; }
+        } catch {}
         renderActors(list);
         // Update draft to avoid old actors reappearing on refresh
         try { saveDraft(); } catch {}
@@ -1070,14 +1114,29 @@
       const role = $('#actorRole').value.trim();
       if (!name) return;
       const actors = JSON.parse($('#contentForm').dataset.actors || '[]');
-      let photo = $('#contentForm').dataset.actorPhotoTemp || '';
-      // If no temp photo but default exists for this name, use it
-      if (!photo) {
-        try { const map = getActorPhotoMap(); photo = resolveActorPhoto(map, name) || ''; } catch {}
+      const editIdxRaw = ($('#contentForm').dataset.actorEditIndex)||'';
+      const editIdx = parseInt(String(editIdxRaw), 10);
+      let tempPhoto = $('#contentForm').dataset.actorPhotoTemp || '';
+      // If no temp photo but default exists for this name, use it (add mode only)
+      if (!tempPhoto) {
+        try { const map = getActorPhotoMap(); tempPhoto = resolveActorPhoto(map, name) || ''; } catch {}
       }
-      actors.push(photo ? { name, role, photo } : { name, role });
+      if (!Number.isNaN(editIdx)) {
+        // Edit mode: update existing actor
+        const prev = actors[editIdx] || {};
+        const updated = { ...prev, name, role };
+        // If a tempPhoto is currently selected, set/replace it; otherwise keep previous photo as-is
+        if (tempPhoto) updated.photo = tempPhoto;
+        actors[editIdx] = updated;
+        try { delete $('#contentForm').dataset.actorEditIndex; } catch {}
+        try { const addBtn = $('#addActorBtn'); if (addBtn) addBtn.textContent = 'Ajouter'; } catch {}
+      } else {
+        // Add mode
+        if (tempPhoto) actors.push({ name, role, photo: tempPhoto });
+        else actors.push({ name, role });
+      }
       $('#contentForm').dataset.actors = JSON.stringify(actors);
-      // Reset inputs
+      // Reset inputs and temp photo
       $('#actorName').value=''; $('#actorRole').value='';
       try { delete $('#contentForm').dataset.actorPhotoTemp; } catch {}
       const fileInput = $('#actorPhotoFile'); if (fileInput) fileInput.value = '';
@@ -1395,6 +1454,37 @@
   } else {
     ensureAuth();
   }
+})();
+
+// After app init, prefill actor edit flow if URL contains ?editActor=...
+(function(){
+  function onReady(fn){ if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn); else fn(); }
+  onReady(function(){
+    try {
+      const params = new URLSearchParams(location.search || '');
+      const target = params.get('editActor');
+      if (!target) return;
+      // Wait a tick to ensure admin UI is visible post-auth
+      setTimeout(()=>{
+        try {
+          const nameInput = document.querySelector('#actorName');
+          if (nameInput) {
+            nameInput.value = target;
+            // Trigger change to prefill photo preview via existing listeners
+            try { nameInput.dispatchEvent(new Event('change', { bubbles: true })); } catch {}
+            // Visual hint and scroll into view
+            const row = document.querySelector('.actor-row') || nameInput;
+            if (row && row.scrollIntoView) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            try {
+              row.style.outline = '2px solid rgba(99,102,241,0.9)';
+              row.style.outlineOffset = '2px';
+              setTimeout(()=>{ try { row.style.outline = ''; row.style.outlineOffset = ''; } catch{} }, 2000);
+            } catch {}
+          }
+        } catch {}
+      }, 200);
+    } catch {}
+  });
 })();
 
 // ===== Extra helpers: genres datalist & actor names =====
