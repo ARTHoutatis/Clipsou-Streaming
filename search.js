@@ -236,8 +236,8 @@ function displayResults(results) {
         if (!src) return '';
         // If remote URL or has querystring without explicit extension, skip base logic
         if (/^https?:\/\//i.test(src)) return '';
-        const m = src.match(/^(.*?)(\d+)?\.(jpg|jpeg|png|webp)$/i);
-        return m ? m[1] : src.replace(/\.(jpg|jpeg|png|webp)$/i, '');
+        const m = src.match(/^(.*?)(\d+)?\.(webp|jpg|jpeg|png)$/i);
+        return m ? m[1] : src.replace(/\.(webp|jpg|jpeg|png)$/i, '');
     }
 
     const resultsHTML = results.map(item => {
@@ -252,8 +252,7 @@ function displayResults(results) {
         const base = deriveBase(item.image);
         let initialSrc;
         if (base) {
-            const originalIsWebp = /\.webp$/i.test(item.image || '');
-            initialSrc = originalIsWebp ? `${base}.webp` : `${base}.jpg`;
+            initialSrc = `${base}.webp`;
         } else {
             // If full URL or no extension, use as-is; fallback to placeholder
             initialSrc = item.image || 'apercu.webp';
@@ -263,7 +262,7 @@ function displayResults(results) {
         <div class="card">
             <a href="fiche.html?id=${encodeURIComponent(item.id)}&from=search">
                 <div class="card-media">
-                    <img src="${initialSrc}" data-base="${base}" alt="Affiche de ${item.title}" loading="lazy" decoding="async" onerror="(function(img){var b=img.getAttribute('data-base'); if(!b){img.onerror=null; img.src='apercu.webp'; return;} var i=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=i; var exts=['webp','jpg','jpeg']; if(i<exts.length){ img.src=b+'.'+exts[i]; } else { img.onerror=null; img.src='apercu.webp'; }})(this)">
+                    <img src="${initialSrc}" data-base="${base}" alt="Affiche de ${item.title}" loading="lazy" decoding="async" onerror="(function(img){var b=img.getAttribute('data-base'); if(!b){img.onerror=null; img.src='apercu.webp'; return;} var tried=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=tried; if(tried===1){ img.src=b+'.webp'; } else { img.onerror=null; img.src='apercu.webp'; }})(this)">
                     <div class="brand-badge">
                         <img src="${badgeSrc}" alt="Studio" loading="lazy" decoding="async">
                     </div>
@@ -276,11 +275,29 @@ function displayResults(results) {
     resultsContainer.innerHTML = `<div class="search-grid">${resultsHTML}</div>`;
 }
 
-// Récupère tous les genres uniques depuis la base
+// Récupère tous les genres uniques depuis la base (déduplication accent-insensible)
 function getAllGenres() {
-    const set = new Set();
-    moviesDatabase.forEach(item => (item.genres || []).forEach(g => g && set.add(g)));
-    return Array.from(set).sort((a, b) => a.localeCompare(b, 'fr'));
+    // Map clé normalisée (sans accents, lowercase) -> libellé d'affichage préféré
+    const byKey = new Map();
+    const hasDiacritics = (s) => {
+        try { return String(s) !== normalizeStr(String(s)); } catch { return false; }
+    };
+    moviesDatabase.forEach(item => {
+        (item.genres || []).forEach(g => {
+            if (!g) return;
+            const key = normalizeStr(g).toLowerCase();
+            if (!byKey.has(key)) {
+                byKey.set(key, g);
+            } else {
+                const cur = byKey.get(key);
+                // Préférer la variante accentuée si disponible
+                if (!hasDiacritics(cur) && hasDiacritics(g)) {
+                    byKey.set(key, g);
+                }
+            }
+        });
+    });
+    return Array.from(byKey.values()).sort((a, b) => a.localeCompare(b, 'fr'));
 }
 
 // Rend les puces de genre et branche les filtres

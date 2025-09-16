@@ -24,6 +24,26 @@
       try { window.__VID2EP = map; } catch {}
       return map;
     }
+
+    // Helper: ensure a "Voir tout" link next to h2 that opens a dedicated full-screen popup with all items
+    // DISABLED: per request, remove the button and popup on all devices.
+    function ensureSectionSeeAll(section, titleText, fullItems, cardBuilder) {
+      try {
+        if (!section) return;
+        // Keep or create the h2 normally so sections still have titles
+        let h2 = section.querySelector(':scope > h2');
+        if (!h2) { h2 = document.createElement('h2'); h2.textContent = titleText || ''; section.insertBefore(h2, section.firstChild || null); }
+        // Compute the would-be popup id, then remove any existing button/popup
+        const baseId = String(section.id || (titleText || 'section')).toLowerCase().replace(/[^a-z0-9_-]+/g, '-');
+        const popupId = 'all-' + baseId;
+        // Remove inline button if present
+        try { const link = section.querySelector(':scope > .see-all-btn'); if (link && link.parentNode) link.parentNode.removeChild(link); } catch {}
+        // Remove popup element if it already exists in DOM
+        try { const oldPopup = document.getElementById(popupId); if (oldPopup && oldPopup.parentNode) oldPopup.parentNode.removeChild(oldPopup); } catch {}
+        // Do not create anything; feature disabled
+        return;
+      } catch {}
+    }
     function applyCwCacheBuster(src){
       if (!src) return 'apercu.webp';
       if (/^(data:|https?:)/i.test(src)) return src;
@@ -31,29 +51,23 @@
       return src + (src.includes('?') ? '&' : '?') + 'cw=' + v;
     }
     function deriveExts(src){
-      const m = (src||'').match(/^(.*?)(\d+)?\.(jpg|jpeg|png|webp)$/i);
+      // Only return the webp variant of the provided base
+      const m = (src||'').match(/^(.*?)(\d+)?\.(?:webp|jpg|jpeg|png)$/i);
       if (!m) return [];
-      const base = m[1]; const ext = (m[3]||'').toLowerCase();
-      const order = ext === 'webp' ? ['webp','jpg','jpeg','png'] : ['jpg','jpeg','png'];
-      return order.map(e => base + '.' + e);
+      const base = m[1];
+      return [base + '.webp'];
     }
     function prependLandscapeVariants(list, src){
-      const m = (src||'').match(/^(.*?)(\.(?:jpg|jpeg|png|webp))$/i);
+      const m = (src||'').match(/^(.*?)(\.(?:webp|jpg|jpeg|png))$/i);
       if (!m) return;
       const base = m[1];
-      ['webp','jpg','jpeg','png'].slice().reverse().forEach(e => { list.unshift(base + '1.' + e); });
+      // If base already ends with '1' (e.g., 'Law1'), do not append another '1'
+      if (/1$/i.test(base)) return;
+      list.unshift(base + '1.webp');
     }
 document.addEventListener('DOMContentLoaded', async function () {
-  // Always start at the top on load/refresh (avoid browser restoring scroll)
-  try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch {}
-  try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); } catch { window.scrollTo(0,0); }
-  try { setTimeout(() => { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); }, 0); } catch {}
-  try {
-    window.addEventListener('pageshow', function(e){
-      // Always reset to top even on BFCache restore
-      try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); } catch { window.scrollTo(0,0); }
-    });
-  } catch {}
+  // Preserve scroll position on load/refresh
+  try { if ('scrollRestoration' in history) history.scrollRestoration = 'auto'; } catch {}
   // Audio unlocker: primes WebAudio on first user gesture so autoplay with sound is allowed later
   (function installAudioUnlocker(){
     try {
@@ -89,12 +103,61 @@ document.addEventListener('DOMContentLoaded', async function () {
       try { document.addEventListener('touchstart', unlock, { once: true, passive: true }); } catch {}
       try { document.addEventListener('keydown', unlock, { once: true }); } catch {}
     } catch {}
+
+    // Persist background Y right before refresh/close if a popup is currently open
+    function persistBgYIfPopupOpen(){
+      try {
+        if (!isPopupTargeted()) return;
+        let y = 0;
+        try {
+          // If body is fixed, derive Y from style.top (negative)
+          const b = document.body;
+          const topStr = (b && b.style && b.style.top) ? b.style.top : '';
+          const m = /-?(\d+(?:\.\d+)?)px/.exec(topStr || '');
+          if (m) {
+            const n = parseFloat(m[1]);
+            if (!Number.isNaN(n)) y = Math.max(0, Math.round(n));
+          } else {
+            // Fallback to window scroll
+            y = window.pageYOffset || document.documentElement.scrollTop || 0;
+          }
+        } catch { y = window.pageYOffset || 0; }
+        try { sessionStorage.setItem(POPUP_SCROLL_KEY, String(y)); } catch {}
+        try { sessionStorage.setItem(POPUP_HASH_KEY, String(location.hash || '')); } catch {}
+      } catch {}
+    }
+    // Persist background Y aggressively in more lifecycle hooks
+    try { window.addEventListener('beforeunload', persistBgYIfPopupOpen); } catch {}
+    try { window.addEventListener('pagehide', persistBgYIfPopupOpen); } catch {}
+    try { document.addEventListener('visibilitychange', function(){ if (document.hidden) persistBgYIfPopupOpen(); }); } catch {}
+
+    // Always persist the last background Y (generic) to support first-open after refresh
+    function saveGenericY(){
+      try {
+        let y = 0;
+        try {
+          const b = document.body;
+          const topStr = (b && b.style && b.style.top) ? b.style.top : '';
+          const m = /-?(\d+(?:\.\d+)?)px/.exec(topStr || '');
+          if (m) { const n = parseFloat(m[1]); if (!Number.isNaN(n)) y = Math.max(0, Math.round(n)); }
+          else { y = window.pageYOffset || document.documentElement.scrollTop || 0; }
+        } catch { y = window.pageYOffset || 0; }
+        sessionStorage.setItem(GENERIC_BG_Y_KEY, String(y));
+      } catch {}
+    }
+    try { window.addEventListener('scroll', function(){ try { if (!isPopupTargeted()) return; } catch {}; saveGenericY(); }, { passive: true }); } catch {}
+    try { setInterval(saveGenericY, 1500); } catch {}
   })();
   // ===== Preserve scroll position when opening/closing popups =====
   // ===== Preserve scroll position when opening/closing popups =====
   (function setupPopupScrollKeeper(){
+    // Keys to persist background scroll while a popup is open
+    const POPUP_SCROLL_KEY = 'clipsou_popup_bg_scroll_v1';
+    const POPUP_HASH_KEY = 'clipsou_popup_hash_v1';
+    const GENERIC_BG_Y_KEY = 'clipsou_last_bg_y_v1';
     let lastPopupScrollY = null;
     let lastWasAtBottom = false;
+    let popupSaveInterval = null;
     function lockBodyAt(y){
       try {
         const b = document.body; const de = document.documentElement;
@@ -247,20 +310,24 @@ document.addEventListener('DOMContentLoaded', async function () {
         // Prefer landscape first for Continue Watching
         if (it.landscapeImage) addDerived(it.landscapeImage);
         if (it.image) {
-          // Generate a potential landscape variant from the portrait filename
+          // Generate a potential landscape variant from the portrait filename (webp only)
           addLandscapeVariant(it.image);
           addDerived(it.image);
         }
-        if (it.landscapeImage) candidates.push(it.landscapeImage);
-        if (it.image) candidates.push(it.image);
-        // Force try '<base>1.webp' exactly first (e.g., 'Dé1.webp')
+        if (it.landscapeImage && /\.webp$/i.test(it.landscapeImage)) candidates.push(it.landscapeImage);
+        if (it.image && /\.webp$/i.test(it.image)) candidates.push(it.image);
+        // Force try '<base>1.webp' exactly first (e.g., 'Dé.webp' -> 'Dé1.webp').
+        // Avoid doubling the '1' if the filename already ends with '1.webp'.
         let preferred = null;
         try {
-          if (it && it.image && /\.(jpg|jpeg|png|webp)$/i.test(it.image)) {
-            preferred = it.image.replace(/\.(jpg|jpeg|png|webp)$/i, '1.webp');
+          if (it && it.image && /\.(?:webp|jpg|jpeg|png)$/i.test(it.image)) {
+            const alreadyLandscape = /1\.(?:webp|jpg|jpeg|png)$/i.test(it.image);
+            preferred = alreadyLandscape
+              ? it.image // keep as-is; do not try to derive 'Law.webp'
+              : it.image.replace(/\.(?:webp|jpg|jpeg|png)$/i, '1.webp');
           }
         } catch {}
-        if (preferred) candidates.unshift(preferred);
+        if (preferred && !candidates.includes(preferred)) candidates.unshift(preferred);
         let cIdx = 0;
         img.src = applySrc(candidates[cIdx]) || applySrc(it.image) || 'apercu.webp';
         img.onerror = function(){ cIdx++; if (cIdx < candidates.length) this.src = applySrc(candidates[cIdx]); else { this.onerror=null; this.src='apercu.webp'; } };
@@ -293,7 +360,7 @@ document.addEventListener('DOMContentLoaded', async function () {
           const s = String(remainingSec % 60).padStart(2, '0');
           const caption = document.createElement('div');
           caption.className = 'resume-remaining';
-          caption.textContent = `${m}:${s} restant`;
+          caption.textContent = `${m}:${s} min restant`;
           wrapper.appendChild(caption);
         }
         // Title below time remaining
@@ -405,6 +472,24 @@ document.addEventListener('DOMContentLoaded', async function () {
         try { window.__suppressDrawerCloseUntil = Date.now() + 3000; } catch {}
         // Maintain background position, but do NOT block inputs so popup can scroll immediately
         maintainScroll(y, 400);
+        // Persist background scroll Y and current popup hash for refresh scenarios
+        try {
+          sessionStorage.setItem(POPUP_SCROLL_KEY, String(y));
+          sessionStorage.setItem(POPUP_HASH_KEY, String(location.hash || ''));
+        } catch {}
+        // Start a short interval to keep Y fresh in storage while popup is open
+        try { if (popupSaveInterval) { clearInterval(popupSaveInterval); popupSaveInterval = null; } } catch {}
+        try {
+          popupSaveInterval = setInterval(()=>{
+            try {
+              const curY = (window.__lockScrollY != null) ? window.__lockScrollY : (window.pageYOffset || document.documentElement.scrollTop || 0);
+              sessionStorage.setItem(POPUP_SCROLL_KEY, String(curY));
+              sessionStorage.setItem(POPUP_HASH_KEY, String(location.hash || ''));
+              // Also maintain a generic last-Y as ultimate fallback
+              sessionStorage.setItem(GENERIC_BG_Y_KEY, String(curY));
+            } catch {}
+          }, 300);
+        } catch {}
       } catch {}
     }
 
@@ -449,6 +534,10 @@ document.addEventListener('DOMContentLoaded', async function () {
       try { setTimeout(doRestore, 120); } catch {}
       // Only clear popup-open class after restoration has completed
       try { setTimeout(() => applyBodyPopupState(false), 180); } catch {}
+      // Clear persisted state when popup is closed
+      try { sessionStorage.removeItem(POPUP_SCROLL_KEY); sessionStorage.removeItem(POPUP_HASH_KEY); } catch {}
+      // Stop periodic saver
+      try { if (popupSaveInterval) { clearInterval(popupSaveInterval); popupSaveInterval = null; } } catch {}
     }
     function onHashChanged(){
       try {
@@ -489,6 +578,70 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Initialize and listen
     onHashChanged();
     window.addEventListener('hashchange', onHashChanged, { passive: true });
+
+    // If the page loads with a popup hash, restore background scroll from sessionStorage
+    try {
+      const hasPopupOnLoad = isPopupTargeted();
+      if (hasPopupOnLoad) {
+        let savedY = NaN;
+        try { savedY = parseInt(sessionStorage.getItem(POPUP_SCROLL_KEY) || '', 10); } catch {}
+        if (!Number.isFinite(savedY)) {
+          try { savedY = parseInt(sessionStorage.getItem(GENERIC_BG_Y_KEY) || '', 10); } catch {}
+        }
+        if (Number.isFinite(savedY)) {
+          // Apply lock and force the background to the saved position
+          try { applyBodyPopupState(true); } catch {}
+          try { lockBodyAt(savedY); } catch {}
+          try {
+            window.scrollTo({ top: savedY, left: 0, behavior: 'auto' });
+            maintainScroll(savedY, 400);
+          } catch {}
+          // Ensure internal state matches
+          try { lastPopupScrollY = savedY; lastWasAtBottom = false; } catch {}
+          // Double-pass to counter late layout shifts and default anchor jumps
+          try { setTimeout(() => { window.scrollTo({ top: savedY, left: 0, behavior: 'auto' }); maintainScroll(savedY, 300); }, 0); } catch {}
+          try { setTimeout(() => { window.scrollTo({ top: savedY, left: 0, behavior: 'auto' }); maintainScroll(savedY, 200); }, 120); } catch {}
+        } else {
+          // No saved Y; at least lock now to prevent background moving further
+          try {
+            const y = window.pageYOffset || document.documentElement.scrollTop || 0;
+            applyBodyPopupState(true);
+            lockBodyAt(y);
+            maintainScroll(y, 300);
+            try { sessionStorage.setItem(POPUP_SCROLL_KEY, String(y)); } catch {}
+            try { sessionStorage.setItem(GENERIC_BG_Y_KEY, String(y)); } catch {}
+          } catch {}
+        }
+      }
+    } catch {}
+
+    // Re-apply pending hash removed early in head to avoid native scroll jump
+    try {
+      if (window.__popupPendingHash) {
+        const h = window.__popupPendingHash;
+        try { delete window.__popupPendingHash; } catch { window.__popupPendingHash = null; }
+        // Ensure body is already locked at the saved position if available
+        let y2 = 0; try { y2 = parseInt(sessionStorage.getItem(POPUP_SCROLL_KEY)||'', 10) || 0; } catch {}
+        if (!Number.isFinite(y2) || y2 === 0) { try { y2 = parseInt(sessionStorage.getItem(GENERIC_BG_Y_KEY)||'', 10) || 0; } catch {} }
+        try { if (!Number.isFinite(y2)) y2 = 0; } catch {}
+        try { applyBodyPopupState(true); } catch {}
+        try { lockBodyAt(y2); } catch {}
+        try { window.scrollTo({ top: y2, left: 0, behavior: 'auto' }); maintainScroll(y2, 300); } catch {}
+        // Now set the hash to activate :target without letting the page jump
+        try {
+          if ((location.hash||'') !== h) {
+            location.hash = h;
+          } else {
+            onHashChanged();
+          }
+        } catch {}
+        // Enforce background position once more after :target applies
+        try { setTimeout(()=>{ const y = y2||0; window.scrollTo({ top: y, left: 0, behavior: 'auto' }); maintainScroll(y, 250); }, 0); } catch {}
+        try { setTimeout(()=>{ const y = y2||0; window.scrollTo({ top: y, left: 0, behavior: 'auto' }); maintainScroll(y, 200); }, 120); } catch {}
+        // Remove early lock style if present
+        try { const s = document.getElementById('early-popup-lock'); if (s && s.parentNode) s.parentNode.removeChild(s); } catch {}
+      }
+    } catch {}
   })();
   // Backward-compatibility handling for old hash links removed intentionally.
   // Ensure lazy/async attrs on all images
@@ -670,41 +823,50 @@ document.addEventListener('DOMContentLoaded', async function () {
           const popupOpen = !!document.querySelector('.fiche-popup:target') || document.body.classList.contains('popup-open');
           if (popupOpen) return;
         } catch {}
-        // If the drawer is open, and protection is active, ignore scroll-based auto-close indefinitely
+        // If protected due to recent popup close, or grace window is active, do not close
+        // Allow immediate close if user is dragging the scrollbar with mouse
+        if (!mouseDragScrolling) {
+          try { if (window.__protectDrawerForever) return; } catch {}
+          try {
+            const until = window.__suppressDrawerCloseUntil || 0;
+            if (until && now <= until) return;
+          } catch {}
+          // If scroll occurs right after hash change (popup open/close), ignore
+          try { if ((now - lastHashTs) <= SUPPRESS_HASH_MS) return; } catch {}
+        }
+        // Close the drawer on page scroll (e.g., scrollbar drag) when no guards are active
         try {
-          const drawerIsOpen = document.body.classList.contains('drawer-open');
-          if (drawerIsOpen && window.__protectDrawerForever) return;
-        } catch {}
-        // If we're within a grace period after popup open/close, do not close the drawer
-        try {
-          const until = window.__suppressDrawerCloseUntil || 0;
-          if (until && now <= until) return;
-        } catch {}
-        // If a recent scroll originated from a popup, do not close the drawer either
-        try {
-          const lastPopupScrollTs = window.__lastPopupScrollTs || 0;
-          if (lastPopupScrollTs && (now - lastPopupScrollTs) <= 600) return;
-        } catch {}
-        // Suppress immediately after hash changes (popup open/close may adjust layout)
-        if ((now - lastHashTs) <= SUPPRESS_HASH_MS) return;
-        if ((now - lastWheelTs) <= SUPPRESS_MS) return;
-        if ((now - lastTouchTs) <= SUPPRESS_MS) return;
-        if ((now - lastKeyTs) <= SUPPRESS_MS) return;
-        // New behavior: do not alter page scroll position; simply close the drawer if user scrolls the page
-        try { close(); } catch {}
+          const isOpen = document.body.classList.contains('drawer-open');
+          if (isOpen) { reallyClose(); }
+        } catch { try { close(); } catch {} }
       };
+      // Detect mouse-based scrollbar drag: set flag on mousedown outside drawer; clear on mouseup
+      const onMouseDown = (e) => {
+        try {
+          if (e && e.button === 0) {
+            const t = e.target;
+            const inside = (t && (t === drawer || (t.closest && t.closest('#app-drawer'))));
+            if (!inside) mouseDragScrolling = true;
+          }
+        } catch {}
+      };
+      const onMouseUp = () => { mouseDragScrolling = false; };
       const onHash = () => { lastHashTs = Date.now(); };
       window.addEventListener('wheel', onWheel, { passive: false, capture: true });
       window.addEventListener('touchmove', onTouchMove, { passive: false, capture: true });
       window.addEventListener('keydown', onKeyDown, { passive: true });
       window.addEventListener('scroll', onScroll, { passive: true, capture: true });
       window.addEventListener('hashchange', onHash, { passive: true });
+      window.addEventListener('mousedown', onMouseDown, { passive: true, capture: true });
+      window.addEventListener('mouseup', onMouseUp, { passive: true, capture: true });
       removeCloseOnScroll = () => {
         window.removeEventListener('wheel', onWheel, { capture: true });
         window.removeEventListener('touchmove', onTouchMove, { capture: true });
         window.removeEventListener('keydown', onKeyDown);
         window.removeEventListener('scroll', onScroll, { capture: true });
         window.removeEventListener('hashchange', onHash);
+        window.removeEventListener('mousedown', onMouseDown, { capture: true });
+        window.removeEventListener('mouseup', onMouseUp, { capture: true });
         removeCloseOnScroll = () => {};
       };
     }
@@ -1076,6 +1238,8 @@ document.addEventListener('DOMContentLoaded', async function () {
       const sorted = items.filter(it => typeof it.rating === 'number' && it.rating >= 3.5)
         .sort((a, b) => { const ra = (typeof a.rating === 'number') ? a.rating : -Infinity; const rb = (typeof b.rating === 'number') ? b.rating : -Infinity; if (rb !== ra) return rb - ra; return (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' }); });
       topRated.innerHTML = ''; sorted.forEach(it => topRated.appendChild(createCard(it)));
+      // Ensure header with See All for the Top Rated section
+      try { const sec = document.getElementById('top-rated'); ensureSectionSeeAll(sec, '⭐ Mieux notés', sorted, createCard); } catch {}
     }
 
     // Build a dedicated "Séries" section
@@ -1116,6 +1280,8 @@ document.addEventListener('DOMContentLoaded', async function () {
           return ta.localeCompare(tb, 'fr', { sensitivity: 'base' });
         });
         sorted.forEach(it => rail.appendChild(createCard(it)));
+        // Add See All for series
+        try { ensureSectionSeeAll(section, '📺 Séries', sorted, createCard); } catch {}
       } catch {}
     })();
 
@@ -1175,7 +1341,11 @@ document.addEventListener('DOMContentLoaded', async function () {
       const sorted = list.slice().sort((a, b) => { const ra = (typeof a.rating === 'number') ? a.rating : -Infinity; const rb = (typeof b.rating === 'number') ? b.rating : -Infinity; if (rb !== ra) return rb - ra; return (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' }); });
       rail.innerHTML = ''; const seen = new Set(); sorted.forEach(it => { const href = `#${it.id}`; if (seen.has(href)) return; rail.appendChild(createCard(it)); seen.add(href); });
       if (rail.querySelectorAll('.card').length <= 0) { section.remove(); }
-      else { try { window.__genreSectionIds = window.__genreSectionIds || new Set(); window.__genreSectionIds.add(id); } catch {} }
+      else {
+        try { window.__genreSectionIds = window.__genreSectionIds || new Set(); window.__genreSectionIds.add(id); } catch {}
+        // Add See All for this genre section
+        try { ensureSectionSeeAll(section, `${genreEmoji(displayName)} ${displayName}`, sorted, createCard); } catch {}
+      }
     });
 
     // After all rails are (re)built, add desktop-only arrows and wire scroll
@@ -1417,12 +1587,16 @@ document.addEventListener('DOMContentLoaded', async function () {
         try {
           const drawer = document.getElementById('app-drawer');
           const overlay = document.getElementById('drawer-overlay');
-          if (drawer && !drawer.classList.contains('open')) {
-            drawer.classList.add('open');
-            drawerAutoOpened = true;
+          const targetEl = document.getElementById(id);
+          const isSeeAll = (id && /^all-/.test(id)) || (targetEl && targetEl.hasAttribute('data-no-drawer'));
+          if (!isSeeAll) {
+            if (drawer && !drawer.classList.contains('open')) {
+              drawer.classList.add('open');
+              drawerAutoOpened = true;
+            }
+            // Keep the drawer overlay closed/hidden so it doesn't interfere
+            if (overlay) overlay.classList.remove('open');
           }
-          // Keep the drawer overlay closed/hidden so it doesn't interfere
-          if (overlay) overlay.classList.remove('open');
         } catch {}
       }, 0);
     }, { capture: true });

@@ -5,6 +5,55 @@
     --brand-2: #6c5ce7;
 }
 
+/* ===== Voir tout removed globally ===== */
+/* Hide any inline "Voir tout" buttons regardless of viewport */
+.section > .see-all-btn { display: none !important; }
+/* Hide any existing or legacy all-* popups entirely */
+.fiche-popup[id^="all-"] { display: none !important; visibility: hidden !important; }
+.fiche-popup[id^="all-"] .fiche-content,
+.fiche-popup[id^="all-"] .fiche-right,
+.fiche-popup[id^="all-"] .grid { display: none !important; }
+
+/* Prevent Chrome scroll anchoring from moving the background when images load while a popup is open */
+html, body { overflow-anchor: auto; }
+html:has(.fiche-popup:target),
+body.popup-open,
+html.popup-open {
+  overflow-anchor: none !important;
+}
+
+/* "Voir tout" popups (id starts with all-) should use full width for the grid */
+.fiche-popup .fiche-content {
+  background: #151D29 !important;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.fiche-popup[id^="all-"] .fiche-content {
+  grid-template-columns: 1fr !important;
+}
+.fiche-popup[id^="all-"] .fiche-right {
+  padding-left: 0 !important;
+}
+.fiche-popup[id^="all-"] .grid {
+  padding: 0 !important; /* remove inner grid padding so cards span the popup content width */
+  /* Center cards inside the popup */
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-content: flex-start !important;
+  gap: 22px !important;
+}
+
+/* Standard card width for centered layout in Voir tout popups */
+.fiche-popup[id^="all-"] .grid > * {
+  flex: 0 0 220px !important;
+  max-width: 220px !important;
+}
+
+@media (max-width: 768px) {
+  .fiche-popup[id^="all-"] .grid { gap: 16px !important; padding: 0 8px !important; }
+  .fiche-popup[id^="all-"] .grid > * { flex-basis: 200px !important; max-width: 200px !important; }
+}
+
 /* Continue Watching: use fades that match the box background color (#151D28) */
 @media (min-width: 769px) {
   /* Desktop: make rail a masked scroll container for arrow navigation */
@@ -265,6 +314,11 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
+/* Index only: use solid background (no gradient) */
+body:not(.fiche-page-view) {
+  background: var(--bg-1) !important;
+}
+
 /* ===== Resume confirm dialog (fiche page) ===== */
 .resume-dialog-overlay {
   position: fixed;
@@ -408,9 +462,10 @@ body.popup-open nav[aria-label="Navigation principale"] {
     /* Dégradé vertical (bas -> haut) basé sur la couleur d'arrière-plan pour un fondu harmonieux */
     background: linear-gradient(
         to top,
-        rgba(11, 17, 23, 0.92) 0%,
-        rgba(11, 17, 23, 0.78) 40%,
-        rgba(11, 17, 23, 0.28) 100%
+        rgba(11, 17, 23, 0.96) 0%,
+        rgba(11, 17, 23, 0.70) 35%,
+        rgba(11, 17, 23, 0.30) 65%,
+        rgba(11, 17, 23, 0.00) 100%
     );
     z-index: 1;
 }
@@ -438,6 +493,19 @@ body.popup-open nav[aria-label="Navigation principale"] {
 .carousel-genres { display: flex; gap: 10px; margin: 15px 0 20px; flex-wrap: wrap; align-items: center; }
 
 .carousel-genre-tag { background: rgba(255,255,255,.06); color: #e6eef5; padding: 6px 14px; border-radius: 20px; font-size: .85rem; font-weight: 600; border: 1px solid rgba(255,255,255,.12); backdrop-filter: none; }
+
+/* Pastille de durée à droite des genres sur la fiche */
+.duration-chip {
+  background: transparent;
+  color: rgba(255,255,255,0.92);
+  padding: 0;
+  border-radius: 0;
+  font-size: .95rem;
+  font-weight: 600;
+  border: 0;
+  line-height: 1;
+  white-space: nowrap;
+}
 
 /* Inline rating in carousel, placed before genre tags */
 .carousel-genres .carousel-rating {
@@ -516,7 +584,48 @@ body.popup-open nav[aria-label="Navigation principale"] {
 /* Sections */
 .section { margin: 50px 0; }
 
-.section h2 { margin: 0 40px 30px; font-size: 32px; font-weight: 700; color: #ffffff; display: inline-block; padding-bottom: 0; border: none; }
+.section h2 {
+  margin: 0 40px 12px;
+  font-size: 28px;
+  font-weight: 700; 
+  color: #ffffff; 
+  display: inline-block; 
+  padding-bottom: 0; 
+  border: none; 
+}
+
+/* When an inline See All button is present, bring it closer to the title */
+.section > h2 { margin-right: 12px; }
+.section > .see-all-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  margin-right: 40px; /* match section right margin */
+  margin-bottom: 12px; /* spacing below the row */
+  padding: 8px 12px; /* slightly more compact */
+  font-size: 14px;
+  line-height: 1.1;
+}
+
+/* Hide "Voir tout" on mobile */
+@media (max-width: 768px) {
+  .section > .see-all-btn { display: none !important; }
+}
+
+/* Small descriptive line under section titles */
+.section-subtitle {
+  margin: -4px 40px 10px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: rgba(255,255,255,0.68);
+}
+@media (max-width: 768px) {
+  .section-subtitle {
+    margin: -2px 16px 8px;
+    font-size: 11px;
+  }
+}
 
 /* Boxed styling for Continue Watching */
 #continue-watching {
@@ -576,20 +685,57 @@ body.popup-open nav[aria-label="Navigation principale"] {
 .section-header {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: 12px;
   margin: 0 40px 16px;
 }
 
 /* On mobile: allow header buttons to wrap and avoid stretching due to long text */
 @media (max-width: 768px) {
-  .section-header { flex-wrap: wrap; }
+  .section-header { flex-wrap: nowrap; gap: 8px; }
   .section-header .button.secondary {
-    flex: 1 1 48%;
-    max-width: 48%;
+    flex: 0 0 auto;
+    min-width: 0; /* allow text to shrink within flex item */
+    max-width: none;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-size: clamp(12px, 3.8vw, 14px);
+    padding: clamp(6px, 1.2rem, 8px) clamp(8px, 2.6vw, 10px);
+  }
+}
+
+/* Mobile tweaks for fiche page: smaller buttons and wrapping to fit screen */
+@media (max-width: 768px) {
+  body.fiche-page-view .section-header {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    margin: 0 16px 10px; /* tighter side margins on mobile */
+  }
+  body.fiche-page-view .section-header .button.secondary {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    font-size: clamp(11px, 3.2vw, 13px) !important;
+    padding: 6px 8px !important;
+    white-space: nowrap; /* keep labels on one line; they can shrink */
+  }
+}
+
+/* Fiche page: keep header buttons grouped at the left with tight spacing on desktop */
+body.fiche-page-view .section-header {
+  justify-content: flex-start !important;
+  gap: 10px !important;
+}
+body.fiche-page-view .section-header .button.secondary {
+  flex: 0 0 auto;
+}
+
+/* Extra-tight layout for ultra-small devices */
+@media (max-width: 380px) {
+  .section-header { gap: 6px; }
+  .section-header .button.secondary {
+    font-size: clamp(11px, 3.5vw, 13px);
+    padding: 6px 8px;
   }
 }
 
@@ -617,6 +763,20 @@ body.popup-open nav[aria-label="Navigation principale"] {
   outline: none;
   box-shadow: none;
 }
+
+/* "Voir tout" expanded panel per section */
+.all-panel {
+  margin: 0 40px 24px;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(26,35,50,0.65);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+.section.all-open .rail { display: none !important; }
+.section.all-open .all-panel { display: block !important; }
+.section:not(.all-open) .all-panel { display: none !important; }
+/* Remove extra padding inside grids placed in all-panel */
+.all-panel .grid { padding: 0; }
 
 /* Remove focus ring/glow on keyboard/mouse focus */
 .button.secondary:focus,
@@ -682,6 +842,14 @@ body.popup-open nav[aria-label="Navigation principale"] {
   filter: none !important;
 }
 
+/* Grey style for episode viewing status suffix */
+.episodes-panel .episodes-rail .button .episode-status {
+  color: rgba(255,255,255,0.6);
+  margin-left: 6px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 /* Mobile: widen and center episodes buttons */
 @media (max-width: 768px) {
   .episodes-panel { margin: 0 16px 20px; }
@@ -709,6 +877,7 @@ body.popup-open nav[aria-label="Navigation principale"] {
   border-radius: 10px;
   padding: 10px;
   text-align: center;
+  position: relative; /* allow absolute-positioned edit button */
 }
 
 .actor-photo {
@@ -760,11 +929,35 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
 .actor-name {
   margin-top: 6px;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .actor-role {
   font-size: 0.9rem;
   opacity: 0.85;
+}
+
+/* Small edit badge inline inside the actor name */
+.actor-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1;
+  background: rgba(0,0,0,0.45);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: #fff;
+  text-decoration: none;
+  padding: 2px 6px;
+}
+.actor-edit-btn:hover,
+.actor-edit-btn:focus {
+  background: rgba(0,0,0,0.75);
+  border-color: rgba(255,255,255,0.28);
 }
 
 .actors-empty { margin: 8px 0; opacity: 0.85; }
@@ -883,7 +1076,7 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
     max-width: 2000px;
     /* Center on full viewport height (ignore nav height), with small breathing room */
     max-height: calc(100dvh - 40px);
-    background: #1a2332; /* opaque */
+    background: #151D29; /* opaque, unified popup color */
     border-radius: 16px;
     display: grid;
     gap: 30px;
@@ -938,6 +1131,48 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
 /* Desktop/tablet: rounded corners for fiche images */
 @media (min-width: 769px) {
   .fiche-content img.landscape { border-radius: 8px; }
+}
+
+/* Mobile: forcer un rendu cover dans un cadre 16:9 */
+@media (max-width: 768px) {
+  /* Conteneur visuel pour l'image (déjà ajouté dans le DOM via .fiche-media-wrap) */
+  .fiche-media-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+  }
+  /* Sur la page fiche, étendre l'image bord à bord sur toute la largeur écran */
+  body.fiche-page-view #fiche .fiche-media-wrap {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin-left: 50% !important;
+    transform: translateX(-50%) !important;
+    border-radius: 0 !important;
+  }
+  /* L’image remplit le conteneur uniformément */
+  .fiche-media-wrap img.landscape {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    max-height: none; /* aucune contrainte verticale sur mobile */
+    border-radius: 0; /* pas d'arrondi pour occuper tout l'espace */
+  }
+
+  /* Priorité maximale sur la page fiche pour éviter tout 'contain' résiduel */
+  body.fiche-page-view #fiche .fiche-left img.landscape {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    object-fit: cover !important;
+    display: block !important;
+  }
+
+  /* Masquer la durée sur mobile */
+  .duration-chip { display: none !important; }
 }
 
 .fiche-right {
@@ -2070,3 +2305,31 @@ body.is-mobile .fiche-popup h3 { display: none !important; margin: 0 !important;
 body.is-mobile #infos-title,
 body.is-mobile #youtube-title,
 body.is-mobile #partenariats-title { display: none !important; }
+
+/* Mobile override: keep section titles visible inside "Voir tout" popups and shrink if needed */
+@media (max-width: 768px) {
+  .fiche-popup[id^="all-"] .fiche-content h3,
+  .fiche-popup[id^="all-"] .fiche-right > h3,
+  .fiche-popup[id^="all-"] h3 {
+    display: block !important;
+    margin: 0 0 8px 0 !important;
+    font-size: clamp(16px, 5.4vw, 22px) !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    text-align: left !important;
+  }
+  /* Align title with close button: place close at top-right and reserve space on the right of title */
+  .fiche-popup[id^="all-"] .fiche-content { position: relative; }
+  .fiche-popup[id^="all-"] .top-right-close {
+    position: absolute !important;
+    top: 8px; right: 8px;
+    margin: 0 !important;
+  }
+  .fiche-popup[id^="all-"] .fiche-right > h3 { 
+    /* align vertically with close button top */
+    margin-top: 8px !important;
+    padding-right: 120px; /* keep text clear from the close button */
+  }
+}

@@ -476,6 +476,106 @@ function renderFiche(container, item) {
   });
   rg.appendChild(genresDiv);
 
+  // ----- Durée du film (en minutes), à droite -----
+  const durationChip = document.createElement('div');
+  durationChip.className = 'duration-chip';
+  durationChip.setAttribute('aria-label', 'Durée');
+  // N'afficher que pour les films (pas séries / playlists)
+  try {
+    const isFilm = (item.type || '').toLowerCase() === 'film';
+    const watchUrl = String(item.watchUrl || '');
+    const isYouTube = /youtu\.be\//i.test(watchUrl) || /youtube\.com\//i.test(watchUrl);
+    if (isFilm && isYouTube) {
+      // Helper: format seconds as m:ss
+      const formatMMSS = (sec)=>{
+        const total = Math.max(0, Math.floor(Number(sec)||0));
+        const m = Math.floor(total / 60);
+        const s = String(total % 60).padStart(2, '0');
+        return `${m}:${s}`;
+      };
+      // Extraire l'id vidéo YouTube
+      const extractVid = (href)=>{
+        try {
+          const s = String(href||'');
+          const m = s.match(/[?&]v=([\w-]{6,})/i) || s.match(/embed\/([\w-]{6,})/i) || s.match(/youtu\.be\/([\w-]{6,})/i);
+          return m ? m[1] : '';
+        } catch { return ''; }
+      };
+      const vid = extractVid(watchUrl);
+      if (vid) {
+        // Cache local pour accélérer l'affichage
+        const readDurCache = () => {
+          try {
+            const raw = localStorage.getItem('clipsou_video_duration_v1');
+            const obj = raw ? JSON.parse(raw) : {};
+            return (obj && typeof obj === 'object') ? obj : {};
+          } catch { return {}; }
+        };
+        const writeDurCache = (obj) => {
+          try { localStorage.setItem('clipsou_video_duration_v1', JSON.stringify(obj||{})); } catch {}
+        };
+        const cache = readDurCache();
+        const cachedSeconds = cache && cache[vid] && typeof cache[vid].duration === 'number' ? cache[vid].duration : 0;
+        if (cachedSeconds > 0) {
+          durationChip.textContent = formatMMSS(cachedSeconds) + ' min';
+        } else {
+          durationChip.textContent = '';
+          durationChip.classList.add('loading');
+        }
+        // Charger l'API si besoin puis créer un player caché pour obtenir la durée
+        const ensureYT = ()=> new Promise((resolve)=>{
+          try {
+            if (window.YT && window.YT.Player) { resolve(); return; }
+            const prev = document.querySelector('script[src*="youtube.com/iframe_api"]');
+            if (!prev) {
+              const s = document.createElement('script');
+              s.src = 'https://www.youtube.com/iframe_api';
+              document.head.appendChild(s);
+            }
+            const check = ()=>{ if (window.YT && window.YT.Player) resolve(); else setTimeout(check, 100); };
+            check();
+          } catch { resolve(); }
+        });
+        ensureYT().then(()=>{
+          try {
+            const container = document.createElement('div');
+            const pid = 'yt_tmp_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
+            container.id = pid;
+            Object.assign(container.style, { width:'0', height:'0', overflow:'hidden', position:'absolute', left:'-9999px', top:'-9999px' });
+            document.body.appendChild(container);
+            let player = null;
+            const cleanup = ()=>{ try { if (player && player.destroy) player.destroy(); } catch {} try { container.remove(); } catch {} };
+            player = new window.YT.Player(pid, {
+              videoId: vid,
+              events: {
+                onReady: function(){
+                  try {
+                    const d = player && player.getDuration ? Number(player.getDuration()) : 0;
+                    durationChip.textContent = formatMMSS(d) + ' min';
+                    durationChip.classList.remove('loading');
+                    // MAJ cache
+                    try {
+                      const c2 = readDurCache();
+                      c2[vid] = { duration: d, updatedAt: Date.now() };
+                      writeDurCache(c2);
+                    } catch {}
+                  } catch {
+                    durationChip.textContent = '';
+                  }
+                  cleanup();
+                },
+                onError: function(){ cleanup(); }
+              }
+            });
+            // Sécurité: timeout fallback
+            setTimeout(()=>{ try { if (durationChip.classList.contains('loading')) { durationChip.textContent = cachedSeconds>0 ? (formatMMSS(cachedSeconds) + ' min') : ''; durationChip.classList.remove('loading'); cleanup(); } } catch {} }, 5000);
+          } catch {}
+        });
+      }
+    }
+  } catch {}
+  rg.appendChild(durationChip);
+
   const p = document.createElement('p');
   p.textContent = item.description || '';
 
@@ -659,8 +759,8 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   // helper to strip trailing number and force portrait like 'La', 'Ur', 'Ka', 'Law', 'Al'
   function deriveBase(src) {
     if (!src) return '';
-    const m = src.match(/^(.*?)(\d+)?\.(jpg|jpeg|png|webp)$/i);
-    return m ? m[1] : src.replace(/\.(jpg|jpeg|png|webp)$/i, '');
+    const m = src.match(/^(.*?)(\d+)?\.(webp|jpg|jpeg|png)$/i);
+    return m ? m[1] : src.replace(/\.(webp|jpg|jpeg|png)$/i, '');
   }
 
   if (similarItems.length === 0) {
@@ -680,16 +780,14 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       // Robust thumbnail loader: portrait -> landscape -> image -> derived exts -> apercu
       const img = document.createElement('img');
       let candidates = [];
-      // Helpers
-      function isDerivable(src){ return /\.(jpg|jpeg|png|webp)$/i.test(src || ''); }
+      // Helpers (WebP only)
+      function isDerivable(src){ return /\.(webp|jpg|jpeg|png)$/i.test(src || ''); }
       function derivedList(src){
         const list = [];
-        const m = (src || '').match(/^(.*?)(\d+)?\.(jpg|jpeg|png|webp)$/i);
+        const m = (src || '').match(/^(.*?)(\d+)?\.(webp|jpg|jpeg|png)$/i);
         if (!m) return list;
         const base = m[1];
-        const ext = (m[3] || '').toLowerCase();
-        const order = ext === 'webp' ? ['webp','jpg','jpeg','png'] : ['jpg','jpeg','png'];
-        order.forEach(e => list.push(base + '.' + e));
+        list.push(base + '.webp');
         return list;
       }
       function dedupe(arr){
@@ -825,6 +923,18 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       actorsGrid.appendChild(empty);
       return;
     }
+    // Read global actor photo map from admin (localStorage) for cross-film consistency
+    function getGlobalActorPhotoMap(){
+      try { return JSON.parse(localStorage.getItem('clipsou_admin_actor_photos_v1')||'{}') || {}; } catch { return {}; }
+    }
+    function normalizeActorKey(s){
+      try { return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); }
+      catch { return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); }
+    }
+    function resolveActorPhoto(map, name){
+      if (!name) return '';
+      try { const k = normalizeActorKey(name); return (map && map[k]) || ''; } catch { return ''; }
+    }
     // If actors come from admin, KEEP EXACT INPUT ORDER. Otherwise apply custom or generic ordering.
     let orderedActors;
     if (fromAdmin) {
@@ -866,6 +976,7 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
         }).sort((x, y) => (x.rank - y.rank) || (x.idx - y.idx)).map(x => x.a);
       }
     }
+    const photoMap = getGlobalActorPhotoMap();
     orderedActors.forEach((a) => {
       const card = document.createElement('div');
       card.className = 'actor-card';
@@ -879,14 +990,15 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       const nameRaw = String(a.name || '').trim();
       const baseSlug = ACTOR_IMAGE_MAP[nameRaw] || ACTOR_IMAGE_MAP['Unknown'];
       // Prefer the explicit photo provided by admin if present; otherwise use slug-based local images
+      const globalPhoto = resolveActorPhoto(photoMap, nameRaw);
       if (a && a.photo) {
-        try { img.src = a.photo; } catch { img.src = a.photo || './unknown.jpeg'; }
-        // mark as having explicit photo to skip slug fallback
+        try { img.src = a.photo; } catch { img.src = a.photo || './unknown.webp'; }
+        img.setAttribute('data-explicit-photo', '1');
+      } else if (globalPhoto) {
+        try { img.src = globalPhoto; } catch { img.src = globalPhoto || './unknown.webp'; }
         img.setAttribute('data-explicit-photo', '1');
       } else {
-        // Start with jpeg, then try other extensions
-        img.src = './' + baseSlug + '.jpeg';
-        // Keep slug for retries with other extensions
+        img.src = './' + baseSlug + '.webp';
         img.setAttribute('data-slug', baseSlug);
       }
       img.alt = a.name;
@@ -903,24 +1015,24 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       img.onerror = function(){
         if (this.getAttribute('data-explicit-photo') === '1') {
           // If explicit photo fails, fallback to Unknown directly
-          this.onerror = null; this.src = './unknown.jpeg'; return;
+          this.onerror = null; this.src = './unknown.webp'; return;
         }
         var slug = this.getAttribute('data-slug');
-        if (!slug) { this.onerror = null; this.src = './unknown.jpeg'; return; }
+        if (!slug) { this.onerror = null; this.src = './unknown.webp'; return; }
         var i = (parseInt(this.dataset.i || '0', 10) || 0) + 1;
         this.dataset.i = i;
-        var exts = ['jpeg','jpg','png','webp'];
-        if (i < exts.length) {
-          this.src = './' + slug + '.' + exts[i];
-        } else {
-          this.onerror = null;
-          this.src = './unknown.jpeg';
-        }
+        // Only try webp once
+        if (i === 1) { this.src = './' + slug + '.webp'; }
+        else { this.onerror = null; this.src = './unknown.webp'; }
       };
       imgWrap.appendChild(img);
       const nameEl = document.createElement('div');
       nameEl.className = 'actor-name';
-      nameEl.textContent = a.name;
+      // Build label: name text + inline edit anchor inside the same badge
+      const nameText = document.createElement('span');
+      nameText.className = 'actor-name-text';
+      nameText.textContent = a.name;
+      nameEl.appendChild(nameText);
       const roleEl = document.createElement('div');
       roleEl.className = 'actor-role';
       roleEl.textContent = a.role || '';
@@ -981,12 +1093,92 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       episodesRail.appendChild(empty);
       return;
     }
+    // Helpers to read progress and extract YouTube video id
+    function readProgressList(){
+      try { const raw = localStorage.getItem('clipsou_watch_progress_v1'); const arr = raw ? JSON.parse(raw) : []; return Array.isArray(arr) ? arr : []; } catch { return []; }
+    }
+    function extractVideoId(href){
+      try {
+        const s = String(href || '');
+        const m = s.match(/[?&]v=([\w-]{6,})/i) || s.match(/embed\/([\w-]{6,})/i) || s.match(/youtu\.be\/([\w-]{6,})/i);
+        return m ? m[1] : '';
+      } catch { return ''; }
+    }
+    function formatRemaining(sec){
+      const total = Math.max(0, Math.floor(sec||0));
+      const m = Math.floor(total / 60);
+      const s = String(total % 60).padStart(2, '0');
+      return `${m}:${s}`;
+    }
+    // Duration cache helpers (shared with fiche film chip logic)
+    function readDurCache(){
+      try { const raw = localStorage.getItem('clipsou_video_duration_v1'); const obj = raw ? JSON.parse(raw) : {}; return (obj && typeof obj === 'object') ? obj : {}; } catch { return {}; }
+    }
+    function writeDurCache(obj){
+      try { localStorage.setItem('clipsou_video_duration_v1', JSON.stringify(obj||{})); } catch {}
+    }
+    function ensureYT(){ return new Promise((resolve)=>{ try { if (window.YT && window.YT.Player) { resolve(); return; } const prev = document.querySelector('script[src*="youtube.com/iframe_api"]'); if (!prev) { const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s); } const check = ()=>{ if (window.YT && window.YT.Player) resolve(); else setTimeout(check, 100); }; check(); } catch { resolve(); } }); }
+    function fetchDurationIfMissing(vid){
+      if (!vid) return;
+      const cache = readDurCache();
+      if (cache[vid] && typeof cache[vid].duration === 'number' && cache[vid].duration > 0) return; // already cached
+      ensureYT().then(()=>{
+        try {
+          const container = document.createElement('div');
+          const pid = 'yt_tmp_ep_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
+          container.id = pid;
+          Object.assign(container.style, { width:'0', height:'0', overflow:'hidden', position:'absolute', left:'-9999px', top:'-9999px' });
+          document.body.appendChild(container);
+          let player = null;
+          const cleanup = ()=>{ try { if (player && player.destroy) player.destroy(); } catch {} try { container.remove(); } catch {} };
+          player = new window.YT.Player(pid, { videoId: vid, events: { onReady: function(){ try { const d = player && player.getDuration ? Number(player.getDuration()) : 0; if (d>0){ const c = readDurCache(); c[vid] = { duration: d, updatedAt: Date.now() }; writeDurCache(c); try { window.dispatchEvent(new Event('clipsou-duration-updated')); } catch {} } } catch {} cleanup(); }, onError: function(){ cleanup(); } } });
+          setTimeout(()=>{ cleanup(); }, 5000);
+        } catch {}
+      });
+    }
+    const progressList = readProgressList();
     list.forEach(ep => {
       const a = document.createElement('a');
       a.href = ep.url;
       a.className = 'button';
-      const label = ep && ep.title ? `Épisode ${ep.n} — ${ep.title}` : `Épisode ${ep.n}`;
-      a.textContent = label;
+      const baseLabel = ep && ep.title ? `Épisode ${ep.n} — ${ep.title}` : `Épisode ${ep.n}`;
+      // Compute suffix from saved progress for this specific episode (per video id)
+      let suffix = '';
+      try {
+        const vid = extractVideoId(ep && ep.url);
+        if (vid) {
+          const keyId = idForMatch + '::' + vid;
+          let entry = progressList.find(x => x && x.id === keyId);
+          // Fallback: match by video id only if fiche id differs (e.g., admin variants)
+          if (!entry) {
+            entry = progressList.find(x => x && typeof x.id === 'string' && x.id.endsWith('::' + vid));
+          }
+          const seconds = entry && typeof entry.seconds === 'number' ? Math.max(0, entry.seconds) : 0;
+          let duration = entry && typeof entry.duration === 'number' ? Math.max(0, entry.duration) : 0;
+          if (!duration) {
+            const c = readDurCache();
+            if (c[vid] && typeof c[vid].duration === 'number') duration = Math.max(0, c[vid].duration);
+            else fetchDurationIfMissing(vid);
+          }
+          const finished = !!(entry && entry.finished) || (duration > 0 && seconds / duration >= 0.99);
+          if (finished) {
+            suffix = 'déjà vu ✔';
+          } else if (duration > 0 && seconds > 0) {
+            suffix = `⌛ ${formatRemaining(seconds)} / ${formatRemaining(duration)} min`;
+          } else if (duration > 0 && seconds === 0) {
+            // Never watched: show total time
+            suffix = `${formatRemaining(duration)} min`;
+          }
+        }
+      } catch {}
+      // Set base label, then append greyed status as a separate span for styling
+      a.textContent = baseLabel;
+      if (suffix) {
+        const st = document.createElement('span');
+        st.className = 'episode-status';
+        st.textContent = suffix;
+        a.appendChild(st);
+      }
       a.setAttribute('data-title', `${title} – Épisode ${ep.n}` + (ep && ep.title ? ` — ${ep.title}` : ''));
       a.style.display = 'block';
       episodesRail.appendChild(a);
@@ -1024,17 +1216,37 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   actorsBtn.addEventListener('click', showActors);
   similarBtn.addEventListener('click', showSimilar);
   if (hasEpisodes) episodesBtn.addEventListener('click', showEpisodes);
-  if (mq) {
-    if (typeof mq.addEventListener === 'function') {
-      mq.addEventListener('change', placeSimilar);
-    } else if (typeof mq.addListener === 'function') {
-      mq.addListener(placeSimilar);
+    if (mq) {
+      if (typeof mq.addEventListener === 'function') {
+        mq.addEventListener('change', placeSimilar);
+      } else if (typeof mq.addListener === 'function') {
+        mq.addListener(placeSimilar);
+      }
+    } else {
+      window.addEventListener('resize', placeSimilar);
+      window.addEventListener('orientationchange', placeSimilar);
     }
-  } else {
-    window.addEventListener('resize', placeSimilar);
-    window.addEventListener('orientationchange', placeSimilar);
+    // Auto-refresh episode statuses when progress updates
+    try {
+      window.addEventListener('clipsou-progress-updated', () => {
+        try {
+          if (section.classList.contains('episodes-open')) {
+            populateEpisodes();
+          }
+        } catch {}
+      });
+    } catch {}
+    // Auto-refresh episode durations when duration cache updates
+    try {
+      window.addEventListener('clipsou-duration-updated', () => {
+        try {
+          if (section.classList.contains('episodes-open')) {
+            populateEpisodes();
+          }
+        } catch {}
+      });
+    } catch {}
   }
-}
 
 function renderList(container, items, titleText) {
   container.innerHTML = '';
@@ -1366,7 +1578,7 @@ const container = document.getElementById('fiche-container');
             const total = Math.max(0, Math.floor(seconds||0));
             const m = Math.floor(total / 60);
             const s = String(total % 60).padStart(2, '0');
-            p.textContent = `Voulez-vous reprendre à ${m}:${s} ?`;
+            p.textContent = `Voulez-vous reprendre à ${m}:${s} min ?`;
             overlay.classList.add('open');
             try { overlay.setAttribute('tabindex','-1'); overlay.focus(); } catch {}
             try { noBtn.focus(); } catch {}
@@ -1484,7 +1696,7 @@ const container = document.getElementById('fiche-container');
         stage.innerHTML = '';
         // Decide if we should bypass intro before attaching any skip button
         let shouldBypassIntro = false;
-        try { shouldBypassIntro = (window.__resumeOverride === 'yes') && ((window.__resumeSeconds||0) > 5); } catch {}
+        try { shouldBypassIntro = (window.__resumeOverride === 'yes') && ((window.__resumeSeconds||0) > 0); } catch {}
         // If resuming, bypass the intro and start main content directly
         try {
           if (shouldBypassIntro) {
@@ -1512,7 +1724,18 @@ const container = document.getElementById('fiche-container');
                   const s = Math.max(0, seconds||0);
                   if (s < 1) return;
                   let list = readList();
-                  if (d > 0 && s / d >= 0.99) { list = list.filter(x => x && x.id !== meta.id); writeList(list); return; }
+                  // If finished, keep entry and mark as finished
+                  if (d > 0 && s / d >= 0.99) {
+                    let found = false; list = list.filter(x => x && x.id);
+                    for (let i=0;i<list.length;i++) {
+                      if (list[i].id === meta.id) {
+                        list[i] = { ...list[i], ...meta, seconds: d, duration: d, percent: 1, finished: true, updatedAt: now };
+                        found = true; break;
+                      }
+                    }
+                    if (!found) list.unshift({ ...meta, seconds: d, duration: d, percent: 1, finished: true, updatedAt: now });
+                    if (list.length > 50) list = list.slice(0,50); writeList(list); return;
+                  }
                   let found = false; list = list.filter(x => x && x.id);
                   for (let i=0;i<list.length;i++) {
                     if (list[i].id === meta.id) {
@@ -1520,15 +1743,16 @@ const container = document.getElementById('fiche-container');
                       const sEff = Math.max(s, prev.seconds||0);
                       const dEff = Math.max(d, prev.duration||0);
                       const percent = dEff > 0 ? (sEff / dEff) : 0;
-                      list[i] = { ...prev, ...meta, seconds: sEff, duration: dEff, percent, updatedAt: now };
+                      list[i] = { ...prev, ...meta, seconds: sEff, duration: dEff, percent, finished: false, updatedAt: now };
                       found = true; break;
                     }
                   }
                   if (!found) {
                     const percent = d > 0 ? (s / d) : 0;
-                    list.unshift({ ...meta, seconds: s, duration: d, percent, updatedAt: now });
+                    list.unshift({ ...meta, seconds: s, duration: d, percent, finished: false, updatedAt: now });
                   }
                   if (list.length > 50) list = list.slice(0,50); writeList(list);
+                  try { window.dispatchEvent(new Event('clipsou-progress-updated')); } catch {}
                 }
                 function writeFinalProgress(seconds, duration){
                   const now = Date.now();
@@ -1536,20 +1760,36 @@ const container = document.getElementById('fiche-container');
                   const s = Math.max(0, seconds||0);
                   if (s < 1) return;
                   let list = readList();
-                  if (d > 0 && s / d >= 0.99) { list = list.filter(x => x && x.id !== meta.id); writeList(list); return; }
+                  if (d > 0 && s / d >= 0.99) {
+                    let updated = false; list = list.filter(x => x && x.id);
+                    for (let i=0;i<list.length;i++) {
+                      if (list[i].id === meta.id) {
+                        const percent = d > 0 ? (s / d) : 0;
+                        list[i] = { ...list[i], ...meta, seconds: d, duration: d, percent: 1, finished: true, updatedAt: now };
+                        updated = true; break;
+                      }
+                    }
+                    if (!updated) {
+                      list.unshift({ ...meta, seconds: d, duration: d, percent: 1, finished: true, updatedAt: now });
+                    }
+                    if (list.length > 50) list = list.slice(0,50); writeList(list);
+                    try { window.dispatchEvent(new Event('clipsou-progress-updated')); } catch {}
+                    return;
+                  }
                   let updated = false; list = list.filter(x => x && x.id);
                   for (let i=0;i<list.length;i++) {
                     if (list[i].id === meta.id) {
                       const percent = d > 0 ? (s / d) : 0;
-                      list[i] = { ...list[i], ...meta, seconds: s, duration: d, percent, updatedAt: now };
+                      list[i] = { ...list[i], ...meta, seconds: s, duration: d, percent, finished: false, updatedAt: now };
                       updated = true; break;
                     }
                   }
                   if (!updated) {
                     const percent = d > 0 ? (s / d) : 0;
-                    list.unshift({ ...meta, seconds: s, duration: d, percent, updatedAt: now });
+                    list.unshift({ ...meta, seconds: s, duration: d, percent, finished: false, updatedAt: now });
                   }
                   if (list.length > 50) list = list.slice(0,50); writeList(list);
+                  try { window.dispatchEvent(new Event('clipsou-progress-updated')); } catch {}
                 }
                 function ensureYT(){ return new Promise((resolve)=>{ try { if (window.YT && window.YT.Player) { resolve(); return; } const prev = document.querySelector('script[src*="youtube.com/iframe_api"]'); if (!prev) { const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s); } const check = ()=>{ if (window.YT && window.YT.Player) resolve(); else setTimeout(check, 100); }; check(); } catch { resolve(); } }); }
                 ensureYT().then(()=>{
@@ -1557,7 +1797,7 @@ const container = document.getElementById('fiche-container');
                     const pid = iframe.id; if (!pid || !(window.YT && window.YT.Player)) return;
                     setTimeout(()=>{
                       try {
-                        const player = new window.YT.Player(pid, { events: { onReady: function(){ try { const d = player.getDuration?player.getDuration():0; const c = player.getCurrentTime?player.getCurrentTime():0; upsertProgress(c,d); const resumeAt = Math.max(0, Math.min((window.__resumeSeconds||0), (player.getDuration?player.getDuration():d) - 1)); if (resumeAt > 5 && player.seekTo) player.seekTo(resumeAt, true); } catch {} }, onStateChange: function(){} } });
+                        const player = new window.YT.Player(pid, { events: { onReady: function(){ try { const d = player.getDuration?player.getDuration():0; const c = player.getCurrentTime?player.getCurrentTime():0; upsertProgress(c,d); const resumeAt = Math.max(0, Math.min((window.__resumeSeconds||0), (player.getDuration?player.getDuration():d) - 1)); if (resumeAt > 0 && player.seekTo) player.seekTo(resumeAt, true); } catch {} }, onStateChange: function(){} } });
                         // Expose player to overlay for final flush
                         try { overlay.__playerRef = player; } catch {}
                         let stopped = false; overlay.__activeCleanup = (function(prev){ return function(){
@@ -1633,10 +1873,19 @@ const container = document.getElementById('fiche-container');
                 // Ignore noisy near-zero writes
                 if (s < 1) return;
                 let list = readList();
-                // Remove if basically finished
+                // If finished, keep entry and mark as finished
                 if (d > 0 && s / d >= 0.99) {
-                  list = list.filter(x => x && x.id !== meta.id);
+                  let updated = false; list = list.filter(x => x && x.id);
+                  for (let i=0;i<list.length;i++) {
+                    if (list[i].id === meta.id) {
+                      list[i] = { ...list[i], ...meta, seconds: d, duration: d, percent: 1, finished: true, updatedAt: now };
+                      updated = true; break;
+                    }
+                  }
+                  if (!updated) list.unshift({ ...meta, seconds: d, duration: d, percent: 1, finished: true, updatedAt: now });
+                  if (list.length > 50) list = list.slice(0,50);
                   writeList(list);
+                  try { window.dispatchEvent(new Event('clipsou-progress-updated')); } catch {}
                   return;
                 }
                 // Insert/update keeping the maximum progressed time
@@ -1648,17 +1897,18 @@ const container = document.getElementById('fiche-container');
                     const sEff = Math.max(s, prev.seconds||0);
                     const dEff = Math.max(d, prev.duration||0);
                     const percent = dEff > 0 ? (sEff / dEff) : 0;
-                    list[i] = { ...prev, ...meta, seconds: sEff, duration: dEff, percent, updatedAt: now };
+                    list[i] = { ...prev, ...meta, seconds: sEff, duration: dEff, percent, finished: false, updatedAt: now };
                     found = true; break;
                   }
                 }
                 if (!found) {
                   const percent = d > 0 ? (s / d) : 0;
-                  list.unshift({ ...meta, seconds: s, duration: d, percent, updatedAt: now });
+                  list.unshift({ ...meta, seconds: s, duration: d, percent, finished: false, updatedAt: now });
                 }
                 // Trim
                 if (list.length > 50) list = list.slice(0,50);
                 writeList(list);
+                try { window.dispatchEvent(new Event('clipsou-progress-updated')); } catch {}
               }
 
               function ensureYT(){
@@ -1709,10 +1959,21 @@ const container = document.getElementById('fiche-container');
                                   const list = raw ? JSON.parse(raw) : [];
                                   if (Array.isArray(list)) {
                                     const entry = list.find(x => x && x.id === keyId);
-                                    if (entry && typeof entry.seconds === 'number' && entry.seconds > 5) {
-                                      const target = Math.max(0, Math.min(entry.seconds, (player.getDuration?player.getDuration():entry.duration||0) - 1));
-                                      if (player.seekTo) player.seekTo(target, true);
+                                    const d = player.getDuration ? player.getDuration() : (entry && entry.duration) || 0;
+                                    // Determine resume target:
+                                    // - if finished, start at 0
+                                    // - else if explicit override seconds provided (>0), use it
+                                    // - else use saved seconds if >5
+                                    let target = 0;
+                                    const finished = !!(entry && entry.finished) || (entry && entry.duration > 0 && entry.seconds/entry.duration >= 0.99);
+                                    if (!finished) {
+                                      if (typeof window.__resumeSeconds === 'number' && window.__resumeSeconds > 5) {
+                                        target = Math.max(0, Math.min(window.__resumeSeconds, d - 1));
+                                      } else if (entry && typeof entry.seconds === 'number' && entry.seconds > 5) {
+                                        target = Math.max(0, Math.min(entry.seconds, d - 1));
+                                      }
                                     }
+                                    if (player.seekTo) player.seekTo(target, true);
                                   }
                                 }
                               } catch {}
@@ -1777,7 +2038,7 @@ const container = document.getElementById('fiche-container');
         try { const p = intro.play(); if (p && typeof p.catch === 'function') p.catch(()=>{}); } catch {}
       }
 
-      document.addEventListener('click', function(e){
+      function handleYouTubeClick(e){
         try {
           const a = e.target && (e.target.closest ? e.target.closest('a') : null);
           if (!a) return;
@@ -1785,6 +2046,7 @@ const container = document.getElementById('fiche-container');
           if (!isYouTubeUrl(href)) return;
           if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || (e.button && e.button !== 0)) return;
           e.preventDefault();
+          try { e.stopPropagation(); e.stopImmediatePropagation(); } catch {}
           const title = (a.closest('.fiche-right')?.querySelector('h3')?.textContent || a.getAttribute('data-title') || '').trim();
           // Check saved progress and ask before starting
           try {
@@ -1801,7 +2063,14 @@ const container = document.getElementById('fiche-container');
             const list = raw ? JSON.parse(raw) : [];
             const entry = Array.isArray(list) ? list.find(x => x && x.id === keyId3) : null;
             const seconds = entry && typeof entry.seconds === 'number' ? entry.seconds : 0;
-            if (seconds > 0) {
+            const duration = entry && typeof entry.duration === 'number' ? entry.duration : 0;
+            const isFinished = !!(entry && entry.finished) || (duration > 0 && seconds / duration >= 0.99);
+            if (isFinished) {
+              // For already-watched content, always restart from the beginning
+              try { window.__resumeOverride = 'yes'; } catch {}
+              try { window.__resumeSeconds = 0; } catch {}
+              showIntroThenPlay(href, title);
+            } else if (seconds > 0) {
               askResume(seconds).then((res)=>{
                 // If user clicked outside or pressed Escape, cancel entirely
                 if (res === null) return;
@@ -1819,7 +2088,23 @@ const container = document.getElementById('fiche-container');
                     }
                   } catch {}
                 }
-                showIntroThenPlay(href, title);
+                // Safety: clear any stale intro state before attempting to start
+                try { window.__introShowing = false; } catch {}
+                // Try to start immediately; if something blocks, retry shortly after
+                try { showIntroThenPlay(href, title); } catch {}
+                try { setTimeout(() => { if (window && window.__introShowing !== true) showIntroThenPlay(href, title); }, 50); } catch {}
+                // Last resort: if overlay didn't open, open YouTube in a new tab so user isn't stuck
+                try {
+                  setTimeout(() => {
+                    try {
+                      const openOverlay = document.querySelector('.player-overlay.open');
+                      if (!openOverlay) {
+                        const w = window.open(href, '_blank', 'noopener');
+                        if (w && w.focus) w.focus();
+                      }
+                    } catch {}
+                  }, 250);
+                } catch {}
               });
             } else {
               try { window.__resumeOverride = 'yes'; } catch {}
@@ -1830,7 +2115,10 @@ const container = document.getElementById('fiche-container');
             showIntroThenPlay(href, title);
           }
         } catch {}
-      }, true);
+      }
+      // Register in both capture and bubble phases to maximize reliability
+      document.addEventListener('click', handleYouTubeClick, true);
+      document.addEventListener('click', handleYouTubeClick, false);
     } catch {}
   })();
 

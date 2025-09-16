@@ -5,6 +5,59 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b1117">
+<script>
+  // Early guard: if loading with a popup hash, stop default target jump and pin background at saved Y
+  (function(){
+    try {
+      var hash = location.hash || '';
+      if (hash && hash.length > 1) {
+        var id = hash.slice(1);
+        var isPopupId = /^(partenariats|film\d+|serie\d+|submit-film|infos|youtube)$/i.test(id);
+        if (isPopupId) {
+          try { history.scrollRestoration = 'manual'; } catch {}
+          try { document.documentElement.style.scrollBehavior = 'auto'; } catch {}
+          var y = 0;
+          try { y = parseInt(sessionStorage.getItem('clipsou_popup_bg_scroll_v1')||'0', 10) || 0; } catch {}
+          // Force initial scroll position before first paint
+          try { window.scrollTo(0, y); } catch {}
+          // Clear the hash immediately to prevent native anchor scroll; remember it to re-apply later
+          try { window.__popupPendingHash = '#' + id; history.replaceState(null, '', location.pathname + location.search); } catch {}
+          // Install a temporary style to hard-lock the page before paint
+          try {
+            var s = document.createElement('style');
+            s.id = 'early-popup-lock';
+            s.textContent = 'html,body{overflow:hidden!important;height:100vh!important;overscroll-behavior:none!important;touch-action:none!important;}';
+            document.head.appendChild(s);
+          } catch {}
+          // As soon as body exists, hard-lock it at that Y to avoid any movement
+          function lockBodyEarly(){
+            try {
+              var b = document.body; var de = document.documentElement;
+              if (!b) { setTimeout(lockBodyEarly, 0); return; }
+              b.classList.add('popup-open'); de.classList.add('popup-open');
+              b.style.position = 'fixed';
+              b.style.top = (-y) + 'px';
+              b.style.left = '0';
+              b.style.right = '0';
+              b.style.width = '100%';
+              try { de.style.overflowY = 'scroll'; } catch {}
+              // Compensate for scrollbar disappearance to avoid layout shift
+              try {
+                var sw = (window.innerWidth||0) - (de.clientWidth||0);
+                if (sw > 0) b.style.paddingRight = sw + 'px';
+              } catch {}
+              try { window.__popupInitialY = y; } catch {}
+            } catch {}
+          }
+          lockBodyEarly();
+          // Double-pass scroll enforcement to neutralize default anchor adjustment
+          try { setTimeout(function(){ window.scrollTo(0, y); }, 0); } catch {}
+          try { setTimeout(function(){ window.scrollTo(0, y); }, 120); } catch {}
+        }
+      }
+    } catch {}
+  })();
+  </script>
 <title>Clipsou Streaming</title>
 <meta name="description" content="Regardez des films et séries comme La vie au petit âge, Dédoublement, Jackson Goup, Karma et Alex. Gratuit, rapide et sans inscription.">
 <link rel="icon" href="favicon.webp" type="image/webp">
@@ -59,8 +112,8 @@
 </script>
   <!-- Fonts for styled popup titles (trimmed to only used families) -->
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Baloo+2:wght@700;800&family=Bevan:ital@0;1&family=Cinzel:wght@700&family=Luckiest+Guy&family=Rye&family=Shrikhand&family=VT323&display=swap" rel="stylesheet">
- <link rel="stylesheet" href="common.css?v=20250912-2">
- <link rel="stylesheet" href="index.css?v=20250912-2">
+ <link rel="stylesheet" href="common.css?v=20250916-1">
+ <link rel="stylesheet" href="index.css?v=20250916-1">
  </head>
  <body>
   <nav aria-label="Navigation principale">
@@ -242,7 +295,7 @@
 
 <div id="partenariats" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="partenariats-title">
   <div class="fiche-content">
-    <a href="javascript:history.back()" class="button close-btn top-right-close" aria-label="Fermer">❌ Fermer</a>
+    <a href="javascript:history.back()" class="button close-btn top-right-close" aria-label="Fermer">⛌ Fermer</a>
     <div class="fiche-right" style="padding-left:0;">
       <h3 id="partenariats-title">🤝 Partenariats</h3>
       <p>
@@ -297,7 +350,7 @@
             <p>Timmy, un enfant espiègle, nous fait visiter son village dans un monde entièrement construit en briques LEGO. Mais chaque coin de rue réserve son lot de gags et de surprises ! Une aventure familiale pleine d'humour et de tendresse qui ravira petits et grands.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=XtqzuhtuH2E" class="button">▶ Regarder</a>
-                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">⛌ Fermer</a>
             </div>
         </div>
     </div>
@@ -321,7 +374,7 @@
             <p>Deux frères identiques, l'un vêtu de blanc et l'autre de noir, s'entendent à merveille… jusqu'à ce que l'un finisse en prison. Dans l'univers de Minecraft, ce thriller haletant mêle comédie, suspense et évasion.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=gfbiTpqQDY0" class="button">▶ Regarder</a>
-                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">⛌ Fermer</a>
             </div>
         </div>
     </div>
@@ -345,7 +398,7 @@
             <p>Un aventurier un peu maladroit traverse des contrées hostiles remplies de créatures féroces. Tourné en prise de vue réelle (live action), ce périple épique mêle humour et fantastique pour un voyage plein de surprises.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=VUqwvqQ51sg" class="button">▶ Regarder</a>
-                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">⛌ Fermer</a>
             </div>
         </div>
     </div>
@@ -369,7 +422,7 @@
             <p>Suivez les aventures captivantes d'Alex, un personnage attachant dans un univers en briques LEGO. Cette série brickfilm innovante mêle action, humour et émotion dans des épisodes soigneusement réalisés qui plairont à tous les âges.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/playlist?list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf" class="button">▶ Regarder la série</a>
-                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">⛌ Fermer</a>
             </div>
         </div>
     </div>
@@ -393,7 +446,7 @@
             <p>Plongez dans l'univers du Far West à travers cette série brickfilm unique ! Cowboys en briques LEGO, duels au soleil couchant et esthétique VHS nostalgique : cette série réinvente le western avec humour dans un style rétro irrésistible.</p>
             <div class="button-group">
                 <a href="https://youtube.com/playlist?list=PLljfI9MJr5K2Li687G4dOxjfyDQkIfJn3&amp;si=FQ0ImMc9j-6wvtRk" class="button">▶ Regarder la série</a>
-                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">⛌ Fermer</a>
             </div>
         </div>
     </div>
@@ -418,7 +471,7 @@
             <p><strong>Acteurs :</strong> kassielator, Liam Roxxor</p>
             <div class="button-group">
                 <a href="https://youtube.com/playlist?list=PLljfI9MJr5K17MmHDsdU6QqSFwZJ_Tn-5&si=lVyJvllZ6dkb94gq" class="button">▶ Regarder la série</a>
-                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">⛌ Fermer</a>
             </div>
         </div>
     </div>
@@ -442,7 +495,7 @@
             <p>Victime de harcèlement scolaire, une adolescente met fin à ses jours. Réalisé en prise de vue réelle, ce récit surnaturel suit le retour d'un esprit tourmenté qui hante son bourreau et le plonge dans une spirale de terreur.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=p79g08Igceo" target="_blank" rel="noopener noreferrer" class="button">▶ Regarder</a>
-                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">⛌ Fermer</a>
             </div>
         </div>
     </div>
@@ -465,7 +518,7 @@
             <p>Un nouveau trailer de Batman, sombre et intense, réimaginé dans l'univers Minecraft. Découvrez des premières images qui redéfinissent le chevalier noir avec une approche moderne et spectaculaire.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=SzbqZNObLNU" class="button">▶ Regarder</a>
-                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">⛌ Fermer</a>
             </div>
         </div>
     </div>
@@ -489,7 +542,7 @@
             <p>Le Noob vous présente, avec humour, la ville d'Urbanos créée sur Minecraft.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=ZcnWsRXHLic" class="button">▶ Regarder</a>
-                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">⛌ Fermer</a>
             </div>
         </div>
     </div>
@@ -540,7 +593,7 @@
             <p>Après avoir chuté à travers le sol, Noob se retrouve piégé dans les Backrooms : un dédale sans fin de couloirs jaunâtres où bourdonnent les néons et où rôdent d’étranges présences. Entre zones instables, anomalies hostiles et rencontres inattendues, chaque pas le rapproche d’une vérité inquiétante. Court-métrage réalisé à l’occasion d’une mise à jour du serveur Minecraft Urbanos.</p>
             <div class="button-group">
                 <a href="https://www.youtube.com/watch?v=b1BSjegjM_s" class="button">▶ Regarder</a>
-                <a href="javascript:history.back()" class="button close-btn">❌ Fermer</a>
+                <a href="javascript:history.back()" class="button close-btn">⛌ Fermer</a>
             </div>
         </div>
     </div>
@@ -549,7 +602,7 @@
 <!-- Popup: Ajouter son film -->
 <div id="submit-film" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="submit-film-title">
   <div class="fiche-content">
-    <a href="javascript:history.back()" class="button close-btn top-right-close" aria-label="Fermer">❌ Fermer</a>
+    <a href="javascript:history.back()" class="button close-btn top-right-close" aria-label="Fermer">⛌ Fermer</a>
     <div class="fiche-right" style="padding-left:0;">
       <h3 id="submit-film-title">🎬 Vous voulez ajouter votre film sur notre site ?</h3>
       <p>Pas de souci, c’est super simple ! 🚀</p>
@@ -573,7 +626,7 @@
 <!-- Infos Popup -->
 <div id="infos" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="infos-title">
   <div class="fiche-content">
-    <a href="javascript:history.back()" class="button close-btn top-right-close" aria-label="Fermer">❌ Fermer</a>
+    <a href="javascript:history.back()" class="button close-btn top-right-close" aria-label="Fermer">⛌ Fermer</a>
     <div class="fiche-right" style="padding-left:0;">
       <h3 id="infos-title">ℹ️ Infos</h3>
       <p>Clipsou Streaming depuis 2019</p>
@@ -586,7 +639,7 @@
 <!-- YouTube Channels Popup -->
 <div id="youtube" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="youtube-title">
   <div class="fiche-content">
-    <a href="javascript:history.back()" class="button close-btn top-right-close" aria-label="Fermer">❌ Fermer</a>
+    <a href="javascript:history.back()" class="button close-btn top-right-close" aria-label="Fermer">⛌ Fermer</a>
     <div class="fiche-right" style="padding-left:0;">
       <h3 id="youtube-title">Chaînes YouTube</h3>
       <ul style="list-style:none; padding:0; margin: 0 0 22px 0; display:flex; flex-direction:column; gap:22px;">
@@ -612,7 +665,7 @@
   </div>
   </div>
 
-<script src="index.js?v=20250912-2" defer></script>
+<script src="index.js?v=20250916-1" defer></script>
 <script>
   // Normalize homepage URL to root (remove /index.html) without reload
   // Skip in local dev (file:// or localhost) to keep index.html accessible
