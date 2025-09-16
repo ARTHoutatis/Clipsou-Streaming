@@ -975,10 +975,13 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Merge from shared JSON (visible to all). If it fails, fallback to localStorage only on this device.
     let sharedLoaded = false;
     try {
-      const res = await fetch('data/approved.json?v=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' });
-      if (res && res.ok) {
-        const approved = await res.json();
-        if (Array.isArray(approved)) {
+      let isFile = false;
+      try { isFile = (location && location.protocol === 'file:'); } catch {}
+      if (!isFile) {
+        const res = await fetch('data/approved.json?v=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' });
+        if (res && res.ok) {
+          const approved = await res.json();
+          if (Array.isArray(approved)) {
           approved.forEach(c => {
             if (!c || !c.id || !c.title) return;
             const type = c.type || 'film';
@@ -990,6 +993,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || 'apercu.webp', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '', studioBadge: c.studioBadge || '' });
           });
           sharedLoaded = true;
+          }
         }
       }
     } catch {}

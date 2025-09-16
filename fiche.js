@@ -62,6 +62,13 @@ const EPISODES_ID_DB = {
 let __INDEX_HTML_CACHE = null;
 async function fetchIndexHtmlCached() {
   if (__INDEX_HTML_CACHE && typeof __INDEX_HTML_CACHE === 'string') return __INDEX_HTML_CACHE;
+  // When running locally via file://, fetching index.html will CORS-fail. Skip and return empty.
+  try {
+    if (location && location.protocol === 'file:') {
+      __INDEX_HTML_CACHE = '';
+      return __INDEX_HTML_CACHE;
+    }
+  } catch {}
   const res = await fetch('index.html', { credentials: 'same-origin', cache: 'no-store' });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   const html = await res.text();
@@ -346,26 +353,30 @@ async function buildItemsFromIndex() {
       items.push({ id, title, image, genres, rating, type, description, watchUrl });
     });
 
-    // Merge items from shared approved.json (visible to all)
+    // Merge items from shared approved.json (visible to all). Skip in file:// to avoid CORS noise.
     try {
-      const res = await fetch('data/approved.json', { credentials: 'same-origin', cache: 'no-store' });
-      if (res && res.ok) {
-        const approved = await res.json();
-        if (Array.isArray(approved)) {
-          approved.forEach(c => {
-            if (!c || !c.id || !c.title) return;
-            const type = c.type || 'film';
-            const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-            const genres = Array.isArray(c.genres)
-              ? c.genres.map(g => String(g || '').trim()).filter(Boolean)
-              : [];
-            const image = c.landscapeImage || c.image || c.portraitImage || '';
-            const description = c.description || '';
-            const watchUrl = c.watchUrl || '';
-            const actors = Array.isArray(c.actors) ? c.actors.filter(a=>a && a.name) : [];
-            const studioBadge = c.studioBadge || '';
-            items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '', studioBadge });
-          });
+      let isFile = false;
+      try { isFile = (location && location.protocol === 'file:'); } catch {}
+      if (!isFile) {
+        const res = await fetch('data/approved.json', { credentials: 'same-origin', cache: 'no-store' });
+        if (res && res.ok) {
+          const approved = await res.json();
+          if (Array.isArray(approved)) {
+            approved.forEach(c => {
+              if (!c || !c.id || !c.title) return;
+              const type = c.type || 'film';
+              const rating = (typeof c.rating === 'number') ? c.rating : undefined;
+              const genres = Array.isArray(c.genres)
+                ? c.genres.map(g => String(g || '').trim()).filter(Boolean)
+                : [];
+              const image = c.landscapeImage || c.image || c.portraitImage || '';
+              const description = c.description || '';
+              const watchUrl = c.watchUrl || '';
+              const actors = Array.isArray(c.actors) ? c.actors.filter(a=>a && a.name) : [];
+              const studioBadge = c.studioBadge || '';
+              items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '', studioBadge });
+            });
+          }
         }
       }
     } catch {}
@@ -1281,50 +1292,84 @@ const container = document.getElementById('fiche-container');
       function askResume(seconds){
         return new Promise((resolve)=>{
           try {
+            let done = false;
+            const finish = (val)=>{
+              if (done) return; done = true;
+              try { overlay.classList.remove('open'); } catch {}
+              try { setTimeout(()=>{ try { overlay.remove(); } catch {} }, 0); } catch {}
+              resolve(val);
+            };
+            // Always rebuild the dialog so we get fresh handlers and avoid any stale state
             let overlay = document.querySelector('.resume-dialog-overlay');
-            if (!overlay) {
-              overlay = document.createElement('div');
-              overlay.className = 'resume-dialog-overlay';
-              const box = document.createElement('div'); box.className = 'resume-dialog-box';
-              const h = document.createElement('h4'); h.textContent = 'Reprendre la lecture ?';
-              const p = document.createElement('p'); p.className = 'resume-dialog-text';
-              const actions = document.createElement('div'); actions.className = 'resume-dialog-actions';
-              const noBtn = document.createElement('button'); noBtn.type = 'button'; noBtn.className = 'button secondary'; noBtn.textContent = 'Non, depuis le début';
-              const yesBtn = document.createElement('button'); yesBtn.type = 'button'; yesBtn.className = 'button'; yesBtn.textContent = 'Oui, reprendre';
-              actions.appendChild(noBtn); actions.appendChild(yesBtn);
-              box.appendChild(h); box.appendChild(p); box.appendChild(actions);
-              overlay.appendChild(box); document.body.appendChild(overlay);
-              // Idempotent handlers that always use the CURRENT resolver stored on the overlay
-              function resolveAndClose(val){
-                try { overlay.classList.remove('open'); } catch {}
-                const r = overlay.__resolver;
-                overlay.__resolver = null;
-                if (typeof r === 'function') r(val);
-              }
-              // Click outside: close without starting playback (cancel)
-              overlay.addEventListener('click', (e)=>{ if (e.target === overlay) { resolveAndClose(null); } });
-              // Escape key also cancels
-              overlay.addEventListener('keydown', (e)=>{ try { if (e.key === 'Escape') { resolveAndClose(null); } } catch {} });
-              // Explicit choices
-              noBtn.addEventListener('click', ()=>{ resolveAndClose(false); });
-              yesBtn.addEventListener('click', ()=>{ resolveAndClose(true); });
-            }
+            if (overlay && overlay.parentNode) { try { overlay.parentNode.removeChild(overlay); } catch {} }
+            overlay = document.createElement('div');
+            overlay.className = 'resume-dialog-overlay';
+            // Safety: make sure resume overlay is always above everything and clickable
+            try {
+              overlay.style.position = 'fixed';
+              overlay.style.inset = '0';
+              overlay.style.width = '100%';
+              overlay.style.height = '100%';
+              overlay.style.display = 'flex';
+              overlay.style.alignItems = 'center';
+              overlay.style.justifyContent = 'center';
+              overlay.style.background = 'rgba(0,0,0,0.6)';
+              overlay.style.zIndex = '13000';
+              overlay.style.pointerEvents = 'auto';
+            } catch {}
+            const box = document.createElement('div'); box.className = 'resume-dialog-box';
+            try {
+              box.style.background = '#0b1117';
+              box.style.borderRadius = '10px';
+              box.style.padding = '16px';
+              box.style.maxWidth = '90%';
+              box.style.width = '420px';
+              box.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
+              box.style.color = 'white';
+            } catch {}
+            const h = document.createElement('h4'); h.textContent = 'Reprendre la lecture ?';
+            const p = document.createElement('p'); p.className = 'resume-dialog-text';
+            const actions = document.createElement('div'); actions.className = 'resume-dialog-actions';
+            const noBtn = document.createElement('button'); noBtn.type = 'button'; noBtn.className = 'button secondary'; noBtn.textContent = 'Non, depuis le début'; noBtn.setAttribute('autofocus','');
+            const yesBtn = document.createElement('button'); yesBtn.type = 'button'; yesBtn.className = 'button'; yesBtn.textContent = 'Oui, reprendre';
+            try {
+              [noBtn, yesBtn].forEach(b=>{ b.style.pointerEvents='auto'; b.tabIndex = 0; b.setAttribute('aria-pressed','false'); });
+              actions.style.display = 'flex'; actions.style.gap = '10px'; actions.style.marginTop = '10px';
+            } catch {}
+            actions.appendChild(noBtn); actions.appendChild(yesBtn);
+            box.appendChild(h); box.appendChild(p); box.appendChild(actions);
+            overlay.appendChild(box); document.body.appendChild(overlay);
+            // Block clicks from bubbling to any global handlers
+            [noBtn, yesBtn, box].forEach(el => {
+              try {
+                el.addEventListener('click', (ev)=>{ ev.stopPropagation(); }, { capture: true });
+              } catch {}
+            });
+            // Click outside: close without starting playback (cancel)
+            overlay.addEventListener('click', (e)=>{ if (e.target === overlay) { try { e.stopPropagation(); e.stopImmediatePropagation(); } catch {} finish(null); } }, { capture: true });
+            // Escape key also cancels
+            overlay.addEventListener('keydown', (e)=>{ try { if (e.key === 'Escape') { finish(null); } } catch {} });
+            // Explicit choices
+            const bind = (el, val)=>{
+              const handler = (e)=>{ try { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); } catch {} finish(val); };
+              el.addEventListener('click', handler, { passive: false, capture: true });
+              try { el.addEventListener('touchend', handler, { passive: false }); } catch {}
+              try { el.addEventListener('pointerup', handler, { passive: false }); } catch {}
+              // Keyboard support
+              try {
+                el.addEventListener('keydown', (e)=>{ if (e.key === 'Enter' || e.key === ' ') { handler(e); } });
+              } catch {}
+            };
+            bind(noBtn, false);
+            bind(yesBtn, true);
+
             const total = Math.max(0, Math.floor(seconds||0));
             const m = Math.floor(total / 60);
             const s = String(total % 60).padStart(2, '0');
-            const text = overlay.querySelector('.resume-dialog-text');
-            if (text) text.textContent = `Voulez-vous reprendre à ${m}:${s} ?`;
-            // Store current resolver and ensure buttons point to it
-            try { overlay.__resolver = resolve; } catch {}
-            // Also rebind per-call onclicks on existing overlay buttons, to be extra-safe if previous code attached closures
-            try {
-              const noBtn2 = overlay.querySelector('.resume-dialog-actions .button.secondary');
-              const yesBtn2 = overlay.querySelector('.resume-dialog-actions .button:not(.secondary)');
-              if (noBtn2) noBtn2.onclick = function(){ try { overlay.classList.remove('open'); } catch {} const r = overlay.__resolver; overlay.__resolver = null; if (typeof r === 'function') r(false); };
-              if (yesBtn2) yesBtn2.onclick = function(){ try { overlay.classList.remove('open'); } catch {} const r = overlay.__resolver; overlay.__resolver = null; if (typeof r === 'function') r(true); };
-            } catch {}
+            p.textContent = `Voulez-vous reprendre à ${m}:${s} ?`;
             overlay.classList.add('open');
             try { overlay.setAttribute('tabindex','-1'); overlay.focus(); } catch {}
+            try { noBtn.focus(); } catch {}
           } catch { resolve(false); }
         });
       }
@@ -1747,7 +1792,8 @@ const container = document.getElementById('fiche-container');
             // Include episode key using the TARGET href (the episode being launched)
             let vid3 = '';
             try {
-              const m3 = href.match(/[?&]v=([\w-]{6,})/i) || href.match(/embed\/([\w-]{6,})/i);
+              // Support full YouTube URL patterns: watch?v=, embed/, and youtu.be/
+              const m3 = href.match(/[?&]v=([\w-]{6,})/i) || href.match(/embed\/([\w-]{6,})/i) || href.match(/youtu\.be\/([\w-]{6,})/i);
               if (m3) vid3 = m3[1];
             } catch {}
             const keyId3 = ficheId + (vid3 ? ('::' + vid3) : '');

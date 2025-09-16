@@ -18,6 +18,13 @@ const LOCAL_FALLBACK_DB = [
 // Construit dynamiquement la base à partir de index.html (cartes + popups)
 async function buildDatabaseFromIndex() {
     try {
+        // In local file:// mode, skip network fetches that will CORS-fail and use fallback
+        try {
+            if (location && location.protocol === 'file:') {
+                moviesDatabase = LOCAL_FALLBACK_DB;
+                return;
+            }
+        } catch {}
         const res = await fetch('index.html', { credentials: 'same-origin', cache: 'no-store' });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const html = await res.text();
@@ -46,21 +53,25 @@ async function buildDatabaseFromIndex() {
             items.push({ id, title, type, rating, genres, image });
         });
 
-        // Merge approved items from shared JSON (visible par tous)
+        // Merge approved items from shared JSON (visible par tous), but skip in file://
         try {
-            const res = await fetch('data/approved.json', { credentials: 'same-origin', cache: 'no-store' });
-            if (res && res.ok) {
-                const approved = await res.json();
-                if (Array.isArray(approved)) {
-                    approved.forEach(c => {
-                        if (!c || !c.id || !c.title) return;
-                        const type = c.type || 'film';
-                        const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-                        const genres = Array.isArray(c.genres) ? c.genres.filter(Boolean) : [];
-                        const image = c.portraitImage || c.image || c.landscapeImage || '';
-                        const studioBadge = c.studioBadge || '';
-                        items.push({ id: c.id, title: c.title, type, rating, genres, image, studioBadge });
-                    });
+            let isFile = false;
+            try { isFile = (location && location.protocol === 'file:'); } catch {}
+            if (!isFile) {
+                const res = await fetch('data/approved.json', { credentials: 'same-origin', cache: 'no-store' });
+                if (res && res.ok) {
+                    const approved = await res.json();
+                    if (Array.isArray(approved)) {
+                        approved.forEach(c => {
+                            if (!c || !c.id || !c.title) return;
+                            const type = c.type || 'film';
+                            const rating = (typeof c.rating === 'number') ? c.rating : undefined;
+                            const genres = Array.isArray(c.genres) ? c.genres.filter(Boolean) : [];
+                            const image = c.portraitImage || c.image || c.landscapeImage || '';
+                            const studioBadge = c.studioBadge || '';
+                            items.push({ id: c.id, title: c.title, type, rating, genres, image, studioBadge });
+                        });
+                    }
                 }
             }
         } catch {}
