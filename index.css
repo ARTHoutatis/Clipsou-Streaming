@@ -405,11 +405,12 @@ body.popup-open nav[aria-label="Navigation principale"] {
     content: '';
     position: absolute;
     inset: 0;
+    /* Dégradé vertical (bas -> haut) basé sur la couleur d'arrière-plan pour un fondu harmonieux */
     background: linear-gradient(
-        90deg,
-        rgba(0, 0, 0, 0.80) 0%,
-        rgba(0, 0, 0, 0.60) 40%,
-        rgba(0, 0, 0, 0.20) 100%
+        to top,
+        rgba(11, 17, 23, 0.92) 0%,
+        rgba(11, 17, 23, 0.78) 40%,
+        rgba(11, 17, 23, 0.28) 100%
     );
     z-index: 1;
 }
@@ -421,11 +422,12 @@ body.popup-open nav[aria-label="Navigation principale"] {
     right: 0;
     padding: 40px;
     z-index: 2;
+    /* Dégradé vertical (bas -> haut) à base de la couleur du fond */
     background: linear-gradient(
-        180deg,
-        transparent 0%,
-        rgba(0, 0, 0, 0.15) 30%,
-        rgba(0, 0, 0, 0.35) 100%
+        to top,
+        rgba(11, 17, 23, 0.45) 0%,
+        rgba(11, 17, 23, 0.20) 30%,
+        transparent 100%
     );
 }
 
