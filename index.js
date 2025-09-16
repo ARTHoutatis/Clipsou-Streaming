@@ -314,8 +314,9 @@ document.addEventListener('DOMContentLoaded', async function () {
           addLandscapeVariant(it.image);
           addDerived(it.image);
         }
-        if (it.landscapeImage && /\.webp$/i.test(it.landscapeImage)) candidates.push(it.landscapeImage);
-        if (it.image && /\.webp$/i.test(it.image)) candidates.push(it.image);
+        // Always include original URLs as fallbacks (even if not .webp), so Cloudinary PNG/JPG still work
+        if (it.landscapeImage) candidates.push(it.landscapeImage);
+        if (it.image) candidates.push(it.image);
         // Force try '<base>1.webp' exactly first (e.g., 'Dé.webp' -> 'Dé1.webp').
         // Avoid doubling the '1' if the filename already ends with '1.webp'.
         let preferred = null;
@@ -329,7 +330,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         } catch {}
         if (preferred && !candidates.includes(preferred)) candidates.unshift(preferred);
         let cIdx = 0;
-        img.src = applySrc(candidates[cIdx]) || applySrc(it.image) || 'apercu.webp';
+        img.src = applySrc(candidates[cIdx]) || applySrc(it.landscapeImage || it.image) || 'apercu.webp';
         img.onerror = function(){ cIdx++; if (cIdx < candidates.length) this.src = applySrc(candidates[cIdx]); else { this.onerror=null; this.src='apercu.webp'; } };
         img.alt = 'Affiche de ' + (it.title || 'contenu');
         img.loading = 'lazy'; img.decoding = 'async';
