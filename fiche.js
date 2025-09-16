@@ -1797,7 +1797,7 @@ const container = document.getElementById('fiche-container');
                     const pid = iframe.id; if (!pid || !(window.YT && window.YT.Player)) return;
                     setTimeout(()=>{
                       try {
-                        const player = new window.YT.Player(pid, { events: { onReady: function(){ try { const d = player.getDuration?player.getDuration():0; const c = player.getCurrentTime?player.getCurrentTime():0; upsertProgress(c,d); const resumeAt = Math.max(0, Math.min((window.__resumeSeconds||0), (player.getDuration?player.getDuration():d) - 1)); if (resumeAt > 0 && player.seekTo) player.seekTo(resumeAt, true); } catch {} }, onStateChange: function(){} } });
+                        const player = new window.YT.Player(pid, { events: { onReady: function(){ try { const d = player.getDuration?player.getDuration():0; const c = player.getCurrentTime?player.getCurrentTime():0; upsertProgress(c,d); const resumeAt = Math.max(0, Math.min((window.__resumeSeconds||0), (player.getDuration?player.getDuration():d) - 1)); if (resumeAt > 0 && player.seekTo) player.seekTo(resumeAt, true); } catch {} }, onStateChange: function(e){ try { if (e && typeof e.data === 'number' && window.YT && e.data === window.YT.PlayerState.ENDED) { if (overlay && overlay.__close) overlay.__close(); } } catch {} } } });
                         // Expose player to overlay for final flush
                         try { overlay.__playerRef = player; } catch {}
                         let stopped = false; overlay.__activeCleanup = (function(prev){ return function(){
@@ -1979,7 +1979,7 @@ const container = document.getElementById('fiche-container');
                               } catch {}
                             } catch {}
                           },
-                          onStateChange: function(){ /* no-op */ }
+                          onStateChange: function(e){ try { if (e && typeof e.data === 'number' && window.YT && e.data === window.YT.PlayerState.ENDED) { if (overlay && overlay.__close) overlay.__close(); } } catch {} }
                         }
                       });
                       // Expose player to overlay for final flush
