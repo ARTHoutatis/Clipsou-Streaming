@@ -373,3 +373,33 @@ document.addEventListener('DOMContentLoaded', async function() {
         displayResults(searchMovies('', filters.getSelected()));
     }
 });
+
+// External link confirmation (Trustpilot, Discord, Tipeee)
+(function installExternalLinkGuard(){
+  try {
+    const shouldConfirm = (urlStr)=>{
+      try {
+        const u = new URL(urlStr, window.location.href);
+        const h = u.hostname.toLowerCase();
+        return (
+          h.endsWith('trustpilot.com') ||
+          h === 'discord.gg' || h.endsWith('.discord.gg') || h.endsWith('discord.com') ||
+          h.endsWith('tipeee.com') || h.endsWith('fr.tipeee.com') ||
+          h.endsWith('nova-stream.live')
+        );
+      } catch { return false; }
+    };
+    document.addEventListener('click', function(e){
+      try {
+        const a = e.target && (e.target.closest ? e.target.closest('a[href]') : null);
+        if (!a) return;
+        const href = a.getAttribute('href') || '';
+        if (!/^https?:/i.test(href)) return; // only external http(s)
+        if (!shouldConfirm(href)) return;
+        const dest = (function(){ try { const u=new URL(href, location.href); return u.hostname.replace(/^www\./,'') + u.pathname; } catch { return href; } })();
+        const ok = window.confirm('Vous allez ouvrir un lien externe:\n' + dest + '\n\nÊtes-vous sûr de vouloir continuer ?');
+        if (!ok) { e.preventDefault(); e.stopPropagation(); }
+      } catch {}
+    }, true);
+  } catch {}
+})();

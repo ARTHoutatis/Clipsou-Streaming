@@ -195,6 +195,50 @@ body.drawer-open nav[aria-label="Navigation principale"] {
 }
 .drawer nav .cta-row a.button[href="#partenariats"]:hover { background: #15803d !important; }
 
+/* Trustpilot: big gold gradient CTA, white text */
+.drawer nav .cta-row a.button[href*="trustpilot.com" i] {
+  flex: 1 1 220px;
+  font-weight: 700;
+  letter-spacing: .2px;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #FFE082, #FFC107, #FFB300) !important; /* soft gold -> amber */
+  border: 1px solid rgba(255,255,255,0.22) !important;
+  text-shadow: none !important;
+}
+.drawer nav .cta-row a.button[href*="trustpilot.com" i]:hover {
+  background: linear-gradient(135deg, #FFD54F, #FFB300, #FFA000) !important;
+  color: #ffffff !important;
+}
+@media (max-width: 768px) {
+  .drawer nav .cta-row a.button[href*="trustpilot.com" i] {
+    flex: 1 1 48%;
+  }
+}
+
+/* Clipsou Shop: light blue CTA */
+.drawer nav .cta-row a.button[href*="creator-spring.com" i],
+.drawer nav .cta-row a.button[href*="my-store-106e6ad" i] {
+  flex: 1 1 220px;
+  font-weight: 700;
+  letter-spacing: .2px;
+  background: linear-gradient(90deg, #0369A1 0%, #7DD3FC 100%) !important; /* much darker left -> much lighter right */
+  border-color: rgba(56,189,248,0.45) !important;
+  color: #ffffff !important; /* white text as requested */
+  text-shadow: none !important;
+}
+.drawer nav .cta-row a.button[href*="creator-spring.com" i]:hover,
+.drawer nav .cta-row a.button[href*="my-store-106e6ad" i]:hover {
+  background: linear-gradient(90deg, #075985 0%, #38BDF8 100%) !important; /* stronger darker gradient on hover */
+  border-color: rgba(14,165,233,0.55) !important;
+  color: #ffffff !important;
+}
+@media (max-width: 768px) {
+  .drawer nav .cta-row a.button[href*="creator-spring.com" i],
+  .drawer nav .cta-row a.button[href*="my-store-106e6ad" i] {
+    flex: 1 1 48%;
+  }
+}
+
 /* Submit Film: emphasized wide blue button */
 .drawer nav .cta-row a.button[href="#submit-film"] {
   flex: 1 1 220px;

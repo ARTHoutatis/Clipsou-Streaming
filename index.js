@@ -148,6 +148,46 @@ document.addEventListener('DOMContentLoaded', async function () {
     try { window.addEventListener('scroll', function(){ try { if (!isPopupTargeted()) return; } catch {}; saveGenericY(); }, { passive: true }); } catch {}
     try { setInterval(saveGenericY, 1500); } catch {}
   })();
+
+  // ===== External link confirmation (Trustpilot, Discord, Tipeee) =====
+  (function installExternalLinkGuard(){
+    try {
+      const shouldConfirm = (urlStr)=>{
+        try {
+          const u = new URL(urlStr, window.location.href);
+          const h = u.hostname.toLowerCase();
+          return (
+            h.endsWith('trustpilot.com') ||
+            h === 'discord.gg' || h.endsWith('.discord.gg') || h.endsWith('discord.com') ||
+            h.endsWith('tipeee.com') || h.endsWith('fr.tipeee.com') ||
+            h.endsWith('nova-stream.live') ||
+            h.endsWith('creator-spring.com')
+          );
+        } catch { return false; }
+      };
+      document.addEventListener('click', function(e){
+        try {
+          const a = e.target && (e.target.closest ? e.target.closest('a[href]') : null);
+          if (!a) return;
+          const href = a.getAttribute('href') || '';
+          if (!/^https?:/i.test(href)) return; // only external http(s)
+          if (!shouldConfirm(href)) return;
+          const dest = (function(){
+            try {
+              const u = new URL(href, location.href);
+              const host = (u.hostname || '').replace(/^www\./,'');
+              let path = u.pathname || '';
+              // Remove trailing slash if path is root
+              if (path === '/') path = '';
+              return host + path;
+            } catch { return href; }
+          })();
+          const ok = window.confirm('Vous allez ouvrir un lien externe :\n' + dest + '\n\nÊtes-vous sûr de vouloir continuer ?');
+          if (!ok) { e.preventDefault(); e.stopPropagation(); }
+        } catch {}
+      }, true);
+    } catch {}
+  })();
   // ===== Preserve scroll position when opening/closing popups =====
   // ===== Preserve scroll position when opening/closing popups =====
   (function setupPopupScrollKeeper(){
@@ -1959,6 +1999,10 @@ document.addEventListener('DOMContentLoaded', async function () {
           if (!a) return;
           const href = a.getAttribute('href') || '';
           if (!isYouTubeUrl(href)) return;
+          // Allow normal behavior for links meant to open in a new tab
+          if ((a.getAttribute('target')||'').toLowerCase() === '_blank') return;
+          // Do not intercept channel links in the YouTube popup (#youtube)
+          try { if (a.closest('#youtube')) return; } catch {}
           // Allow modifier clicks (open in new tab via Ctrl/Cmd, middle click)
           if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || (e.button && e.button !== 0)) return;
           e.preventDefault();
