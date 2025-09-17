@@ -410,24 +410,97 @@
     try { return url.replace('/upload/', '/upload/f_auto,q_auto/'); } catch { return url; }
   }
 
-  async function uploadImageToCloudinary(file){
-    if (!cloudinaryConfigured()) {
-      alert('Cloudinary n\'est pas configuré. Merci de renseigner « Cloud name » et « Upload preset » dans la section Stockage images (en haut de l\'admin).');
-      throw new Error('Cloudinary not configured');
-    }
-    const cfg = getCldConfig();
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('upload_preset', cfg.uploadPreset);
-    if (cfg.folder) fd.append('folder', cfg.folder);
-    const res = await fetch(cloudinaryUploadUrl(), { method: 'POST', body: fd });
-    if (!res.ok) {
-      const txt = await res.text().catch(()=>String(res.status));
-      throw new Error('Upload failed: '+txt);
-    }
-    const json = await res.json();
-    if (!json || !json.secure_url) throw new Error('Réponse upload invalide');
-    return transformDeliveryUrl(json.secure_url);
+  // Lightweight progress HUD
+  function createProgressHud(label){
+    try {
+      let hud = document.getElementById('upload-progress-hud');
+      if (!hud) {
+        hud = document.createElement('div');
+        hud.id = 'upload-progress-hud';
+        hud.style.position = 'fixed';
+        hud.style.right = '16px';
+        hud.style.bottom = '16px';
+        hud.style.zIndex = '99999';
+        hud.style.background = 'rgba(0,0,0,0.8)';
+        hud.style.border = '1px solid rgba(255,255,255,0.18)';
+        hud.style.borderRadius = '8px';
+        hud.style.padding = '10px 12px';
+        hud.style.color = '#fff';
+        hud.style.fontSize = '13px';
+        hud.style.minWidth = '220px';
+        const title = document.createElement('div'); title.className = 't'; title.textContent = label||'Upload...';
+        const barWrap = document.createElement('div'); barWrap.style.marginTop = '8px'; barWrap.style.width = '100%'; barWrap.style.height = '6px'; barWrap.style.background = 'rgba(255,255,255,0.12)'; barWrap.style.borderRadius='999px';
+        const bar = document.createElement('div'); bar.className = 'b'; bar.style.height='100%'; bar.style.width='0%'; bar.style.background='#2B22EE'; bar.style.borderRadius='999px'; bar.style.transition='width .15s ease';
+        barWrap.appendChild(bar);
+        hud.appendChild(title); hud.appendChild(barWrap);
+        document.body.appendChild(hud);
+      } else {
+        const t = hud.querySelector('.t'); if (t) t.textContent = label || t.textContent;
+      }
+      return hud;
+    } catch { return null; }
+  }
+  function updateProgressHud(hud, pct){ try { const b = hud && hud.querySelector('.b'); if (b) b.style.width = Math.max(0, Math.min(100, pct)) + '%'; } catch {} }
+  function removeProgressHud(hud){ try { if (hud && hud.parentNode) hud.parentNode.removeChild(hud); } catch {} }
+
+  // Client-side downscale to speed up uploads and reduce bandwidth
+  async function downscaleImage(file, opts){
+    try {
+      const { maxW=1024, maxH=1024, quality=0.85, mime='image/webp' } = opts||{};
+      const bitmap = await createImageBitmap(file).catch(async()=>{
+        return new Promise((res, rej)=>{ const img=new Image(); img.onload=()=>res(img); img.onerror=rej; img.src=URL.createObjectURL(file); });
+      });
+      const iw = bitmap.width||bitmap.naturalWidth; const ih = bitmap.height||bitmap.naturalHeight;
+      if (!iw || !ih) return file;
+      let tw = iw, th = ih;
+      const wr = maxW / iw; const hr = maxH / ih; const r = Math.min(1, wr, hr);
+      tw = Math.round(iw * r); th = Math.round(ih * r);
+      if (r === 1) return file; // no need to downscale
+      const canvas = document.createElement('canvas'); canvas.width = tw; canvas.height = th;
+      const ctx = canvas.getContext('2d');
+      // Better scaling
+      try { ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; } catch {}
+      ctx.drawImage(bitmap, 0, 0, tw, th);
+      const blob = await new Promise((resolve)=>{ canvas.toBlob(b=>resolve(b||file), mime, quality); });
+      return blob || file;
+    } catch { return file; }
+  }
+
+  // Upload with XHR to provide progress events
+  function uploadImageToCloudinary(file, onProgress){
+    return new Promise((resolve, reject)=>{
+      if (!cloudinaryConfigured()) {
+        alert('Cloudinary n\'est pas configuré. Merci de renseigner « Cloud name » et « Upload preset » dans la section Stockage images (en haut de l\'admin).');
+        reject(new Error('Cloudinary not configured')); return;
+      }
+      const cfg = getCldConfig();
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('upload_preset', cfg.uploadPreset);
+      if (cfg.folder) fd.append('folder', cfg.folder);
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', cloudinaryUploadUrl(), true);
+      xhr.upload.onprogress = (e)=>{
+        if (e && e.lengthComputable && typeof onProgress === 'function') {
+          onProgress(Math.round((e.loaded / e.total) * 100));
+        }
+      };
+      xhr.onreadystatechange = function(){
+        if (xhr.readyState === 4) {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const json = JSON.parse(xhr.responseText||'{}');
+              if (json && json.secure_url) { resolve(transformDeliveryUrl(json.secure_url)); return; }
+            } catch {}
+            reject(new Error('Réponse upload invalide'));
+          } else {
+            reject(new Error('Upload failed: '+xhr.status));
+          }
+        }
+      };
+      xhr.onerror = ()=>reject(new Error('Upload network error'));
+      xhr.send(fd);
+    });
   }
 
   function setPreview(imgEl, value){
@@ -1090,12 +1163,16 @@
         fileInput.addEventListener('change', async () => {
           const f = fileInput.files && fileInput.files[0];
           if (!f) return;
+          // Instant local preview
+          try { if (preview) { preview.hidden = false; preview.src = URL.createObjectURL(f); } } catch {}
+          // Downscale avatar to a reasonable size before upload
+          const small = await downscaleImage(f, { maxW: 600, maxH: 600, quality: 0.85, mime: 'image/webp' });
+          const hud = createProgressHud('Envoi de la photo acteur...');
           try {
-            const url = await uploadImageToCloudinary(f);
-            // Stash temporarily on the form element
+            const url = await uploadImageToCloudinary(small, (p)=>updateProgressHud(hud, p));
             $('#contentForm').dataset.actorPhotoTemp = url;
             if (preview) { preview.hidden = false; preview.src = url.startsWith('http')? url : ('../'+url); }
-            // If a name is already filled, persist association name->photo
+            // Persist name->photo association if name already provided
             try {
               const nm = (nameInput && nameInput.value || '').trim();
               if (nm) {
@@ -1110,6 +1187,8 @@
             } catch {}
           } catch (e) {
             alert('Upload photo acteur échoué');
+          } finally {
+            removeProgressHud(hud);
           }
         });
       }
@@ -1275,8 +1354,21 @@
     async function handleUpload(kind, file){
       const btns = $$('.btn');
       btns.forEach(b=>b.disabled=true);
+      // Show instant local preview
       try {
-        const url = await uploadImageToCloudinary(file);
+        const localUrl = URL.createObjectURL(file);
+        if (kind==='portrait') setPreview(portraitPreview, localUrl);
+        else if (kind==='landscape') setPreview(landscapePreview, localUrl);
+        else if (kind==='studio') setPreview(studioPreview, localUrl);
+      } catch {}
+      // Downscale according to target usage to reduce upload time
+      let maxW = 1920, maxH = 1080; // default landscape
+      if (kind==='portrait') { maxW = 900; maxH = 1200; }
+      if (kind==='studio') { maxW = 512; maxH = 512; }
+      const optimized = await downscaleImage(file, { maxW, maxH, quality: 0.85, mime: 'image/webp' });
+      const hud = createProgressHud('Envoi de l\'image...');
+      try {
+        const url = await uploadImageToCloudinary(optimized, (p)=>updateProgressHud(hud, p));
         if (kind==='portrait') {
           portraitText.value = url;
           setPreview(portraitPreview, url);
@@ -1293,6 +1385,7 @@
         alert('Échec de l\'upload: '+ (err && err.message ? err.message : 'inconnu'));
       } finally {
         btns.forEach(b=>b.disabled=false);
+        removeProgressHud(hud);
       }
     }
 
