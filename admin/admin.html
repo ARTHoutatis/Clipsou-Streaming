@@ -160,10 +160,12 @@
 
     <section class="requests">
       <h2>Requêtes d'ajout</h2>
-      <div class="search-row" style="display:flex;gap:10px;align-items:center;margin:8px 0 12px 0;flex-wrap:wrap">
+      <form class="search-row" autocomplete="off" onsubmit="return false" role="search" style="display:flex;gap:10px;align-items:center;margin:8px 0 12px 0;flex-wrap:wrap">
         <label for="requestsSearch" class="muted" style="min-width:120px">Recherche</label>
         <input id="requestsSearch" name="admin_requests_search" type="search" placeholder="Rechercher par titre, type, genre, id, acteur…" style="flex:1;min-width:240px;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:#0f1720;color:#fff;outline:none" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="search" inputmode="search" data-1p-ignore="true" data-lpignore="true" data-bwignore="true">
-      </div>
+        <!-- decoy password field to attract Chrome/PM autofill away from the search input -->
+        <input type="password" name="password" autocomplete="new-password" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none">
+      </form>
       <table class="table" id="requestsTable" aria-describedby="requestsHelp">
         <thead>
           <tr>
@@ -183,6 +185,10 @@
   <div id="login" class="login">
     <h1>Admin – Connexion</h1>
     <p class="muted">Entrez le mot de passe admin pour accéder à l’interface.</p>
+    <!-- Provide a dedicated username field so Chrome pairs credentials here instead of targeting unrelated inputs -->
+    <input id="usernameInput" name="username" type="text" autocomplete="username" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none" tabindex="-1" aria-hidden="true">
+    <!-- Hidden current-password decoy to further attract autofill away from the search field -->
+    <input type="password" name="password" autocomplete="current-password" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none" tabindex="-1" aria-hidden="true">
     <input id="passwordInput" name="admin_password" type="password" placeholder="Mot de passe" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false">
     <div style="display:flex; gap:12px; justify-content:center; align-items:center; margin:8px 0;">
       <label style="display:flex; gap:6px; align-items:center;">
@@ -206,6 +212,13 @@
         el.addEventListener('pointerdown', enable, { once: true });
         el.addEventListener('focus', enable, { once: true });
         el.addEventListener('keydown', enable, { once: true });
+        // Randomize name and force autocomplete to new-password to avoid PM heuristics
+        try { el.setAttribute('name', 'admin_requests_search_' + Date.now()); } catch{}
+        try { el.setAttribute('autocomplete', 'new-password'); } catch{}
+        // Also re-randomize name on focus and on user typing, to defeat persistent mappings
+        var rerand = function(){ try { el.setAttribute('name', 'admin_requests_search_' + Date.now() + '_' + Math.floor(Math.random()*1e6)); } catch{} };
+        el.addEventListener('focus', rerand);
+        el.addEventListener('input', rerand);
       } catch {}
     })();
   </script>
