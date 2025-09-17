@@ -13,8 +13,19 @@
 <!-- Preconnects for faster Google Fonts (shared families) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- DNS prefetch for external domains used by links/embeds -->
+<link rel="dns-prefetch" href="//www.youtube.com">
+<link rel="dns-prefetch" href="//youtu.be">
+<link rel="dns-prefetch" href="//discord.gg">
+<link rel="dns-prefetch" href="//fr.tipeee.com">
+<!-- Optional preconnects (keep light; no CORS if not embedding immediately) -->
+<link rel="preconnect" href="https://www.youtube.com">
+<link rel="preconnect" href="https://youtu.be">
 <!-- Preload the UI icon used above the fold -->
 <link rel="preload" as="image" href="loupe.webp">
+<!-- Preload critical CSS to speed up first paint (keep stylesheets below) -->
+<link rel="preload" as="style" href="common.css?v=20250912-2">
+<link rel="preload" as="style" href="search.css?v=20250912-2">
 <!-- Open Graph -->
 <meta property="og:locale" content="fr_FR">
 <meta property="og:type" content="website">
@@ -32,13 +43,16 @@
 <meta name="twitter:image" content="https://clipsoustreaming.com/apercu.webp">
 <link rel="stylesheet" href="common.css?v=20250912-2">
 <link rel="stylesheet" href="search.css?v=20250912-2">
+<!-- Prefetch fiche page and script as likely next navigation -->
+<link rel="prefetch" href="fiche.html" as="document">
+<link rel="prefetch" href="fiche.js?v=20250916-1" as="script">
 </head>
 <body>
 
 <nav aria-label="Navigation principale">
     <div class="logo">
         <a href="./" aria-label="Accueil Clipsou Streaming" style="display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none">
-            <img src="favicon.webp" alt="Logo Clipsou">
+            <img src="favicon.webp" alt="Logo Clipsou" width="35" height="35" fetchpriority="high" decoding="async">
             <span>Clipsou</span>
             <span>Streaming</span>
         </a>
@@ -55,7 +69,7 @@
     </div>
     
     <div class="search-input-container">
-        <img src="loupe.webp" alt="Recherche" class="search-icon" width="32" height="32">
+        <img src="loupe.webp" alt="Recherche" class="search-icon" width="32" height="32" decoding="async" fetchpriority="high">
         <input type="search" id="search-input" placeholder="Recherchez un genre, un film ou une série..." autocomplete="off" enterkeyhint="search" inputmode="search" autocapitalize="none">
     </div>
     

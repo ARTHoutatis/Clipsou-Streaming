@@ -11,15 +11,30 @@
   <meta name="robots" content="index, follow, max-image-preview:large">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- DNS prefetch for external domains used by links/embeds -->
+  <link rel="dns-prefetch" href="//www.youtube.com">
+  <link rel="dns-prefetch" href="//youtu.be">
+  <link rel="dns-prefetch" href="//discord.gg">
+  <link rel="dns-prefetch" href="//fr.tipeee.com">
+  <!-- Optional preconnects (kept light) -->
+  <link rel="preconnect" href="https://www.youtube.com">
+  <link rel="preconnect" href="https://youtu.be">
+  <!-- Preload critical CSS to speed up first paint (keep stylesheets below) -->
+  <link rel="preload" as="style" href="common.css?v=20250912-2">
+  <link rel="preload" as="style" href="index.css?v=20250916-1">
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Baloo+2:wght@700;800&family=Bevan:ital@0;1&family=Cinzel:wght@700&family=Luckiest+Guy&family=Rye&family=Shrikhand&family=VT323&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="common.css?v=20250912-2">
   <link rel="stylesheet" href="index.css?v=20250916-1">
+  <!-- Prefetch likely next pages/assets to improve navigation latency -->
+  <link rel="prefetch" href="search.html" as="document">
+  <link rel="prefetch" href="search.css?v=20250912-2" as="style">
+  <link rel="prefetch" href="search.js?v=20250912-2" as="script">
 </head>
 <body class="fiche-page-view">
   <nav aria-label="Navigation principale">
     <div class="logo">
       <a href="./" aria-label="Accueil Clipsou Streaming" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:8px">
-        <img src="favicon.webp" alt="Logo Clipsou">
+        <img src="favicon.webp" alt="Logo Clipsou" width="35" height="35" fetchpriority="high" decoding="async">
         <span>Clipsou</span>
         <span>Streaming</span>
       </a>
