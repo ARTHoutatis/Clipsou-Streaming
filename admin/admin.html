@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <title>Admin – Clipsou Streaming</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" href="../favicon.webp" type="image/webp">
@@ -160,6 +160,10 @@
 
     <section class="requests">
       <h2>Requêtes d'ajout</h2>
+      <div class="search-row" style="display:flex;gap:10px;align-items:center;margin:8px 0 12px 0;flex-wrap:wrap">
+        <label for="requestsSearch" class="muted" style="min-width:120px">Recherche</label>
+        <input id="requestsSearch" type="search" placeholder="Rechercher par titre, type, genre, id, acteur…" style="flex:1;min-width:240px;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:#0f1720;color:#fff;outline:none" autocomplete="off" enterkeyhint="search" inputmode="search">
+      </div>
       <table class="table" id="requestsTable" aria-describedby="requestsHelp">
         <thead>
           <tr>

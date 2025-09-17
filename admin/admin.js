@@ -929,7 +929,30 @@
   function renderTable(){
     const tbody = $('#requestsTable tbody');
     // Exclude requests marked as deleted from the UI
-    const reqs = getRequests().filter(r => !(r && r.meta && r.meta.deleted));
+    let reqs = getRequests().filter(r => !(r && r.meta && r.meta.deleted));
+    // Apply search filter if any
+    try {
+      const input = $('#requestsSearch');
+      const term = (input && input.value || '').trim().toLowerCase();
+      if (term) {
+        const matches = (r)=>{
+          try {
+            const d = r && r.data || {};
+            const parts = [];
+            parts.push(String(d.title||''));
+            parts.push(String(d.type||''));
+            parts.push(String(d.id||''));
+            parts.push(String(d.description||''));
+            try { (Array.isArray(d.genres)?d.genres:[]).forEach(g=>parts.push(String(g||''))); } catch {}
+            try { (Array.isArray(d.actors)?d.actors:[]).forEach(a=>parts.push(String((a&&a.name)||''), String((a&&a.role)||''))); } catch {}
+            const hay = parts.join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+            const needle = term.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+            return hay.includes(needle);
+          } catch { return false; }
+        };
+        reqs = reqs.filter(matches);
+      }
+    } catch {}
     tbody.innerHTML = '';
     reqs.forEach(r => {
       const tr = document.createElement('tr');
@@ -1108,6 +1131,17 @@
         nameInput.addEventListener('blur', maybePrefillPhoto);
       }
     })();
+
+    // ===== Requests search wiring =====
+    try {
+      const searchInput = $('#requestsSearch');
+      if (searchInput) {
+        let raf = null;
+        const rerender = () => { if (raf) cancelAnimationFrame(raf); raf = requestAnimationFrame(()=>{ try { renderTable(); } catch {} }); };
+        searchInput.addEventListener('input', rerender);
+        searchInput.addEventListener('change', rerender);
+      }
+    } catch {}
 
     $('#addActorBtn').addEventListener('click', ()=>{
       const name = $('#actorName').value.trim();
