@@ -494,8 +494,9 @@ body.popup-open nav[aria-label="Navigation principale"] {
 
 .carousel-genre-tag { background: rgba(255,255,255,.06); color: #e6eef5; padding: 6px 14px; border-radius: 20px; font-size: .85rem; font-weight: 600; border: 1px solid rgba(255,255,255,.12); backdrop-filter: none; }
 
-/* Pastille de durée à droite des genres sur la fiche */
-.duration-chip {
+/* Pastilles à droite des genres sur la fiche (durée ou nombre d'épisodes) */
+.duration-chip,
+.episodes-chip {
   background: transparent;
   color: rgba(255,255,255,0.92);
   padding: 0;
@@ -505,6 +506,16 @@ body.popup-open nav[aria-label="Navigation principale"] {
   border: 0;
   line-height: 1;
   white-space: nowrap;
+}
+
+/* Rapproche légèrement l'étiquette épisodes des genres */
+.rating-genres .episodes-chip {
+  margin-left: -6px;
+}
+
+/* Mobile: ne pas afficher le nombre d'épisodes */
+@media (max-width: 768px) {
+  .episodes-chip { display: none !important; }
 }
 
 /* Inline rating in carousel, placed before genre tags */

@@ -480,6 +480,8 @@ function renderFiche(container, item) {
   const durationChip = document.createElement('div');
   durationChip.className = 'duration-chip';
   durationChip.setAttribute('aria-label', 'Durée');
+  // caché par défaut pour éviter un espacement inutile sur les séries
+  try { durationChip.style.display = 'none'; } catch {}
   // N'afficher que pour les films (pas séries / playlists)
   try {
     const isFilm = (item.type || '').toLowerCase() === 'film';
@@ -518,9 +520,11 @@ function renderFiche(container, item) {
         const cachedSeconds = cache && cache[vid] && typeof cache[vid].duration === 'number' ? cache[vid].duration : 0;
         if (cachedSeconds > 0) {
           durationChip.textContent = formatMMSS(cachedSeconds) + ' min';
+          try { durationChip.style.display = ''; } catch {}
         } else {
           durationChip.textContent = '';
           durationChip.classList.add('loading');
+          try { durationChip.style.display = ''; } catch {}
         }
         // Charger l'API si besoin puis créer un player caché pour obtenir la durée
         const ensureYT = ()=> new Promise((resolve)=>{
@@ -553,6 +557,7 @@ function renderFiche(container, item) {
                     const d = player && player.getDuration ? Number(player.getDuration()) : 0;
                     durationChip.textContent = formatMMSS(d) + ' min';
                     durationChip.classList.remove('loading');
+                    try { durationChip.style.display = ''; } catch {}
                     // MAJ cache
                     try {
                       const c2 = readDurCache();
@@ -568,13 +573,55 @@ function renderFiche(container, item) {
               }
             });
             // Sécurité: timeout fallback
-            setTimeout(()=>{ try { if (durationChip.classList.contains('loading')) { durationChip.textContent = cachedSeconds>0 ? (formatMMSS(cachedSeconds) + ' min') : ''; durationChip.classList.remove('loading'); cleanup(); } } catch {} }, 5000);
+            setTimeout(()=>{ try { if (durationChip.classList.contains('loading')) { durationChip.textContent = cachedSeconds>0 ? (formatMMSS(cachedSeconds) + ' min') : ''; if (cachedSeconds>0) { durationChip.style.display = ''; } else { durationChip.style.display = 'none'; } durationChip.classList.remove('loading'); cleanup(); } } catch {} }, 5000);
           } catch {}
         });
       }
     }
   } catch {}
-  rg.appendChild(durationChip);
+  // Toujours ajouter l'élément pour les films afin de permettre la MAJ asynchrone,
+  // mais masquer pour les séries (aucune durée) pour ne pas créer d'espacement.
+  try {
+    const isFilmForAppend = (item.type || '').toLowerCase() === 'film';
+    if (isFilmForAppend) {
+      rg.appendChild(durationChip);
+    } else {
+      // Pour les séries, on l'ajoute aussi mais caché pour éviter un double gap.
+      durationChip.style.display = 'none';
+      rg.appendChild(durationChip);
+    }
+  } catch { rg.appendChild(durationChip); }
+
+  // ----- Nombre d'épisodes (séries), même emplacement que la durée -----
+  try {
+    const isSerie = (item.type || '').toLowerCase() === 'série' || /^serie/i.test(item.id || '');
+    if (isSerie) {
+      const episodesChip = document.createElement('div');
+      episodesChip.className = 'episodes-chip';
+      episodesChip.setAttribute('aria-label', "Nombre d'épisodes");
+      // Rechercher la liste des épisodes par titre normalisé, sinon par id fiche
+      let eps = [];
+      try {
+        const byTitle = EPISODES_DB_NORM[normalizeTitleKey(item.title || '')];
+        if (Array.isArray(byTitle)) eps = byTitle;
+      } catch {}
+      if (!Array.isArray(eps) || eps.length === 0) {
+        try {
+          const byId = EPISODES_ID_DB[item.id];
+          if (Array.isArray(byId)) eps = byId;
+        } catch {}
+      }
+      const count = Array.isArray(eps) ? eps.length : 0;
+      if (count > 0) {
+        // Format complet: "N épisode(s)" sans point final
+        const label = (count === 1) ? 'épisode' : 'épisodes';
+        episodesChip.textContent = `${count} ${label}`;
+      } else {
+        episodesChip.textContent = '';
+      }
+      rg.appendChild(episodesChip);
+    }
+  } catch {}
 
   const p = document.createElement('p');
   p.textContent = item.description || '';
@@ -1500,6 +1547,59 @@ const container = document.getElementById('fiche-container');
         };
       }
 
+      // --- Final flush helper used on page hide/close/back ---
+      function flushOverlayProgress(){
+        try {
+          const overlay = document.querySelector('.player-overlay');
+          if (!overlay) return;
+          const iframeEl = overlay.querySelector('.player-stage iframe');
+          const player = overlay.__playerRef;
+          if (!player || typeof player.getCurrentTime !== 'function') return;
+          const ficheId = new URLSearchParams(location.search).get('id') || '';
+          const meta = buildProgressMeta(ficheId, (window.__currentFicheItem || {}), iframeEl || document.querySelector('iframe') || '');
+          if (!meta || !meta.id) return;
+          const d = (player.getDuration ? Number(player.getDuration()) : 0) || 0;
+          const c = (player.getCurrentTime ? Number(player.getCurrentTime()) : 0) || 0;
+          const now = Date.now();
+          const readList = ()=>{ try { const raw = localStorage.getItem('clipsou_watch_progress_v1'); const arr = raw ? JSON.parse(raw) : []; return Array.isArray(arr) ? arr : []; } catch { return []; } };
+          const writeList = (list)=>{ try { localStorage.setItem('clipsou_watch_progress_v1', JSON.stringify(list||[])); } catch {} };
+          let list = readList(); list = list.filter(x=>x && x.id);
+          const finished = (d > 0) && ((d - c) <= 5);
+          let updated = false;
+          for (let i=0;i<list.length;i++){
+            if (list[i].id === meta.id) {
+              const prev = list[i] || {};
+              const sEff = finished ? d : Math.max(c, prev.seconds||0);
+              const dEff = Math.max(d, prev.duration||0);
+              const percent = dEff > 0 ? (sEff / dEff) : 0;
+              list[i] = { ...prev, ...meta, seconds: sEff, duration: dEff, percent: finished ? 1 : percent, finished, updatedAt: now };
+              updated = true; break;
+            }
+          }
+          if (!updated) {
+            const sEff = finished ? d : c;
+            const percent = d > 0 ? (sEff / d) : 0;
+            list.unshift({ ...meta, seconds: sEff, duration: d, percent: finished ? 1 : percent, finished, updatedAt: now });
+          }
+          if (list.length > 50) list = list.slice(0,50);
+          writeList(list);
+          try { window.dispatchEvent(new Event('clipsou-progress-updated')); } catch {}
+        } catch {}
+      }
+
+      // Install once: auto-flush handlers on page lifecycle to not lose progress
+      try {
+        if (!window.__clipsouProgressFlushInstalled) {
+          window.__clipsouProgressFlushInstalled = true;
+          // Flush on tab/page hide and before unload
+          window.addEventListener('beforeunload', function(){ try { flushOverlayProgress(); } catch {} }, { capture: true });
+          window.addEventListener('pagehide', function(){ try { flushOverlayProgress(); } catch {} }, { capture: true });
+          document.addEventListener('visibilitychange', function(){ try { if (document.hidden) flushOverlayProgress(); } catch {} }, { capture: true });
+          // Also flush when history navigation occurs (back/forward)
+          window.addEventListener('popstate', function(){ try { flushOverlayProgress(); } catch {} }, { capture: true });
+        }
+      } catch {}
+
       // Small confirm dialog to resume from last position
       function askResume(seconds){
         return new Promise((resolve)=>{
@@ -1725,7 +1825,7 @@ const container = document.getElementById('fiche-container');
                   if (s < 1) return;
                   let list = readList();
                   // If finished, keep entry and mark as finished
-                  if (d > 0 && s / d >= 0.99) {
+                  if (d > 0 && (d - s) <= 5) {
                     let found = false; list = list.filter(x => x && x.id);
                     for (let i=0;i<list.length;i++) {
                       if (list[i].id === meta.id) {
@@ -1760,7 +1860,7 @@ const container = document.getElementById('fiche-container');
                   const s = Math.max(0, seconds||0);
                   if (s < 1) return;
                   let list = readList();
-                  if (d > 0 && s / d >= 0.99) {
+                  if (d > 0 && (d - s) <= 5) {
                     let updated = false; list = list.filter(x => x && x.id);
                     for (let i=0;i<list.length;i++) {
                       if (list[i].id === meta.id) {
@@ -1965,7 +2065,7 @@ const container = document.getElementById('fiche-container');
                                     // - else if explicit override seconds provided (>0), use it
                                     // - else use saved seconds if >5
                                     let target = 0;
-                                    const finished = !!(entry && entry.finished) || (entry && entry.duration > 0 && entry.seconds/entry.duration >= 0.99);
+                                    const finished = !!(entry && entry.finished) || (entry && entry.duration > 0 && (entry.duration - entry.seconds) <= 5);
                                     if (!finished) {
                                       if (typeof window.__resumeSeconds === 'number' && window.__resumeSeconds > 5) {
                                         target = Math.max(0, Math.min(window.__resumeSeconds, d - 1));
@@ -2064,7 +2164,7 @@ const container = document.getElementById('fiche-container');
             const entry = Array.isArray(list) ? list.find(x => x && x.id === keyId3) : null;
             const seconds = entry && typeof entry.seconds === 'number' ? entry.seconds : 0;
             const duration = entry && typeof entry.duration === 'number' ? entry.duration : 0;
-            const isFinished = !!(entry && entry.finished) || (duration > 0 && seconds / duration >= 0.99);
+            const isFinished = !!(entry && entry.finished) || (duration > 0 && (duration - seconds) <= 5);
             if (isFinished) {
               // For already-watched content, always restart from the beginning
               try { window.__resumeOverride = 'yes'; } catch {}
