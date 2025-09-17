@@ -162,7 +162,7 @@
       <h2>Requêtes d'ajout</h2>
       <div class="search-row" style="display:flex;gap:10px;align-items:center;margin:8px 0 12px 0;flex-wrap:wrap">
         <label for="requestsSearch" class="muted" style="min-width:120px">Recherche</label>
-        <input id="requestsSearch" type="search" placeholder="Rechercher par titre, type, genre, id, acteur…" style="flex:1;min-width:240px;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:#0f1720;color:#fff;outline:none" autocomplete="off" enterkeyhint="search" inputmode="search">
+        <input id="requestsSearch" name="admin_requests_search" type="search" placeholder="Rechercher par titre, type, genre, id, acteur…" style="flex:1;min-width:240px;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:#0f1720;color:#fff;outline:none" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="search" inputmode="search" data-1p-ignore="true" data-lpignore="true" data-bwignore="true">
       </div>
       <table class="table" id="requestsTable" aria-describedby="requestsHelp">
         <thead>
@@ -183,7 +183,7 @@
   <div id="login" class="login">
     <h1>Admin – Connexion</h1>
     <p class="muted">Entrez le mot de passe admin pour accéder à l’interface.</p>
-    <input id="passwordInput" type="password" placeholder="Mot de passe">
+    <input id="passwordInput" name="admin_password" type="password" placeholder="Mot de passe" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false">
     <div style="display:flex; gap:12px; justify-content:center; align-items:center; margin:8px 0;">
       <label style="display:flex; gap:6px; align-items:center;">
         <input id="showPwd" type="checkbox">
@@ -194,5 +194,20 @@
   </div>
 
   <script src="admin.js" defer></script>
+  <script>
+    // Extra guard: delay enabling typing in the search box until real user interaction
+    (function(){
+      try {
+        var el = document.getElementById('requestsSearch');
+        if (!el) return;
+        // Mark readonly to dissuade password managers; remove on first interaction
+        el.setAttribute('readonly','readonly');
+        var enable = function(){ try { el.removeAttribute('readonly'); } catch{} };
+        el.addEventListener('pointerdown', enable, { once: true });
+        el.addEventListener('focus', enable, { once: true });
+        el.addEventListener('keydown', enable, { once: true });
+      } catch {}
+    })();
+  </script>
 </body>
 </html>
