@@ -685,7 +685,14 @@
     try {
       const sp = new URLSearchParams(location.search);
       if (sp.has('noauth')) return;
-      await import('./firebase-auth.js');
+      // Enforce a strict timeout so the UI never appears blocked
+      const withTimeout = (p, ms) => new Promise(res => {
+        let done = false;
+        const t = setTimeout(() => { if (!done) { done = true; res(undefined); } }, ms);
+        p.then(() => { if (!done) { done = true; clearTimeout(t); res(undefined); } })
+         .catch(() => { if (!done) { done = true; clearTimeout(t); res(undefined); } });
+      });
+      await withTimeout(import('./firebase-auth.js'), 6000);
     } catch (e) { /* no-op */ }
   })();
   </script>
@@ -695,14 +702,20 @@
     try {
       const sp = new URLSearchParams(location.search);
       if (sp.has('nosync')) return;
-      // Wait up to 6s for FirebaseAuth to initialize, then load sync
+      // Wait up to 6s for FirebaseAuth to initialize, then load sync with a timeout
       await new Promise((resolve) => {
         if (window.FirebaseAuth) { resolve(); return; }
         let tries = 0; const i = setInterval(() => {
           tries++; if (window.FirebaseAuth || tries > 60) { clearInterval(i); resolve(); }
         }, 100);
       });
-      await import('./progress-sync.js');
+      const withTimeout = (p, ms) => new Promise(res => {
+        let done = false;
+        const t = setTimeout(() => { if (!done) { done = true; res(undefined); } }, ms);
+        p.then(() => { if (!done) { done = true; clearTimeout(t); res(undefined); } })
+         .catch(() => { if (!done) { done = true; clearTimeout(t); res(undefined); } });
+      });
+      await withTimeout(import('./progress-sync.js'), 4000);
     } catch (e) { /* no-op */ }
   })();
   </script>
