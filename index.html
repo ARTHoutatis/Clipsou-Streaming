@@ -643,6 +643,7 @@
   (async () => {
     try {
       const sp = new URLSearchParams(location.search);
+      if (sp.get('plain') === '1') { try { window.__authStatus = 'skipped'; } catch{} return; }
       if (!sp.has('auth') || sp.get('auth') !== '1' || sp.has('noauth')) { try { window.__authStatus = 'skipped'; } catch{} return; }
       try { window.__authStatus = 'loading'; } catch{}
       // Cache-bust and hard timeout so we never hang
@@ -661,6 +662,7 @@
   (async () => {
     try {
       const sp = new URLSearchParams(location.search);
+      if (sp.get('plain') === '1') { try { window.__syncStatus = 'skipped'; } catch{} return; }
       if (!sp.has('sync') || sp.get('sync') !== '1' || sp.has('nosync')) { try { window.__syncStatus = 'skipped'; } catch{} return; }
       // Wait up to 6s for FirebaseAuth to initialize, then load sync
       await new Promise((resolve) => {
@@ -712,7 +714,19 @@
     } catch {}
   })();
   </script>
-<script src="index.js?v=20250916-1" defer></script>
+<script>
+  // Load index.js unless plain mode is requested (?plain=1)
+  (function(){
+    try {
+      var sp = new URLSearchParams(location.search);
+      if (sp.get('plain') === '1') { window.__plain = true; return; }
+      var s = document.createElement('script');
+      s.src = 'index.js?v=20250916-1&cb=' + Date.now();
+      s.defer = true;
+      document.head.appendChild(s);
+    } catch {}
+  })();
+  </script>
 <script>
   // Emergency safe-mode: if something prevents scripts from updating state, unfreeze UI and skip integrations
   (function(){
