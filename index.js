@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
   // ===== Continue Watching Section =====
-  (function buildContinueWatching(){
+  function buildContinueWatching(){
     try {
       const wrap = document.querySelector('#continue-watching');
       const rail = wrap ? wrap.querySelector('.rail') : null;
@@ -429,7 +429,14 @@ document.addEventListener('DOMContentLoaded', async function () {
         saveProgressList(trimmed);
       } catch {}
     } catch {}
-  })();
+  }
+
+  // Initial build and auto-refresh hooks (no full reload needed)
+  try { buildContinueWatching(); } catch {}
+  try { window.addEventListener('clipsou-progress-updated', function(){ try { buildContinueWatching(); } catch {} }); } catch {}
+  try { window.addEventListener('pageshow', function(){ try { buildContinueWatching(); } catch {} }); } catch {}
+  try { window.addEventListener('focus', function(){ try { buildContinueWatching(); } catch {} }); } catch {}
+  try { document.addEventListener('visibilitychange', function(){ try { if (!document.hidden) buildContinueWatching(); } catch {} }); } catch {}
 
     // Removed global scroll blocking: popup content should be scrollable immediately
 
