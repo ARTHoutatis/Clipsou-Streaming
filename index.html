@@ -684,16 +684,11 @@
   (async () => {
     try {
       const sp = new URLSearchParams(location.search);
-      if (sp.has('noauth')) return;
-      // Enforce a strict timeout so the UI never appears blocked
-      const withTimeout = (p, ms) => new Promise(res => {
-        let done = false;
-        const t = setTimeout(() => { if (!done) { done = true; res(undefined); } }, ms);
-        p.then(() => { if (!done) { done = true; clearTimeout(t); res(undefined); } })
-         .catch(() => { if (!done) { done = true; clearTimeout(t); res(undefined); } });
-      });
-      await withTimeout(import('./firebase-auth.js'), 6000);
-    } catch (e) { /* no-op */ }
+      if (sp.has('noauth')) { try { window.__authStatus = 'skipped'; } catch{} return; }
+      try { window.__authStatus = 'loading'; } catch{}
+      await import('./firebase-auth.js');
+      try { window.__authStatus = 'ok'; } catch{}
+    } catch (e) { try { window.__authStatus = 'error'; window.__authErr = String(e && e.message || e); } catch{} }
   })();
   </script>
 <script type="module">
@@ -701,22 +696,51 @@
   (async () => {
     try {
       const sp = new URLSearchParams(location.search);
-      if (sp.has('nosync')) return;
-      // Wait up to 6s for FirebaseAuth to initialize, then load sync with a timeout
+      if (sp.has('nosync')) { try { window.__syncStatus = 'skipped'; } catch{} return; }
+      // Wait up to 6s for FirebaseAuth to initialize, then load sync
       await new Promise((resolve) => {
         if (window.FirebaseAuth) { resolve(); return; }
         let tries = 0; const i = setInterval(() => {
           tries++; if (window.FirebaseAuth || tries > 60) { clearInterval(i); resolve(); }
         }, 100);
       });
-      const withTimeout = (p, ms) => new Promise(res => {
-        let done = false;
-        const t = setTimeout(() => { if (!done) { done = true; res(undefined); } }, ms);
-        p.then(() => { if (!done) { done = true; clearTimeout(t); res(undefined); } })
-         .catch(() => { if (!done) { done = true; clearTimeout(t); res(undefined); } });
-      });
-      await withTimeout(import('./progress-sync.js'), 4000);
-    } catch (e) { /* no-op */ }
+      try { window.__syncStatus = 'loading'; } catch{}
+      await import('./progress-sync.js');
+      try { window.__syncStatus = 'ok'; } catch{}
+    } catch (e) { try { window.__syncStatus = 'error'; window.__syncErr = String(e && e.message || e); } catch{} }
+  })();
+  </script>
+<!-- Debug overlay (opt-in): add ?debug=1 to the URL to see load status without console -->
+<script>
+  (function(){
+    try {
+      var sp = new URLSearchParams(location.search);
+      if (!sp.has('debug')) return;
+      var box = document.createElement('div');
+      box.style.cssText = 'position:fixed;z-index:99999;left:8px;bottom:8px;padding:8px 10px;border-radius:6px;background:rgba(0,0,0,0.7);color:#fff;font:12px/1.4 system-ui,Segoe UI,Roboto,Arial;box-shadow:0 2px 10px rgba(0,0,0,0.35)';
+      box.setAttribute('role','status');
+      function color(s){ if(s==='ok')return'#22c55e'; if(s==='loading')return'#f59e0b'; if(s==='skipped')return'#94a3b8'; if(s==='error')return'#ef4444'; return'#cbd5e1'; }
+      function line(label, status, err){
+        var d = document.createElement('div');
+        var dot = document.createElement('span'); dot.textContent = '● '; dot.style.color = color(status);
+        var strong = document.createElement('strong'); strong.textContent = label + ': ';
+        var txt = document.createElement('span'); txt.textContent = String(status||'pending');
+        d.appendChild(dot); d.appendChild(strong); d.appendChild(txt);
+        if (status==='error' && err) { var em = document.createElement('div'); em.textContent = String(err); em.style.opacity='0.85'; em.style.marginLeft='14px'; box.appendChild(em); }
+        box.appendChild(d);
+      }
+      function tick(){
+        box.innerHTML = '';
+        var as = window.__authStatus || 'pending';
+        var ae = window.__authErr || '';
+        var ss = window.__syncStatus || 'pending';
+        var se = window.__syncErr || '';
+        line('Auth', as, ae);
+        line('Sync', ss, se);
+      }
+      tick(); setInterval(tick, 500);
+      document.body.appendChild(box);
+    } catch {}
   })();
   </script>
 <script src="index.js?v=20250916-1" defer></script>
