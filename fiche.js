@@ -1598,7 +1598,7 @@ const container = document.getElementById('fiche-container');
           for (let i=0;i<list.length;i++){
             if (list[i].id === meta.id) {
               const prev = list[i] || {};
-              const sEff = finished ? d : Math.max(c, prev.seconds||0);
+              const sEff = finished ? d : c;
               const dEff = Math.max(d, prev.duration||0);
               const percent = dEff > 0 ? (sEff / dEff) : 0;
               list[i] = { ...prev, ...meta, seconds: sEff, duration: dEff, percent: finished ? 1 : percent, finished, updatedAt: now };
@@ -1869,7 +1869,7 @@ const container = document.getElementById('fiche-container');
                   for (let i=0;i<list.length;i++) {
                     if (list[i].id === meta.id) {
                       const prev = list[i] || {};
-                      const sEff = Math.max(s, prev.seconds||0);
+                      const sEff = s;
                       const dEff = Math.max(d, prev.duration||0);
                       const percent = dEff > 0 ? (sEff / dEff) : 0;
                       list[i] = { ...prev, ...meta, seconds: sEff, duration: dEff, percent, finished: false, updatedAt: now };
@@ -2023,7 +2023,7 @@ const container = document.getElementById('fiche-container');
                 for (let i=0;i<list.length;i++) {
                   if (list[i].id === meta.id) {
                     const prev = list[i] || {};
-                    const sEff = Math.max(s, prev.seconds||0);
+                    const sEff = s;
                     const dEff = Math.max(d, prev.duration||0);
                     const percent = dEff > 0 ? (sEff / dEff) : 0;
                     list[i] = { ...prev, ...meta, seconds: sEff, duration: dEff, percent, finished: false, updatedAt: now };
