@@ -11,6 +11,19 @@
   body { overflow: auto !important; position: static !important; top: auto !important; left: auto !important; right: auto !important; width: auto !important; padding-right: 0 !important; }
   .drawer-overlay { display: none !important; }
 </style>
+<!-- Maintenance overlay styles -->
+<style>
+  body.maint-on { overflow: hidden !important; }
+  #maint-overlay { position: fixed; inset: 0; z-index: 100000; display: grid; place-items: center; background: #0b1117; color: #fff; padding: 24px; text-align: center; }
+  #maint-overlay .box { max-width: 720px; width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
+  #maint-overlay h1 { font: 700 26px/1.2 system-ui, Segoe UI, Roboto, Arial; margin: 6px 0 10px; }
+  #maint-overlay p { font: 16px/1.6 system-ui, Segoe UI, Roboto, Arial; opacity: .9; margin: 8px 0 0; }
+  #maint-overlay .small { font-size: 13px; opacity: .7; margin-top: 12px; }
+  #maint-overlay img { width: 56px; height: 56px; border-radius: 8px; display: inline-block; }
+  #maint-overlay .btns { margin-top: 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  #maint-overlay .btn { display: inline-block; padding: 10px 14px; border-radius: 8px; background: #1f2937; color: #fff; text-decoration: none; border: 1px solid rgba(255,255,255,0.15); }
+  #maint-overlay .btn.secondary { background: transparent; }
+</style>
 <!-- Early popup lock removed to prevent any possibility of initial freeze -->
 <title>Clipsou Streaming</title>
 <meta name="description" content="Regardez des films et séries comme La vie au petit âge, Dédoublement, Jackson Goup, Karma et Alex. Gratuit, rapide et sans inscription.">
@@ -86,6 +99,36 @@
       JavaScript est désactivé. Le site reste consultable mais certaines fonctions (connexion, synchronisation) seront désactivées.
     </div>
   </noscript>
+  <!-- Full-screen maintenance overlay (default ON) -->
+  <div id="maint-overlay" role="dialog" aria-live="polite" aria-label="Maintenance en cours">
+    <div class="box">
+      <img src="img/favicon.webp" alt="Clipsou Streaming" loading="eager" decoding="async">
+      <h1>Maintenance en cours</h1>
+      <p>Le site est temporairement en maintenance. Nous revenons très vite en ligne. Merci pour votre patience.</p>
+      <div class="small">Dernière mise à jour: <span id="maint-date"></span></div>
+      <div class="btns">
+        <a class="btn secondary" href="mailto:roxxormister@gmail.com">Nous contacter</a>
+        <a class="btn secondary" href="https://www.youtube.com/@clipsoustudio" target="_blank" rel="noopener noreferrer">Chaîne YouTube</a>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Show maintenance by default; allow bypass with ?up=1 or ?maintenance=off
+    (function(){
+      try {
+        var sp = new URLSearchParams(location.search);
+        var bypass = (sp.get('up') === '1') || (sp.get('maintenance') === 'off');
+        var ov = document.getElementById('maint-overlay');
+        if (!bypass) {
+          document.body.classList.add('maint-on');
+          try { document.getElementById('maint-date').textContent = new Date().toLocaleString(); } catch {}
+        } else {
+          if (ov && ov.parentNode) ov.parentNode.removeChild(ov);
+          document.body.classList.remove('maint-on');
+        }
+      } catch {}
+    })();
+  </script>
   <nav aria-label="Navigation principale">
      <button class="hamburger" aria-label="Menu" title="Menu">
        <span class="bar"></span>
