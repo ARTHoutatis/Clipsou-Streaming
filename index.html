@@ -680,23 +680,29 @@
   </div>
 
 <script type="module">
-  // Safe loader for Firebase Auth. Add ?noauth=1 to disable.
+  // Safe loader for Firebase Auth. Default SKIPPED; enable with ?auth=1 (or disable with ?noauth=1)
   (async () => {
     try {
       const sp = new URLSearchParams(location.search);
-      if (sp.has('noauth')) { try { window.__authStatus = 'skipped'; } catch{} return; }
+      if (!sp.has('auth') || sp.get('auth') !== '1' || sp.has('noauth')) { try { window.__authStatus = 'skipped'; } catch{} return; }
       try { window.__authStatus = 'loading'; } catch{}
-      await import('./firebase-auth.js');
+      // Cache-bust and hard timeout so we never hang
+      const ver = 'v=' + (Date.now());
+      const authImport = import('./firebase-auth.js?' + ver);
+      const timeout = new Promise((_, rej)=> setTimeout(()=>rej(new Error('timeout')), 5000));
+      await Promise.race([authImport, timeout]);
       try { window.__authStatus = 'ok'; } catch{}
-    } catch (e) { try { window.__authStatus = 'error'; window.__authErr = String(e && e.message || e); } catch{} }
+    } catch (e) {
+      try { window.__authStatus = (String(e&&e.message||'').toLowerCase().includes('timeout') ? 'timeout' : 'error'); window.__authErr = String(e && e.message || e); } catch{}
+    }
   })();
   </script>
 <script type="module">
-  // Safe loader for progress sync. Add ?nosync=1 to the URL to skip cloud sync.
+  // Safe loader for progress sync. Default SKIPPED; enable with ?sync=1 (or disable with ?nosync=1)
   (async () => {
     try {
       const sp = new URLSearchParams(location.search);
-      if (sp.has('nosync')) { try { window.__syncStatus = 'skipped'; } catch{} return; }
+      if (!sp.has('sync') || sp.get('sync') !== '1' || sp.has('nosync')) { try { window.__syncStatus = 'skipped'; } catch{} return; }
       // Wait up to 6s for FirebaseAuth to initialize, then load sync
       await new Promise((resolve) => {
         if (window.FirebaseAuth) { resolve(); return; }
@@ -705,9 +711,13 @@
         }, 100);
       });
       try { window.__syncStatus = 'loading'; } catch{}
-      await import('./progress-sync.js');
+      // Cache-bust and hard timeout
+      const ver = 'v=' + (Date.now());
+      const syncImport = import('./progress-sync.js?' + ver);
+      const timeout = new Promise((_, rej)=> setTimeout(()=>rej(new Error('timeout')), 5000));
+      await Promise.race([syncImport, timeout]);
       try { window.__syncStatus = 'ok'; } catch{}
-    } catch (e) { try { window.__syncStatus = 'error'; window.__syncErr = String(e && e.message || e); } catch{} }
+    } catch (e) { try { window.__syncStatus = (String(e&&e.message||'').toLowerCase().includes('timeout') ? 'timeout' : 'error'); window.__syncErr = String(e && e.message || e); } catch{} }
   })();
   </script>
 <!-- Debug overlay (opt-in): add ?debug=1 to the URL to see load status without console -->
@@ -719,7 +729,7 @@
       var box = document.createElement('div');
       box.style.cssText = 'position:fixed;z-index:99999;left:8px;bottom:8px;padding:8px 10px;border-radius:6px;background:rgba(0,0,0,0.7);color:#fff;font:12px/1.4 system-ui,Segoe UI,Roboto,Arial;box-shadow:0 2px 10px rgba(0,0,0,0.35)';
       box.setAttribute('role','status');
-      function color(s){ if(s==='ok')return'#22c55e'; if(s==='loading')return'#f59e0b'; if(s==='skipped')return'#94a3b8'; if(s==='error')return'#ef4444'; return'#cbd5e1'; }
+      function color(s){ if(s==='ok')return'#22c55e'; if(s==='loading')return'#f59e0b'; if(s==='skipped')return'#94a3b8'; if(s==='timeout')return'#f97316'; if(s==='error')return'#ef4444'; return'#cbd5e1'; }
       function line(label, status, err){
         var d = document.createElement('div');
         var dot = document.createElement('span'); dot.textContent = '● '; dot.style.color = color(status);
