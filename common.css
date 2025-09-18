@@ -406,7 +406,7 @@ body.popup-open nav[aria-label="Navigation principale"] {
   content: '';
   display: inline-block;
   width: 20px; height: 20px;
-  background: url('loupe.webp') no-repeat center / contain;
+  background: url('img/loupe.webp') no-repeat center / contain;
   filter: none !important;
   opacity: 1 !important;
 }
@@ -467,7 +467,7 @@ body.popup-open nav[aria-label="Navigation principale"] {
   display: inline-block;
   width: 18px;
   height: 18px;
-  background: url('Accueil.webp') no-repeat center / contain;
+  background: url('img/Accueil.webp') no-repeat center / contain;
 }
 
 /* Cards (base) */
@@ -620,6 +620,8 @@ html { scrollbar-color: #615d5d #0a0a0a; scrollbar-width: thin; }
 
 /* Mobile common rules */
 @media (max-width: 768px) {
+  /* Hide brand text in navbar on mobile: keep only the logo image */
+  nav[aria-label="Navigation principale"] .logo span { display: none !important; }
   /* Remove artificial extra height on mobile so page ends exactly at content */
   html, body {
     min-height: 0 !important;
@@ -738,7 +740,7 @@ html { scrollbar-color: #615d5d #0a0a0a; scrollbar-width: thin; }
     transform: translate(-50%, -50%);
     width: 24px;
     height: 24px;
-    background: url('loupe.webp') no-repeat center / contain;
+    background: url('img/loupe.webp') no-repeat center / contain;
     filter: none !important;
     opacity: 1 !important;
   }

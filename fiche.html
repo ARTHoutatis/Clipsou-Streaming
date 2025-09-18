@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#0b1117">
   <title>Fiche – Clipsou Streaming</title>
   <meta name="description" content="Fiche du film ou de la série – Clipsou Streaming">
-  <link rel="icon" href="favicon.webp" type="image/webp">
-  <link rel="apple-touch-icon" href="favicon.webp">
+  <link rel="icon" href="img/favicon.webp" type="image/webp">
+  <link rel="apple-touch-icon" href="img/favicon.webp">
   <meta name="robots" content="index, follow, max-image-preview:large">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,7 +34,7 @@
   <nav aria-label="Navigation principale">
     <div class="logo">
       <a href="./" aria-label="Accueil Clipsou Streaming" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:8px">
-        <img src="favicon.webp" alt="Logo Clipsou" width="35" height="35" fetchpriority="high" decoding="async">
+        <img src="img/favicon.webp" alt="Logo Clipsou" width="35" height="35" fetchpriority="high" decoding="async">
         <span>Clipsou</span>
         <span>Streaming</span>
       </a>
@@ -42,6 +42,7 @@
     </div>
     <div class="nav-links">
       <a href="search.html" class="search-link">Recherche</a>
+      <button id="auth-btn" class="button secondary" type="button" style="margin-left:12px">Se connecter</button>
     </div>
   </nav>
 
@@ -69,6 +70,8 @@
       }
     })();
   </script>
+  <script type="module" src="firebase-auth.js"></script>
+  <script type="module" src="progress-sync.js"></script>
   <script src="fiche.js?v=20250916-1" defer></script>
 </body>
 </html>

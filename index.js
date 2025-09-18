@@ -45,8 +45,14 @@
       } catch {}
     }
     function applyCwCacheBuster(src){
-      if (!src) return 'apercu.webp';
+      if (!src) return 'img/apercu.webp';
       if (/^(data:|https?:)/i.test(src)) return src;
+      // If relative and not already under img/, prefix it
+      try {
+        if (!src.startsWith('img/') && !src.startsWith('./') && /\.(?:webp|jpg|jpeg|png)$/i.test(src)) {
+          src = 'img/' + src.replace(/^\/+/, '');
+        }
+      } catch {}
       const v = (window.__cw_ver || (window.__cw_ver = Date.now())) + '';
       return src + (src.includes('?') ? '&' : '?') + 'cw=' + v;
     }
@@ -248,6 +254,9 @@ document.addEventListener('DOMContentLoaded', async function () {
       }
       function saveProgressList(list){
         try { localStorage.setItem('clipsou_watch_progress_v1', JSON.stringify(list||[])); } catch {}
+        // Notify other modules (e.g., progress-sync.js) that local progress changed
+        try { window.dispatchEvent(new Event('clipsou-progress-updated')); } catch {}
+        try { window.dispatchEvent(new CustomEvent('clipsou-progress-updated')); } catch {}
       }
       // Cleanup any fully-watched or invalid entries
       let items = readProgress()
@@ -370,8 +379,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         } catch {}
         if (preferred && !candidates.includes(preferred)) candidates.unshift(preferred);
         let cIdx = 0;
-        img.src = applySrc(candidates[cIdx]) || applySrc(it.landscapeImage || it.image) || 'apercu.webp';
-        img.onerror = function(){ cIdx++; if (cIdx < candidates.length) this.src = applySrc(candidates[cIdx]); else { this.onerror=null; this.src='apercu.webp'; } };
+        img.src = applySrc(candidates[cIdx]) || applySrc(it.landscapeImage || it.image) || 'img/apercu.webp';
+        img.onerror = function(){ cIdx++; if (cIdx < candidates.length) this.src = applySrc(candidates[cIdx]); else { this.onerror=null; this.src='img/apercu.webp'; } };
         img.alt = 'Affiche de ' + (it.title || 'contenu');
         img.loading = 'lazy'; img.decoding = 'async';
         media.appendChild(img);

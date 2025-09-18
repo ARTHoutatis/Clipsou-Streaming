@@ -60,8 +60,8 @@
   </script>
 <title>Clipsou Streaming</title>
 <meta name="description" content="Regardez des films et séries comme La vie au petit âge, Dédoublement, Jackson Goup, Karma et Alex. Gratuit, rapide et sans inscription.">
-<link rel="icon" href="favicon.webp" type="image/webp">
-<link rel="apple-touch-icon" href="favicon.webp">
+<link rel="icon" href="img/favicon.webp" type="image/webp">
+<link rel="apple-touch-icon" href="img/favicon.webp">
 <link rel="canonical" href="https://clipsoustreaming.com/">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <!-- Preconnects for faster Google Fonts -->
@@ -76,7 +76,7 @@
 <link rel="preconnect" href="https://www.youtube.com">
 <link rel="preconnect" href="https://youtu.be">
 <!-- Preload critical UI icon -->
-<link rel="preload" as="image" href="loupe.webp">
+<link rel="preload" as="image" href="img/loupe.webp">
 <!-- Preload critical CSS to speed up first paint (keep regular stylesheet links too) -->
 <link rel="preload" as="style" href="common.css?v=20250916-1">
 <link rel="preload" as="style" href="index.css?v=20250916-1">
@@ -134,7 +134,7 @@
      </button>
      <div class="logo">
        <a href="./" aria-label="Accueil Clipsou Streaming" style="display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none">
-         <img src="favicon.webp" alt="Logo Clipsou" width="35" height="35" fetchpriority="high" decoding="async">
+         <img src="img/favicon.webp" alt="Logo Clipsou" width="35" height="35" fetchpriority="high" decoding="async">
          <span>Clipsou</span>
          <span>Streaming</span>
        </a>
@@ -142,7 +142,8 @@
      </div>
 
     <div class="nav-links">
-       <a href="search.html" class="search-link">Recherche</a>
+      <a href="search.html" class="search-link">Recherche</a>
+      <button id="auth-btn" class="button secondary" type="button" style="margin-left:12px">Se connecter</button>
    </div>
 </nav>
 
@@ -312,7 +313,7 @@
     <div class="fiche-right" style="padding-left:0;">
       <h3 id="partenariats-title">🤝 Partenariats</h3>
       <p>
-        <img src="NOVA.webp" alt="Logo Nova Stream" class="partner-logo" data-pos="center" loading="lazy" decoding="async" style="width:112px;height:112px;display:block;margin:0 0 8px 0;border-radius:4px;">🎬 Bienvenue sur NOVA – Le Meilleur du Streaming Gratuit en VF & VOSTFR ! 🌟
+        <img src="img/NOVA.webp" alt="Logo Nova Stream" class="partner-logo" data-pos="center" loading="lazy" decoding="async" style="width:112px;height:112px;display:block;margin:0 0 8px 0;border-radius:4px;">🎬 Bienvenue sur NOVA – Le Meilleur du Streaming Gratuit en VF & VOSTFR ! 🌟
       </p>
       <p>
         Vous cherchez LE site ultime pour regarder films, séries et animés sans limite, gratuitement et en qualité HD, Full HD, voire 4K ? Ne cherchez plus : NOVA est votre nouvelle destination streaming incontournable !
@@ -322,7 +323,7 @@
       </p>
       <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 16px 0;">
       <p>
-        <img src="CineHelp.webp" alt="Logo CineHelp" class="partner-logo" data-pos="center" loading="lazy" decoding="async" style="width:128px;height:128px;display:block;margin:0 0 8px 0;border-radius:4px;">🎬 Bienvenue sur CineHelp – L’univers du cinéma collaboratif ! ⭐
+        <img src="img/CineHelp.webp" alt="Logo CineHelp" class="partner-logo" data-pos="center" loading="lazy" decoding="async" style="width:128px;height:128px;display:block;margin:0 0 8px 0;border-radius:4px;">🎬 Bienvenue sur CineHelp – L’univers du cinéma collaboratif ! ⭐
       </p>
       <p>
         Tu veux créer un film, échanger avec des passionnés ou trouver des partenaires de tournage ? CineHelp te permet de partager tes projets, apprendre l’audiovisuel et rejoindre une communauté dynamique, débutants comme pros.
@@ -332,7 +333,7 @@
       </p>
       <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 16px 0;">
       <p>
-        <img src="Cineclub.webp" alt="Logo Cinéclub" class="partner-logo" data-pos="center" loading="lazy" decoding="async" style="width:128px;height:128px;display:block;margin:0 0 8px 0;border-radius:4px;">🎬 Bienvenue sur Cinéclub – Le serveur des vrais passionnés de cinéma ! ⭐
+        <img src="img/Cineclub.webp" alt="Logo Cinéclub" class="partner-logo" data-pos="center" loading="lazy" decoding="async" style="width:128px;height:128px;display:block;margin:0 0 8px 0;border-radius:4px;">🎬 Bienvenue sur Cinéclub – Le serveur des vrais passionnés de cinéma ! ⭐
       </p>
       <p>
         Tu aimes le cinéma et veux échanger avec des cinéphiles qui connaissent leurs classiques (et leurs nanars) ? Rejoins Cinéclub pour débattre, partager tes critiques et participer à des événements réguliers : soirées films, jeux, concours, et plus encore !
@@ -348,7 +349,7 @@
 <div id="film1" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film1-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="La1.webp" alt="Image du film La vie au petit âge" class="landscape" decoding="async" loading="lazy">
+            <img src="img/La1.webp" alt="Image du film La vie au petit âge" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
             <h3 id="film1-title">La vie au petit age</h3>
@@ -372,7 +373,7 @@
 <div id="film2" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film2-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Dé1.webp" alt="Image du film Dédoublement" class="landscape" decoding="async" loading="lazy">
+            <img src="img/Dé1.webp" alt="Image du film Dédoublement" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
             <h3 id="film2-title">DEDOUBLEMENT</h3>
@@ -396,7 +397,7 @@
 <div id="film3" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film3-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Ja1.webp" alt="Image du film Jackson Goup" class="landscape" decoding="async" loading="lazy">
+            <img src="img/Ja1.webp" alt="Image du film Jackson Goup" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
             <h3 id="film3-title">Jackson Goup</h3>
@@ -420,7 +421,7 @@
 <div id="serie1" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="serie1-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Al1.webp" alt="Image de la série Alex" class="landscape" decoding="async" loading="lazy">
+            <img src="img/Al1.webp" alt="Image de la série Alex" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
             <h3 id="serie1-title"><span class="al">AL</span><span class="ex">EX</span></h3>
@@ -444,7 +445,7 @@
 <div id="serie2" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="serie2-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Law1.webp" alt="Image de la série Lawless Legend" class="landscape" decoding="async" loading="lazy">
+            <img src="img/Law1.webp" alt="Image de la série Lawless Legend" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
             <h3 id="serie2-title">Lawless Legend</h3>
@@ -468,7 +469,7 @@
 <div id="serie3" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="serie3-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Je1.webp" alt="Image de la série Les Aventures de Jean-Michel Content" class="landscape" decoding="async" loading="lazy">
+            <img src="img/Je1.webp" alt="Image de la série Les Aventures de Jean-Michel Content" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
             <h3 id="serie3-title">Les Aventures de Jean‑Michel Content</h3>
@@ -493,7 +494,7 @@
 <div id="film4" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film4-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Ka1.webp" alt="Image du film Karma" class="landscape" decoding="async" loading="lazy">
+            <img src="img/Ka1.webp" alt="Image du film Karma" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
             <h3 id="film4-title">Karma</h3>
@@ -517,7 +518,7 @@
 <div id="film5" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film5-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Ba1.webp" alt="Image du trailer Batman" class="landscape" decoding="async" loading="lazy">
+            <img src="img/Ba1.webp" alt="Image du trailer Batman" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
             <h3 id="film5-title"><span class="trailer-word">Trailer</span> <span class="batman-word">BATMAN</span></h3>
@@ -540,7 +541,7 @@
 <div id="film6" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film6-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Ur1.webp" alt="Image du film Urbanos City" class="landscape" decoding="async" loading="lazy">
+            <img src="img/Ur1.webp" alt="Image du film Urbanos City" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
             <h3 id="film6-title"><span class="urbanos">URBANOS</span> <span class="city">city</span></h3>
@@ -564,7 +565,7 @@
 <div id="film7" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film7-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Bac1.webp" alt="Image du film Backrooms Urbanos" class="landscape" decoding="async" loading="lazy">
+            <img src="img/Bac1.webp" alt="Image du film Backrooms Urbanos" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
             <h3 id="film7-title"><span class="backrooms-vhs">Backrooms</span> <span class="urbanos-svg" role="img" aria-label="URBANOS">
@@ -678,6 +679,33 @@
   </div>
   </div>
 
+<script type="module">
+  // Safe loader for Firebase Auth. Add ?noauth=1 to disable.
+  (async () => {
+    try {
+      const sp = new URLSearchParams(location.search);
+      if (sp.has('noauth')) return;
+      await import('./firebase-auth.js');
+    } catch (e) { /* no-op */ }
+  })();
+  </script>
+<script type="module">
+  // Safe loader for progress sync. Add ?nosync=1 to the URL to skip cloud sync.
+  (async () => {
+    try {
+      const sp = new URLSearchParams(location.search);
+      if (sp.has('nosync')) return;
+      // Wait up to 6s for FirebaseAuth to initialize, then load sync
+      await new Promise((resolve) => {
+        if (window.FirebaseAuth) { resolve(); return; }
+        let tries = 0; const i = setInterval(() => {
+          tries++; if (window.FirebaseAuth || tries > 60) { clearInterval(i); resolve(); }
+        }, 100);
+      });
+      await import('./progress-sync.js');
+    } catch (e) { /* no-op */ }
+  })();
+  </script>
 <script src="index.js?v=20250916-1" defer></script>
 <script>
   // Normalize homepage URL to root (remove /index.html) without reload

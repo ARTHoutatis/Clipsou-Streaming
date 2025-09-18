@@ -237,7 +237,12 @@ function displayResults(results) {
         // If remote URL or has querystring without explicit extension, skip base logic
         if (/^https?:\/\//i.test(src)) return '';
         const m = src.match(/^(.*?)(\d+)?\.(webp|jpg|jpeg|png)$/i);
-        return m ? m[1] : src.replace(/\.(webp|jpg|jpeg|png)$/i, '');
+        const base = m ? m[1] : src.replace(/\.(webp|jpg|jpeg|png)$/i, '');
+        // Ensure base is under img/ when using relative assets
+        try {
+            if (base && !/^img\//i.test(base)) return 'img/' + base.replace(/^\/+/, '');
+        } catch {}
+        return base;
     }
 
     const resultsHTML = results.map(item => {
@@ -255,14 +260,18 @@ function displayResults(results) {
             initialSrc = `${base}.webp`;
         } else {
             // If full URL or no extension, use as-is; fallback to placeholder
-            initialSrc = item.image || 'apercu.webp';
+            if (item.image && !/^https?:/i.test(item.image) && /\.(webp|jpg|jpeg|png)$/i.test(item.image)) {
+                initialSrc = 'img/' + item.image.replace(/^\/+/, '');
+            } else {
+                initialSrc = item.image || 'img/apercu.webp';
+            }
         }
-        const badgeSrc = (item.studioBadge && String(item.studioBadge).trim()) || 'clipsoustudio.webp';
+        const badgeSrc = (item.studioBadge && String(item.studioBadge).trim()) || 'img/clipsoustudio.webp';
         return `
         <div class="card">
             <a href="fiche.html?id=${encodeURIComponent(item.id)}&from=search">
                 <div class="card-media">
-                    <img src="${initialSrc}" data-base="${base}" alt="Affiche de ${item.title}" loading="lazy" decoding="async" onerror="(function(img){var b=img.getAttribute('data-base'); if(!b){img.onerror=null; img.src='apercu.webp'; return;} var tried=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=tried; if(tried===1){ img.src=b+'.webp'; } else { img.onerror=null; img.src='apercu.webp'; }})(this)">
+                    <img src="${initialSrc}" data-base="${base}" alt="Affiche de ${item.title}" loading="lazy" decoding="async" onerror="(function(img){var b=img.getAttribute('data-base'); if(!b){img.onerror=null; img.src='img/apercu.webp'; return;} var tried=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=tried; if(tried===1){ img.src=b+'.webp'; } else { img.onerror=null; img.src='img/apercu.webp'; }})(this)">
                     <div class="brand-badge">
                         <img src="${badgeSrc}" alt="Studio" loading="lazy" decoding="async">
                     </div>
