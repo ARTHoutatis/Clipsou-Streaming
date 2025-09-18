@@ -755,6 +755,23 @@
   </script>
 <script src="index.js?v=20250916-1" defer></script>
 <script>
+  // Emergency safe-mode: if something prevents scripts from updating state, unfreeze UI and skip integrations
+  (function(){
+    try {
+      setTimeout(function(){
+        try { var s = document.getElementById('early-popup-lock'); if (s && s.parentNode) s.parentNode.removeChild(s); } catch {}
+        try {
+          var b = document.body, de = document.documentElement;
+          if (b) { b.classList.remove('popup-open'); b.style.position=''; b.style.top=''; b.style.left=''; b.style.right=''; b.style.width=''; b.style.paddingRight=''; }
+          if (de) { de.classList.remove('popup-open'); de.style.overflowY=''; de.style.scrollBehavior=''; }
+        } catch {}
+        try { if (!window.__authStatus) window.__authStatus = 'skipped'; } catch {}
+        try { if (!window.__syncStatus) window.__syncStatus = 'skipped'; } catch {}
+      }, 1500);
+    } catch {}
+  })();
+  </script>
+<script>
   // Normalize homepage URL to root (remove /index.html) without reload
   // Skip in local dev (file:// or localhost) to keep index.html accessible
   (function(){
