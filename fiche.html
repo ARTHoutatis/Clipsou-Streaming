@@ -70,33 +70,8 @@
       }
     })();
   </script>
-  <script type="module">
-    // Safe loader for Firebase Auth. Add ?noauth=1 to disable.
-    (async () => {
-      try {
-        const sp = new URLSearchParams(location.search);
-        if (sp.has('noauth')) return;
-        await import('./firebase-auth.js');
-      } catch (e) { /* no-op */ }
-    })();
-  </script>
-  <script type="module">
-    // Safe loader for progress sync. Add ?nosync=1 to skip cloud sync.
-    (async () => {
-      try {
-        const sp = new URLSearchParams(location.search);
-        if (sp.has('nosync')) return;
-        // Wait up to ~6s for FirebaseAuth to initialize
-        await new Promise((resolve) => {
-          if (window.FirebaseAuth) { resolve(); return; }
-          let tries = 0; const i = setInterval(() => {
-            tries++; if (window.FirebaseAuth || tries > 60) { clearInterval(i); resolve(); }
-          }, 100);
-        });
-        await import('./progress-sync.js');
-      } catch (e) { /* no-op */ }
-    })();
-  </script>
+  <script type="module" src="firebase-auth.js"></script>
+  <script type="module" src="progress-sync.js"></script>
   <script src="fiche.js?v=20250916-1" defer></script>
 </body>
 </html>

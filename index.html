@@ -706,20 +706,7 @@
     } catch (e) { /* no-op */ }
   })();
   </script>
-<script>
-  // Safe loader for main app JS. Add ?noapp=1 to skip index.js (prod debug helper)
-  (function(){
-    try {
-      var sp = new URLSearchParams(location.search);
-      if (sp.has('noapp')) return; // do not load index.js
-      var s = document.createElement('script');
-      s.src = 'index.js?v=20250916-1';
-      s.defer = true;
-      var target = document.body || document.head || document.documentElement;
-      target.appendChild(s);
-    } catch {}
-  })();
-  </script>
+<script src="index.js?v=20250916-1" defer></script>
 <script>
   // Normalize homepage URL to root (remove /index.html) without reload
   // Skip in local dev (file:// or localhost) to keep index.html accessible

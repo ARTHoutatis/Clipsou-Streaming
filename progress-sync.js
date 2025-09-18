@@ -49,8 +49,8 @@ import { getDatabase, ref, onValue, set, update } from 'https://www.gstatic.com/
   }
 
   function shapeForCloud(it){
-    // Keep only portable fields, then strip undefined/null/NaN
-    const obj = {
+    // Keep only portable fields
+    return {
       id: String(it.id||''),
       percent: Number(it.percent||0),
       seconds: Number(it.seconds||0) || undefined,
@@ -60,13 +60,6 @@ import { getDatabase, ref, onValue, set, update } from 'https://www.gstatic.com/
       image: it.image || undefined,
       updatedAt: Number(it.updatedAt||Date.now())
     };
-    // Sanitize
-    Object.keys(obj).forEach((k) => {
-      const v = obj[k];
-      if (v === undefined || v === null) delete obj[k];
-      else if (typeof v === 'number' && !Number.isFinite(v)) delete obj[k];
-    });
-    return obj;
   }
 
   function scheduleCloudWrite(uid, list){
@@ -78,14 +71,7 @@ import { getDatabase, ref, onValue, set, update } from 'https://www.gstatic.com/
     pendingWrite = setTimeout(async () => {
       try {
         const payload = {};
-        (list||[]).forEach((it) => {
-          try {
-            const shaped = shapeForCloud(it||{});
-            const key = String(shaped.id||'').trim();
-            if (!key) return; // skip invalid entries
-            payload[key] = shaped;
-          } catch {}
-        });
+        (list||[]).forEach((it, idx) => { payload[it.id] = shapeForCloud(it); });
         await set(base, payload);
       } catch(e){ console.warn('progress sync write error', e); }
     }, WRITE_DEBOUNCE_MS);
