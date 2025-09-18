@@ -912,21 +912,19 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       img.loading = 'lazy';
       img.decoding = 'async';
       // onerror handler already set above (multi-candidate)
-      
-      const badge = document.createElement('div');
-      badge.className = 'brand-badge';
-      const logo = document.createElement('img');
-      // Use configured studio badge if present, otherwise default to absolute URL
-      try {
-        const src = it.studioBadge || 'https://clipsoustreaming.com/clipsoustudio.webp';
-        logo.src = src;
-      } catch { logo.src = 'https://clipsoustreaming.com/clipsoustudio.webp'; }
-      logo.alt = 'Clipsou Studio';
-      logo.loading = 'lazy';
-      logo.decoding = 'async';
-      badge.appendChild(logo);
+
       media.appendChild(img);
-      media.appendChild(badge);
+      // Add single studio badge like on index/search (avoid duplicates)
+      try {
+        const badge = document.createElement('div'); badge.className = 'brand-badge';
+        const logo = document.createElement('img');
+        let sb = (it.studioBadge && String(it.studioBadge).trim()) || '';
+        if (!sb) sb = 'img/clipsoustudio.webp';
+        else if (!/^https?:/i.test(sb) && !/^img\//i.test(sb)) sb = 'img/' + sb.replace(/^\/+/, '');
+        logo.src = sb; logo.alt = 'Studio'; logo.loading = 'lazy'; logo.decoding = 'async';
+        badge.appendChild(logo);
+        media.appendChild(badge);
+      } catch {}
       const info = document.createElement('div');
       info.className = 'card-info';
       info.setAttribute('data-type', it.type || 'film');

@@ -1285,7 +1285,16 @@ document.addEventListener('DOMContentLoaded', async function () {
       img.setAttribute('loading', 'lazy'); img.setAttribute('decoding', 'async');
       const info = document.createElement('div'); info.className = 'card-info'; info.setAttribute('data-type', item.type || 'film'); if (typeof item.rating !== 'undefined') info.setAttribute('data-rating', String(item.rating)); if (item.studioBadge) info.setAttribute('data-studio-badge', String(item.studioBadge));
       const media = document.createElement('div'); media.className = 'card-media';
-      const badge = document.createElement('div'); badge.className = 'brand-badge'; const logo = document.createElement('img'); logo.src = (item.studioBadge && String(item.studioBadge).trim()) || 'clipsoustudio.webp'; logo.alt = 'Studio'; logo.setAttribute('loading', 'lazy'); logo.setAttribute('decoding', 'async'); badge.appendChild(logo);
+      const badge = document.createElement('div'); badge.className = 'brand-badge'; const logo = document.createElement('img');
+      (function(){
+        let sb = (item.studioBadge && String(item.studioBadge).trim()) || '';
+        try {
+          if (!sb) sb = 'img/clipsoustudio.webp';
+          else if (!/^https?:/i.test(sb) && !/^img\//i.test(sb)) sb = 'img/' + sb.replace(/^\/+/, '');
+        } catch {}
+        logo.src = sb;
+      })();
+      logo.alt = 'Studio'; logo.setAttribute('loading', 'lazy'); logo.setAttribute('decoding', 'async'); badge.appendChild(logo);
       media.appendChild(img); media.appendChild(badge); a.appendChild(media); a.appendChild(info); card.appendChild(a); return card;
     }
 
@@ -1597,7 +1606,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         const info = a.querySelector('.card-info');
         desired = (info && info.getAttribute('data-studio-badge')) || '';
       } catch {}
-      if (!desired) desired = 'clipsoustudio.webp';
+      try {
+        if (!desired) desired = 'img/clipsoustudio.webp';
+        else if (!/^https?:/i.test(desired) && !/^img\//i.test(desired)) desired = 'img/' + desired.replace(/^\/+/, '');
+      } catch {}
       if (logo && logo.src !== desired) { logo.src = desired; logo.alt = 'Studio'; }
     });
   })();
