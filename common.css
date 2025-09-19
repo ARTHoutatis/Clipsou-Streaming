@@ -239,6 +239,75 @@ body.drawer-open nav[aria-label="Navigation principale"] {
   }
 }
 
+/* Professional unified CTA styling: size, spacing, icon slot */
+.drawer nav .cta-row a.button {
+  position: relative;
+  border-radius: 6px;
+  padding: 8px 12px; /* base padding (no icon offset by default) */
+  min-height: 38px;
+  font-weight: 600;
+  letter-spacing: .15px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.04);
+}
+.drawer nav .cta-row a.button:hover {
+  transform: none;
+  border-color: rgba(255,255,255,0.22);
+  background: rgba(255,255,255,0.06);
+}
+/* Restore an accessible focus style in drawer CTAs */
+.drawer nav .cta-row a.button:focus,
+.drawer nav .cta-row a.button:focus-visible {
+  outline: 2px solid rgba(255,255,255,0.5) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 6px rgba(255,255,255,0.10) !important;
+}
+/* Icon placeholder (uses mask to allow brand coloring) */
+.drawer nav .cta-row a.button::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background-color: currentColor; /* default; overridden per brand */
+  opacity: 0.98;
+  -webkit-mask-size: 12px 12px;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-size: 12px 12px;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  display: none; /* hidden by default; enable per-button */
+}
+
+/* Specific icons (CSS-only SVG masks) */
+/* YouTube play */
+.drawer nav .cta-row a.button[href="#youtube"] { padding-left: 12px !important; }
+.drawer nav .cta-row a.button[href="#youtube"]::before {
+  display: none !important;
+}
+/* Discord logo */
+.drawer nav .cta-row a.button[href*="discord.gg" i] { padding-left: 12px !important; }
+.drawer nav .cta-row a.button[href*="discord.gg" i]::before {
+  display: none !important;
+}
+/* Infos icon */
+.drawer nav .cta-row a.button[href="#infos"] { padding-left: 12px !important; }
+.drawer nav .cta-row a.button[href="#infos"]::before {
+  display: none !important;
+}
+
+/* Keep brand backgrounds but ensure text/icon contrast */
+.drawer nav .cta-row a.button[href="#youtube"],
+.drawer nav .cta-row a.button[href*="discord.gg" i],
+.drawer nav .cta-row a.button[href="#infos"] {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
 /* Submit Film: emphasized wide blue button */
 .drawer nav .cta-row a.button[href="#submit-film"] {
   flex: 1 1 220px;

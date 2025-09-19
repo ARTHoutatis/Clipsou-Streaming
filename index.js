@@ -864,25 +864,26 @@ document.addEventListener('DOMContentLoaded', async function () {
         } catch {}
       };
       const onKeyDown = (e) => { if (scrollKeys.has(e.key)) lastKeyTs = Date.now(); };
+      // Track if the pointer is over the drawer to avoid accidental close while interacting with it
+      let overDrawer = false;
+      try {
+        drawer.addEventListener('mouseenter', ()=>{ overDrawer = true; }, { passive: true });
+        drawer.addEventListener('mouseleave', ()=>{ overDrawer = false; }, { passive: true });
+        drawer.addEventListener('pointerenter', ()=>{ overDrawer = true; }, { passive: true });
+        drawer.addEventListener('pointerleave', ()=>{ overDrawer = false; }, { passive: true });
+      } catch {}
       const onScroll = () => {
-        const now = Date.now();
-        // If a popup is currently open, never auto-close the drawer on scroll
+        // Close only when the user drags the SITE/page scrollbar (mouseDragScrolling)
+        // Do NOT close when scrolling inside the drawer (that doesn't trigger window scroll)
+        // Also never close while a popup is open.
         try {
           const popupOpen = !!document.querySelector('.fiche-popup:target') || document.body.classList.contains('popup-open');
           if (popupOpen) return;
         } catch {}
-        // If protected due to recent popup close, or grace window is active, do not close
-        // Allow immediate close if user is dragging the scrollbar with mouse
-        if (!mouseDragScrolling) {
-          try { if (window.__protectDrawerForever) return; } catch {}
-          try {
-            const until = window.__suppressDrawerCloseUntil || 0;
-            if (until && now <= until) return;
-          } catch {}
-          // If scroll occurs right after hash change (popup open/close), ignore
-          try { if ((now - lastHashTs) <= SUPPRESS_HASH_MS) return; } catch {}
-        }
-        // Close the drawer on page scroll (e.g., scrollbar drag) when no guards are active
+        // Require the mouse-drag-scrolling flag (set on mousedown outside the drawer)
+        if (!mouseDragScrolling) return;
+        // If pointer is currently over the drawer, do not close
+        if (overDrawer) return;
         try {
           const isOpen = document.body.classList.contains('drawer-open');
           if (isOpen) { reallyClose(); }
