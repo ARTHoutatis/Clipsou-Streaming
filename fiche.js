@@ -341,7 +341,7 @@ const ACTOR_DB_NORM = (() => {
 
 function getActorImageBase(name) {
   // Base du chemin sans extension; on essaiera plusieurs extensions ensuite
-  const baseDir = 'img/';
+  const baseDir = './';
   const clean = String(name || '').trim();
   // IMPORTANT: ne pas encoder ici pour éviter le double-encodage.
   // On renvoie la base brute et on encoder(a) l'URL complète au moment de l'affectation du src.
@@ -470,15 +470,7 @@ function renderFiche(container, item) {
   const mediaWrap = document.createElement('div');
   mediaWrap.className = 'fiche-media-wrap';
   const img = document.createElement('img');
-  (function(){
-    try {
-      let src = item.image || 'img/apercu.webp';
-      if (src && !/^https?:/i.test(src) && /\.(?:webp|jpg|jpeg|png)$/i.test(src)) {
-        if (!/^img\//i.test(src)) src = 'img/' + src.replace(/^\/+/, '');
-      }
-      img.src = src;
-    } catch { img.src = 'img/apercu.webp'; }
-  })();
+  img.src = item.image || 'apercu.webp';
   img.alt = 'Image de ' + (item.title || 'la fiche');
   img.loading = 'lazy';
   img.decoding = 'async';
@@ -912,19 +904,21 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       img.loading = 'lazy';
       img.decoding = 'async';
       // onerror handler already set above (multi-candidate)
-
-      media.appendChild(img);
-      // Add single studio badge like on index/search (avoid duplicates)
+      
+      const badge = document.createElement('div');
+      badge.className = 'brand-badge';
+      const logo = document.createElement('img');
+      // Use configured studio badge if present, otherwise default to absolute URL
       try {
-        const badge = document.createElement('div'); badge.className = 'brand-badge';
-        const logo = document.createElement('img');
-        let sb = (it.studioBadge && String(it.studioBadge).trim()) || '';
-        if (!sb) sb = 'img/clipsoustudio.webp';
-        else if (!/^https?:/i.test(sb) && !/^img\//i.test(sb)) sb = 'img/' + sb.replace(/^\/+/, '');
-        logo.src = sb; logo.alt = 'Studio'; logo.loading = 'lazy'; logo.decoding = 'async';
-        badge.appendChild(logo);
-        media.appendChild(badge);
-      } catch {}
+        const src = it.studioBadge || 'https://clipsoustreaming.com/clipsoustudio.webp';
+        logo.src = src;
+      } catch { logo.src = 'https://clipsoustreaming.com/clipsoustudio.webp'; }
+      logo.alt = 'Clipsou Studio';
+      logo.loading = 'lazy';
+      logo.decoding = 'async';
+      badge.appendChild(logo);
+      media.appendChild(img);
+      media.appendChild(badge);
       const info = document.createElement('div');
       info.className = 'card-info';
       info.setAttribute('data-type', it.type || 'film');
@@ -1097,15 +1091,15 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       img.onerror = function(){
         if (this.getAttribute('data-explicit-photo') === '1') {
           // If explicit photo fails, fallback to Unknown directly
-          this.onerror = null; this.src = 'img/unknown.webp'; return;
+          this.onerror = null; this.src = './unknown.webp'; return;
         }
         var slug = this.getAttribute('data-slug');
-        if (!slug) { this.onerror = null; this.src = 'img/unknown.webp'; return; }
+        if (!slug) { this.onerror = null; this.src = './unknown.webp'; return; }
         var i = (parseInt(this.dataset.i || '0', 10) || 0) + 1;
         this.dataset.i = i;
         // Only try webp once
-        if (i === 1) { this.src = 'img/' + slug + '.webp'; }
-        else { this.onerror = null; this.src = 'img/unknown.webp'; }
+        if (i === 1) { this.src = './' + slug + '.webp'; }
+        else { this.onerror = null; this.src = './unknown.webp'; }
       };
       imgWrap.appendChild(img);
       const nameEl = document.createElement('div');
@@ -1349,14 +1343,14 @@ function renderList(container, items, titleText) {
     const media = document.createElement('div');
     media.className = 'card-media';
     const img = document.createElement('img');
-    img.src = it.image || 'img/apercu.webp';
+    img.src = it.image || 'apercu.webp';
     img.alt = 'Affiche de ' + (it.title || '');
     img.loading = 'lazy';
     img.decoding = 'async';
     const badge = document.createElement('div');
     badge.className = 'brand-badge';
     const logo = document.createElement('img');
-    logo.src = 'img/clipsoustudio.webp';
+    logo.src = 'clipsoustudio.webp';
     logo.alt = 'Clipsou Studio';
     logo.loading = 'lazy';
     logo.decoding = 'async';
@@ -1382,13 +1376,7 @@ function updateHeadSEO(item) {
   document.title = `${item.title} – ${baseTitle}`;
   const desc = item.description || 'Fiche du film ou de la série';
   const url = new URL(location.href);
-  let imgRel = item.image || 'img/apercu.webp';
-  try {
-    if (imgRel && !/^https?:/i.test(imgRel) && /(\.webp|\.jpg|\.jpeg|\.png)$/i.test(imgRel) && !/^img\//i.test(imgRel)) {
-      imgRel = 'img/' + imgRel.replace(/^\/+/, '');
-    }
-  } catch {}
-  const imageAbs = new URL(imgRel, location.origin + location.pathname.replace(/[^\/]+$/, ''));
+  const imageAbs = new URL(item.image || 'apercu.webp', location.origin + location.pathname.replace(/[^\/]+$/, ''));
 
   setMetaTag('meta[name="description"]', 'content', desc);
   setMetaTag('meta[property="og:title"]', 'content', document.title);

@@ -4,4 +4,8 @@
     <loc>https://clipsoustreaming.com/sitemap.xml</loc>
     <lastmod>2025-09-10</lastmod>
   </sitemap>
+  <sitemap>
+    <loc>https://clipsoustreaming.com/sitemap_images.xml</loc>
+    <lastmod>2025-09-10</lastmod>
+  </sitemap>
 </sitemapindex>

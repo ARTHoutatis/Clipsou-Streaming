@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#0b1117">
 <title>Recherche - Clipsou Streaming</title>
 <meta name="description" content="Recherchez rapidement des brickfilms et séries sur Clipsou Streaming.">
-<link rel="icon" href="img/favicon.webp" type="image/webp">
-<link rel="apple-touch-icon" href="img/favicon.webp">
+<link rel="icon" href="favicon.webp" type="image/webp">
+<link rel="apple-touch-icon" href="favicon.webp">
 <link rel="canonical" href="https://clipsoustreaming.com/search.html">
 <meta name="robots" content="index, follow">
 <!-- Preconnects for faster Google Fonts (shared families) -->
@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://www.youtube.com">
 <link rel="preconnect" href="https://youtu.be">
 <!-- Preload the UI icon used above the fold -->
-<link rel="preload" as="image" href="img/loupe.webp">
+<link rel="preload" as="image" href="loupe.webp">
 <!-- Preload critical CSS to speed up first paint (keep stylesheets below) -->
 <link rel="preload" as="style" href="common.css?v=20250912-2">
 <link rel="preload" as="style" href="search.css?v=20250912-2">
@@ -52,7 +52,7 @@
 <nav aria-label="Navigation principale">
     <div class="logo">
         <a href="./" aria-label="Accueil Clipsou Streaming" style="display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none">
-            <img src="img/favicon.webp" alt="Logo Clipsou" width="35" height="35" fetchpriority="high" decoding="async">
+            <img src="favicon.webp" alt="Logo Clipsou" width="35" height="35" fetchpriority="high" decoding="async">
             <span>Clipsou</span>
             <span>Streaming</span>
         </a>
@@ -60,7 +60,6 @@
     </div>
 
     <div class="nav-links">
-      <button id="auth-btn" class="button secondary" type="button" style="margin-left:12px">Se connecter</button>
     </div>
 </nav>
 
@@ -70,7 +69,7 @@
     </div>
     
     <div class="search-input-container">
-        <img src="img/loupe.webp" alt="Recherche" class="search-icon" width="32" height="32" decoding="async" fetchpriority="high">
+        <img src="loupe.webp" alt="Recherche" class="search-icon" width="32" height="32" decoding="async" fetchpriority="high">
         <input type="search" id="search-input" placeholder="Recherchez un genre, un film ou une série..." autocomplete="off" enterkeyhint="search" inputmode="search" autocapitalize="none">
     </div>
     
@@ -82,31 +81,6 @@
         <!-- Results will be populated by JavaScript -->
     </div>
 </main>
-<script type="module">
-  // Safe loader for Firebase Auth. Add ?noauth=1 to disable.
-  (async () => {
-    try {
-      const sp = new URLSearchParams(location.search);
-      if (sp.has('noauth')) return;
-      await import('./firebase-auth.js');
-    } catch (e) {}
-  })();
-  </script>
-<script type="module">
-  (async () => {
-    try {
-      const sp = new URLSearchParams(location.search);
-      if (sp.has('nosync')) return;
-      await new Promise((resolve) => {
-        if (window.FirebaseAuth) { resolve(); return; }
-        let tries = 0; const i = setInterval(() => {
-          tries++; if (window.FirebaseAuth || tries > 60) { clearInterval(i); resolve(); }
-        }, 100);
-      });
-      await import('./progress-sync.js');
-    } catch (e) {}
-  })();
-  </script>
 <script src="search.js?v=20250912-2" defer></script>
 <script>
   // Local dev helper: make Accueil links point to index.html when served as file:// or localhost
