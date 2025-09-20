@@ -123,8 +123,9 @@
 @media (max-width: 768px) {
     /* Ensure same navbar height/padding as other pages (without showing the loupe) */
     nav[aria-label="Navigation principale"] {
-        padding: 10px 12px !important;
-        min-height: 60px !important;
+        padding: 10px 12px 10px 12px !important;
+        height: 60px !important;
+        box-sizing: border-box !important;
         align-items: center !important;
     }
     /* Align with other pages: hide Accueil on mobile to keep navbar same height */
@@ -170,11 +171,12 @@ body {
     linear-gradient(180deg, var(--bg-2), var(--bg-1));
 }
 
-/* Opaque nav (match homepage) */
+/* Translucent blurred nav (match common.css) */
 nav[aria-label="Navigation principale"] {
-  background: #0b1117; /* solid dark */
-  backdrop-filter: none;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: rgba(11,17,23,0.55);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,0.12);
 }
 
 /* Gradient title text */
@@ -185,8 +187,51 @@ nav[aria-label="Navigation principale"] {
 
 /* Card polish */
 /* Card visuals are centralized in common.css to keep consistency across pages */
-/* .card and hover styles removed here to avoid duplication */
-/* Keep only page-specific layout/behavior below */
+/* Ajout des mêmes effets de survol que sur index */
+
+/* Overlay blanc transparent au survol */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.04) 50%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+.card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive: version mobile des effets */
+@media (max-width: 768px) {
+  .card:hover {
+    transform: translateY(-4px) scale(1.01);
+  }
+  
+  /* Simplifier les effets sur mobile */
+  .card::before {
+    display: none;
+  }
+}
 
 /* Disable overlay watermark: place the logo inside the info bar */
 /* Watermark already disabled globally */

@@ -396,8 +396,9 @@ body {
 
 /* Navigation (banderole) */
 nav[aria-label="Navigation principale"] {
-  background: #0b1117; /* solid dark */
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  /* Background opaque partout */
+  background: #0b1117 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
   padding: 0 40px; /* horizontal only on desktop to lock bar height */
   height: 70px; /* fixed desktop height for consistency */
   display: flex;
@@ -727,8 +728,9 @@ html { scrollbar-color: #615d5d #0a0a0a; scrollbar-width: thin; }
   }
   /* Tight mobile layout: logo left, actions right, no overflow */
   nav[aria-label="Navigation principale"] {
-    padding: 10px 12px 12px 12px !important; /* slight extra bottom padding to avoid text clipping */
-    min-height: 60px; /* allow auto height to avoid clipping */
+    padding: 10px 12px 10px 12px !important; /* symmetric vertical padding */
+    height: 60px !important; /* fixed height to match body padding-top */
+    box-sizing: border-box !important; /* include padding inside height */
     width: 100%;
     max-width: 100vw;
     overflow-x: hidden;

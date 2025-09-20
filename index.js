@@ -929,6 +929,21 @@ document.addEventListener('DOMContentLoaded', async function () {
       list.innerHTML = '';
       fixedItems.forEach(li => list.appendChild(li));
 
+      // Helper functions for genres (duplicated here for menu access)
+      const normalizeGenreMenu = (name) => (name || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+      const PRETTY_MAP_MENU = { comedie:'Comédie', familial:'Familial', aventure:'Aventure', action:'Action', horreur:'Horreur' };
+      const prettyMenu = (n)=> PRETTY_MAP_MENU[normalizeGenreMenu(n)] || (n||'').charAt(0).toUpperCase() + (n||'').slice(1);
+      const getIconMenu = (n) => {
+        const icons = {
+          familial: '<svg width="16" height="16" fill="#9C27B0" viewBox="0 0 98.666 98.666" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 10px;"><circle cx="49.332" cy="53.557" r="10.297"/><path d="M53.7,64.556h-8.737c-7.269,0-13.183,5.916-13.183,13.184v10.688l0.027,0.166l0.735,0.229 c6.937,2.168,12.965,2.892,17.927,2.892c9.688,0,15.303-2.764,15.65-2.938l0.688-0.351l0.071,0.002V77.739 C66.883,70.472,60.971,64.556,53.7,64.556z"/><circle cx="28.312" cy="23.563" r="16.611"/><path d="M70.35,40.174c9.174,0,16.609-7.44,16.609-16.613c0-9.17-7.438-16.609-16.609-16.609c-9.176,0-16.61,7.437-16.61,16.609 S61.174,40.174,70.35,40.174z"/><path d="M41.258,62.936c-2.637-2.274-4.314-5.632-4.314-9.378c0-4.594,2.519-8.604,6.243-10.743 c-2.425-0.965-5.061-1.511-7.826-1.511H21.266C9.54,41.303,0,50.847,0,62.571v17.241l0.043,0.269L1.23,80.45 c10.982,3.432,20.542,4.613,28.458,4.656v-7.367C29.688,70.595,34.623,64.599,41.258,62.936z"/><path d="M77.398,41.303H63.305c-2.765,0-5.398,0.546-7.824,1.511c3.727,2.139,6.246,6.147,6.246,10.743 c0,3.744-1.678,7.102-4.313,9.376c2.656,0.661,5.101,2.02,7.088,4.008c2.888,2.89,4.479,6.726,4.478,10.8v7.365 c7.916-0.043,17.477-1.225,28.457-4.656l1.187-0.369l0.044-0.269V62.571C98.664,50.847,89.124,41.303,77.398,41.303z"/></svg>',
+          comedie: '<svg width="16" height="16" fill="#FFD700" viewBox="-8 0 512 512" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 10px;"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm33.8 161.7l80-48c11.6-6.9 24 7.7 15.4 18L343.6 180l33.6 40.3c8.7 10.4-3.9 24.8-15.4 18l-80-48c-7.7-4.7-7.7-15.9 0-20.6zm-163-30c-8.6-10.3 3.8-24.9 15.4-18l80 48c7.8 4.7 7.8 15.9 0 20.6l-80 48c-11.5 6.8-24-7.6-15.4-18l33.6-40.3-33.6-40.3zM398.9 306C390 377 329.4 432 256 432h-16c-73.4 0-134-55-142.9-126-1.2-9.5 6.3-18 15.9-18h270c9.6 0 17.1 8.4 15.9 18z"/></svg>',
+          aventure: '<svg width="16" height="16" viewBox="-1.6 -1.6 19.20 19.20" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 10px;"><path d="M4 2L0 1V14L4 15V2Z" fill="#4CAF50"/><path d="M16 2L12 1V14L16 15V2Z" fill="#4CAF50"/><path d="M10 1L6 2V15L10 14V1Z" fill="#4CAF50"/></svg>',
+          horreur: '<svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 10px;"><path fill="#ffffff" d="M12,2 C16.9706,2 21,6.02944 21,11 L21,19.6207 C21,21.4506 19.0341,22.6074 17.4345,21.7187 L17.0720446,21.5243825 C16.0728067,21.0124062 15.2881947,20.8437981 14.1830599,21.4100628 L13.9846,21.5177 C12.8231222,22.1813611 11.4120698,22.2182312 10.2228615,21.6283102 L10.0154,21.5177 C8.73821,20.7879 7.84896,21.0056 6.56554,21.7187 C4.96587,22.6074 3,21.4506 3,19.6207 L3,11 C3,6.02944 7.02944,2 12,2 Z M8.5,9 C7.67157,9 7,9.67157 7,10.5 C7,11.3284 7.67157,12 8.5,12 C9.32843,12 10,11.3284 10,10.5 C10,9.67157 9.32843,9 8.5,9 Z M15.5,9 C14.6716,9 14,9.67157 14,10.5 C14,11.3284 14.6716,12 15.5,12 C16.3284,12 17,11.3284 17,10.5 C17,9.67157 16.3284,9 15.5,9 Z"/></svg>',
+          action: '<svg width="16" height="16" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 10px;"><path fill="#FF9800" d="M59.395 20.285l109.447 137.043L18.89 98.084 143.737 246.75 36.975 338.582l137.287-12.72-31.457 160.187 112.27-115.142 83.08 101.588-8.58-127.873 165.988-22.76-141.383-74.597 141.04-56.778v-67.236L388.605 189.18l106.5-128.567L292.05 160.55 240.98 40.616l-53.037 90.26L126.63 20.285H59.396zm280.996 0l-25.812 98.61 93.05-98.61H340.39zM219.8 169.29l35.042 59.308-72.737-30.795c4.267-16.433 18.46-27.994 37.696-28.512zm104.62 1.77c16.857 9.28 24.173 26.062 20.428 42.62l-18.866-8.112-35.28 17.522 15.986-26.145-11.715-6.8 29.447-19.086zm-65.5 18.872l24.332 4.218-11.7 37.862-12.632-42.08zm-16.12 58.87l-1.208 21.895 22.87 2.412-38.76 54.28c-34.81-3.42-53.307-34.73-38.737-71.263L242.8 248.8zm32.034 18.862l51.99 16.72c2.035 11.373-2.796 20.542-13.455 24.466l7.767 8.576c-4.758 13.162-16.607 18.498-31.276 12.222l-4.9-47.962-10.126-14.022zm-143.688 85.15L74.613 396.34l-26-15.01-24.95 43.213 43.216 24.95 21.698-37.585 42.568-59.094zm223.293 10.32l85.85 81.178 11.68 42.05 39.712-12.266-12.264-33.287 19.857-36.796-39.13 10.513-105.706-51.392z"/></svg>'
+        };
+        return icons[normalizeGenreMenu(n)] || '';
+      };
+
       // Find genre sections
       const sections = Array.from(document.querySelectorAll('.section[id^="genre-"] h2'));
       sections.forEach(h2 => {
@@ -938,7 +953,14 @@ document.addEventListener('DOMContentLoaded', async function () {
         const a = document.createElement('a');
         a.className = 'link';
         a.href = '#' + section.id;
-        a.textContent = h2.textContent || section.id.replace(/^genre-/, '');
+        
+        // Extract genre name from section id and add icon
+        const genreName = section.id.replace(/^genre-/, '').replace(/-/g, ' ');
+        const normalizedGenre = normalizeGenreMenu(genreName);
+        const icon = getIconMenu(normalizedGenre);
+        const prettyName = prettyMenu(normalizedGenre);
+        
+        a.innerHTML = `${icon}${prettyName}`;
         li.appendChild(a);
         list.appendChild(li);
         enableLink(a);
@@ -1284,118 +1306,124 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Populate Top Rated (sorted by rating desc)
     const topRated = document.querySelector('#top-rated .rail');
     if (topRated) {
-      const sorted = items.filter(it => typeof it.rating === 'number' && it.rating >= 3.5)
-        .sort((a, b) => { const ra = (typeof a.rating === 'number') ? a.rating : -Infinity; const rb = (typeof b.rating === 'number') ? b.rating : -Infinity; if (rb !== ra) return rb - ra; return (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' }); });
-      topRated.innerHTML = ''; sorted.forEach(it => topRated.appendChild(createCard(it)));
-      // Ensure header with See All for the Top Rated section
+      const sorted = items
+        .filter(it => typeof it.rating === 'number' && it.rating >= 3.5)
+        .sort((a, b) => {
+          const ra = (typeof a.rating === 'number') ? a.rating : -Infinity;
+          const rb = (typeof b.rating === 'number') ? b.rating : -Infinity;
+          if (rb !== ra) return rb - ra;
+          return (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' });
+        });
+      topRated.innerHTML = '';
+      sorted.forEach(it => topRated.appendChild(createCard(it)));
       try { const sec = document.getElementById('top-rated'); ensureSectionSeeAll(sec, '⭐ Mieux notés', sorted, createCard); } catch {}
     }
 
-    // Build a dedicated "Séries" section
-    (function buildSeriesSection(){
+    // Insert 'Séries' and selected Genre sections after the Categories block (between Top Rated and Series)
+    (function buildSeriesAndGenresOnHome(){
       try {
-        const seriesItems = items.filter(it => {
-          const t = (it.type || '').toLowerCase();
-          return t === 'série' || t === 'serie';
-        });
-        const firstPopup = document.querySelector('.fiche-popup');
-        const id = 'series';
-        let section = document.getElementById(id);
-        if (!seriesItems || seriesItems.length <= 0) {
-          if (section) section.remove();
-          return;
+        const container = document.querySelector('main') || document.body;
+        const categoriesEl = document.getElementById('categories');
+        const heroEl = document.getElementById('hero-claim');
+        // Maintain a tail insertion point so order remains: Series, then each genre
+        let tailEl = (function(){
+          if (categoriesEl) return categoriesEl;
+          if (heroEl) return heroEl.previousSibling || null;
+          return (container && container.lastChild) || null;
+        })();
+        function insertSection(section){
+          if (!section) return;
+          const parent = (categoriesEl && categoriesEl.parentNode) || (heroEl && heroEl.parentNode) || container;
+          if (!parent) return;
+          if (tailEl && tailEl.parentNode === parent) {
+            // Insert after tail
+            const ref = tailEl.nextSibling; // may be null to append
+            parent.insertBefore(section, ref);
+          } else if (categoriesEl && categoriesEl.parentNode) {
+            categoriesEl.parentNode.insertBefore(section, categoriesEl.nextSibling);
+          } else if (heroEl && heroEl.parentNode) {
+            heroEl.parentNode.insertBefore(section, heroEl);
+          } else {
+            parent.appendChild(section);
+          }
+          tailEl = section;
         }
-        if (!section) {
-          section = document.createElement('div');
-          section.className = 'section';
-          section.id = id;
-          const h2 = document.createElement('h2');
-          h2.textContent = '📺 Séries';
-          const rail = document.createElement('div');
-          rail.className = 'rail';
-          section.appendChild(h2);
-          section.appendChild(rail);
-          if (firstPopup && firstPopup.parentNode) firstPopup.parentNode.insertBefore(section, firstPopup);
-          else (document.querySelector('main') || document.body).appendChild(section);
-        }
-        const rail = section.querySelector('.rail');
-        rail.innerHTML = '';
-        const sorted = seriesItems.slice().sort((a, b) => {
-          const ra = (typeof a.rating === 'number') ? a.rating : -Infinity;
-          const rb = (typeof b.rating === 'number') ? b.rating : -Infinity;
-          if (rb !== ra) return rb - ra; // higher ratings first
-          const ta = (a.title || '');
-          const tb = (b.title || '');
-          return ta.localeCompare(tb, 'fr', { sensitivity: 'base' });
+        // Util helpers for genres
+        const normalizeGenre = (name) => (name || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+        const PRETTY_MAP = { comedie:'Comédie', familial:'Familial', aventure:'Aventure', action:'Action', horreur:'Horreur' };
+        const pretty = (n)=> PRETTY_MAP[normalizeGenre(n)] || (n||'').charAt(0).toUpperCase() + (n||'').slice(1);
+        const getIcon = (n) => {
+          const icons = {
+            familial: '<svg width="20" height="20" fill="#9C27B0" viewBox="0 0 98.666 98.666" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 12px;"><circle cx="49.332" cy="53.557" r="10.297"/><path d="M53.7,64.556h-8.737c-7.269,0-13.183,5.916-13.183,13.184v10.688l0.027,0.166l0.735,0.229 c6.937,2.168,12.965,2.892,17.927,2.892c9.688,0,15.303-2.764,15.65-2.938l0.688-0.351l0.071,0.002V77.739 C66.883,70.472,60.971,64.556,53.7,64.556z"/><circle cx="28.312" cy="23.563" r="16.611"/><path d="M70.35,40.174c9.174,0,16.609-7.44,16.609-16.613c0-9.17-7.438-16.609-16.609-16.609c-9.176,0-16.61,7.437-16.61,16.609 S61.174,40.174,70.35,40.174z"/><path d="M41.258,62.936c-2.637-2.274-4.314-5.632-4.314-9.378c0-4.594,2.519-8.604,6.243-10.743 c-2.425-0.965-5.061-1.511-7.826-1.511H21.266C9.54,41.303,0,50.847,0,62.571v17.241l0.043,0.269L1.23,80.45 c10.982,3.432,20.542,4.613,28.458,4.656v-7.367C29.688,70.595,34.623,64.599,41.258,62.936z"/><path d="M77.398,41.303H63.305c-2.765,0-5.398,0.546-7.824,1.511c3.727,2.139,6.246,6.147,6.246,10.743 c0,3.744-1.678,7.102-4.313,9.376c2.656,0.661,5.101,2.02,7.088,4.008c2.888,2.89,4.479,6.726,4.478,10.8v7.365 c7.916-0.043,17.477-1.225,28.457-4.656l1.187-0.369l0.044-0.269V62.571C98.664,50.847,89.124,41.303,77.398,41.303z"/></svg>',
+            comedie: '<svg width="20" height="20" fill="#FFD700" viewBox="-8 0 512 512" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 12px;"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm33.8 161.7l80-48c11.6-6.9 24 7.7 15.4 18L343.6 180l33.6 40.3c8.7 10.4-3.9 24.8-15.4 18l-80-48c-7.7-4.7-7.7-15.9 0-20.6zm-163-30c-8.6-10.3 3.8-24.9 15.4-18l80 48c7.8 4.7 7.8 15.9 0 20.6l-80 48c-11.5 6.8-24-7.6-15.4-18l33.6-40.3-33.6-40.3zM398.9 306C390 377 329.4 432 256 432h-16c-73.4 0-134-55-142.9-126-1.2-9.5 6.3-18 15.9-18h270c9.6 0 17.1 8.4 15.9 18z"/></svg>',
+            aventure: '<svg width="20" height="20" viewBox="-1.6 -1.6 19.20 19.20" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 12px;"><path d="M4 2L0 1V14L4 15V2Z" fill="#4CAF50"/><path d="M16 2L12 1V14L16 15V2Z" fill="#4CAF50"/><path d="M10 1L6 2V15L10 14V1Z" fill="#4CAF50"/></svg>',
+            horreur: '<svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 12px;"><path fill="#ffffff" d="M12,2 C16.9706,2 21,6.02944 21,11 L21,19.6207 C21,21.4506 19.0341,22.6074 17.4345,21.7187 L17.0720446,21.5243825 C16.0728067,21.0124062 15.2881947,20.8437981 14.1830599,21.4100628 L13.9846,21.5177 C12.8231222,22.1813611 11.4120698,22.2182312 10.2228615,21.6283102 L10.0154,21.5177 C8.73821,20.7879 7.84896,21.0056 6.56554,21.7187 C4.96587,22.6074 3,21.4506 3,19.6207 L3,11 C3,6.02944 7.02944,2 12,2 Z M8.5,9 C7.67157,9 7,9.67157 7,10.5 C7,11.3284 7.67157,12 8.5,12 C9.32843,12 10,11.3284 10,10.5 C10,9.67157 9.32843,9 8.5,9 Z M15.5,9 C14.6716,9 14,9.67157 14,10.5 C14,11.3284 14.6716,12 15.5,12 C16.3284,12 17,11.3284 17,10.5 C17,9.67157 16.3284,9 15.5,9 Z"/></svg>',
+            action: '<svg width="20" height="20" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 12px;"><path fill="#FF9800" d="M59.395 20.285l109.447 137.043L18.89 98.084 143.737 246.75 36.975 338.582l137.287-12.72-31.457 160.187 112.27-115.142 83.08 101.588-8.58-127.873 165.988-22.76-141.383-74.597 141.04-56.778v-67.236L388.605 189.18l106.5-128.567L292.05 160.55 240.98 40.616l-53.037 90.26L126.63 20.285H59.396zm280.996 0l-25.812 98.61 93.05-98.61H340.39zM219.8 169.29l35.042 59.308-72.737-30.795c4.267-16.433 18.46-27.994 37.696-28.512zm104.62 1.77c16.857 9.28 24.173 26.062 20.428 42.62l-18.866-8.112-35.28 17.522 15.986-26.145-11.715-6.8 29.447-19.086zm-65.5 18.872l24.332 4.218-11.7 37.862-12.632-42.08zm-16.12 58.87l-1.208 21.895 22.87 2.412-38.76 54.28c-34.81-3.42-53.307-34.73-38.737-71.263L242.8 248.8zm32.034 18.862l51.99 16.72c2.035 11.373-2.796 20.542-13.455 24.466l7.767 8.576c-4.758 13.162-16.607 18.498-31.276 12.222l-4.9-47.962-10.126-14.022zm-143.688 85.15L74.613 396.34l-26-15.01-24.95 43.213 43.216 24.95 21.698-37.585 42.568-59.094zm223.293 10.32l85.85 81.178 11.68 42.05 39.712-12.266-12.264-33.287 19.857-36.796-39.13 10.513-105.706-51.392z"/></svg>'
+          };
+          return icons[normalizeGenre(n)] || '';
+        };
+        const slug = (t)=> (t||'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+        // Build Series
+        (function buildSeries(){
+          const list = (items||[]).filter(it => {
+            const t = String(it.type||'').toLowerCase();
+            return t === 'série' || t === 'serie';
+          });
+          let section = document.getElementById('series');
+          if (!list.length) { if (section) section.remove(); return; }
+          if (!section) {
+            section = document.createElement('div'); section.className = 'section'; section.id = 'series';
+            const h2 = document.createElement('h2'); h2.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 12px; color: #2196F3;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>Séries';
+            const rail = document.createElement('div'); rail.className = 'rail';
+            section.appendChild(h2); section.appendChild(rail);
+            insertSection(section);
+          }
+          const rail = section.querySelector('.rail');
+          rail.innerHTML = '';
+          const sorted = list.slice().sort((a, b) => {
+            const ra = (typeof a.rating === 'number') ? a.rating : -Infinity;
+            const rb = (typeof b.rating === 'number') ? b.rating : -Infinity;
+            if (rb !== ra) return rb - ra; return (a.title||'').localeCompare(b.title||'', 'fr', { sensitivity:'base' });
+          });
+          sorted.forEach(it => rail.appendChild(createCard(it)));
+          try { ensureSectionSeeAll(section, '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 12px; color: #2196F3;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>Séries', sorted, createCard); } catch {}
+        })();
+        // Build selected Genre sections
+        const ALLOWED = ['Comédie','Familial','Aventure','Action','Horreur'];
+        // Group by normalized genre
+        const byGenre = new Map();
+        (items||[]).forEach(it => {
+          (it.genres||[]).forEach(g => {
+            if (!g) return; const key = normalizeGenre(g);
+            if (!byGenre.has(key)) byGenre.set(key, { name: pretty(g), list: [] });
+            byGenre.get(key).list.push(it);
+          });
         });
-        sorted.forEach(it => rail.appendChild(createCard(it)));
-        // Add See All for series
-        try { ensureSectionSeeAll(section, '📺 Séries', sorted, createCard); } catch {}
+        ALLOWED.forEach(name => {
+          const key = normalizeGenre(name);
+          const entry = byGenre.get(key);
+          const id = 'genre-' + slug(pretty(name));
+          let section = document.getElementById(id);
+          if (!entry || !entry.list || entry.list.length < 1) { if (section) section.remove(); return; }
+          if (!section) {
+            section = document.createElement('div'); section.className = 'section'; section.id = id;
+            const h2 = document.createElement('h2'); h2.innerHTML = `${getIcon(name)}${pretty(name)}`;
+            const rail = document.createElement('div'); rail.className = 'rail';
+            section.appendChild(h2); section.appendChild(rail);
+            insertSection(section);
+          }
+          const rail = section.querySelector('.rail'); const h2 = section.querySelector('h2'); if (h2) h2.innerHTML = `${getIcon(name)}${pretty(name)}`;
+          const sorted = entry.list.slice().sort((a,b)=>{
+            const ra = (typeof a.rating === 'number') ? a.rating : -Infinity;
+            const rb = (typeof b.rating === 'number') ? b.rating : -Infinity;
+            if (rb !== ra) return rb - ra; return (a.title||'').localeCompare(b.title||'', 'fr', { sensitivity:'base' });
+          });
+          rail.innerHTML = ''; const seen = new Set();
+          sorted.forEach(it => { const href = `#${it.id}`; if (seen.has(href)) return; rail.appendChild(createCard(it)); seen.add(href); });
+          try { ensureSectionSeeAll(section, `${getIcon(name)}${pretty(name)}`, sorted, createCard); } catch {}
+        });
       } catch {}
     })();
-
-    // Helpers to normalize and pretty-print genre names (merge accents/variants)
-    const normalizeGenre = (name) => (name || '')
-      .trim()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase();
-    const PRETTY_MAP = {
-      'comedie': 'Comédie',
-      'action': 'Action',
-      'drame': 'Drame',
-      'familial': 'Familial',
-      'horreur': 'Horreur',
-      'aventure': 'Aventure',
-      'thriller': 'Thriller',
-      'fantastique': 'Fantastique',
-      'western': 'Western',
-      'mystere': 'Mystère',
-      'ambience': 'Ambience',
-      'enfants': 'Enfants',
-      'super-heros': 'Super‑héros',
-      'psychologique': 'Psychologique',
-    };
-    const prettyGenre = (name) => PRETTY_MAP[normalizeGenre(name).replace(/\s+/g,'-')] || capitalize(name);
-
-    function capitalize(name) {
-      const n = (name||'').trim();
-      return n.charAt(0).toUpperCase() + n.slice(1);
-    }
-
-    // Group by normalized genre and ensure sections
-    const firstPopup = document.querySelector('.fiche-popup');
-    const byGenre = new Map();
-    items.forEach(it => {
-      (it.genres || []).forEach(g => {
-        if (!g) return;
-        const norm = normalizeGenre(g);
-        if (!byGenre.has(norm)) byGenre.set(norm, { name: prettyGenre(g), list: [] });
-        byGenre.get(norm).list.push(it);
-      });
-    });
-    function genreEmoji(name) { const g = (name || '').toLowerCase(); const map = { 'action':'🔥','comédie':'😂','comedie':'😂','drame':'😢','familial':'👨‍👩‍👧','horreur':'👻','aventure':'🗺️','thriller':'🗡️','fantastique':'✨','western':'🤠','mystère':'🕵️','mystere':'🕵️','ambience':'🌫️','enfants':'🧒','super-héros':'🦸','super heros':'🦸','psychologique':'🧠' }; return map[g] || '🎞️'; }
-    // Build only the fixed whitelist of genres
-    const ALLOWED_GENRES = new Set(['comedie','familial','aventure','action','horreur']);
-    byGenre.forEach((entry, normKey) => {
-      const list = entry && entry.list || [];
-      const displayName = entry && entry.name ? entry.name : 'Genres';
-      const id = 'genre-' + slug(displayName);
-      const lowerName = normKey; // already normalized
-      // If not in the whitelist, remove any pre-existing section and skip
-      if (!ALLOWED_GENRES.has(lowerName)) { const existing = document.getElementById(id); if (existing) existing.remove(); return; }
-      if (!list || list.length < 1) { const existingSection = document.getElementById(id); if (existingSection) existingSection.remove(); return; }
-      let section = document.getElementById(id);
-      if (!section) { section = document.createElement('div'); section.className = 'section'; section.id = id; const h2 = document.createElement('h2'); h2.textContent = `${genreEmoji(displayName)} ${displayName}`; const rail = document.createElement('div'); rail.className = 'rail'; section.appendChild(h2); section.appendChild(rail); if (firstPopup && firstPopup.parentNode) firstPopup.parentNode.insertBefore(section, firstPopup); else (document.querySelector('main') || document.body).appendChild(section); }
-      const rail = section.querySelector('.rail'); const header = section.querySelector('h2'); if (header) header.textContent = `${genreEmoji(displayName)} ${displayName}`;
-      const sorted = list.slice().sort((a, b) => { const ra = (typeof a.rating === 'number') ? a.rating : -Infinity; const rb = (typeof b.rating === 'number') ? b.rating : -Infinity; if (rb !== ra) return rb - ra; return (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' }); });
-      rail.innerHTML = ''; const seen = new Set(); sorted.forEach(it => { const href = `#${it.id}`; if (seen.has(href)) return; rail.appendChild(createCard(it)); seen.add(href); });
-      if (rail.querySelectorAll('.card').length <= 0) { section.remove(); }
-      else {
-        try { window.__genreSectionIds = window.__genreSectionIds || new Set(); window.__genreSectionIds.add(id); } catch {}
-        // Add See All for this genre section
-        try { ensureSectionSeeAll(section, `${genreEmoji(displayName)} ${displayName}`, sorted, createCard); } catch {}
-      }
-    });
 
     // After all rails are (re)built, add desktop-only arrows and wire scroll
     function enhanceRailsWithArrows(){

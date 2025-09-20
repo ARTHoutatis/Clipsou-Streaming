@@ -303,19 +303,36 @@ function getAllGenres() {
 // Rend les puces de genre et branche les filtres
 function renderGenreFilters(onChange) {
     const container = document.getElementById('genre-filters');
-    if (!container) return { getSelected: () => [] };
+    if (!container) return { getSelected: () => [], selectGenres: () => {} };
     const genres = getAllGenres();
     container.innerHTML = genres.map(g => `<button type="button" class="genre-chip" data-genre="${g}">${g}</button>`).join('');
     const selected = new Set();
+    function notify(){ if (typeof onChange === 'function') onChange(Array.from(selected)); }
+    function setActive(btn, on){ if (!btn) return; btn.classList.toggle('active', !!on); }
     container.addEventListener('click', (e) => {
         const btn = e.target.closest('.genre-chip');
         if (!btn) return;
         const g = btn.getAttribute('data-genre');
-        if (selected.has(g)) { selected.delete(g); btn.classList.remove('active'); }
-        else { selected.add(g); btn.classList.add('active'); }
-        if (typeof onChange === 'function') onChange(Array.from(selected));
+        if (selected.has(g)) { selected.delete(g); setActive(btn, false); }
+        else { selected.add(g); setActive(btn, true); }
+        notify();
     });
-    return { getSelected: () => Array.from(selected) };
+    // Programmatic selection API (replaces any existing selection by default)
+    function selectGenres(list, append=false){
+        try {
+            const want = new Set((list||[]).filter(Boolean));
+            if (!append) selected.clear();
+            // Clear all actives first
+            container.querySelectorAll('.genre-chip.active').forEach(el=>el.classList.remove('active'));
+            // Activate requested
+            container.querySelectorAll('.genre-chip').forEach(btn => {
+                const g = btn.getAttribute('data-genre');
+                if (want.has(g)) { selected.add(g); btn.classList.add('active'); }
+            });
+            notify();
+        } catch {}
+    }
+    return { getSelected: () => Array.from(selected), selectGenres };
 }
 
 // Event listeners
@@ -328,6 +345,30 @@ document.addEventListener('DOMContentLoaded', async function() {
         const q = searchInput ? searchInput.value : '';
         displayResults(searchMovies(q, filters.getSelected()));
     });
+    // Deep-linking: pre-select genre from ?q=<genre>
+    try {
+        const params = new URLSearchParams(window.location.search || '');
+        const qParam = (params.get('q') || '').trim();
+        if (qParam) {
+            const all = getAllGenres();
+            // Find display label whose normalized form matches q
+            const target = (function(){
+                const qn = normalizeStr(qParam).toLowerCase();
+                // attempt exact match
+                for (const g of all) { if (normalizeStr(g).toLowerCase() === qn) return g; }
+                // attempt startsWith/contains
+                for (const g of all) { const gn = normalizeStr(g).toLowerCase(); if (gn.startsWith(qn) || qn.startsWith(gn)) return g; }
+                return '';
+            })();
+            if (target) {
+                // Clear text query to rely on genre filter only
+                if (searchInput) searchInput.value = '';
+                // Programmatically select genre and render results
+                filters.selectGenres([target]);
+                displayResults(searchMovies('', filters.getSelected()));
+            }
+        }
+    } catch {}
     
     if (searchInput) {
         // Placeholders pour desktop et mobile + switch auto selon taille d'écran
@@ -369,8 +410,10 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         });
         
-        // Afficher tous les films par défaut (après build async)
-        displayResults(searchMovies('', filters.getSelected()));
+        // Afficher tous les films par défaut (après build async) si pas de pré-sélection
+        if (filters.getSelected().length === 0) {
+          displayResults(searchMovies('', filters.getSelected()));
+        }
     }
 });
 
