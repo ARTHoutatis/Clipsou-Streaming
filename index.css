@@ -705,14 +705,21 @@ main > .categories-section { transform: translateX(calc(var(--home-shift) + var(
 .category-card { flex: 0 0 260px; width: 260px; max-width: 260px; }
 @media (max-width: 1024px) { .category-card { flex: 0 0 240px; width: 240px; max-width: 240px; } }
 @media (max-width: 900px) { .category-card { flex: 0 0 220px; width: 220px; max-width: 220px; } }
-@media (max-width: 768px) { .category-card { flex: 0 0 calc(50% - 12px); width: calc(50% - 12px); max-width: calc(50% - 12px); } }
-@media (max-width: 480px) { .category-card { flex: 0 0 100%; width: 100%; max-width: 100%; } }
+@media (max-width: 768px) { .category-card { flex: 0 0 calc(50% - 8px); width: calc(50% - 8px); max-width: calc(50% - 8px); } }
+@media (max-width: 480px) { .category-card { flex: 0 0 calc(50% - 6px); width: calc(50% - 6px); max-width: calc(50% - 6px); } }
 
 /* Mobile: wrap instead of horizontal scroll */
 @media (max-width: 768px) {
   .categories-section { margin: 6px 12px 8px; border-radius: 12px; padding: 10px 0 12px; }
   .categories-section .categories-title { margin: 0 12px 6px; font-size: 18px; }
-  .categories-rail { padding: 0 12px; overflow: visible; }
+  .categories-rail { padding: 0 12px; overflow: visible; gap: 12px; }
+  .category-card img { max-height: 80px; } /* Réduire la hauteur sur mobile */
+}
+
+/* Très petits écrans : cartes encore plus petites */
+@media (max-width: 480px) {
+  .categories-rail { gap: 8px; }
+  .category-card img { max-height: 70px; }
 }
 
 /* Desktop 16:9 and wider: exactly 6 category cards per row */
