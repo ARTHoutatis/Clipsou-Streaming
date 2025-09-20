@@ -75,7 +75,7 @@ html.popup-open {
 /* Continue Watching: use fades that match the box background color (#151D28) */
 @media (min-width: 769px) {
   /* Desktop: make rail a masked scroll container for arrow navigation */
-  #continue-watching .rail { overflow-x: hidden !important; overflow-y: visible !important; }
+  #continue-watching .rail { overflow-x: hidden !important; overflow-y: hidden !important; }
   /* In Continue Watching, extend the fades across the full box height */
   #continue-watching .rail-fade {
     top: 0 !important;
@@ -633,7 +633,7 @@ body.popup-open nav[aria-label="Navigation principale"] {
 }
 
 /* Sections */
-.section { margin: 50px 0; }
+.section { margin: 50px 0; overflow: visible; }
 
 /* Shift all homepage content blocks to the right, except the carousel */
 main > .section { transform: translateX(var(--home-shift)); width: calc(100% - var(--home-shift)); }
@@ -661,7 +661,7 @@ main > .categories-section { transform: translateX(calc(var(--home-shift) + var(
   border-radius: 14px;
   padding: 12px 0 14px; /* internal padding, rails use their own horizontal padding */
   box-shadow: 0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
-  overflow: hidden; /* keep rounded corners for inner content */
+  overflow: visible; /* allow hovered cards to rise without clipping */
 }
 
 /* ===== Continue Watching (Reprendre la lecture) matches Categories look ===== */
@@ -719,6 +719,12 @@ main > .categories-section { transform: translateX(calc(var(--home-shift) + var(
   .categories-section .categories-title { margin: 0 12px 6px; font-size: 18px; }
   .categories-rail { padding: 0 12px; overflow: visible; gap: 12px; }
   .category-card img { max-height: 80px; } /* Réduire la hauteur sur mobile */
+}
+
+/* Ensure other rails don't clip hovered cards in key sections */
+#top-rated,
+#series {
+  overflow: visible;
 }
 
 /* Très petits écrans : cartes encore plus petites */
@@ -878,7 +884,7 @@ main > .categories-section { transform: translateX(calc(var(--home-shift) + var(
   /* Mobile: enable horizontal scroll in the rail */
   #continue-watching .rail {
     overflow-x: auto !important;
-    overflow-y: visible !important;
+    overflow-y: hidden !important;
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x proximity; /* optional smoother alignment */
   }
@@ -2222,7 +2228,7 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     grid-auto-columns: clamp(180px, 18vw, 240px);
     gap: 18px;
     overflow-x: auto;
-    overflow-y: visible; /* allow hover lift without clipping */
+    overflow-y: hidden; /* hide vertical bar; padding handles hover lift */
     overscroll-behavior-x: contain;
 }
 /* Desktop-only: add side paddings + enable snapping */
@@ -2233,16 +2239,28 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
   }
 }
 .rail::-webkit-scrollbar { height: 10px; }
+/* Hide vertical scrollbar for rails (Chrome/Edge) while keeping horizontal */
+.rail::-webkit-scrollbar:vertical { width: 0 !important; display: none !important; }
 .rail::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
 @media (min-width: 769px) {
   .rail > .card { scroll-snap-align: start; }
 }
 
+/* Hide vertical scrollbar inside rails while keeping horizontal scrollbar */
+.section .rail::-webkit-scrollbar:vertical { width: 0 !important; display: none !important; }
+/* For Firefox: vertical bars rarely appear with overflow-y: visible;
+   if they do, this keeps things clean (note: Firefox cannot target vertical only). */
+.section .rail { -ms-overflow-style: none; }
+
   /* Global scrollbar styles provided by common.css */
 
 /* ===== Rail edge spacing and clipping (desktop and mobile) ===== */
-/* Ensure sections clip horizontal overflow so cards at the edges can be cut */
-.section { overflow: hidden; }
+/* Clip horizontally but allow vertical overflow so hover lifts aren’t cut */
+.section { overflow-x: hidden; overflow-y: visible; }
+
+/* Visually hide any vertical scrollbar that some browsers render on sections */
+.section { scrollbar-width: none; }
+.section::-webkit-scrollbar { width: 0 !important; background: transparent !important; }
 
 /* Desktop: keep 40px left space and clip right edge like reference site */
 @media (min-width: 769px) {
@@ -2305,7 +2323,7 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
             gap: 18px;
             padding: 0 40px;
             overflow-x: auto;
-            overflow-y: visible; /* allow hover lift without clipping */
+            overflow-y: hidden; /* hide vertical bar */
             overscroll-behavior-x: contain;
             scroll-snap-type: inline mandatory; /* desktop only */
         }
@@ -2426,7 +2444,7 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
      .footer .footer-inner > div:nth-child(2)::after { content: ""; display: table; clear: both; }
 
      /* Prevent cards from being clipped on hover translateY in all sections */
-    .section .rail { padding-top: 10px; }
+    .section .rail { padding-top: 24px; overflow: visible !important; }
 
      /* Focus-visible ring */
      :where(a, button, .quick-btn, input, [tabindex]):focus-visible {
