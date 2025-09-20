@@ -83,26 +83,26 @@ html.popup-open {
   }
   #continue-watching .rail-fade.left {
     background: linear-gradient(90deg,
-      rgba(21,29,40,0.96) 0%,
-      rgba(21,29,40,0.82) 38%,
-      rgba(21,29,40,0.58) 60%,
-      rgba(21,29,40,0.00) 100%
+      rgba(21,26,32,0.96) 0%,
+      rgba(21,26,32,0.82) 38%,
+      rgba(21,26,32,0.58) 60%,
+      rgba(21,26,32,0.00) 100%
     ) !important;
   }
   #continue-watching .rail-fade.right {
     background: linear-gradient(270deg,
-      rgba(21,29,40,0.96) 0%,
-      rgba(21,29,40,0.82) 38%,
-      rgba(21,29,40,0.58) 60%,
-      rgba(21,29,40,0.00) 100%
+      rgba(21,26,32,0.96) 0%,
+      rgba(21,26,32,0.82) 38%,
+      rgba(21,26,32,0.58) 60%,
+      rgba(21,26,32,0.00) 100%
     ) !important;
   }
-  /* Match arrow fill as well inside the box */
+  /* Match arrow fill as well inside the box - couleur corrigée */
   #continue-watching .rail-arrow {
-    background: rgba(21,29,40,0.85) !important;
+    background: rgba(21,26,32,0.85) !important; /* Couleur #151A20 */
     border-color: rgba(255,255,255,0.12) !important;
   }
-  #continue-watching .rail-arrow:hover { background: rgba(21,29,40,1) !important; }
+  #continue-watching .rail-arrow:hover { background: rgba(21,26,32,1) !important; }
 }
 
 /* ===== Full-screen Player Overlay ===== */
@@ -228,33 +228,38 @@ body.player-open, html.player-open {
 
   /* Gradient fades on edges to hint overflow and softly cut cards */
   .rail-fade {
-    position: absolute;
-    top: 0; /* adjusted by JS */
-    width: 80px;
-    height: 100%; /* adjusted by JS */
-    pointer-events: auto; /* block clicks on cards under the fade */
-    cursor: default;
-    z-index: 5; /* above cards; arrows remain above with higher z-index */
-    transform: translateX(0);
+    position: absolute !important;
+    top: -80px !important; /* Étendre encore plus vers le haut */
+    width: 80px !important;
+    height: calc(100% + 160px) !important; /* Hauteur maximale pour couvrir toute carte agrandie */
+    pointer-events: none !important;
+    z-index: 5 !important;
+    opacity: 0 !important; /* Masqué par défaut */
+    transform: translateX(0) !important;
     transition: opacity .3s cubic-bezier(0.22, 1, 0.36, 1), transform .3s cubic-bezier(0.22, 1, 0.36, 1);
   }
+  
+  /* Afficher les dégradés seulement quand les flèches ne sont pas cachées */
+  .rail-fade:not(.hidden) {
+    opacity: 1 !important;
+  }
   .rail-fade.left {
-    left: 0;
+    left: 0 !important;
     background: linear-gradient(90deg,
       rgba(11,17,23,0.96) 0%,
       rgba(11,17,23,0.82) 38%,
       rgba(11,17,23,0.58) 60%,
       rgba(11,17,23,0.00) 100%
-    );
+    ) !important;
   }
   .rail-fade.right {
-    right: 0;
+    right: 0 !important;
     background: linear-gradient(270deg,
       rgba(11,17,23,0.96) 0%,
       rgba(11,17,23,0.82) 38%,
       rgba(11,17,23,0.58) 60%,
       rgba(11,17,23,0.00) 100%
-    );
+    ) !important;
   }
   /* Keep arrows above fades */
   .rail-arrow { z-index: 6; }
