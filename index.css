@@ -2997,6 +2997,23 @@ body.fiche-page-view .carousel-genre-tag:hover {
   color: rgba(255, 255, 255, 0.95);
 }
 
+/* Ensure the Partenariats popup content can scroll (override any earlier overflow:visible) */
+#partenariats .fiche-content {
+  max-height: min(92vh, 92dvh);
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 768px) {
+  #partenariats {
+    top: 60px !important; /* keep below mobile nav */
+    height: calc(100svh - 60px) !important;
+    min-height: calc(100svh - 60px) !important;
+  }
+  #partenariats .fiche-content {
+    max-height: min(92svh, 92dvh);
+  }
+}
+
 .section h2 {
   color: #ffffff;
 }
