@@ -131,6 +131,9 @@ body.drawer-open nav[aria-label="Navigation principale"] {
     padding: 10px 14px;
     flex: 1 1 48%; /* on small screens try to keep it next to Partenariats */
   }
+  /* Hide any potential scrollbars on the nav itself (mobile) */
+  nav[aria-label="Navigation principale"] { -ms-overflow-style: none; scrollbar-width: none; }
+  nav[aria-label="Navigation principale"]::-webkit-scrollbar { display: none; width: 0; height: 0; }
 }
 
 /* Mobile-specific sizing for drawer and overlay to match 60px navbar and handle dynamic viewport */
@@ -733,7 +736,7 @@ html { scrollbar-color: #615d5d #0a0a0a; scrollbar-width: thin; }
     box-sizing: border-box !important; /* include padding inside height */
     width: 100%;
     max-width: 100vw;
-    overflow-x: hidden;
+    overflow: hidden !important; /* prevent any scrollbars on mobile nav */
     display: flex;
     align-items: center;
     justify-content: space-between;

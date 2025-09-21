@@ -384,6 +384,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         bar.style.width = pct + '%';
         prog.appendChild(bar);
         card.appendChild(a);
+        // Favorite heart button uses base id
+        try { card.appendChild(makeFavButton({ id: baseId, title: it.title || '' })); } catch {}
         card.appendChild(prog);
 
         // No bottom info bar for continue watching cards
@@ -1361,6 +1363,51 @@ document.addEventListener('DOMContentLoaded', async function () {
       } catch { return [src]; }
     }
 
+    // Favorites: storage helpers and UI sync
+    const FAV_KEY = 'clipsou_favorites_v1';
+    function readFavorites(){
+      try { const raw = localStorage.getItem(FAV_KEY); const arr = raw ? JSON.parse(raw) : []; return Array.isArray(arr) ? arr.filter(Boolean) : []; } catch { return []; }
+    }
+    function saveFavorites(list){
+      try { localStorage.setItem(FAV_KEY, JSON.stringify((list||[]).filter(Boolean))); } catch {}
+    }
+    function isFavorite(id){
+      try { const set = new Set(readFavorites()); return set.has(String(id)); } catch { return false; }
+    }
+    function toggleFavorite(id){
+      const sId = String(id);
+      const list = readFavorites();
+      const idx = list.indexOf(sId);
+      if (idx >= 0) { list.splice(idx, 1); }
+      else { list.unshift(sId); }
+      saveFavorites(list);
+      try { document.dispatchEvent(new CustomEvent('clipsou-favorites-changed', { detail: { id: sId, active: idx < 0 } })); } catch {}
+      return idx < 0;
+    }
+    function makeFavButton(item){
+      const btn = document.createElement('button');
+      btn.className = 'fav-btn';
+      const active = isFavorite(item.id);
+      if (active) btn.classList.add('is-active');
+      btn.setAttribute('type','button');
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      btn.setAttribute('aria-label', active ? 'Retirer des favoris' : 'Ajouter aux favoris');
+      // User-provided heart SVG adapted to use currentColor
+      btn.innerHTML = (
+        '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">'
+        + '<path class="heart" d="M2 9.1371C2 14 6.01943 16.5914 8.96173 18.9109C10 19.7294 11 20.5 12 20.5C13 20.5 14 19.7294 15.0383 18.9109C17.9806 16.5914 22 14 22 9.1371C22 4.27416 16.4998 0.825464 12 5.50063C7.50016 0.825464 2 4.27416 2 9.1371Z" fill="currentColor"></path>'
+        + '</svg>'
+      );
+      btn.addEventListener('click', function(e){
+        e.preventDefault(); e.stopPropagation();
+        const nowActive = toggleFavorite(item.id);
+        btn.classList.toggle('is-active', nowActive);
+        btn.setAttribute('aria-pressed', nowActive ? 'true' : 'false');
+        btn.setAttribute('aria-label', nowActive ? 'Retirer des favoris' : 'Ajouter aux favoris');
+      });
+      return btn;
+    }
+
     // Helper to create a card node from item
     function createCard(item) {
       const card = document.createElement('div'); card.className = 'card';
@@ -1375,9 +1422,43 @@ document.addEventListener('DOMContentLoaded', async function () {
       const info = document.createElement('div'); info.className = 'card-info'; info.setAttribute('data-type', item.type || 'film'); if (typeof item.rating !== 'undefined') info.setAttribute('data-rating', String(item.rating)); if (item.studioBadge) info.setAttribute('data-studio-badge', String(item.studioBadge));
       const media = document.createElement('div'); media.className = 'card-media';
       const badge = document.createElement('div'); badge.className = 'brand-badge'; const logo = document.createElement('img'); logo.src = (item.studioBadge && String(item.studioBadge).trim()) || 'clipsoustudio.webp'; logo.alt = 'Studio'; logo.setAttribute('loading', 'lazy'); logo.setAttribute('decoding', 'async'); badge.appendChild(logo);
-      media.appendChild(img); media.appendChild(badge); a.appendChild(media); a.appendChild(info); card.appendChild(a); return card;
+      media.appendChild(img); media.appendChild(badge); a.appendChild(media); a.appendChild(info); card.appendChild(a);
+      // Favorite heart button inside info line to align with type/rating
+      try { info.appendChild(makeFavButton(item)); } catch {}
+      return card;
     }
 
+    // Build Favorites section (above Top Rated)
+    function buildFavoritesSection(items){
+      try {
+        const rail = document.querySelector('#favorites .rail');
+        const sec = document.getElementById('favorites');
+        if (!rail || !sec) return;
+        const favIds = readFavorites();
+        if (!favIds.length) { rail.innerHTML = ''; sec.style.display = 'none'; return; }
+        const byId = new Map((items||[]).map(it => [String(it.id), it]));
+        const list = favIds.map(id => byId.get(String(id))).filter(Boolean);
+        rail.innerHTML = '';
+        list.forEach(it => rail.appendChild(createCard(it)));
+        sec.style.display = '';
+      } catch {}
+    }
+
+    // Sync heart buttons globally on favorites changes and rebuild favorites section
+    document.addEventListener('clipsou-favorites-changed', function(e){
+      try {
+        const d = (e && e.detail) || {}; const targetId = String(d.id||''); const active = !!d.active;
+        document.querySelectorAll('.card .fav-btn').forEach(btn => {
+          const card = btn.closest('.card'); const link = card ? card.querySelector('a[href*="fiche.html?id="]') : null;
+          const id = link ? (new URL(link.getAttribute('href'), location.href)).searchParams.get('id') : '';
+          if (String(id||'') === targetId) { btn.classList.toggle('is-active', active); btn.setAttribute('aria-pressed', active ? 'true' : 'false'); btn.setAttribute('aria-label', active ? 'Retirer des favoris' : 'Ajouter aux favoris'); }
+        });
+      } catch {}
+      try { buildFavoritesSection(items); } catch {}
+    });
+
+    // Populate Favorites then Top Rated (sorted by rating desc)
+    buildFavoritesSection(items);
     // Populate Top Rated (sorted by rating desc)
     const topRated = document.querySelector('#top-rated .rail');
     if (topRated) {

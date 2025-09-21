@@ -694,6 +694,32 @@ function renderFiche(container, item) {
     buttons.appendChild(a);
   }
 
+  // Favorites primary button (gradient red/pink)
+  (function addFavoritesButton(){
+    try {
+      const FAV_KEY = 'clipsou_favorites_v1';
+      const readFavorites = ()=>{ try { const raw = localStorage.getItem(FAV_KEY); const arr = raw ? JSON.parse(raw) : []; return Array.isArray(arr)?arr:[]; } catch { return []; } };
+      const saveFavorites = (list)=>{ try { localStorage.setItem(FAV_KEY, JSON.stringify((list||[]).filter(Boolean))); } catch {} };
+      const isFavorite = (id)=>{ try { return new Set(readFavorites()).has(String(id)); } catch { return false; } };
+      const toggleFavorite = (id)=>{ const s=String(id); const list=readFavorites(); const i=list.indexOf(s); if(i>=0){list.splice(i,1);} else {list.unshift(s);} saveFavorites(list); return i<0; };
+
+      const favBtn = document.createElement('button');
+      favBtn.type = 'button';
+      favBtn.className = 'button fav-primary';
+      const ICON_ADD = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="width:18px;height:18px;vertical-align:middle;margin-right:8px;"><path d="M2 9.1371C2 14 6.01943 16.5914 8.96173 18.9109C10 19.7294 11 20.5 12 20.5C13 20.5 14 19.7294 15.0383 18.9109C17.9806 16.5914 22 14 22 9.1371C22 4.27416 16.4998 0.825464 12 5.50063C7.50016 0.825464 2 4.27416 2 9.1371Z" fill="currentColor"></path></svg>';
+      const ICON_REMOVE = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="width:18px;height:18px;vertical-align:middle;margin-right:8px;"><path d="M8.10627 18.2468C5.29819 16.0833 2 13.5422 2 9.1371C2 4.53656 6.9226 1.20176 11.2639 4.81373L9.81064 8.20467C9.6718 8.52862 9.77727 8.90554 10.0641 9.1104L12.8973 11.1341L10.4306 14.012C10.1755 14.3096 10.1926 14.7533 10.4697 15.0304L12.1694 16.7302L11.2594 20.3702C10.5043 20.1169 9.74389 19.5275 8.96173 18.9109C8.68471 18.6925 8.39814 18.4717 8.10627 18.2468Z" fill="currentColor"></path><path d="M12.8118 20.3453C13.5435 20.0798 14.2807 19.5081 15.0383 18.9109C15.3153 18.6925 15.6019 18.4717 15.8937 18.2468C18.7018 16.0833 22 13.5422 22 9.1371C22 4.62221 17.259 1.32637 12.9792 4.61919L11.4272 8.24067L14.4359 10.3898C14.6072 10.5121 14.7191 10.7007 14.7445 10.9096C14.7699 11.1185 14.7064 11.3284 14.5694 11.4882L12.0214 14.4609L13.5303 15.9698C13.7166 16.1561 13.7915 16.4264 13.7276 16.682L12.8118 20.3453Z" fill="currentColor"></path></svg>';
+      const setLabel = (active)=>{ favBtn.innerHTML = (active ? ICON_REMOVE + 'Retirer des favoris' : ICON_ADD + 'Mettre en favoris'); };
+      let active = isFavorite(item.id);
+      setLabel(active);
+      favBtn.addEventListener('click', function(e){
+        try { e.preventDefault(); e.stopPropagation(); } catch {}
+        active = toggleFavorite(item.id);
+        setLabel(active);
+      });
+      buttons.appendChild(favBtn);
+    } catch {}
+  })();
+
   right.appendChild(h3);
   right.appendChild(rg);
   if (item.description) right.appendChild(p);

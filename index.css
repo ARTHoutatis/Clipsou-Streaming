@@ -1261,16 +1261,108 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
       0 10px 30px rgba(0,0,0,0.35),
       inset 0 1px 0 rgba(255,255,255,0.06);
 }
-
 .card:hover { 
-    transform: translateY(-6px);
-    box-shadow: 0 14px 38px rgba(0,0,0,0.45);
+  transform: translateY(-6px);
+  box-shadow: 0 14px 38px rgba(0,0,0,0.45);
 }
+
+/* Favorite heart button on cards (no longer used) */
+.card .fav-btn {
+  position: absolute;
+  right: 10px;
+  bottom: 14px;
+  z-index: 8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  color: #a9b2bb; /* more gray heart */
+  cursor: pointer;
+  outline: none;
+}
+.card .fav-btn { display: none !important; }
+.card .fav-btn:hover { opacity: 0.9; }
+.card .fav-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.35); outline-offset: 2px; }
+.card .fav-btn svg { width: 20px; height: 20px; display: block; }
+.card .fav-btn .heart { fill: none; stroke: currentColor; stroke-width: 2px; }
+.card .fav-btn.is-active { color: #ff0000; } /* active = red */
+.card .fav-btn.is-active .heart { fill: currentColor; stroke: none; }
+
+/* If ever placed inside .card-info, align inline to the right */
+.card .card-info .fav-btn { position: static; margin-left: auto; }
+
+/* Ensure button stays clickable on top of link */
+.card .fav-btn { pointer-events: auto; }
+.card a { position: relative; z-index: 1; }
 
 /* Card image rules centralized in common.css to avoid duplication */
 
 /* Hide film title text on index cards as requested */
 .card .card-info span { display: none; }
+
+/* ===== Favorites primary button (fiche popups and fiche page) ===== */
+.button.fav-primary {
+  background: transparent !important;
+  border: 1px solid #ff4d88 !important; /* red-rose border */
+  color: #ff4d88 !important;          /* red-rose text/icon */
+}
+.button.fav-primary:hover {
+  background: transparent !important;  /* keep transparent on hover */
+}
+
+/* ===== Remove glow from buttons globally (keep outline only) ===== */
+.button,
+.button:hover,
+.button:focus,
+.button:focus-visible {
+  box-shadow: none !important;
+}
+.pill,
+.pill:hover,
+.pill:focus,
+.pill:focus-visible {
+  box-shadow: none !important;
+}
+
+/* ===== Hover behavior: lighten instead of sweep/scale ===== */
+.button {
+  transition: filter .2s ease, background-color .2s ease, border-color .2s ease, color .2s ease !important;
+}
+.button:hover {
+  filter: brightness(1.08) !important;
+  transform: none !important; /* cancel any lift/scale on hover */
+}
+.pill {
+  transition: filter .2s ease, background-color .2s ease, border-color .2s ease, color .2s ease !important;
+}
+.pill:hover {
+  filter: brightness(1.08) !important;
+  transform: none !important; /* cancel scale on hover */
+}
+
+/* Carousel 'Voir la fiche' button: no glow/sweep, just lighten on hover */
+.carousel-btn {
+  box-shadow: none !important;
+  transition: filter .2s ease, background-color .2s ease, border-color .2s ease, color .2s ease !important;
+}
+.carousel-btn:hover {
+  box-shadow: none !important;
+  filter: brightness(1.08) !important;
+  transform: none !important;
+}
+.carousel-btn::before,
+.carousel-btn::after { transition: none !important; }
+
+/* Ensure no pseudo-element sweep overlays interfere */
+.button::before,
+.button::after,
+.pill::before,
+.pill::after {
+  transition: none !important;
+}
 
 /* ===== Continue Watching: progress bar on card ===== */
 #continue-watching .card .progress {
@@ -1282,6 +1374,7 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
   background: rgba(0,0,0,0.45); /* darker track over image */
   border-radius: 999px;
   overflow: hidden;
+  z-index: 2; /* ensure above image if any overlays */
 }
 #continue-watching .card .progress .bar {
   height: 100%;
