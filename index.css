@@ -1648,6 +1648,19 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
     flex-wrap: wrap;
 }
 
+/* Fiche page: remove any glow around ratings/notes (defensive: kill text/box shadows and filters) */
+body.fiche-page-view .rating-genres,
+body.fiche-page-view .rating-genres .stars,
+body.fiche-page-view .fiche-right .rating-genres,
+body.fiche-page-view .fiche-right .rating-genres .stars,
+body.fiche-page-view .fiche-media-wrap .fiche-overlay .overlay-meta .stars,
+body.fiche-page-view .carousel-genres .carousel-rating,
+body.fiche-page-view .carousel-genres .carousel-rating .star {
+  text-shadow: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
 .fiche-content .stars { 
     font-size: 20px;
     margin: 0;
@@ -2937,6 +2950,21 @@ nav {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.25);
   transform: translateY(-1px);
+}
+
+/* Do not move or lighten genre chips in the carousel on hover */
+.carousel-genre-tag:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  transform: none !important;
+}
+
+/* On fiche page, also keep genre chips static and same color on hover */
+body.fiche-page-view .genre-tag:hover,
+body.fiche-page-view .carousel-genre-tag:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  transform: none !important;
 }
 
 /* Améliorations des étoiles dans les ratings */

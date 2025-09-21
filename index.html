@@ -77,6 +77,13 @@
 <link rel="preconnect" href="https://youtu.be">
 <!-- Preload critical UI icon -->
 <link rel="preload" as="image" href="loupe.webp">
+<!-- Preload category images for instant display in "Qu'est‑ce que tu souhaites regarder aujourd'hui ?" -->
+<link rel="preload" as="image" href="Catégories/Comédi.webp" imagesrcset="Catégories/Comédi.webp 260w" imagesizes="(max-width: 768px) 200px, 260px">
+<link rel="preload" as="image" href="Catégories/Horreur.webp" imagesrcset="Catégories/Horreur.webp 260w" imagesizes="(max-width: 768px) 200px, 260px">
+<link rel="preload" as="image" href="Catégories/Action.webp" imagesrcset="Catégories/Action.webp 260w" imagesizes="(max-width: 768px) 200px, 260px">
+<link rel="preload" as="image" href="Catégories/Super-Heros.webp" imagesrcset="Catégories/Super-Heros.webp 260w" imagesizes="(max-width: 768px) 200px, 260px">
+<link rel="preload" as="image" href="Catégories/Drame.webp" imagesrcset="Catégories/Drame.webp 260w" imagesizes="(max-width: 768px) 200px, 260px">
+<link rel="preload" as="image" href="Catégories/Famillial.webp" imagesrcset="Catégories/Famillial.webp 260w" imagesizes="(max-width: 768px) 200px, 260px">
 <!-- Preload critical CSS to speed up first paint (keep regular stylesheet links too) -->
 <link rel="preload" as="style" href="common.css?v=20250916-1">
 <link rel="preload" as="style" href="index.css?v=20250916-1">
@@ -373,22 +380,22 @@
     </h2>
     <div class="categories-rail" role="list">
       <a class="category-card" role="listitem" href="search.html?q=Comédie" aria-label="Catégorie Comédie">
-        <img src="Catégories/Comédi.webp" alt="Catégorie Comédie" loading="lazy" decoding="async" fetchpriority="high" width="260" height="120">
+        <img src="Catégories/Comédi.webp" alt="Catégorie Comédie" loading="eager" decoding="async" fetchpriority="high" width="260" height="120">
       </a>
       <a class="category-card" role="listitem" href="search.html?q=Horreur" aria-label="Catégorie Horreur">
-        <img src="Catégories/Horreur.webp" alt="Catégorie Horreur" loading="lazy" decoding="async" width="260" height="120">
+        <img src="Catégories/Horreur.webp" alt="Catégorie Horreur" loading="eager" decoding="async" fetchpriority="high" width="260" height="120">
       </a>
       <a class="category-card" role="listitem" href="search.html?q=Action" aria-label="Catégorie Action">
-        <img src="Catégories/Action.webp" alt="Catégorie Action" loading="lazy" decoding="async" width="260" height="120">
+        <img src="Catégories/Action.webp" alt="Catégorie Action" loading="eager" decoding="async" fetchpriority="high" width="260" height="120">
       </a>
       <a class="category-card" role="listitem" href="search.html?q=Super-héros" aria-label="Catégorie Super‑héros">
-        <img src="Catégories/Super-Heros.webp" alt="Catégorie Super‑héros" loading="lazy" decoding="async" width="260" height="120">
+        <img src="Catégories/Super-Heros.webp" alt="Catégorie Super‑héros" loading="eager" decoding="async" fetchpriority="high" width="260" height="120">
       </a>
       <a class="category-card" role="listitem" href="search.html?q=Drame" aria-label="Catégorie Drame">
-        <img src="Catégories/Drame.webp" alt="Catégorie Drame" loading="lazy" decoding="async" width="260" height="120">
+        <img src="Catégories/Drame.webp" alt="Catégorie Drame" loading="eager" decoding="async" fetchpriority="high" width="260" height="120">
       </a>
       <a class="category-card" role="listitem" href="search.html?q=Familial" aria-label="Catégorie Familial">
-        <img src="Catégories/Famillial.webp" alt="Catégorie Familial" loading="lazy" decoding="async" width="260" height="120">
+        <img src="Catégories/Famillial.webp" alt="Catégorie Familial" loading="eager" decoding="async" fetchpriority="high" width="260" height="120">
       </a>
     </div>
   </div>
