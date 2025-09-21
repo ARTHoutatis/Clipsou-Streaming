@@ -43,6 +43,32 @@
 
 .search-input-container { display: flex; gap: 10px; margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto; align-items: center; }
 
+/* Actions row under the search input (filters toggle) */
+.search-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* left align */
+  gap: 10px;
+  margin: -28px auto 14px; /* slightly pull up to sit closer to input */
+  max-width: 600px; /* match search-input container */
+}
+.filters-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+  transition: background .2s ease, border-color .2s ease, transform .1s ease;
+}
+.filters-toggle:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.28); }
+.filters-toggle:active { transform: translateY(1px); }
+
 /* Icône de recherche à côté du champ */
 .search-icon { width: 32px; height: 32px; flex: 0 0 auto; display: inline-block; opacity: .9; filter: brightness(1.1); }
 
@@ -72,14 +98,30 @@
     min-height: 200px;
 }
 
-/* Genre filters */
+/* Genre filters wrapper (row with button + chips) */
 .genre-filters {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+    margin: 0 auto 20px auto;
+    max-width: 900px;
+    padding: 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+/* Chips container lives next to the button */
+.genre-chips {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    margin: 0 auto 20px auto;
-    max-width: 900px;
 }
+
+/* Collapsed state driven by JS (desktop default): hide only chips, keep button visible */
+.genre-chips.collapsed { display: none !important; }
 
 .genre-chip {
     display: inline-flex;
@@ -142,8 +184,9 @@
     #search-input::placeholder { color: rgba(255, 255, 255, 0.7); }
     #search-input:focus { background: #3e3e3f !important; border-color: #2B22EE; }
     .search-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
-    /* Hide genre filters on mobile to save vertical space */
-    .genre-filters { display: none !important; }
+    /* Show genre filters on mobile by default with tighter spacing */
+    .search-actions { margin: -14px auto 10px; }
+    .genre-filters { display: flex !important; gap: 8px 10px; padding: 10px; border-radius: 10px; }
     .genre-chip { padding: 7px 10px; font-size: 13px; }
     /* Prevent animated gradient background from repeating on mobile */
     body {

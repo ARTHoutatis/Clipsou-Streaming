@@ -699,6 +699,81 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (!img.getAttribute('alt')) img.setAttribute('alt', 'Image – Clipsou Streaming');
   });
 
+  // ===== Home Filters (genre chips + toggle) =====
+  (function setupHomeFilters(){
+    try {
+      const filtersSection = document.getElementById('home-filters');
+      const chipsContainer = document.getElementById('home-genre-filters');
+      if (!filtersSection || !chipsContainer) return; // Only on homepage
+
+      // Collect unique genres from existing popups in DOM
+      function normalizeStr(str){
+        try { return String(str||'').normalize('NFD').replace(/[\u0300-\u036f]/g,''); } catch { return String(str||''); }
+      }
+      function collectGenres(){
+        const byKey = new Map();
+        const hasDiacritics = (s)=>{ try { return String(s)!==normalizeStr(String(s)); } catch { return false; } };
+        document.querySelectorAll('.fiche-popup .rating-genres .genres .genre-tag')
+          .forEach(el => {
+            const g = (el && el.textContent || '').trim();
+            if (!g) return;
+            const key = normalizeStr(g).toLowerCase();
+            if (!byKey.has(key)) byKey.set(key, g);
+            else {
+              // Prefer accented label if available
+              const cur = byKey.get(key);
+              if (!hasDiacritics(cur) && hasDiacritics(g)) byKey.set(key, g);
+            }
+          });
+        return Array.from(byKey.values()).sort((a,b)=> a.localeCompare(b,'fr'));
+      }
+
+      function renderChips(){
+        const genres = collectGenres();
+        chipsContainer.innerHTML = genres.map(g => `<button type="button" class="genre-chip" data-genre="${g}">${g}</button>`).join('');
+      }
+
+      function installChipClicks(){
+        chipsContainer.addEventListener('click', function(e){
+          const btn = e.target && (e.target.closest ? e.target.closest('.genre-chip') : null);
+          if (!btn) return;
+          const genre = btn.getAttribute('data-genre') || '';
+          const url = 'search.html?q=' + encodeURIComponent(genre);
+          window.location.href = url;
+        });
+      }
+
+      // Toggle handling: desktop collapsed by default; mobile open by default
+      function applyInitialState(){
+        const isDesktop = (window.matchMedia && window.matchMedia('(min-width: 769px)').matches);
+        filtersSection.classList.toggle('collapsed', !!isDesktop);
+        const toggle = document.querySelector('nav .filter-toggle');
+        if (toggle) toggle.setAttribute('aria-expanded', isDesktop ? 'false' : 'true');
+      }
+
+      function setupToggle(){
+        const toggle = document.querySelector('nav .filter-toggle');
+        if (!toggle) return;
+        toggle.addEventListener('click', function(){
+          const isCollapsed = filtersSection.classList.toggle('collapsed');
+          toggle.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+        });
+        // Update on viewport changes
+        const mq = window.matchMedia('(min-width: 769px)');
+        const onChange = ()=>{
+          applyInitialState();
+        };
+        if (typeof mq.addEventListener === 'function') mq.addEventListener('change', onChange);
+        else if (typeof mq.addListener === 'function') mq.addListener(onChange);
+      }
+
+      renderChips();
+      installChipClicks();
+      applyInitialState();
+      setupToggle();
+    } catch {}
+  })();
+
   // ========== Drawer (hamburger) ==========
   (function setupDrawer(){
     const btn = document.querySelector('.hamburger');

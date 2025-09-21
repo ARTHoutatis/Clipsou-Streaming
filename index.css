@@ -687,6 +687,67 @@ main > .categories-section { transform: translateX(calc(var(--home-shift) + var(
   font-weight: 800;
   color: #ffffff;
 }
+
+/* ===== Home Filters (genres) ===== */
+.home-filters {
+  margin: 10px 0 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 12px 0 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.home-filters > h2 { margin: 0 40px 10px; }
+.home-genre-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0 40px;
+}
+.home-genre-filters .genre-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+  transition: background .2s ease, border-color .2s ease, transform .1s ease;
+}
+.home-genre-filters .genre-chip:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.28); }
+.home-genre-filters .genre-chip:active { transform: translateY(1px); }
+.home-genre-filters .genre-chip.active { background: rgba(43,34,238,0.25); border-color: rgba(43,34,238,0.55); }
+
+/* Desktop: panel collapsed by default (toggled via .filter-toggle) */
+@media (min-width: 769px) {
+  .home-filters.collapsed { display: none !important; }
+}
+
+/* Mobile: boxed layout and tighter spacing */
+@media (max-width: 768px) {
+  .home-filters { margin: 8px 12px 10px; border-radius: 12px; padding: 10px 0 12px; }
+  .home-filters > h2 { margin: 0 12px 8px; font-size: 20px; }
+  .home-genre-filters { padding: 0 12px; gap: 8px; }
+  .home-genre-filters .genre-chip { padding: 7px 10px; font-size: 13px; }
+}
+
+/* Minimal styling for the filter toggle button in navbar */
+nav .filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: 0;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+}
+nav .filter-toggle:hover { background: rgba(255,255,255,0.08); }
 .categories-rail {
   display: flex;
   align-items: center;

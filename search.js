@@ -302,7 +302,7 @@ function getAllGenres() {
 
 // Rend les puces de genre et branche les filtres
 function renderGenreFilters(onChange) {
-    const container = document.getElementById('genre-filters');
+    const container = document.getElementById('genre-chips');
     if (!container) return { getSelected: () => [], selectGenres: () => {} };
     const genres = getAllGenres();
     container.innerHTML = genres.map(g => `<button type="button" class="genre-chip" data-genre="${g}">${g}</button>`).join('');
@@ -338,6 +338,9 @@ function renderGenreFilters(onChange) {
 // Event listeners
 document.addEventListener('DOMContentLoaded', async function() {
     const searchInput = document.getElementById('search-input');
+    const filtersToggleBtn = document.getElementById('filters-toggle');
+    const genreFilters = document.getElementById('genre-filters'); // wrapper (kept for aria-controls)
+    const genreChips = document.getElementById('genre-chips'); // actual chips container
     // Met à jour la base depuis l'accueil (nouvelles entrées et genres pris en compte)
     await buildDatabaseFromIndex();
     // Construire les filtres de genres dynamiques
@@ -345,7 +348,29 @@ document.addEventListener('DOMContentLoaded', async function() {
         const q = searchInput ? searchInput.value : '';
         displayResults(searchMovies(q, filters.getSelected()));
     });
+
+    // Desktop/mobile initial state for filters visibility
+    (function setupFiltersToggle(){
+        if (!genreChips || !filtersToggleBtn) return;
+        function applyInitial() {
+            // Collapse by default on all devices (mobile and desktop)
+            genreChips.classList.add('collapsed');
+            filtersToggleBtn.setAttribute('aria-expanded', 'false');
+        }
+        applyInitial();
+        // Toggle on click
+        filtersToggleBtn.addEventListener('click', function(){
+            const nowCollapsed = genreChips.classList.toggle('collapsed');
+            filtersToggleBtn.setAttribute('aria-expanded', nowCollapsed ? 'false' : 'true');
+        });
+        // Keep in sync with viewport changes
+        const mq = window.matchMedia('(min-width: 769px)');
+        const onChange = ()=> applyInitial();
+        if (typeof mq.addEventListener === 'function') mq.addEventListener('change', onChange);
+        else if (typeof mq.addListener === 'function') mq.addListener(onChange);
+    })();
     // Deep-linking: pre-select genre from ?q=<genre>
+    let hadDeepLink = false;
     try {
         const params = new URLSearchParams(window.location.search || '');
         const qParam = (params.get('q') || '').trim();
@@ -366,10 +391,19 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Programmatically select genre and render results
                 filters.selectGenres([target]);
                 displayResults(searchMovies('', filters.getSelected()));
+                hadDeepLink = true;
             }
         }
     } catch {}
     
+    // If no deep-link and input is empty, show ALL items by default (films, séries, trailers)
+    try {
+        const isInputEmpty = !searchInput || String(searchInput.value || '').trim() === '';
+        if (!hadDeepLink && isInputEmpty) {
+            displayResults(searchMovies('', [])); // ignore any residual chip state on first paint
+        }
+    } catch {}
+
     if (searchInput) {
         // Placeholders pour desktop et mobile + switch auto selon taille d'écran
         const desktopPlaceholder = 'Recherchez un genre, un film ou une série...';
@@ -409,40 +443,35 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }
             }
         });
-        
-        // Afficher tous les films par défaut (après build async) si pas de pré-sélection
-        if (filters.getSelected().length === 0) {
-          displayResults(searchMovies('', filters.getSelected()));
-        }
     }
-});
 
-// External link confirmation (Trustpilot, Discord, Tipeee)
-(function installExternalLinkGuard(){
-  try {
-    const shouldConfirm = (urlStr)=>{
-      try {
-        const u = new URL(urlStr, window.location.href);
-        const h = u.hostname.toLowerCase();
-        return (
-          h.endsWith('trustpilot.com') ||
-          h === 'discord.gg' || h.endsWith('.discord.gg') || h.endsWith('discord.com') ||
-          h.endsWith('tipeee.com') || h.endsWith('fr.tipeee.com') ||
-          h.endsWith('nova-stream.live')
-        );
-      } catch { return false; }
-    };
-    document.addEventListener('click', function(e){
-      try {
-        const a = e.target && (e.target.closest ? e.target.closest('a[href]') : null);
-        if (!a) return;
-        const href = a.getAttribute('href') || '';
-        if (!/^https?:/i.test(href)) return; // only external http(s)
-        if (!shouldConfirm(href)) return;
-        const dest = (function(){ try { const u=new URL(href, location.href); return u.hostname.replace(/^www\./,'') + u.pathname; } catch { return href; } })();
-        const ok = window.confirm('Vous allez ouvrir un lien externe:\n' + dest + '\n\nÊtes-vous sûr de vouloir continuer ?');
-        if (!ok) { e.preventDefault(); e.stopPropagation(); }
-      } catch {}
-    }, true);
-  } catch {}
-})();
+    // External link confirmation (Trustpilot, Discord, Tipeee)
+    (function installExternalLinkGuard(){
+        // ...
+        const shouldConfirm = (urlStr)=>{
+            try {
+                const u = new URL(urlStr, window.location.href);
+                const h = u.hostname.toLowerCase();
+                return (
+                    h.endsWith('trustpilot.com') ||
+                    h === 'discord.gg' || h.endsWith('.discord.gg') || h.endsWith('discord.com') ||
+                    h.endsWith('tipeee.com') || h.endsWith('fr.tipeee.com') ||
+                    h.endsWith('nova-stream.live')
+                );
+            } catch { return false; }
+        };
+        document.addEventListener('click', function(e){
+            try {
+                const a = e.target && (e.target.closest ? e.target.closest('a[href]') : null);
+                if (!a) return;
+                const href = a.getAttribute('href') || '';
+                if (!/^https?:/i.test(href)) return; // only external http(s)
+                if (!shouldConfirm(href)) return;
+                const dest = (function(){ try { const u=new URL(href, location.href); return u.hostname.replace(/^www\./,'') + u.pathname; } catch { return href; } })();
+                const ok = window.confirm('Vous allez ouvrir un lien externe:\n' + dest + '\n\nÊtes-vous sûr de vouloir continuer ?');
+                if (!ok) { e.preventDefault(); e.stopPropagation(); }
+            } catch {}
+        }, true);
+    })();
+    
+});
