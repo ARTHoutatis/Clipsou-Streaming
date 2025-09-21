@@ -369,6 +369,15 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (typeof mq.addEventListener === 'function') mq.addEventListener('change', onChange);
         else if (typeof mq.addListener === 'function') mq.addListener(onChange);
     })();
+    // If URL requests the filters panel to be open, expand it
+    try {
+        const params = new URLSearchParams(window.location.search || '');
+        const wantOpen = /^(1|true|yes|open)$/i.test(String(params.get('openFilters') || ''));
+        if (wantOpen && genreChips && filtersToggleBtn) {
+            genreChips.classList.remove('collapsed');
+            filtersToggleBtn.setAttribute('aria-expanded', 'true');
+        }
+    } catch {}
     // Deep-linking: pre-select genre from ?q=<genre>
     let hadDeepLink = false;
     try {
