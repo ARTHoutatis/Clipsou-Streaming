@@ -653,6 +653,13 @@ main > .categories-section { transform: translateX(calc(var(--home-shift) + var(
   border: none; 
 }
 
+/* Make icons next to section titles larger and aligned */
+.section h2 svg {
+  width: 1.15em;
+  height: 1.15em;
+  vertical-align: middle;
+}
+
 /* ===== Categories Row ===== */
 .categories-section {
   margin: 6px 0 8px; /* no side margins; alignment handled by section shift */
