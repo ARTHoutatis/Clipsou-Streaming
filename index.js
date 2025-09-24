@@ -149,6 +149,48 @@ document.addEventListener('DOMContentLoaded', async function () {
     try { setInterval(saveGenericY, 1500); } catch {}
   })();
 
+  // Ensure Discord invite sits right under the Categories section
+  (function placeDiscordInvite(){
+    try {
+      var categories = document.getElementById('categories');
+      var invite = document.getElementById('discord-invite');
+      if (!invite) return;
+      // If a dedicated Séries section exists, place banner just before it
+      var series = document.getElementById('series');
+      if (series && series.parentNode) {
+        if (invite.nextElementSibling !== series) {
+          series.parentNode.insertBefore(invite, series);
+        }
+        return;
+      }
+      // Fallback: place right after Categories for now
+      if (categories && categories.parentNode) {
+        if (invite.previousElementSibling !== categories) {
+          categories.insertAdjacentElement('afterend', invite);
+        }
+      }
+      // Observe future additions to place right before #series when it appears
+      var main = document.querySelector('main') || document.body;
+      if (!main) return;
+      var placed = false;
+      try { placed = !!document.getElementById('series'); } catch {}
+      var observer = new MutationObserver(function(mutations){
+        if (placed) return;
+        try {
+          var s = document.getElementById('series');
+          if (s && s.parentNode) {
+            s.parentNode.insertBefore(invite, s);
+            placed = true;
+            observer.disconnect();
+          }
+        } catch {}
+      });
+      observer.observe(main, { childList: true, subtree: true });
+      // Safety timeout: stop observing after some time
+      setTimeout(function(){ try { observer.disconnect(); } catch {} }, 8000);
+    } catch {}
+  })();
+
   // ===== External link confirmation (Trustpilot, Discord, Tipeee) =====
   (function installExternalLinkGuard(){
     try {
@@ -1504,6 +1546,15 @@ document.addEventListener('DOMContentLoaded', async function () {
           }
           tailEl = section;
         }
+        // NEW: Build "Parce que vous avez regardé (X)" section — Disabled per request
+        (function buildBecauseYouWatched(){
+          try {
+            // Remove any existing section if present and do nothing
+            const existing = document.getElementById('because-watched');
+            if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+            return; // disabled
+          } catch {}
+        })();
         // Util helpers for genres
         const normalizeGenre = (name) => (name || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
         const PRETTY_MAP = { comedie:'Comédie', familial:'Familial', aventure:'Aventure', action:'Action', horreur:'Horreur' };
