@@ -149,6 +149,64 @@ document.addEventListener('DOMContentLoaded', async function () {
     try { setInterval(saveGenericY, 1500); } catch {}
   })();
 
+  // On homepage refresh: close any open popup (hash) and scroll to top
+  (function forceTopOnRefresh(){
+    try {
+      const path = (location && location.pathname) || '';
+      const isIndex = /(^|\/)($|index\.html?$)/i.test(path);
+      if (!isIndex) return;
+      const hash = (location && location.hash) || '';
+      let cleared = false;
+      if (hash) {
+        // Clear any hash to close all :target-based popups (yt, partenariats, infos, fiches, etc.)
+        try { window.location.hash = ''; } catch {}
+        try {
+          const url = window.location.pathname + window.location.search;
+          if (window.history && typeof window.history.replaceState === 'function') {
+            window.history.replaceState(null, document.title, url);
+          }
+        } catch {}
+        // Unlock background scroll on mobile (in case it was locked by popup flow)
+        try {
+          document.body.classList.remove('popup-open');
+          document.documentElement.classList.remove('popup-open');
+          if (window.innerWidth <= 768) {
+            const yStr = document.body.dataset.popupLockY || '0';
+            const y = parseInt(yStr, 10) || 0;
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.width = '';
+            document.body.style.left = '';
+            document.body.style.right = '';
+            document.body.style.overflow = '';
+            delete document.body.dataset.popupLockY;
+            window.scrollTo({ top: y, left: 0, behavior: 'auto' });
+          }
+        } catch {}
+        // Mark to skip reapplying any pending popup hash later in the flow
+        try { sessionStorage.setItem('clipsou_block_popup_reapply', '1'); } catch {}
+        cleared = true;
+      }
+      // If early script already removed the hash and stored a pending one, block it too
+      try {
+        if (window.__popupPendingHash) {
+          // Do not reopen: drop pending hash and mark block flag
+          try { delete window.__popupPendingHash; } catch { window.__popupPendingHash = null; }
+          try { sessionStorage.setItem('clipsou_block_popup_reapply', '1'); } catch {}
+          // Also remove any early lock style
+          const s = document.getElementById('early-popup-lock');
+          if (s && s.parentNode) s.parentNode.removeChild(s);
+          // Ensure popup-open classes are cleared
+          document.body.classList.remove('popup-open');
+          document.documentElement.classList.remove('popup-open');
+        }
+      } catch {}
+      // Ensure we land at the very top after build
+      setTimeout(()=>{ window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); }, cleared ? 50 : 0);
+      setTimeout(()=>{ window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); }, 150);
+    } catch {}
+  })();
+
   // Ensure Discord invite sits right under the Categories section
   (function placeDiscordInvite(){
     try {
@@ -709,7 +767,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Re-apply pending hash removed early in head to avoid native scroll jump
     try {
-      if (window.__popupPendingHash) {
+      const blockReapply = (function(){ try { return sessionStorage.getItem('clipsou_block_popup_reapply') === '1'; } catch { return false; } })();
+      if (window.__popupPendingHash && !blockReapply) {
         const h = window.__popupPendingHash;
         try { delete window.__popupPendingHash; } catch { window.__popupPendingHash = null; }
         // Ensure body is already locked at the saved position if available
@@ -732,6 +791,11 @@ document.addEventListener('DOMContentLoaded', async function () {
         try { setTimeout(()=>{ const y = y2||0; window.scrollTo({ top: y, left: 0, behavior: 'auto' }); maintainScroll(y, 200); }, 120); } catch {}
         // Remove early lock style if present
         try { const s = document.getElementById('early-popup-lock'); if (s && s.parentNode) s.parentNode.removeChild(s); } catch {}
+      } else {
+        // We are skipping reapply: cleanup any early locks and pending state
+        try { delete window.__popupPendingHash; } catch { window.__popupPendingHash = null; }
+        try { const s = document.getElementById('early-popup-lock'); if (s && s.parentNode) s.parentNode.removeChild(s); } catch {}
+        try { sessionStorage.removeItem('clipsou_block_popup_reapply'); } catch {}
       }
     } catch {}
   })();
