@@ -461,7 +461,7 @@ body.popup-open nav[aria-label="Navigation principale"] {
 @media (max-width: 768px) {
   .discord-banner { margin: 10px 12px 0; padding: 12px; border-radius: 10px; flex-direction: column; align-items: stretch; gap: 12px; }
   .discord-banner-title { font-size: 16px; }
-  .discord-banner-text { font-size: 13px; }
+  .discord-banner-text { display: none !important; }
   .discord-banner-btn { padding: 12px 14px; border-radius: 8px; width: 100%; justify-content: center; font-size: 15px; }
 }
 
