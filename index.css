@@ -728,6 +728,26 @@ main > .categories-section { transform: translateX(calc(var(--home-shift) + var(
   vertical-align: middle;
 }
 
+/* ===== Genre custom headers (subtitle + big title) ===== */
+.section > .genre-subtitle {
+    margin: 0 40px 2px;
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.92);
+    letter-spacing: 0.2px;
+}
+.section > .genre-hero-title {
+    margin: 0 40px 10px;
+    font-size: 34px;
+    line-height: 1.15;
+    font-weight: 900;
+    color: #ffffff;
+}
+@media (max-width: 768px) {
+    .section > .genre-subtitle { margin: 0 12px 2px; font-size: 13px; }
+    .section > .genre-hero-title { margin: 0 12px 8px; font-size: clamp(20px, 6.2vw, 26px); }
+}
+
 /* ===== Categories Row ===== */
 .categories-section {
   margin: 6px 0 8px; /* no side margins; alignment handled by section shift */

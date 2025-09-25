@@ -1622,6 +1622,14 @@ document.addEventListener('DOMContentLoaded', async function () {
         // Util helpers for genres
         const normalizeGenre = (name) => (name || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
         const PRETTY_MAP = { comedie:'Comédie', familial:'Familial', aventure:'Aventure', action:'Action', horreur:'Horreur' };
+        // Custom headers per genre (subtitle + big title)
+        const GENRE_HEADERS = {
+          comedie: { subtitle: 'Les films qui vont vous faire rire', title: 'Vous allez rire !!' },
+          action:   { subtitle: 'Des scènes qui décoiffent',          title: 'Ça va bouger !' },
+          horreur:  { subtitle: 'Âmes sensibles s\'abstenir',           title: 'Frissons garantis !' },
+          aventure: { subtitle: 'Cap sur l\'évasion',                   title: 'Partez à l\'aventure !' },
+          familial: { subtitle: 'À partager en famille',               title: 'Moments en famille !' }
+        };
         const pretty = (n)=> PRETTY_MAP[normalizeGenre(n)] || (n||'').charAt(0).toUpperCase() + (n||'').slice(1);
         const getIcon = (n) => {
           const icons = {
@@ -1644,10 +1652,33 @@ document.addEventListener('DOMContentLoaded', async function () {
           if (!list.length) { if (section) section.remove(); return; }
           if (!section) {
             section = document.createElement('div'); section.className = 'section'; section.id = 'series';
-            const h2 = document.createElement('h2'); h2.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 12px; color: #2196F3;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>Séries';
+            // Add subtitle for Series
+            const sub = document.createElement('div');
+            sub.className = 'genre-subtitle';
+            sub.textContent = 'Lot de séries amateures';
+            section.appendChild(sub);
+            // Add main title with icon
+            const h2 = document.createElement('h2');
+            h2.classList.add('genre-hero-title');
+            h2.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 12px; color: #2196F3;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>Séries Clipsou';
             const rail = document.createElement('div'); rail.className = 'rail';
             section.appendChild(h2); section.appendChild(rail);
             insertSection(section);
+          } else {
+            // Update existing section header
+            let sub = section.querySelector(':scope > .genre-subtitle');
+            if (!sub) {
+              sub = document.createElement('div');
+              sub.className = 'genre-subtitle';
+              const h2 = section.querySelector(':scope > h2');
+              if (h2) section.insertBefore(sub, h2);
+            }
+            sub.textContent = 'Lot de séries amateures';
+            const h2 = section.querySelector(':scope > h2');
+            if (h2) {
+              h2.classList.add('genre-hero-title');
+              h2.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 12px; color: #2196F3;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>Séries Clipsou';
+            }
           }
           const rail = section.querySelector('.rail');
           rail.innerHTML = '';
@@ -1678,12 +1709,43 @@ document.addEventListener('DOMContentLoaded', async function () {
           if (!entry || !entry.list || entry.list.length < 1) { if (section) section.remove(); return; }
           if (!section) {
             section = document.createElement('div'); section.className = 'section'; section.id = id;
-            const h2 = document.createElement('h2'); h2.innerHTML = `${getIcon(name)}${pretty(name)}`;
+            const h2 = document.createElement('h2');
+            const header = GENRE_HEADERS[key];
+            if (header) {
+              const sub = document.createElement('div');
+              sub.className = 'genre-subtitle';
+              sub.textContent = header.subtitle;
+              section.appendChild(sub);
+              h2.classList.add('genre-hero-title');
+              h2.innerHTML = `${getIcon(name)}${header.title}`;
+            } else {
+              h2.innerHTML = `${getIcon(name)}${pretty(name)}`;
+            }
             const rail = document.createElement('div'); rail.className = 'rail';
             section.appendChild(h2); section.appendChild(rail);
             insertSection(section);
           }
-          const rail = section.querySelector('.rail'); const h2 = section.querySelector('h2'); if (h2) h2.innerHTML = `${getIcon(name)}${pretty(name)}`;
+          const rail = section.querySelector('.rail');
+          const h2 = section.querySelector('h2');
+          if (h2) {
+            const header = GENRE_HEADERS[key];
+            if (header) {
+              let sub = section.querySelector(':scope > .genre-subtitle');
+              if (!sub) {
+                sub = document.createElement('div');
+                sub.className = 'genre-subtitle';
+                section.insertBefore(sub, h2);
+              }
+              sub.textContent = header.subtitle;
+              h2.classList.add('genre-hero-title');
+              h2.innerHTML = `${getIcon(name)}${header.title}`;
+            } else {
+              h2.classList.remove('genre-hero-title');
+              h2.innerHTML = `${getIcon(name)}${pretty(name)}`;
+              const sub = section.querySelector(':scope > .genre-subtitle');
+              if (sub) sub.remove();
+            }
+          }
           const sorted = entry.list.slice().sort((a,b)=>{
             const ra = (typeof a.rating === 'number') ? a.rating : -Infinity;
             const rb = (typeof b.rating === 'number') ? b.rating : -Infinity;
@@ -1693,6 +1755,51 @@ document.addEventListener('DOMContentLoaded', async function () {
           sorted.forEach(it => { const href = `#${it.id}`; if (seen.has(href)) return; rail.appendChild(createCard(it)); seen.add(href); });
           try { ensureSectionSeeAll(section, `${getIcon(name)}${pretty(name)}`, sorted, createCard); } catch {}
         });
+        // Update Favorites header with custom subtitle and title
+        (function setupFavoritesHeader(){
+          try {
+            const sec = document.getElementById('favorites');
+            if (!sec) return;
+            const h2 = sec.querySelector(':scope > h2');
+            if (!h2) return;
+            // Insert/Update subtitle
+            let sub = sec.querySelector(':scope > .genre-subtitle');
+            if (!sub) {
+              sub = document.createElement('div');
+              sub.className = 'genre-subtitle';
+              sec.insertBefore(sub, h2);
+            }
+            sub.textContent = "On ne s'en lasse jamais, pourquoi ne pas les revisionner";
+            // Preserve existing SVG icon if present
+            let svg = h2.querySelector('svg');
+            const svgHtml = svg ? svg.outerHTML : '';
+            h2.classList.add('genre-hero-title');
+            h2.innerHTML = `${svgHtml}Titres en favoris`;
+          } catch {}
+        })();
+        
+        // Update Top Rated header with custom subtitle and title
+        (function setupTopRatedHeader(){
+          try {
+            const sec = document.getElementById('top-rated');
+            if (!sec) return;
+            const h2 = sec.querySelector(':scope > h2');
+            if (!h2) return;
+            // Insert/Update subtitle
+            let sub = sec.querySelector(':scope > .genre-subtitle');
+            if (!sub) {
+              sub = document.createElement('div');
+              sub.className = 'genre-subtitle';
+              sec.insertBefore(sub, h2);
+            }
+            sub.textContent = "On les adore et vous ?";
+            // Preserve existing SVG icon if present
+            let svg = h2.querySelector('svg');
+            const svgHtml = svg ? svg.outerHTML : '';
+            h2.classList.add('genre-hero-title');
+            h2.innerHTML = `${svgHtml}Mieux notés`;
+          } catch {}
+        })();
       } catch {}
     })();
 
