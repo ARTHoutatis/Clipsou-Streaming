@@ -3,7 +3,7 @@
     --bg-2: #0e141b;
     --brand-1: #2B22EE;
     --brand-2: #6c5ce7;
-    --home-shift: 20px; /* desktop default */
+    --home-shift: 60px; /* desktop default - increased left margin */
     --categories-nudge: 0px; /* align Categories with other sections */
     --categories-extra-shift: 0px; /* no extra nudge by default */
 }
@@ -465,6 +465,13 @@ body.popup-open nav[aria-label="Navigation principale"] {
   .discord-banner-btn { padding: 12px 14px; border-radius: 8px; width: 100%; justify-content: center; font-size: 15px; }
 }
 
+/* Desktop: reduce Discord banner on the right by 1/10 */
+@media (min-width: 769px) {
+  #discord-invite.discord-banner { margin-right: calc(40px + 10%); }
+}
+
+ 
+
 /* Mobile: shrink and shift left the 'Reprendre la lecture' title */
 @media (max-width: 768px) {
   #continue-watching > h2 {
@@ -705,8 +712,8 @@ body.popup-open nav[aria-label="Navigation principale"] {
 
 /* Shift all homepage content blocks to the right, except the carousel */
 main > .section { transform: translateX(var(--home-shift)); width: calc(100% - var(--home-shift)); }
-/* Nudge Categories box slightly to match 'Reprendre la lecture' alignment */
-main > .categories-section { transform: translateX(calc(var(--home-shift) + var(--categories-nudge))); width: calc(100% - var(--home-shift) - var(--categories-nudge)); }
+/* Ensure Categories aligns exactly like other sections (no extra left gap) */
+main > .categories-section { transform: translateX(var(--home-shift)); width: calc(100% - var(--home-shift)); }
 @media (max-width: 768px) {
   :root { --home-shift: 8px; --categories-extra-shift: 6px; --categories-inner-shift: 12px; --categories-nudge: 0px; }
 }
@@ -758,6 +765,7 @@ main > .categories-section { transform: translateX(calc(var(--home-shift) + var(
   box-shadow: 0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
   overflow: hidden; /* keep rounded corners for inner content */
 }
+ 
 
 /* ===== Continue Watching (Reprendre la lecture) matches Categories look ===== */
 #continue-watching {
