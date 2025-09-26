@@ -386,13 +386,26 @@ a { text-decoration: none; color: inherit; }
   --bg-2: #0e141b;
   --brand-1: #2B22EE;
   --brand-2: #6c5ce7;
+  /* New design tokens */
+  --surface-1: #0E1525;
+  --surface-2: #141B2D;
+  --text-primary: #FFFFFF;
+  --text-secondary: #A9B3C7;
+  --gutter: 40px; /* desktop/tablet gutter */
+  --radius-card: 12px;
+  --radius-button: 10px;
+  --shadow-elev: 0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+@media (max-width: 768px) {
+  :root { --gutter: 12px; }
 }
 
 body {
   margin: 0;
   min-height: 100vh;
   color: #fff;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, system-ui, -apple-system, sans-serif;
   line-height: 1.6;
   -webkit-tap-highlight-color: transparent;
 }
@@ -402,7 +415,7 @@ nav[aria-label="Navigation principale"] {
   /* Background opaque partout */
   background: #0b1117 !important;
   border-bottom: 1px solid rgba(255,255,255,0.12);
-  padding: 0 40px; /* horizontal only on desktop to lock bar height */
+  padding: 0 var(--gutter); /* horizontal only on desktop to lock bar height */
   height: 70px; /* fixed desktop height for consistency */
   display: flex;
   justify-content: space-between;
@@ -432,7 +445,7 @@ body.popup-open nav[aria-label="Navigation principale"] {
 
 /* Desktop/tablet: shift the whole left group (logo + Accueil) by 40px */
 @media (min-width: 769px) {
-  .logo { margin-left: 40px; }
+  .logo { margin-left: var(--gutter); }
 }
 
 /* Desktop: offset page content for fixed nav */

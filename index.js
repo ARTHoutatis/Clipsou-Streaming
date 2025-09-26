@@ -149,6 +149,126 @@ document.addEventListener('DOMContentLoaded', async function () {
     try { setInterval(saveGenericY, 1500); } catch {}
   })();
 
+  // ===== Categories row (cards linking to search filters) =====
+  (function buildCategoriesRow(){
+    try {
+      const container = document.querySelector('main') || document.body;
+      if (!container) return;
+      // Strategic position: after Favorites if present; else after Top Rated.
+      // This guarantees it's not above the carousel section.
+      const afterEl = document.getElementById('favorites') || document.getElementById('top-rated');
+      const id = 'categories-pro';
+      const titleText = "Catégories";
+      // Known images available in /Catégories based on index.html preloads
+      const cats = [
+        { name: 'Comédie', img: 'Catégories/Comédi.webp' },
+        { name: 'Horreur', img: 'Catégories/Horreur.webp' },
+        { name: 'Action',  img: 'Catégories/Action.webp' },
+        { name: 'Familial', img: 'Catégories/Famillial.webp' },
+        { name: 'Drame', img: 'Catégories/Drame.webp' },
+        { name: 'Super-Heros', img: 'Catégories/Super-Heros.webp' }
+      ];
+      // Create or update section
+      let section = document.getElementById(id);
+      if (!section) {
+        section = document.createElement('div');
+        section.className = 'section categories-section compact pro';
+        section.id = id;
+        const h2 = document.createElement('h2');
+        h2.className = 'categories-title';
+        h2.textContent = titleText;
+        const rail = document.createElement('div');
+        rail.className = 'categories-rail';
+        section.appendChild(h2); section.appendChild(rail);
+        const refParent = container;
+        if (afterEl && afterEl.parentNode === refParent) {
+          refParent.insertBefore(section, afterEl.nextSibling);
+        } else if (document.getElementById('top-rated') && document.getElementById('top-rated').parentNode === refParent) {
+          refParent.insertBefore(section, document.getElementById('top-rated').nextSibling);
+        } else {
+          refParent.appendChild(section);
+        }
+      }
+      // Ensure the Discord invite banner sits inside the categories section so widths match
+      try {
+        const invite = document.getElementById('discord-invite');
+        if (invite && section && invite.parentNode !== section) {
+          section.appendChild(invite);
+        }
+        // If the old static categories container is now empty, remove it
+        const staticCats = document.getElementById('categories');
+        if (staticCats && staticCats.children && staticCats.children.length === 0) {
+          staticCats.remove();
+        }
+      } catch {}
+      const rail = section.querySelector('.categories-rail');
+      if (!rail) return;
+      rail.innerHTML = '';
+      cats.forEach(c => {
+        try {
+          const a = document.createElement('a');
+          a.className = 'category-card';
+          a.setAttribute('role','listitem');
+          a.href = 'search.html?q=' + encodeURIComponent(c.name) + '&openFilters=1';
+          a.setAttribute('aria-label', 'Catégorie ' + c.name);
+          const img = document.createElement('img');
+          img.src = c.img; img.alt = c.name; img.loading = 'lazy'; img.decoding = 'async';
+          a.appendChild(img);
+          rail.appendChild(a);
+        } catch {}
+      });
+    } catch {}
+  })();
+
+  // ===== Remove obsolete category image preloads from <head> =====
+  (function removeObsoletePreloads(){
+    try {
+      const head = document.head || document.getElementsByTagName('head')[0];
+      if (!head) return;
+      head.querySelectorAll('link[rel="preload"][as="image"][href*="Catégories/"]').forEach(el => {
+        try { el.parentNode && el.parentNode.removeChild(el); } catch {}
+      });
+    } catch {}
+  })();
+
+  // ===== Drawer shortcuts: put Favoris then Nouveautés at the top =====
+  (function updateDrawerShortcuts(){
+    try {
+      const list = document.getElementById('drawer-sections');
+      if (!list) return;
+      // Helper to remove any existing shortcut by href hash
+      function removeByHash(hash){
+        try {
+          list.querySelectorAll('li > a.link[href^="#"]').forEach(a => {
+            if ((a.getAttribute('href')||'') === hash) {
+              const li = a.closest('li'); if (li && li.parentNode) li.parentNode.removeChild(li);
+            }
+          });
+        } catch {}
+      }
+      // Ensure unique and ordered: 1) Favoris, 2) Nouveautés
+      removeByHash('#favorites');
+      removeByHash('#nouveautes');
+
+      // Build entries
+      function makeLi(hash, html){
+        const li = document.createElement('li');
+        li.setAttribute('data-fixed','1');
+        const a = document.createElement('a'); a.className = 'link'; a.href = hash; a.innerHTML = html; li.appendChild(a);
+        return li;
+      }
+      const favIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#FF4D67" style="margin-right: 8px;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>';
+      const newIcon = '<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="16" height="16" style="margin-right: 8px;"><g id="SVGRepo_iconCarrier"> <g id="Layer_2" data-name="Layer 2"> <g id="invisible_box" data-name="invisible box"> <rect width="48" height="48" fill="none"></rect> </g> <g id="icons_Q2" data-name="icons Q2"> <path d="M42.3,24l3.4-5.1a2,2,0,0,0,.2-1.7A1.8,1.8,0,0,0,44.7,16l-5.9-2.4-.5-5.9a2.1,2.1,0,0,0-.7-1.5,2,2,0,0,0-1.7-.3L29.6,7.2,25.5,2.6a2.2,2.2,0,0,0-3,0L18.4,7.2,12.1,5.9a2,2,0,0,0-1.7.3,2.1,2.1,0,0,0-.7,1.5l-.5,5.9L3.3,16a1.8,1.8,0,0,0-1.2,1.2,2,2,0,0,0,.2,1.7L5.7,24,2.3,29.1a2,2,0,0,0,1,2.9l5.9,2.4.5,5.9a2.1,2.1,0,0,0,.7,1.5,2,2,0,0,0,1.7.3l6.3-1.3,4.1,4.5a2,2,0,0,0,3,0l4.1-4.5,6.3,1.3a2,2,0,0,0,1.7-.3,2.1,2.1,0,0,0,.7-1.5l.5-5.9L44.7,32a2,2,0,0,0,1-2.9ZM18,31.1l-4.2-3.2L12.7,27h-.1l.6,1.4,1.7,4-2.1.8L9.3,24.6l2.1-.8L15.7,27l1.1.9h0a11.8,11.8,0,0,0-.6-1.3l-1.6-4.1,2.1-.9,3.5,8.6Zm3.3-1.3-3.5-8.7,6.6-2.6.7,1.8L20.7,22l.6,1.6L25.1,22l.7,1.7L22,25.2l.7,1.9,4.5-1.8.7,1.8Zm13.9-5.7-2.6-3.7-.9-1.5h-.1a14.7,14.7,0,0,1,.4,1.7l.8,4.5-2.1.9-5.9-7.7,2.2-.9,2.3,3.3,1.3,2h0a22.4,22.4,0,0,1-.4-2.3l-.7-4,2-.8L33.8,19,35,20.9h0s-.2-1.4-.4-2.4L34,14.6l2.1-.9,1.2,9.6Z"></path> </g> </g> </g></svg>';
+      const liFav = makeLi('#favorites', favIcon + 'Favoris');
+      const liNew = makeLi('#nouveautes', newIcon + 'Nouveautés');
+
+      // Insert at the very top in correct order
+      const first = list.firstChild;
+      list.insertBefore(liNew, first);
+      list.insertBefore(liFav, liNew);
+    } catch {}
+  })();
+
   // On homepage refresh: close any open popup (hash) and scroll to top
   (function forceTopOnRefresh(){
     try {
@@ -207,55 +327,60 @@ document.addEventListener('DOMContentLoaded', async function () {
     } catch {}
   })();
 
-  // Ensure Discord invite sits between Continue Watching and Favorites
+  // Ensure Discord invite sits right under the Categories section
   (function placeDiscordInvite(){
     try {
+      var categories = document.getElementById('categories');
       var invite = document.getElementById('discord-invite');
       if (!invite) return;
-
-      function placeNow(){
-        try {
-          var continueSec = document.getElementById('continue-watching');
-          var favoritesSec = document.getElementById('favorites');
-          if (continueSec && continueSec.parentNode) {
-            if (favoritesSec && favoritesSec.parentNode) {
-              // Insert just before favorites to guarantee order Continue -> Banner -> Favorites
-              if (invite.nextElementSibling !== favoritesSec) {
-                favoritesSec.parentNode.insertBefore(invite, favoritesSec);
-              }
-              return true;
-            } else {
-              // Favorites not present yet: place right after Continue Watching
-              if (continueSec.nextElementSibling !== invite) {
-                continueSec.insertAdjacentElement('afterend', invite);
-              }
-              return true;
-            }
-          }
-        } catch {}
-        return false;
+      // If a dedicated Séries section exists, place banner just before it
+      var series = document.getElementById('series');
+      if (series && series.parentNode) {
+        if (invite.nextElementSibling !== series) {
+          series.parentNode.insertBefore(invite, series);
+        }
+        return;
       }
-
-      if (placeNow()) return;
-
-      // Fallback: place after Categories for initial layout while waiting
-      try {
-        var categories = document.getElementById('categories');
-        if (categories && categories.parentNode && categories.nextElementSibling !== invite) {
+      // Fallback: place right after Categories for now
+      if (categories && categories.parentNode) {
+        if (invite.previousElementSibling !== categories) {
           categories.insertAdjacentElement('afterend', invite);
         }
-      } catch {}
-
-      // Observe future additions to reposition when target sections appear
-      var root = document.querySelector('main') || document.body;
-      if (!root) return;
-      var observer = new MutationObserver(function(){
+      }
+      // Observe future additions to place right before #series when it appears
+      var main = document.querySelector('main') || document.body;
+      if (!main) return;
+      var placed = false;
+      try { placed = !!document.getElementById('series'); } catch {}
+      var observer = new MutationObserver(function(mutations){
+        if (placed) return;
         try {
-          if (placeNow()) { observer.disconnect(); }
+          var s = document.getElementById('series');
+          if (s && s.parentNode) {
+            s.parentNode.insertBefore(invite, s);
+            placed = true;
+            observer.disconnect();
+          }
         } catch {}
       });
-      observer.observe(root, { childList: true, subtree: true });
-      setTimeout(function(){ try { observer.disconnect(); } catch {} }, 10000);
+      observer.observe(main, { childList: true, subtree: true });
+      // Safety timeout: stop observing after some time
+      setTimeout(function(){ try { observer.disconnect(); } catch {} }, 8000);
+    } catch {}
+  })();
+
+  // Remove the now-empty Categories wrapper but keep the Discord invite banner
+  (function removeCategoriesWrapper(){
+    try {
+      var cat = document.getElementById('categories');
+      if (!cat) return;
+      var invite = document.getElementById('discord-invite');
+      // Move invite out of the wrapper to keep it visible
+      if (invite && cat.parentNode && invite.parentNode === cat) {
+        cat.parentNode.insertBefore(invite, cat);
+      }
+      // Remove the empty wrapper
+      if (cat.parentNode) cat.parentNode.removeChild(cat);
     } catch {}
   })();
 
@@ -1124,11 +1249,15 @@ document.addEventListener('DOMContentLoaded', async function () {
 
       // Helper functions for genres (duplicated here for menu access)
       const normalizeGenreMenu = (name) => (name || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-      const PRETTY_MAP_MENU = { aventure:'Aventure' };
+      const PRETTY_MAP_MENU = { comedie:'Comédie', familial:'Familial', aventure:'Aventure', action:'Action', horreur:'Horreur' };
       const prettyMenu = (n)=> PRETTY_MAP_MENU[normalizeGenreMenu(n)] || (n||'').charAt(0).toUpperCase() + (n||'').slice(1);
       const getIconMenu = (n) => {
         const icons = {
-          aventure: '<svg width="16" height="16" viewBox="-1.6 -1.6 19.20 19.20" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 10px;"><path d="M4 2L0 1V14L4 15V2Z" fill="#4CAF50"/><path d="M16 2L12 1V14L16 15V2Z" fill="#4CAF50"/><path d="M10 1L6 2V15L10 14V1Z" fill="#4CAF50"/></svg>'
+          familial: '<svg width="16" height="16" fill="#9C27B0" viewBox="0 0 98.666 98.666" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 10px;"><circle cx="49.332" cy="53.557" r="10.297"/><path d="M53.7,64.556h-8.737c-7.269,0-13.183,5.916-13.183,13.184v10.688l0.027,0.166l0.735,0.229 c6.937,2.168,12.965,2.892,17.927,2.892c9.688,0,15.303-2.764,15.65-2.938l0.688-0.351l0.071,0.002V77.739 C66.883,70.472,60.971,64.556,53.7,64.556z"/><circle cx="28.312" cy="23.563" r="16.611"/><path d="M70.35,40.174c9.174,0,16.609-7.44,16.609-16.613c0-9.17-7.438-16.609-16.609-16.609c-9.176,0-16.61,7.437-16.61,16.609 S61.174,40.174,70.35,40.174z"/><path d="M41.258,62.936c-2.637-2.274-4.314-5.632-4.314-9.378c0-4.594,2.519-8.604,6.243-10.743 c-2.425-0.965-5.061-1.511-7.826-1.511H21.266C9.54,41.303,0,50.847,0,62.571v17.241l0.043,0.269L1.23,80.45 c10.982,3.432,20.542,4.613,28.458,4.656v-7.367C29.688,70.595,34.623,64.599,41.258,62.936z"/><path d="M77.398,41.303H63.305c-2.765,0-5.398,0.546-7.824,1.511c3.727,2.139,6.246,6.147,6.246,10.743 c0,3.744-1.678,7.102-4.313,9.376c2.656,0.661,5.101,2.02,7.088,4.008c2.888,2.89,4.479,6.726,4.478,10.8v7.365 c7.916-0.043,17.477-1.225,28.457-4.656l1.187-0.369l0.044-0.269V62.571C98.664,50.847,89.124,41.303,77.398,41.303z"/></svg>',
+          comedie: '<svg width="16" height="16" fill="#FFD700" viewBox="-8 0 512 512" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 10px;"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm33.8 161.7l80-48c11.6-6.9 24 7.7 15.4 18L343.6 180l33.6 40.3c8.7 10.4-3.9 24.8-15.4 18l-80-48c-7.7-4.7-7.7-15.9 0-20.6zm-163-30c-8.6-10.3 3.8-24.9 15.4-18l80 48c7.8 4.7 7.8 15.9 0 20.6l-80 48c-11.5 6.8-24-7.6-15.4-18l33.6-40.3-33.6-40.3zM398.9 306C390 377 329.4 432 256 432h-16c-73.4 0-134-55-142.9-126-1.2-9.5 6.3-18 15.9-18h270c9.6 0 17.1 8.4 15.9 18z"/></svg>',
+          aventure: '<svg width="16" height="16" viewBox="-1.6 -1.6 19.20 19.20" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 10px;"><path d="M4 2L0 1V14L4 15V2Z" fill="#4CAF50"/><path d="M16 2L12 1V14L16 15V2Z" fill="#4CAF50"/><path d="M10 1L6 2V15L10 14V1Z" fill="#4CAF50"/></svg>',
+          horreur: '<svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 10px;"><path fill="#ffffff" d="M12,2 C16.9706,2 21,6.02944 21,11 L21,19.6207 C21,21.4506 19.0341,22.6074 17.4345,21.7187 L17.0720446,21.5243825 C16.0728067,21.0124062 15.2881947,20.8437981 14.1830599,21.4100628 L13.9846,21.5177 C12.8231222,22.1813611 11.4120698,22.2182312 10.2228615,21.6283102 L10.0154,21.5177 C8.73821,20.7879 7.84896,21.0056 6.56554,21.7187 C4.96587,22.6074 3,21.4506 3,19.6207 L3,11 C3,6.02944 7.02944,2 12,2 Z M8.5,9 C7.67157,9 7,9.67157 7,10.5 C7,11.3284 7.67157,12 8.5,12 C9.32843,12 10,11.3284 10,10.5 C10,9.67157 9.32843,9 8.5,9 Z M15.5,9 C14.6716,9 14,9.67157 14,10.5 C14,11.3284 14.6716,12 15.5,12 C16.3284,12 17,11.3284 17,10.5 C17,9.67157 16.3284,9 15.5,9 Z"/></svg>',
+          action: '<svg width="16" height="16" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 10px;"><path fill="#FF9800" d="M59.395 20.285l109.447 137.043L18.89 98.084 143.737 246.75 36.975 338.582l137.287-12.72-31.457 160.187 112.27-115.142 83.08 101.588-8.58-127.873 165.988-22.76-141.383-74.597 141.04-56.778v-67.236L388.605 189.18l106.5-128.567L292.05 160.55 240.98 40.616l-53.037 90.26L126.63 20.285H59.396zm280.996 0l-25.812 98.61 93.05-98.61H340.39zM219.8 169.29l35.042 59.308-72.737-30.795c4.267-16.433 18.46-27.994 37.696-28.512zm104.62 1.77c16.857 9.28 24.173 26.062 20.428 42.62l-18.866-8.112-35.28 17.522 15.986-26.145-11.715-6.8 29.447-19.086zm-65.5 18.872l24.332 4.218-11.7 37.862-12.632-42.08zm-16.12 58.87l-1.208 21.895 22.87 2.412-38.76 54.28c-34.81-3.42-53.307-34.73-38.737-71.263L242.8 248.8zm32.034 18.862l51.99 16.72c2.035 11.373-2.796 20.542-13.455 24.466l7.767 8.576c-4.758 13.162-16.607 18.498-31.276 12.222l-4.9-47.962-10.126-14.022zm-143.688 85.15L74.613 396.34l-26-15.01-24.95 43.213 43.216 24.95 21.698-37.585 42.568-59.094zm223.293 10.32l85.85 81.178 11.68 42.05 39.712-12.266-12.264-33.287 19.857-36.796-39.13 10.513-105.706-51.392z"/></svg>'
         };
         return icons[normalizeGenreMenu(n)] || '';
       };
@@ -1569,8 +1698,102 @@ document.addEventListener('DOMContentLoaded', async function () {
       try { buildFavoritesSection(items); } catch {}
     });
 
-    // Populate Favorites then Top Rated (sorted by rating desc)
+    // Hero disabled: ensure any existing hero is removed
+    (function removeHero(){
+      try {
+        const hero = document.getElementById('home-hero');
+        if (hero && hero.parentNode) hero.parentNode.removeChild(hero);
+      } catch {}
+    })();
+
+    // Build Favorites first for strategic ordering
     buildFavoritesSection(items);
+
+    // Ensure Favorites and Top Rated sections adopt modern styling
+    try { const favSec = document.getElementById('favorites'); if (favSec) favSec.classList.add('modern'); } catch {}
+    try { const trSec = document.getElementById('top-rated'); if (trSec) trSec.classList.add('modern'); } catch {}
+
+    // Ensure Categories row sits right after Favorites (re-run to reposition if needed)
+    (function ensureCategoriesPlacement(){ try {
+      const cats = document.getElementById('categories-pro'); const fav = document.getElementById('favorites'); const parent = (document.querySelector('main')||document.body);
+      if (cats && fav && parent && fav.parentNode===parent) parent.insertBefore(cats, fav.nextSibling);
+    } catch {} })();
+
+    (function buildNouveautes(){
+      try {
+        function dateKey(it){
+          const any = /** @type {any} */(it);
+          if (any && any.addedAt) {
+            const t = Date.parse(String(any.addedAt));
+            if (!Number.isNaN(t)) return t;
+          }
+          const pick = it.landscapeImage || it.portraitImage || it.image || '';
+          const m = String(pick).match(/\/v(\d{7,})\//);
+          if (m) { const n = parseInt(m[1], 10); if (!Number.isNaN(n)) return n; }
+          return 0;
+        }
+        const list = (items||[])
+          .filter(it => !/trailer/i.test(it.title||''))
+          .slice()
+          .sort((a,b)=> dateKey(b) - dateKey(a))
+          .slice(0, 6);
+        let section = document.getElementById('nouveautes');
+        if (!list.length) { if (section) section.remove(); return; }
+        if (!section) {
+          section = document.createElement('div'); section.className = 'section'; section.id = 'nouveautes';
+          section.classList.add('modern');
+          const h2 = document.createElement('h2');
+          const sub = document.createElement('div'); sub.className = 'genre-subtitle'; sub.textContent = 'Les derniers ajouts';
+          h2.className = 'genre-hero-title'; h2.innerHTML = '<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="#ffffff" width="20" height="20" style="vertical-align: middle; margin-right: 12px;"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>new-star</title> <g id="Layer_2" data-name="Layer 2"> <g id="invisible_box" data-name="invisible box"> <rect width="48" height="48" fill="none"></rect> </g> <g id="icons_Q2" data-name="icons Q2"> <path d="M42.3,24l3.4-5.1a2,2,0,0,0,.2-1.7A1.8,1.8,0,0,0,44.7,16l-5.9-2.4-.5-5.9a2.1,2.1,0,0,0-.7-1.5,2,2,0,0,0-1.7-.3L29.6,7.2,25.5,2.6a2.2,2.2,0,0,0-3,0L18.4,7.2,12.1,5.9a2,2,0,0,0-1.7.3,2.1,2.1,0,0,0-.7,1.5l-.5,5.9L3.3,16a1.8,1.8,0,0,0-1.2,1.2,2,2,0,0,0,.2,1.7L5.7,24,2.3,29.1a2,2,0,0,0,1,2.9l5.9,2.4.5,5.9a2.1,2.1,0,0,0,.7,1.5,2,2,0,0,0,1.7.3l6.3-1.3,4.1,4.5a2,2,0,0,0,3,0l4.1-4.5,6.3,1.3a2,2,0,0,0,1.7-.3,2.1,2.1,0,0,0,.7-1.5l.5-5.9L44.7,32a2,2,0,0,0,1-2.9ZM18,31.1l-4.2-3.2L12.7,27h-.1l.6,1.4,1.7,4-2.1.8L9.3,24.6l2.1-.8L15.7,27l1.1.9h0a11.8,11.8,0,0,0-.6-1.3l-1.6-4.1,2.1-.9,3.5,8.6Zm3.3-1.3-3.5-8.7,6.6-2.6.7,1.8L20.7,22l.6,1.6L25.1,22l.7,1.7L22,25.2l.7,1.9,4.5-1.8.7,1.8Zm13.9-5.7-2.6-3.7-.9-1.5h-.1a14.7,14.7,0,0,1,.4,1.7l.8,4.5-2.1.9-5.9-7.7,2.2-.9,2.3,3.3,1.3,2h0a22.4,22.4,0,0,1-.4-2.3l-.7-4,2-.8L33.8,19,35,20.9h0s-.2-1.4-.4-2.4L34,14.6l2.1-.9,1.2,9.6Z"></path> </g> </g> </g></svg>Nouveautés';
+          const rail = document.createElement('div'); rail.className = 'rail';
+          section.appendChild(sub); section.appendChild(h2); section.appendChild(rail);
+          // Insert right after the hero and before Top Rated
+          const container = document.querySelector('main') || document.body;
+          const topRatedSec = document.getElementById('top-rated');
+          if (container) {
+            if (topRatedSec && topRatedSec.parentNode === container) container.insertBefore(section, topRatedSec);
+            else container.appendChild(section);
+          }
+        }
+        const rail = section.querySelector('.rail');
+        if (rail) {
+          rail.innerHTML = '';
+          list.forEach(it => { try { rail.appendChild(createCard(it)); } catch {} });
+        }
+        try { ensureSectionSeeAll(section, '<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="#ffffff" width="20" height="20" style="vertical-align: middle; margin-right: 12px;"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>new-star</title> <g id="Layer_2" data-name="Layer 2"> <g id="invisible_box" data-name="invisible box"> <rect width="48" height="48" fill="none"></rect> </g> <g id="icons_Q2" data-name="icons Q2"> <path d="M42.3,24l3.4-5.1a2,2,0,0,0,.2-1.7A1.8,1.8,0,0,0,44.7,16l-5.9-2.4-.5-5.9a2.1,2.1,0,0,0-.7-1.5,2,2,0,0,0-1.7-.3L29.6,7.2,25.5,2.6a2.2,2.2,0,0,0-3,0L18.4,7.2,12.1,5.9a2,2,0,0,0-1.7.3,2.1,2.1,0,0,0-.7,1.5l-.5,5.9L3.3,16a1.8,1.8,0,0,0-1.2,1.2,2,2,0,0,0,.2,1.7L5.7,24,2.3,29.1a2,2,0,0,0,1,2.9l5.9,2.4.5,5.9a2.1,2.1,0,0,0,.7,1.5,2,2,0,0,0,1.7.3l6.3-1.3,4.1,4.5a2,2,0,0,0,3,0l4.1-4.5,6.3,1.3a2,2,0,0,0,1.7-.3,2.1,2.1,0,0,0,.7-1.5l.5-5.9L44.7,32a2,2,0,0,0,1-2.9ZM18,31.1l-4.2-3.2L12.7,27h-.1l.6,1.4,1.7,4-2.1.8L9.3,24.6l2.1-.8L15.7,27l1.1.9h0a11.8,11.8,0,0,0-.6-1.3l-1.6-4.1,2.1-.9,3.5,8.6Zm3.3-1.3-3.5-8.7,6.6-2.6.7,1.8L20.7,22l.6,1.6L25.1,22l.7,1.7L22,25.2l.7,1.9,4.5-1.8.7,1.8Zm13.9-5.7-2.6-3.7-.9-1.5h-.1a14.7,14.7,0,0,1,.4,1.7l.8,4.5-2.1.9-5.9-7.7,2.2-.9,2.3,3.3,1.3,2h0a22.4,22.4,0,0,1-.4-2.3l-.7-4,2-.8L33.8,19,35,20.9h0s-.2-1.4-.4-2.4L34,14.6l2.1-.9,1.2,9.6Z"></path> </g> </g> </g></svg>Nouveautés', list, createCard); } catch {}
+
+        // Swap positions of 'Nouveautés' and 'Favoris' on the homepage
+        (function swapSections(){
+          try {
+            const parent = document.querySelector('main') || document.body;
+            const fav = document.getElementById('favorites');
+            const nouv = document.getElementById('nouveautes');
+            if (!parent || !fav || !nouv) return;
+            const cw = document.getElementById('continue-watching');
+            const topRatedSec = document.getElementById('top-rated');
+            // Put 'Nouveautés' where 'Favoris' used to be: right after Continue Watching if present
+            if (cw && cw.parentNode === parent) {
+              const ref = cw.nextSibling; // may be null
+              parent.insertBefore(nouv, ref);
+            } else {
+              parent.insertBefore(nouv, fav);
+            }
+            // Move 'Favoris' to where 'Nouveautés' used to be: just before Top Rated
+            if (topRatedSec && topRatedSec.parentNode === parent) {
+              parent.insertBefore(fav, topRatedSec);
+            }
+            // Keep dynamic Categories row (#categories-pro) immediately after Favorites
+            try {
+              const cats = document.getElementById('categories-pro');
+              if (cats && fav && fav.parentNode === parent) {
+                parent.insertBefore(cats, fav.nextSibling);
+              }
+            } catch {}
+          } catch {}
+        })();
+      } catch {}
+    })();
+
     // Populate Top Rated (sorted by rating desc)
     const topRated = document.querySelector('#top-rated .rail');
     if (topRated) {
@@ -1627,15 +1850,23 @@ document.addEventListener('DOMContentLoaded', async function () {
         })();
         // Util helpers for genres
         const normalizeGenre = (name) => (name || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-        const PRETTY_MAP = { aventure:'Aventure' };
+        const PRETTY_MAP = { comedie:'Comédie', familial:'Familial', aventure:'Aventure', action:'Action', horreur:'Horreur' };
         // Custom headers per genre (subtitle + big title)
         const GENRE_HEADERS = {
-          aventure: { subtitle: 'Cap sur l\'évasion',                   title: 'Partez à l\'aventure !' }
+          comedie: { subtitle: 'Les films qui vont vous faire rire', title: 'Vous allez rire !!' },
+          action:   { subtitle: 'Des scènes qui décoiffent',          title: 'Ça va bouger !' },
+          horreur:  { subtitle: 'Âmes sensibles s\'abstenir',           title: 'Frissons garantis !' },
+          aventure: { subtitle: 'Cap sur l\'évasion',                   title: 'Partez à l\'aventure !' },
+          familial: { subtitle: 'À partager en famille',               title: 'Moments en famille !' }
         };
         const pretty = (n)=> PRETTY_MAP[normalizeGenre(n)] || (n||'').charAt(0).toUpperCase() + (n||'').slice(1);
         const getIcon = (n) => {
           const icons = {
-            aventure: '<svg width="20" height="20" viewBox="-1.6 -1.6 19.20 19.20" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 12px;"><path d="M4 2L0 1V14L4 15V2Z" fill="#4CAF50"/><path d="M16 2L12 1V14L16 15V2Z" fill="#4CAF50"/><path d="M10 1L6 2V15L10 14V1Z" fill="#4CAF50"/></svg>'
+            familial: '<svg width="20" height="20" fill="#9C27B0" viewBox="0 0 98.666 98.666" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 12px;"><circle cx="49.332" cy="53.557" r="10.297"/><path d="M53.7,64.556h-8.737c-7.269,0-13.183,5.916-13.183,13.184v10.688l0.027,0.166l0.735,0.229 c6.937,2.168,12.965,2.892,17.927,2.892c9.688,0,15.303-2.764,15.65-2.938l0.688-0.351l0.071,0.002V77.739 C66.883,70.472,60.971,64.556,53.7,64.556z"/><circle cx="28.312" cy="23.563" r="16.611"/><path d="M70.35,40.174c9.174,0,16.609-7.44,16.609-16.613c0-9.17-7.438-16.609-16.609-16.609c-9.176,0-16.61,7.437-16.61,16.609 S61.174,40.174,70.35,40.174z"/><path d="M41.258,62.936c-2.637-2.274-4.314-5.632-4.314-9.378c0-4.594,2.519-8.604,6.243-10.743 c-2.425-0.965-5.061-1.511-7.826-1.511H21.266C9.54,41.303,0,50.847,0,62.571v17.241l0.043,0.269L1.23,80.45 c10.982,3.432,20.542,4.613,28.458,4.656v-7.367C29.688,70.595,34.623,64.599,41.258,62.936z"/><path d="M77.398,41.303H63.305c-2.765,0-5.398,0.546-7.824,1.511c3.727,2.139,6.246,6.147,6.246,10.743 c0,3.744-1.678,7.102-4.313,9.376c2.656,0.661,5.101,2.02,7.088,4.008c2.888,2.89,4.479,6.726,4.478,10.8v7.365 c7.916-0.043,17.477-1.225,28.457-4.656l1.187-0.369l0.044-0.269V62.571C98.664,50.847,89.124,41.303,77.398,41.303z"/></svg>',
+            comedie: '<svg width="20" height="20" fill="#FFD700" viewBox="-8 0 512 512" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 12px;"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm33.8 161.7l80-48c11.6-6.9 24 7.7 15.4 18L343.6 180l33.6 40.3c8.7 10.4-3.9 24.8-15.4 18l-80-48c-7.7-4.7-7.7-15.9 0-20.6zm-163-30c-8.6-10.3 3.8-24.9 15.4-18l80 48c7.8 4.7 7.8 15.9 0 20.6l-80 48c-11.5 6.8-24-7.6-15.4-18l33.6-40.3-33.6-40.3zM398.9 306C390 377 329.4 432 256 432h-16c-73.4 0-134-55-142.9-126-1.2-9.5 6.3-18 15.9-18h270c9.6 0 17.1 8.4 15.9 18z"/></svg>',
+            aventure: '<svg width="20" height="20" viewBox="-1.6 -1.6 19.20 19.20" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 12px;"><path d="M4 2L0 1V14L4 15V2Z" fill="#4CAF50"/><path d="M16 2L12 1V14L16 15V2Z" fill="#4CAF50"/><path d="M10 1L6 2V15L10 14V1Z" fill="#4CAF50"/></svg>',
+            horreur: '<svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 12px;"><path fill="#ffffff" d="M12,2 C16.9706,2 21,6.02944 21,11 L21,19.6207 C21,21.4506 19.0341,22.6074 17.4345,21.7187 L17.0720446,21.5243825 C16.0728067,21.0124062 15.2881947,20.8437981 14.1830599,21.4100628 L13.9846,21.5177 C12.8231222,22.1813611 11.4120698,22.2182312 10.2228615,21.6283102 L10.0154,21.5177 C8.73821,20.7879 7.84896,21.0056 6.56554,21.7187 C4.96587,22.6074 3,21.4506 3,19.6207 L3,11 C3,6.02944 7.02944,2 12,2 Z M8.5,9 C7.67157,9 7,9.67157 7,10.5 C7,11.3284 7.67157,12 8.5,12 C9.32843,12 10,11.3284 10,10.5 C10,9.67157 9.32843,9 8.5,9 Z M15.5,9 C14.6716,9 14,9.67157 14,10.5 C14,11.3284 14.6716,12 15.5,12 C16.3284,12 17,11.3284 17,10.5 C17,9.67157 16.3284,9 15.5,9 Z"/></svg>',
+            action: '<svg width="20" height="20" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 12px;"><path fill="#FF9800" d="M59.395 20.285l109.447 137.043L18.89 98.084 143.737 246.75 36.975 338.582l137.287-12.72-31.457 160.187 112.27-115.142 83.08 101.588-8.58-127.873 165.988-22.76-141.383-74.597 141.04-56.778v-67.236L388.605 189.18l106.5-128.567L292.05 160.55 240.98 40.616l-53.037 90.26L126.63 20.285H59.396zm280.996 0l-25.812 98.61 93.05-98.61H340.39zM219.8 169.29l35.042 59.308-72.737-30.795c4.267-16.433 18.46-27.994 37.696-28.512zm104.62 1.77c16.857 9.28 24.173 26.062 20.428 42.62l-18.866-8.112-35.28 17.522 15.986-26.145-11.715-6.8 29.447-19.086zm-65.5 18.872l24.332 4.218-11.7 37.862-12.632-42.08zm-16.12 58.87l-1.208 21.895 22.87 2.412-38.76 54.28c-34.81-3.42-53.307-34.73-38.737-71.263L242.8 248.8zm32.034 18.862l51.99 16.72c2.035 11.373-2.796 20.542-13.455 24.466l7.767 8.576c-4.758 13.162-16.607 18.498-31.276 12.222l-4.9-47.962-10.126-14.022zm-143.688 85.15L74.613 396.34l-26-15.01-24.95 43.213 43.216 24.95 21.698-37.585 42.568-59.094zm223.293 10.32l85.85 81.178 11.68 42.05 39.712-12.266-12.264-33.287 19.857-36.796-39.13 10.513-105.706-51.392z"/></svg>'
           };
           return icons[normalizeGenre(n)] || '';
         };
@@ -1689,7 +1920,7 @@ document.addEventListener('DOMContentLoaded', async function () {
           try { ensureSectionSeeAll(section, '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 12px; color: #2196F3;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>Séries', sorted, createCard); } catch {}
         })();
         // Build selected Genre sections
-        const ALLOWED = ['Aventure'];
+        const ALLOWED = ['Comédie','Familial','Aventure','Action','Horreur'];
         // Group by normalized genre
         const byGenre = new Map();
         (items||[]).forEach(it => {
@@ -1744,11 +1975,6 @@ document.addEventListener('DOMContentLoaded', async function () {
               if (sub) sub.remove();
             }
           }
-          // Remove compact count under the title (no '(X) titres')
-          try {
-            const cnt = section.querySelector(':scope > .genre-count');
-            if (cnt && cnt.parentNode) cnt.parentNode.removeChild(cnt);
-          } catch {}
           const sorted = entry.list.slice().sort((a,b)=>{
             const ra = (typeof a.rating === 'number') ? a.rating : -Infinity;
             const rb = (typeof b.rating === 'number') ? b.rating : -Infinity;
@@ -1757,11 +1983,6 @@ document.addEventListener('DOMContentLoaded', async function () {
           rail.innerHTML = ''; const seen = new Set();
           sorted.forEach(it => { const href = `#${it.id}`; if (seen.has(href)) return; rail.appendChild(createCard(it)); seen.add(href); });
           try { ensureSectionSeeAll(section, `${getIcon(name)}${pretty(name)}`, sorted, createCard); } catch {}
-          // Ensure no compact count element remains
-          try {
-            const cnt2 = section.querySelector(':scope > .genre-count');
-            if (cnt2 && cnt2.parentNode) cnt2.parentNode.removeChild(cnt2);
-          } catch {}
         });
         // Update Favorites header with custom subtitle and title
         (function setupFavoritesHeader(){
@@ -1783,11 +2004,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             const svgHtml = svg ? svg.outerHTML : '';
             h2.classList.add('genre-hero-title');
             h2.innerHTML = `${svgHtml}Titres en favoris`;
-            // Do not show compact count under title
-            try {
-              const cnt = sec.querySelector(':scope > .genre-count');
-              if (cnt && cnt.parentNode) cnt.parentNode.removeChild(cnt);
-            } catch {}
           } catch {}
         })();
         
@@ -1811,11 +2027,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             const svgHtml = svg ? svg.outerHTML : '';
             h2.classList.add('genre-hero-title');
             h2.innerHTML = `${svgHtml}Mieux notés`;
-            // Do not show compact count under title for Top Rated
-            try {
-              const cnt = sec.querySelector(':scope > .genre-count');
-              if (cnt && cnt.parentNode) cnt.parentNode.removeChild(cnt);
-            } catch {}
           } catch {}
         })();
       } catch {}
