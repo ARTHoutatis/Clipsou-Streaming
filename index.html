@@ -98,6 +98,118 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
  <link rel="stylesheet" href="common.css?v=20250916-1">
  <link rel="stylesheet" href="index.css?v=20250916-1">
+ <style>
+  /* Discord banner overrides */
+  .discord-banner { background: rgba(255,255,255,0.04); }
+  .discord-banner-title { font-size: 28px; }
+  .discord-banner-text { font-size: 18px; color: rgba(255,255,255,0.82); }
+  .discord-banner-btn { font-size: 20px; font-weight: 500; }
+  .discord-banner-btn svg { width: 32px; height: 32px; }
+  .discord-banner-btn svg[viewBox="0 0 32 32"] { display: none !important; }
+  /* Remove thin white borders on home boxes/cards */
+  .card,
+  .categories-section .category-card,
+  #continue-watching,
+  .home-filters,
+  .resume-dialog-box,
+  .discord-banner,
+  .home-genre-filters .genre-chip { border: 0 !important; }
+  /* Also neutralize hover border color on chips */
+  .home-genre-filters .genre-chip:hover { border-color: transparent !important; }
+  /* Prevent card clipping on hover/select */
+  /* For sections in general, clip horizontally so fades/arrows work */
+  .section { overflow: hidden !important; }
+  #continue-watching { overflow: visible !important; }
+  .categories-section { overflow: hidden !important; display: none !important; }
+  .categories-section .categories-rail { overflow-y: visible !important; }
+  .section .rail { overflow-y: visible !important; overflow-x: hidden !important; }
+  .grid { overflow: visible !important; }
+  /* Proper stacking order: fades above rails, arrows above fades */
+  .section .rail { position: relative !important; z-index: 2 !important; }
+  .section .rail-fade { z-index: 5 !important; }
+  .section .rail-arrow { z-index: 6 !important; }
+  #continue-watching .rail { position: relative !important; z-index: 30 !important; }
+  .card:hover, .card:focus-within, .card:active { z-index: 50; }
+  .category-card:hover, .category-card:focus-within, .category-card:active { z-index: 50; }
+  /* Give a small breathing room above cards on desktop so translateY doesn't clip */
+  @media (min-width: 769px) {
+    .grid { padding-top: 16px !important; }
+    .section .rail { padding-top: 16px !important; }
+    .categories-section .categories-rail { padding-top: 16px !important; }
+  }
+  /* Continue Watching: keep cards contained inside the box while preserving arrows */
+  #continue-watching { overflow: hidden !important; padding-top: 22px !important; }
+  #continue-watching .rail { padding-top: 0 !important; }
+  #continue-watching .rail-fade { z-index: 35 !important; }
+  #continue-watching .rail-arrow { z-index: 40 !important; }
+  /* Arrows across sections: same color as page background, opaque on hover */
+  @media (min-width: 769px) {
+    .section .rail-arrow {
+      background: rgba(11,17,23,0.85) !important; /* page bg tone */
+      border-color: rgba(255,255,255,0.12) !important;
+      opacity: .85 !important;
+    }
+    .section .rail-arrow:hover {
+      background: rgba(11,17,23,1) !important;
+      opacity: 1 !important;
+    }
+    /* When hidden, arrows are fully non-interactive and invisible */
+    .section .rail-arrow.hidden { pointer-events: none !important; opacity: 0 !important; display: none !important; }
+    .section .rail-arrow.prev.hidden { transform: translateX(-110%) !important; }
+    .section .rail-arrow.next.hidden { transform: translateX(110%) !important; }
+    .section .rail-fade.hidden { display: none !important; }
+  }
+  /* Smooth transform and lock position on interaction */
+  .discord-banner-btn { transition: transform 180ms ease; }
+  .discord-banner-btn:hover,
+  .discord-banner-btn:focus,
+  .discord-banner-btn:active { transform: translateX(-50px); }
+  @media (max-width: 768px) {
+    .discord-banner-title { font-size: 28px; }
+    .discord-banner-text { font-size: 18px; }
+  }
+  @media (min-width: 1025px) {
+    .discord-banner-btn { transform: translateX(-50px); }
+  }
+  /* Sticky footer layout: footer always at bottom */
+  html, body { height: 100%; }
+  body { display: flex; flex-direction: column; min-height: 100vh; }
+  main#contenu { flex: 1 0 auto; }
+  footer.footer, .footer { margin-top: auto !important; }
+  /* Footer layout: stack sections vertically with spacing */
+  .footer .footer-inner { grid-template-columns: 1fr !important; row-gap: 20px; align-items: start; margin: 0 !important; max-width: 100% !important; }
+  .footer .footer-inner > div { text-align: left !important; }
+  .footer .footer-inner > div:nth-child(2) { text-align: left !important; }
+  .footer .footer-inner > div:nth-child(2) > span { float: none !important; }
+  /* Desktop: align footer links horizontally (override inline grid) */
+  @media (min-width: 1025px) {
+    .footer .footer-list { display: flex !important; flex-wrap: wrap; gap: 8px 16px !important; }
+    .footer .footer-list li { display: inline-block; }
+    .footer .footer-list a { display: inline-flex !important; align-items: center; }
+  }
+  /* Footer: uniform icon-text gap across all links */
+  .footer .footer-list a { gap: 6px !important; }
+  /* Footer: Back-to-top button bottom-right */
+  .footer { position: relative; }
+  .footer .back-to-top-btn {
+    position: absolute;
+    right: var(--gutter);
+    bottom: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--brand-1);
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: 800;
+    border: 1px solid rgba(255,255,255,0.18);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+  }
+  .footer .back-to-top-btn svg { width: 18px; height: 18px; }
+  .footer .back-to-top-btn:hover { filter: brightness(1.06); }
+ </style>
  </head>
  <body>
   <nav aria-label="Navigation principale">
@@ -133,74 +245,11 @@
   <nav>
     <div class="group-title">Raccourcis</div>
     <ul class="links" id="drawer-sections">
-      <li data-fixed="1"><a class="link" href="#top-rated">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="#FFD700" style="margin-right: 6px;">
-          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-        </svg>
-        Mieux notés
-      </a></li>
-      <li data-fixed="1"><a class="link" href="#series">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2" style="margin-right: 10px;">
-          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-          <line x1="8" y1="21" x2="16" y2="21"></line>
-          <line x1="12" y1="17" x2="12" y2="21"></line>
-        </svg>
-        Séries
-      </a></li>
+      <li data-fixed="1"><a class="link" href="#top-rated">⭐ Mieux notés</a></li>
+      <li data-fixed="1"><a class="link" href="#series">📺 Séries</a></li>
+      <li data-fixed="1"><a class="link footer-shortcut" href="#footer">🚀 Liens, infos & partenariats</a></li>
       <!-- Genres dynamiques ajoutés par index.js -->
     </ul>
-    <div class="group-title">Liens et infos</div>
-    <div class="cta-row">
-      <a class="button" href="#submit-film">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-        Ajouter son film
-      </a>
-      <a class="button" href="#partenariats">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 10px;">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-          <circle cx="9" cy="7" r="4"></circle>
-          <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-        </svg>
-        Partenariats
-      </a>
-      <a class="button" href="https://my-store-106e6ad.creator-spring.com/" target="_blank" rel="noopener noreferrer">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 10px;">
-          <circle cx="9" cy="21" r="1"></circle>
-          <circle cx="20" cy="21" r="1"></circle>
-          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-        </svg>
-        Clipsou Shop
-      </a>
-      <a class="button" href="https://fr.tipeee.com/clipsou-studio" target="_blank" rel="noopener noreferrer">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 10px;">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-        </svg>
-        Nous soutenir
-      </a>
-      <a class="button" href="https://www.trustpilot.com/review/clipsoustreaming.com" target="_blank" rel="noopener noreferrer">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 10px;">
-          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-        </svg>
-        Noter le site
-      </a>
-      <a class="button" href="#youtube">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 10px;">
-          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-        </svg>
-        YouTube
-      </a>
-      <a class="button" href="https://discord.gg/9ekddx9Hqs" target="_blank" rel="noopener noreferrer">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 10px;">
-          <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-        </svg>
-        Discord
-      </a>
-      <a class="button" href="#infos">Infos</a>
-    </div>
   </nav>
   </aside>
 <div class="drawer-overlay" id="drawer-overlay" aria-hidden="true"></div>
@@ -348,16 +397,17 @@
   </div>
 
   <!-- NEW: Categories Row -->
-  <div class="section categories-section" id="categories">
+  <!-- Removed categories-section start <div class="section categories-section" id="categories"> -->
     <!-- Discord Invite Banner placed directly under Categories -->
     <div class="discord-banner" id="discord-invite">
       <div class="discord-banner-content">
         <h4 class="discord-banner-title">Des questions ? Un souci ? Rejoins-nous</h4>
-        <p class="discord-banner-text">Rejoins notre serveur Discord pour poser tes questions, suivre les actus, signaler des bugs ou simplement discuter avec la communauté. Tu as une requête ? N’hésite pas à nous la soumettre : une équipe de modérateurs sera là pour te répondre !</p>
+        <p class="discord-banner-text">Rejoins notre serveur Discord pour poser tes questions, suivre les actus, signaler des bugs ou simplement discuter avec la communauté.<br>Tu as une requête ?<br>N’hésite pas à nous la soumettre : une équipe de modérateurs sera là pour te répondre !</p>
       </div>
       <a class="discord-banner-btn" href="https://discord.gg/9ekddx9Hqs" target="_blank" rel="noopener noreferrer" aria-label="Rejoindre notre serveur Discord">
         <svg fill="#ffffff" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff" aria-hidden="true" focusable="false" width="20" height="20"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>discord</title> <path d="M20.992 20.163c-1.511-0.099-2.699-1.349-2.699-2.877 0-0.051 0.001-0.102 0.004-0.153l-0 0.007c-0.003-0.048-0.005-0.104-0.005-0.161 0-1.525 1.19-2.771 2.692-2.862l0.008-0c1.509 0.082 2.701 1.325 2.701 2.847 0 0.062-0.002 0.123-0.006 0.184l0-0.008c0.003 0.050 0.005 0.109 0.005 0.168 0 1.523-1.191 2.768-2.693 2.854l-0.008 0zM11.026 20.163c-1.511-0.099-2.699-1.349-2.699-2.877 0-0.051 0.001-0.102 0.004-0.153l-0 0.007c-0.003-0.048-0.005-0.104-0.005-0.161 0-1.525 1.19-2.771 2.692-2.862l0.008-0c1.509 0.082 2.701 1.325 2.701 2.847 0 0.062-0.002 0.123-0.006 0.184l0-0.008c0.003 0.048 0.005 0.104 0.005 0.161 0 1.525-1.19 2.771-2.692 2.862l-0.008 0zM26.393 6.465c-1.763-0.832-3.811-1.49-5.955-1.871l-0.149-0.022c-0.005-0.001-0.011-0.002-0.017-0.002-0.035 0-0.065 0.019-0.081 0.047l-0 0c-0.234 0.411-0.488 0.924-0.717 1.45l-0.043 0.111c-1.030-0.165-2.218-0.259-3.428-0.259s-2.398 0.094-3.557 0.275l0.129-0.017c-0.27-0.63-0.528-1.142-0.813-1.638l0.041 0.077c-0.017-0.029-0.048-0.047-0.083-0.047-0.005 0-0.011 0-0.016 0.001l0.001-0c-2.293 0.403-4.342 1.060-6.256 1.957l0.151-0.064c-0.017 0.007-0.031 0.019-0.040 0.034l-0 0c-2.854 4.041-4.562 9.069-4.562 14.496 0 0.907 0.048 1.802 0.141 2.684l-0.009-0.11c0.003 0.029 0.018 0.053 0.039 0.070l0 0c2.14 1.601 4.628 2.891 7.313 3.738l0.176 0.048c0.008 0.003 0.018 0.004 0.028 0.004 0.032 0 0.060-0.015 0.077-0.038l0-0c0.535-0.72 1.044-1.536 1.485-2.392l0.047-0.1c0.006-0.012 0.010-0.027 0.010-0.043 0-0.041-0.026-0.075-0.062-0.089l-0.001-0c-0.912-0.352-1.683-0.727-2.417-1.157l0.077 0.042c-0.029-0.017-0.048-0.048-0.048-0.083 0-0.031 0.015-0.059 0.038-0.076l0-0c0.157-0.118 0.315-0.24 0.465-0.364 0.016-0.013 0.037-0.021 0.059-0.021 0.014 0 0.027 0.003 0.038 0.008l-0.001-0c2.208 1.061 4.8 1.681 7.536 1.681s5.329-0.62 7.643-1.727l-0.107 0.046c0.012-0.006 0.025-0.009 0.040-0.009 0.022 0 0.043 0.008 0.059 0.021l-0-0c0.15 0.124 0.307 0.248 0.466 0.365 0.023 0.018 0.038 0.046 0.038 0.077 0 0.035-0.019 0.065-0.046 0.082l-0 0c-0.661 0.395-1.432 0.769-2.235 1.078l-0.105 0.036c-0.036 0.014-0.062 0.049-0.062 0.089 0 0.016 0.004 0.031 0.011 0.044l-0-0.001c0.501 0.96 1.009 1.775 1.571 2.548l-0.040-0.057c0.017 0.024 0.046 0.040 0.077 0.040 0.010 0 0.020-0.002 0.029-0.004l-0.001 0c2.865-0.892 5.358-2.182 7.566-3.832l-0.065 0.047c0.022-0.016 0.036-0.041 0.039-0.069l0-0c0.087-0.784 0.136-1.694 0.136-2.615 0-5.415-1.712-10.43-4.623-14.534l0.052 0.078c-0.008-0.016-0.022-0.029-0.038-0.036l-0-0z"></path> </g></svg>
-        <span>Discord</span>
+        <svg viewBox="0 -28.5 256 256" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMidYMid" fill="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path d="M216.856339,16.5966031 C200.285002,8.84328665 182.566144,3.2084988 164.041564,0 C161.766523,4.11318106 159.108624,9.64549908 157.276099,14.0464379 C137.583995,11.0849896 118.072967,11.0849896 98.7430163,14.0464379 C96.9108417,9.64549908 94.1925838,4.11318106 91.8971895,0 C73.3526068,3.2084988 55.6133949,8.86399117 39.0420583,16.6376612 C5.61752293,67.146514 -3.4433191,116.400813 1.08711069,164.955721 C23.2560196,181.510915 44.7403634,191.567697 65.8621325,198.148576 C71.0772151,190.971126 75.7283628,183.341335 79.7352139,175.300261 C72.104019,172.400575 64.7949724,168.822202 57.8887866,164.667963 C59.7209612,163.310589 61.5131304,161.891452 63.2445898,160.431257 C105.36741,180.133187 151.134928,180.133187 192.754523,160.431257 C194.506336,161.891452 196.298154,163.310589 198.110326,164.667963 C191.183787,168.842556 183.854737,172.420929 176.223542,175.320965 C180.230393,183.341335 184.861538,190.991831 190.096624,198.16893 C211.238746,191.588051 232.743023,181.531619 254.911949,164.955721 C260.227747,108.668201 245.831087,59.8662432 216.856339,16.5966031 Z M85.4738752,135.09489 C72.8290281,135.09489 62.4592217,123.290155 62.4592217,108.914901 C62.4592217,94.5396472 72.607595,82.7145587 85.4738752,82.7145587 C98.3405064,82.7145587 108.709962,94.5189427 108.488529,108.914901 C108.508531,123.290155 98.3405064,135.09489 85.4738752,135.09489 Z M170.525237,135.09489 C157.88039,135.09489 147.510584,123.290155 147.510584,108.914901 C147.510584,94.5396472 157.658606,82.7145587 170.525237,82.7145587 C183.391518,82.7145587 193.761324,94.5189427 193.539891,108.914901 C193.539891,123.290155 183.391518,135.09489 170.525237,135.09489 Z" fill="#ffffff" fill-rule="nonzero"></path> </g> </g></svg>
+        <span>Notre Discord</span>
       </a>
     </div>
   </div>
@@ -960,8 +1010,43 @@
     </div>
   </div>
   </div>
+  
+</main>
 
-<script src="index.js?v=20250916-1" defer></script>
+<footer class="footer" id="footer" role="contentinfo">
+  <div class="footer-inner">
+    <div>
+      <h3 class="footer-title" style="color:#fff;margin:0 0 8px;">Infos sur le site</h3>
+      <p class="footer-desc" style="color:rgba(255,255,255,0.72);font-size:18px;line-height:1.6;margin:0;">
+        Clipsou Streaming a été fondé en 2025 par ARTH et Mr Roxxor.<br>
+        Ce service est le résultat de plusieurs mois de labeur, venant d'un studio de cinéma indépendant établi en 2019.<br>
+        Aujourd'hui, Clipsou bénéficie de sa propre plateforme de streaming et propose des mises à jour régulières !
+      </p>
+    </div>
+    <div class="footer-columns" style="display:grid;grid-template-columns:1fr;row-gap:18px;text-align:left;margin-top:18px;">
+      <div>
+        <h3 class="footer-title" style="color:#fff;margin:0 0 8px;">Liens utiles</h3>
+        <ul class="footer-list" style="list-style:none;padding:0;margin:8px 0 0;display:grid;gap:10px;">
+          <li><a href="#submit-film" style="color:rgba(255,255,255,0.72);text-decoration:none;display:inline-flex;align-items:center;gap:10px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Ajouter son film</a></li>
+          <li><a href="#partenariats" style="color:rgba(255,255,255,0.72);text-decoration:none;display:inline-flex;align-items:center;gap:10px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Partenariats</a></li>
+          <li><a href="https://my-store-106e6ad.creator-spring.com/" target="_blank" rel="noopener noreferrer" style="color:rgba(255,255,255,0.72);text-decoration:none;display:inline-flex;align-items:center;gap:10px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>Clipsou Shop</a></li>
+          <li><a href="https://fr.tipeee.com/clipsou-studio" target="_blank" rel="noopener noreferrer" style="color:rgba(255,255,255,0.72);text-decoration:none;display:inline-flex;align-items:center;gap:10px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>Nous soutenir</a></li>
+          <li><a href="https://www.trustpilot.com/review/clipsoustreaming.com" target="_blank" rel="noopener noreferrer" style="color:rgba(255,255,255,0.72);text-decoration:none;display:inline-flex;align-items:center;gap:10px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Noter le site</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="footer-title" style="color:#fff;margin:0 0 8px;">Réseaux sociaux</h3>
+        <ul class="footer-list" style="list-style:none;padding:0;margin:8px 0 0;display:grid;gap:10px;">
+          <li><a href="#youtube" style="color:rgba(255,255,255,0.72);text-decoration:none;display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>YouTube</a></li>
+          <li><a href="https://discord.gg/9ekddx9Hqs" target="_blank" rel="noopener noreferrer" style="color:rgba(255,255,255,0.72);text-decoration:none;display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M20.992 20.163c-1.511-0.099-2.699-1.349-2.699-2.877 0-0.051 0.001-0.102 0.004-0.153l-0 0.007c-0.003-0.048-0.005-0.104-0.005-0.161 0-1.525 1.19-2.771 2.692-2.862l0.008-0c1.509 0.082 2.701 1.325 2.701 2.847 0 0.062-0.002 0.123-0.006 0.184l0-0.008c0.003 0.050 0.005 0.109 0.005 0.168 0 1.523-1.191 2.768-2.693 2.854l-0.008 0zM11.026 20.163c-1.511-0.099-2.699-1.349-2.699-2.877 0-0.051 0.001-0.102 0.004-0.153l-0 0.007c-0.003-0.048-0.005-0.104-0.005-0.161 0-1.525 1.19-2.771 2.692-2.862l0.008-0c1.509 0.082 2.701 1.325 2.701 2.847 0 0.062-0.002 0.123-0.006 0.184l0-0.008c0.003 0.050 0.005 0.109 0.005 0.168 0 1.523-1.191 2.768-2.693 2.854l-0.008 0zM26.393 6.465c-1.763-0.832-3.811-1.49-5.955-1.871l-0.149-0.022c-0.005-0.001-0.011-0.002-0.017-0.002-0.035 0-0.065 0.019-0.081 0.047l-0 0c-0.234 0.411-0.488 0.924-0.717 1.45l-0.043 0.111c-1.030-0.165-2.218-0.259-3.428-0.259s-2.398 0.094-3.557 0.275l0.129-0.017c-0.27-0.63-0.528-1.142-0.813-1.638l0.041 0.077c-0.017-0.029-0.048-0.047-0.083-0.047-0.005 0-0.011 0-0.016 0.001l0.001-0c-2.293 0.403-4.342 1.060-6.256 1.957l0.151-0.064c-0.017 0.007-0.031 0.019-0.040 0.034l-0 0c-2.854 4.041-4.562 9.069-4.562 14.496 0 0.907 0.048 1.802 0.141 2.684l-0.009-0.11c0.003 0.029 0.018 0.053 0.039 0.070l0 0c2.14 1.601 4.628 2.891 7.313 3.738l0.176 0.048c0.008 0.003 0.018 0.004 0.028 0.004 0.032 0 0.060-0.015 0.077-0.038l0-0c0.535-0.72 1.044-1.536 1.485-2.392l0.047-0.1c0.006-0.012 0.010-0.027 0.010-0.043 0-0.041-0.026-0.075-0.062-0.089l-0.001-0c-0.912-0.352-1.683-0.727-2.417-1.157l0.077 0.042c-0.029-0.017-0.048-0.048-0.048-0.083 0-0.031 0.015-0.059 0.038-0.076l0-0c0.157-0.118 0.315-0.24 0.465-0.364 0.0-..."/></svg>Discord</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <a href="#contenu" class="back-to-top-btn" aria-label="Revenir en haut"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 5l-7 7h4v7h6v-7h4z"/></svg>Revenir en haut</a>
+</footer>
+
+<script src="index.js?v=20250927-1" defer></script>
 <script>
   // Normalize homepage URL to root (remove /index.html) without reload
   // Skip in local dev (file:// or localhost) to keep index.html accessible

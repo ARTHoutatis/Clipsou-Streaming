@@ -43,6 +43,18 @@
 <meta name="twitter:image" content="https://clipsoustreaming.com/apercu.webp">
 <link rel="stylesheet" href="common.css?v=20250912-2">
 <link rel="stylesheet" href="search.css?v=20250912-2">
+<style>
+  /* Remove thin white borders on search boxes/cards */
+  .card,
+  .genre-filters,
+  .genre-chip,
+  .filters-toggle { border: 0 !important; }
+  .genre-chip:hover,
+  .filters-toggle:hover { border-color: transparent !important; }
+  /* Prevent card clipping on hover/select */
+  .search-grid { overflow: visible !important; }
+  .card:hover, .card:focus-within, .card:active { z-index: 10; }
+</style>
 <!-- Prefetch fiche page and script as likely next navigation -->
 <link rel="prefetch" href="fiche.html" as="document">
 <link rel="prefetch" href="fiche.js?v=20250916-1" as="script">

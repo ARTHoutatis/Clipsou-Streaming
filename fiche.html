@@ -27,6 +27,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="common.css?v=20250912-2">
   <link rel="stylesheet" href="index.css?v=20250916-1">
+  <style>
+    /* Prevent card clipping on fiche page */
+    .section .rail,
+    .grid,
+    #fiche .section,
+    #fiche .fiche-content { overflow: visible !important; }
+    .card:hover,
+    .card:focus-within,
+    .card:active { z-index: 10; }
+  </style>
   <!-- Prefetch likely next pages/assets to improve navigation latency -->
   <link rel="prefetch" href="search.html" as="document">
   <link rel="prefetch" href="search.css?v=20250912-2" as="style">

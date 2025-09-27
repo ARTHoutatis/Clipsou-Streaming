@@ -15,6 +15,80 @@ const LOCAL_FALLBACK_DB = [
     { id: 'film7',  title: 'Backrooms Urbanos',   type: 'film',  rating: 3,   genres: ['Horreur','Mystère','Ambience'], image: 'Bac.webp' }
 ];
 
+// Install a robust lazy loader for images with data-src on the search page
+(function installLazyImages(){
+    try {
+        const ATTR = 'data-src';
+        const pending = new Set();
+
+        function load(el){
+            try {
+                if (!el || !el.getAttribute) return;
+                const src = el.getAttribute(ATTR);
+                if (!src) return;
+                el.src = src;
+                el.removeAttribute(ATTR);
+                pending.delete(el);
+            } catch {}
+        }
+
+        const io = ('IntersectionObserver' in window) ? new IntersectionObserver((entries)=>{
+            entries.forEach(entry => {
+                const el = entry.target;
+                if (entry.isIntersecting || entry.intersectionRatio > 0) {
+                    try { io.unobserve(el); } catch {}
+                    load(el);
+                }
+            });
+        }, { root: null, rootMargin: '600px 800px', threshold: 0.01 }) : null;
+
+        function observe(el){
+            if (!el || pending.has(el)) return;
+            pending.add(el);
+            if (io) io.observe(el); else load(el);
+        }
+
+        function scan(root){
+            const scope = root || document;
+            try { scope.querySelectorAll('img[data-src]').forEach(observe); } catch {}
+        }
+
+        // Initial scan
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function(){ scan(document); });
+        } else {
+            scan(document);
+        }
+
+        // Watch DOM for new results
+        try {
+            const mo = new MutationObserver((mutations)=>{
+                for (const m of mutations) {
+                    if (!m || !m.addedNodes) continue;
+                    m.addedNodes.forEach(node => {
+                        try {
+                            if (node && node.nodeType === 1) {
+                                if (node.matches && node.matches('img[data-src]')) observe(node);
+                                else if (node.querySelectorAll) scan(node);
+                            }
+                        } catch {}
+                    });
+                }
+            });
+            mo.observe(document, { childList: true, subtree: true });
+        } catch {}
+
+        // Fallback if no IO support
+        if (!io) {
+            let rafId = 0;
+            const tick = () => { rafId = 0; scan(document); };
+            const schedule = () => { if (!rafId) rafId = requestAnimationFrame(tick); };
+            window.addEventListener('scroll', schedule, { passive: true });
+            window.addEventListener('resize', schedule);
+        }
+    } catch {}
+})();
+
 // Construit dynamiquement la base à partir de index.html (cartes + popups)
 async function buildDatabaseFromIndex() {
     try {
@@ -262,7 +336,7 @@ function displayResults(results) {
         <div class="card">
             <a href="fiche.html?id=${encodeURIComponent(item.id)}&from=search">
                 <div class="card-media">
-                    <img src="${initialSrc}" data-base="${base}" alt="Affiche de ${item.title}" loading="lazy" decoding="async" onerror="(function(img){var b=img.getAttribute('data-base'); if(!b){img.onerror=null; img.src='apercu.webp'; return;} var tried=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=tried; if(tried===1){ img.src=b+'.webp'; } else { img.onerror=null; img.src='apercu.webp'; }})(this)">
+                    <img data-src="${initialSrc}" src="apercu.webp" data-base="${base}" alt="Affiche de ${item.title}" loading="lazy" decoding="async" onerror="(function(img){var b=img.getAttribute('data-base'); if(!b){img.onerror=null; img.src='apercu.webp'; return;} var tried=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=tried; if(tried===1){ img.src=b+'.webp'; } else { img.onerror=null; img.src='apercu.webp'; }})(this)">
                     <div class="brand-badge">
                         <img src="${badgeSrc}" alt="Studio" loading="lazy" decoding="async">
                     </div>

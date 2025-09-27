@@ -212,7 +212,8 @@ document.addEventListener('DOMContentLoaded', async function () {
           a.href = 'search.html?q=' + encodeURIComponent(c.name) + '&openFilters=1';
           a.setAttribute('aria-label', 'Catégorie ' + c.name);
           const img = document.createElement('img');
-          img.src = c.img; img.alt = c.name; img.loading = 'lazy'; img.decoding = 'async';
+          img.dataset.src = c.img; img.src = 'apercu.webp'; img.alt = c.name; img.loading = 'lazy'; img.decoding = 'async';
+          img.onerror = function(){ this.onerror=null; this.src='apercu.webp'; };
           a.appendChild(img);
           rail.appendChild(a);
         } catch {}
@@ -251,21 +252,19 @@ document.addEventListener('DOMContentLoaded', async function () {
       removeByHash('#nouveautes');
 
       // Build entries
-      function makeLi(hash, html){
+      function makeLi(hash, label){
         const li = document.createElement('li');
         li.setAttribute('data-fixed','1');
-        const a = document.createElement('a'); a.className = 'link'; a.href = hash; a.innerHTML = html; li.appendChild(a);
+        const a = document.createElement('a'); a.className = 'link'; a.href = hash; a.textContent = label; li.appendChild(a);
         return li;
       }
-      const favIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#FF4D67" style="margin-right: 8px;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>';
-      const newIcon = '<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="16" height="16" style="margin-right: 8px;"><g id="SVGRepo_iconCarrier"> <g id="Layer_2" data-name="Layer 2"> <g id="invisible_box" data-name="invisible box"> <rect width="48" height="48" fill="none"></rect> </g> <g id="icons_Q2" data-name="icons Q2"> <path d="M42.3,24l3.4-5.1a2,2,0,0,0,.2-1.7A1.8,1.8,0,0,0,44.7,16l-5.9-2.4-.5-5.9a2.1,2.1,0,0,0-.7-1.5,2,2,0,0,0-1.7-.3L29.6,7.2,25.5,2.6a2.2,2.2,0,0,0-3,0L18.4,7.2,12.1,5.9a2,2,0,0,0-1.7.3,2.1,2.1,0,0,0-.7,1.5l-.5,5.9L3.3,16a1.8,1.8,0,0,0-1.2,1.2,2,2,0,0,0,.2,1.7L5.7,24,2.3,29.1a2,2,0,0,0,1,2.9l5.9,2.4.5,5.9a2.1,2.1,0,0,0,.7,1.5,2,2,0,0,0,1.7.3l6.3-1.3,4.1,4.5a2,2,0,0,0,3,0l4.1-4.5,6.3,1.3a2,2,0,0,0,1.7-.3,2.1,2.1,0,0,0,.7-1.5l.5-5.9L44.7,32a2,2,0,0,0,1-2.9ZM18,31.1l-4.2-3.2L12.7,27h-.1l.6,1.4,1.7,4-2.1.8L9.3,24.6l2.1-.8L15.7,27l1.1.9h0a11.8,11.8,0,0,0-.6-1.3l-1.6-4.1,2.1-.9,3.5,8.6Zm3.3-1.3-3.5-8.7,6.6-2.6.7,1.8L20.7,22l.6,1.6L25.1,22l.7,1.7L22,25.2l.7,1.9,4.5-1.8.7,1.8Zm13.9-5.7-2.6-3.7-.9-1.5h-.1a14.7,14.7,0,0,1,.4,1.7l.8,4.5-2.1.9-5.9-7.7,2.2-.9,2.3,3.3,1.3,2h0a22.4,22.4,0,0,1-.4-2.3l-.7-4,2-.8L33.8,19,35,20.9h0s-.2-1.4-.4-2.4L34,14.6l2.1-.9,1.2,9.6Z"></path> </g> </g> </g></svg>';
-      const liFav = makeLi('#favorites', favIcon + 'Favoris');
-      const liNew = makeLi('#nouveautes', newIcon + 'Nouveautés');
+      const liFav = makeLi('#favorites', '❤️ Favoris');
+      const liNew = makeLi('#nouveautes', '✨ Nouveautés');
 
-      // Insert at the very top in correct order
+      // Insert at the very top with Nouveautés au-dessus de Favoris
       const first = list.firstChild;
-      list.insertBefore(liNew, first);
-      list.insertBefore(liFav, liNew);
+      list.insertBefore(liFav, first);
+      list.insertBefore(liNew, liFav);
     } catch {}
   })();
 
@@ -605,7 +604,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         } catch {}
         if (preferred && !candidates.includes(preferred)) candidates.unshift(preferred);
         let cIdx = 0;
-        img.src = applySrc(candidates[cIdx]) || applySrc(it.landscapeImage || it.image) || 'apercu.webp';
+        img.dataset.src = applySrc(candidates[cIdx]) || applySrc(it.landscapeImage || it.image) || 'apercu.webp';
+        img.src = 'apercu.webp';
         img.onerror = function(){ cIdx++; if (cIdx < candidates.length) this.src = applySrc(candidates[cIdx]); else { this.onerror=null; this.src='apercu.webp'; } };
         img.alt = 'Affiche de ' + (it.title || 'contenu');
         img.loading = 'lazy'; img.decoding = 'async';
@@ -1025,7 +1025,15 @@ document.addEventListener('DOMContentLoaded', async function () {
     const closeBtn = drawer ? drawer.querySelector('.close-drawer') : null;
     if (!btn || !drawer || !overlay) return; // Only on homepage where drawer exists
 
+    function isPopupOpen(){
+      try {
+        return !!document.querySelector('.fiche-popup:target') || document.body.classList.contains('popup-open');
+      } catch { return false; }
+    }
+
     function open(){
+      // Do not open the drawer if a popup is currently open (e.g., opened from footer)
+      if (isPopupOpen()) return;
       drawer.classList.add('open');
       overlay.classList.add('open');
       drawer.setAttribute('aria-hidden','false');
@@ -1054,7 +1062,9 @@ document.addEventListener('DOMContentLoaded', async function () {
       } catch {}
       reallyClose();
     }
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      // Block opening when a popup is open
+      if (isPopupOpen()) { try { e.preventDefault(); e.stopPropagation(); } catch {}; return; }
       if (drawer.classList.contains('open')) { reallyClose(); return; }
       try { buildDrawerLinks(); } catch {}
       open();
@@ -1224,6 +1234,10 @@ document.addEventListener('DOMContentLoaded', async function () {
       window.addEventListener('keydown', onKeyDown, { passive: true });
       window.addEventListener('scroll', onScroll, { passive: true, capture: true });
       window.addEventListener('hashchange', onHash, { passive: true });
+      // If a popup opened (e.g., from footer link), ensure the drawer is closed and does not open behind
+      window.addEventListener('hashchange', function(){
+        try { if (isPopupOpen()) reallyClose(); } catch {}
+      }, { passive: true });
       window.addEventListener('mousedown', onMouseDown, { passive: true, capture: true });
       window.addEventListener('mouseup', onMouseUp, { passive: true, capture: true });
       removeCloseOnScroll = () => {
@@ -1251,15 +1265,14 @@ document.addEventListener('DOMContentLoaded', async function () {
       const normalizeGenreMenu = (name) => (name || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
       const PRETTY_MAP_MENU = { comedie:'Comédie', familial:'Familial', aventure:'Aventure', action:'Action', horreur:'Horreur' };
       const prettyMenu = (n)=> PRETTY_MAP_MENU[normalizeGenreMenu(n)] || (n||'').charAt(0).toUpperCase() + (n||'').slice(1);
-      const getIconMenu = (n) => {
-        const icons = {
-          familial: '<svg width="16" height="16" fill="#9C27B0" viewBox="0 0 98.666 98.666" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 10px;"><circle cx="49.332" cy="53.557" r="10.297"/><path d="M53.7,64.556h-8.737c-7.269,0-13.183,5.916-13.183,13.184v10.688l0.027,0.166l0.735,0.229 c6.937,2.168,12.965,2.892,17.927,2.892c9.688,0,15.303-2.764,15.65-2.938l0.688-0.351l0.071,0.002V77.739 C66.883,70.472,60.971,64.556,53.7,64.556z"/><circle cx="28.312" cy="23.563" r="16.611"/><path d="M70.35,40.174c9.174,0,16.609-7.44,16.609-16.613c0-9.17-7.438-16.609-16.609-16.609c-9.176,0-16.61,7.437-16.61,16.609 S61.174,40.174,70.35,40.174z"/><path d="M41.258,62.936c-2.637-2.274-4.314-5.632-4.314-9.378c0-4.594,2.519-8.604,6.243-10.743 c-2.425-0.965-5.061-1.511-7.826-1.511H21.266C9.54,41.303,0,50.847,0,62.571v17.241l0.043,0.269L1.23,80.45 c10.982,3.432,20.542,4.613,28.458,4.656v-7.367C29.688,70.595,34.623,64.599,41.258,62.936z"/><path d="M77.398,41.303H63.305c-2.765,0-5.398,0.546-7.824,1.511c3.727,2.139,6.246,6.147,6.246,10.743 c0,3.744-1.678,7.102-4.313,9.376c2.656,0.661,5.101,2.02,7.088,4.008c2.888,2.89,4.479,6.726,4.478,10.8v7.365 c7.916-0.043,17.477-1.225,28.457-4.656l1.187-0.369l0.044-0.269V62.571C98.664,50.847,89.124,41.303,77.398,41.303z"/></svg>',
-          comedie: '<svg width="16" height="16" fill="#FFD700" viewBox="-8 0 512 512" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 10px;"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm33.8 161.7l80-48c11.6-6.9 24 7.7 15.4 18L343.6 180l33.6 40.3c8.7 10.4-3.9 24.8-15.4 18l-80-48c-7.7-4.7-7.7-15.9 0-20.6zm-163-30c-8.6-10.3 3.8-24.9 15.4-18l80 48c7.8 4.7 7.8 15.9 0 20.6l-80 48c-11.5 6.8-24-7.6-15.4-18l33.6-40.3-33.6-40.3zM398.9 306C390 377 329.4 432 256 432h-16c-73.4 0-134-55-142.9-126-1.2-9.5 6.3-18 15.9-18h270c9.6 0 17.1 8.4 15.9 18z"/></svg>',
-          aventure: '<svg width="16" height="16" viewBox="-1.6 -1.6 19.20 19.20" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 10px;"><path d="M4 2L0 1V14L4 15V2Z" fill="#4CAF50"/><path d="M16 2L12 1V14L16 15V2Z" fill="#4CAF50"/><path d="M10 1L6 2V15L10 14V1Z" fill="#4CAF50"/></svg>',
-          horreur: '<svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 10px;"><path fill="#ffffff" d="M12,2 C16.9706,2 21,6.02944 21,11 L21,19.6207 C21,21.4506 19.0341,22.6074 17.4345,21.7187 L17.0720446,21.5243825 C16.0728067,21.0124062 15.2881947,20.8437981 14.1830599,21.4100628 L13.9846,21.5177 C12.8231222,22.1813611 11.4120698,22.2182312 10.2228615,21.6283102 L10.0154,21.5177 C8.73821,20.7879 7.84896,21.0056 6.56554,21.7187 C4.96587,22.6074 3,21.4506 3,19.6207 L3,11 C3,6.02944 7.02944,2 12,2 Z M8.5,9 C7.67157,9 7,9.67157 7,10.5 C7,11.3284 7.67157,12 8.5,12 C9.32843,12 10,11.3284 10,10.5 C10,9.67157 9.32843,9 8.5,9 Z M15.5,9 C14.6716,9 14,9.67157 14,10.5 C14,11.3284 14.6716,12 15.5,12 C16.3284,12 17,11.3284 17,10.5 C17,9.67157 16.3284,9 15.5,9 Z"/></svg>',
-          action: '<svg width="16" height="16" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 10px;"><path fill="#FF9800" d="M59.395 20.285l109.447 137.043L18.89 98.084 143.737 246.75 36.975 338.582l137.287-12.72-31.457 160.187 112.27-115.142 83.08 101.588-8.58-127.873 165.988-22.76-141.383-74.597 141.04-56.778v-67.236L388.605 189.18l106.5-128.567L292.05 160.55 240.98 40.616l-53.037 90.26L126.63 20.285H59.396zm280.996 0l-25.812 98.61 93.05-98.61H340.39zM219.8 169.29l35.042 59.308-72.737-30.795c4.267-16.433 18.46-27.994 37.696-28.512zm104.62 1.77c16.857 9.28 24.173 26.062 20.428 42.62l-18.866-8.112-35.28 17.522 15.986-26.145-11.715-6.8 29.447-19.086zm-65.5 18.872l24.332 4.218-11.7 37.862-12.632-42.08zm-16.12 58.87l-1.208 21.895 22.87 2.412-38.76 54.28c-34.81-3.42-53.307-34.73-38.737-71.263L242.8 248.8zm32.034 18.862l51.99 16.72c2.035 11.373-2.796 20.542-13.455 24.466l7.767 8.576c-4.758 13.162-16.607 18.498-31.276 12.222l-4.9-47.962-10.126-14.022zm-143.688 85.15L74.613 396.34l-26-15.01-24.95 43.213 43.216 24.95 21.698-37.585 42.568-59.094zm223.293 10.32l85.85 81.178 11.68 42.05 39.712-12.266-12.264-33.287 19.857-36.796-39.13 10.513-105.706-51.392z"/></svg>'
-        };
-        return icons[normalizeGenreMenu(n)] || '';
+      const emojiMenu = (n) => {
+        const key = normalizeGenreMenu(n);
+        if (key === 'comedie') return '😂';
+        if (key === 'familial') return '👨‍👩‍🧒';
+        if (key === 'aventure') return '🗺️';
+        if (key === 'action') return '💥';
+        if (key === 'horreur') return '👻';
+        return '';
       };
 
       // Find genre sections
@@ -1275,10 +1288,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         // Extract genre name from section id and add icon
         const genreName = section.id.replace(/^genre-/, '').replace(/-/g, ' ');
         const normalizedGenre = normalizeGenreMenu(genreName);
-        const icon = getIconMenu(normalizedGenre);
         const prettyName = prettyMenu(normalizedGenre);
-        
-        a.innerHTML = `${icon}${prettyName}`;
+        const emoji = emojiMenu(normalizedGenre);
+        // Prefix shortcuts with the same emoji used for section titles
+        a.textContent = (emoji ? (emoji + ' ') : '') + prettyName;
         li.appendChild(a);
         list.appendChild(li);
         enableLink(a);
@@ -1291,6 +1304,13 @@ document.addEventListener('DOMContentLoaded', async function () {
           a.dataset.drawerEnabled = '1';
         }
       });
+
+      // Always place the "🚀 Liens et infos" shortcut (href="#footer") at the very bottom
+      try {
+        const footerAnchor = list.querySelector('li > a.link[href="#footer"]');
+        const footerLi = footerAnchor ? footerAnchor.closest('li') : null;
+        if (footerLi) list.appendChild(footerLi);
+      } catch {}
     }
     // Observe DOM for new genre sections and rebuild automatically
     try {
@@ -1656,7 +1676,9 @@ document.addEventListener('DOMContentLoaded', async function () {
       const img = document.createElement('img');
       const primaryPortrait = item.portraitImage || '';
       const thumbs = primaryPortrait ? [primaryPortrait] : deriveThumbnail(item.image);
-      let idx = 0; img.src = (thumbs && thumbs[0]) || item.image || 'apercu.webp';
+      let idx = 0;
+      img.dataset.src = (thumbs && thumbs[0]) || item.image || 'apercu.webp';
+      img.src = 'apercu.webp';
       img.onerror = function () { if (idx < thumbs.length - 1) { idx += 1; this.src = thumbs[idx]; } else if (this.src !== 'apercu.webp') { this.src = 'apercu.webp'; } };
       img.setAttribute('alt', `Affiche de ${item.title}`);
       img.setAttribute('loading', 'lazy'); img.setAttribute('decoding', 'async');
@@ -1744,7 +1766,7 @@ document.addEventListener('DOMContentLoaded', async function () {
           section.classList.add('modern');
           const h2 = document.createElement('h2');
           const sub = document.createElement('div'); sub.className = 'genre-subtitle'; sub.textContent = 'Les derniers ajouts';
-          h2.className = 'genre-hero-title'; h2.innerHTML = '<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="#ffffff" width="20" height="20" style="vertical-align: middle; margin-right: 12px;"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>new-star</title> <g id="Layer_2" data-name="Layer 2"> <g id="invisible_box" data-name="invisible box"> <rect width="48" height="48" fill="none"></rect> </g> <g id="icons_Q2" data-name="icons Q2"> <path d="M42.3,24l3.4-5.1a2,2,0,0,0,.2-1.7A1.8,1.8,0,0,0,44.7,16l-5.9-2.4-.5-5.9a2.1,2.1,0,0,0-.7-1.5,2,2,0,0,0-1.7-.3L29.6,7.2,25.5,2.6a2.2,2.2,0,0,0-3,0L18.4,7.2,12.1,5.9a2,2,0,0,0-1.7.3,2.1,2.1,0,0,0-.7,1.5l-.5,5.9L3.3,16a1.8,1.8,0,0,0-1.2,1.2,2,2,0,0,0,.2,1.7L5.7,24,2.3,29.1a2,2,0,0,0,1,2.9l5.9,2.4.5,5.9a2.1,2.1,0,0,0,.7,1.5,2,2,0,0,0,1.7.3l6.3-1.3,4.1,4.5a2,2,0,0,0,3,0l4.1-4.5,6.3,1.3a2,2,0,0,0,1.7-.3,2.1,2.1,0,0,0,.7-1.5l.5-5.9L44.7,32a2,2,0,0,0,1-2.9ZM18,31.1l-4.2-3.2L12.7,27h-.1l.6,1.4,1.7,4-2.1.8L9.3,24.6l2.1-.8L15.7,27l1.1.9h0a11.8,11.8,0,0,0-.6-1.3l-1.6-4.1,2.1-.9,3.5,8.6Zm3.3-1.3-3.5-8.7,6.6-2.6.7,1.8L20.7,22l.6,1.6L25.1,22l.7,1.7L22,25.2l.7,1.9,4.5-1.8.7,1.8Zm13.9-5.7-2.6-3.7-.9-1.5h-.1a14.7,14.7,0,0,1,.4,1.7l.8,4.5-2.1.9-5.9-7.7,2.2-.9,2.3,3.3,1.3,2h0a22.4,22.4,0,0,1-.4-2.3l-.7-4,2-.8L33.8,19,35,20.9h0s-.2-1.4-.4-2.4L34,14.6l2.1-.9,1.2,9.6Z"></path> </g> </g> </g></svg>Nouveautés';
+          h2.className = 'genre-hero-title'; h2.textContent = 'Nouveautés';
           const rail = document.createElement('div'); rail.className = 'rail';
           section.appendChild(sub); section.appendChild(h2); section.appendChild(rail);
           // Insert right after the hero and before Top Rated
@@ -1889,7 +1911,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             // Add main title with icon
             const h2 = document.createElement('h2');
             h2.classList.add('genre-hero-title');
-            h2.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 12px; color: #2196F3;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>Séries Clipsou';
+            h2.textContent = 'Séries Clipsou';
             const rail = document.createElement('div'); rail.className = 'rail';
             section.appendChild(h2); section.appendChild(rail);
             insertSection(section);
@@ -1906,7 +1928,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             const h2 = section.querySelector(':scope > h2');
             if (h2) {
               h2.classList.add('genre-hero-title');
-              h2.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 12px; color: #2196F3;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>Séries Clipsou';
+              h2.textContent = 'Séries Clipsou';
             }
           }
           const rail = section.querySelector('.rail');
@@ -1917,7 +1939,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             if (rb !== ra) return rb - ra; return (a.title||'').localeCompare(b.title||'', 'fr', { sensitivity:'base' });
           });
           sorted.forEach(it => rail.appendChild(createCard(it)));
-          try { ensureSectionSeeAll(section, '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 12px; color: #2196F3;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>Séries', sorted, createCard); } catch {}
+          try { ensureSectionSeeAll(section, 'Séries', sorted, createCard); } catch {}
         })();
         // Build selected Genre sections
         const ALLOWED = ['Comédie','Familial','Aventure','Action','Horreur'];
@@ -1946,9 +1968,9 @@ document.addEventListener('DOMContentLoaded', async function () {
               sub.textContent = header.subtitle;
               section.appendChild(sub);
               h2.classList.add('genre-hero-title');
-              h2.innerHTML = `${getIcon(name)}${header.title}`;
+              h2.textContent = header.title;
             } else {
-              h2.innerHTML = `${getIcon(name)}${pretty(name)}`;
+              h2.textContent = pretty(name);
             }
             const rail = document.createElement('div'); rail.className = 'rail';
             section.appendChild(h2); section.appendChild(rail);
@@ -1967,10 +1989,10 @@ document.addEventListener('DOMContentLoaded', async function () {
               }
               sub.textContent = header.subtitle;
               h2.classList.add('genre-hero-title');
-              h2.innerHTML = `${getIcon(name)}${header.title}`;
+              h2.textContent = header.title;
             } else {
               h2.classList.remove('genre-hero-title');
-              h2.innerHTML = `${getIcon(name)}${pretty(name)}`;
+              h2.textContent = pretty(name);
               const sub = section.querySelector(':scope > .genre-subtitle');
               if (sub) sub.remove();
             }
@@ -1982,7 +2004,7 @@ document.addEventListener('DOMContentLoaded', async function () {
           });
           rail.innerHTML = ''; const seen = new Set();
           sorted.forEach(it => { const href = `#${it.id}`; if (seen.has(href)) return; rail.appendChild(createCard(it)); seen.add(href); });
-          try { ensureSectionSeeAll(section, `${getIcon(name)}${pretty(name)}`, sorted, createCard); } catch {}
+          try { ensureSectionSeeAll(section, pretty(name), sorted, createCard); } catch {}
         });
         // Update Favorites header with custom subtitle and title
         (function setupFavoritesHeader(){
@@ -1999,11 +2021,9 @@ document.addEventListener('DOMContentLoaded', async function () {
               sec.insertBefore(sub, h2);
             }
             sub.textContent = "Vous avez mis en favoris";
-            // Preserve existing SVG icon if present
-            let svg = h2.querySelector('svg');
-            const svgHtml = svg ? svg.outerHTML : '';
+            // Plain text title (no icon)
             h2.classList.add('genre-hero-title');
-            h2.innerHTML = `${svgHtml}Titres en favoris`;
+            h2.textContent = 'Titres en favoris';
           } catch {}
         })();
         
@@ -2022,11 +2042,9 @@ document.addEventListener('DOMContentLoaded', async function () {
               sec.insertBefore(sub, h2);
             }
             sub.textContent = "On les adore et vous ?";
-            // Preserve existing SVG icon if present
-            let svg = h2.querySelector('svg');
-            const svgHtml = svg ? svg.outerHTML : '';
+            // Plain text title (no icon)
             h2.classList.add('genre-hero-title');
-            h2.innerHTML = `${svgHtml}Mieux notés`;
+            h2.textContent = 'Mieux notés';
           } catch {}
         })();
       } catch {}
@@ -2165,6 +2183,202 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
     enhanceRailsWithArrows();
     window.addEventListener('resize', ()=>{ try { document.querySelectorAll('.rail-arrow').forEach(b=>b.remove()); } catch{}; enhanceRailsWithArrows(); });
+    // Strip any inline SVG icons found inside main section H2 titles
+    (function stripSectionTitleIcons(){
+      function emojiFor(section, h2){
+        try {
+          const sec = section || (h2 ? h2.closest('.section') : null);
+          const id = (sec && sec.id) ? sec.id.toLowerCase() : '';
+          const txt = (h2 && (h2.textContent||'').toLowerCase()) || '';
+          // Known sections
+          if (id === 'top-rated' || /mieux notés|mieux notes/.test(txt)) return '⭐';
+          if (id === 'favorites' || /favoris/.test(txt)) return '❤️';
+          if (id === 'series' || /séries|series/.test(txt)) return '📺';
+          if (id === 'nouveautes' || /nouveautés|nouveautes/.test(txt)) return '✨';
+          // Genre sections
+          if (id.startsWith('genre-')) {
+            const g = id.replace(/^genre-/, '');
+            if (/comedie/.test(g)) return '😂';
+            if (/familial/.test(g)) return '👨‍👩‍🧒';
+            if (/aventure/.test(g)) return '🗺️';
+            if (/action/.test(g)) return '💥';
+            if (/horreur/.test(g)) return '👻';
+          }
+          // Continue watching special case
+          if (h2 && h2.parentElement && h2.parentElement.id === 'continue-watching') return '';
+        } catch {}
+        return '';
+      }
+
+      function applyOnce(root){
+        try {
+          (root || document).querySelectorAll('main .section > h2, #continue-watching > h2').forEach(h2 => {
+            // remove any inline SVGs inside titles
+            h2.querySelectorAll('svg').forEach(svg => { try { svg.remove(); } catch {} });
+            const sec = h2.closest('.section');
+            const prefix = emojiFor(sec, h2);
+            const t = h2.textContent || '';
+            if (!prefix) return;
+            // Avoid double prefixing
+            if (t.trim().startsWith(prefix)) return;
+            h2.textContent = `${prefix} ${t.trim()}`;
+          });
+        } catch {}
+      }
+
+      // Initial run
+      applyOnce(document);
+      // Re-apply on DOM changes (sections created later)
+      try {
+        const mo = new MutationObserver(muts => {
+          for (const m of muts) {
+            for (const n of m.addedNodes || []) {
+              if (n && n.nodeType === 1) applyOnce(n);
+            }
+          }
+        });
+        mo.observe(document.body, { childList: true, subtree: true });
+      } catch {}
+    })();
+    // Replace Discord icons in menu and footer with provided SVG (uses currentColor)
+    (function patchDiscordIcons(){
+      try {
+        const NS = 'http://www.w3.org/2000/svg';
+        const pathD = 'M216.856339,16.5966031 C200.285002,8.84328665 182.566144,3.2084988 164.041564,0 C161.766523,4.11318106 159.108624,9.64549908 157.276099,14.0464379 C137.583995,11.0849896 118.072967,11.0849896 98.7430163,14.0464379 C96.9108417,9.64549908 94.1925838,4.11318106 91.8971895,0 C73.3526068,3.2084988 55.6133949,8.86399117 39.0420583,16.6376612 C5.61752293,67.146514 -3.4433191,116.400813 1.08711069,164.955721 C23.2560196,181.510915 44.7403634,191.567697 65.8621325,198.148576 C71.0772151,190.971126 75.7283628,183.341335 79.7352139,175.300261 C72.104019,172.400575 64.7949724,168.822202 57.8887866,164.667963 C59.7209612,163.310589 61.5131304,161.891452 63.2445898,160.431257 C105.36741,180.133187 151.134928,180.133187 192.754523,160.431257 C194.506336,161.891452 196.298154,163.310589 198.110326,164.667963 C191.183787,168.842556 183.854737,172.420929 176.223542,175.320965 C180.230393,183.341335 184.861538,190.991831 190.096624,198.16893 C211.238746,191.588051 232.743023,181.531619 254.911949,164.955721 C260.227747,108.668201 245.831087,59.8662432 216.856339,16.5966031 Z M85.4738752,135.09489 C72.8290281,135.09489 62.4592217,123.290155 62.4592217,108.914901 C62.4592217,94.5396472 72.607595,82.7145587 85.4738752,82.7145587 C98.3405064,82.7145587 108.709962,94.5189427 108.488529,108.914901 C108.508531,123.290155 98.3405064,135.09489 85.4738752,135.09489 Z M170.525237,135.09489 C157.88039,135.09489 147.510584,123.290155 147.510584,108.914901 C147.510584,94.5396472 157.658606,82.7145587 170.525237,82.7145587 C183.391518,82.7145587 193.761324,94.5189427 193.539891,108.914901 C193.539891,123.290155 183.391518,135.09489 170.525237,135.09489 Z';
+        function buildIcon(){
+          const svg = document.createElementNS(NS, 'svg');
+          svg.setAttribute('viewBox','0 -28.5 256 256');
+          svg.setAttribute('preserveAspectRatio','xMidYMid');
+          svg.setAttribute('fill','currentColor');
+          svg.setAttribute('width','16');
+          svg.setAttribute('height','16');
+          svg.style.marginRight = '0px';
+          const g1 = document.createElementNS(NS,'g');
+          const g2 = document.createElementNS(NS,'g');
+          const g3 = document.createElementNS(NS,'g');
+          const path = document.createElementNS(NS,'path');
+          path.setAttribute('d', pathD);
+          path.setAttribute('fill','currentColor');
+          path.setAttribute('fill-rule','nonzero');
+          g3.appendChild(path); g2.appendChild(g3); g1.appendChild(g2); svg.appendChild(g1);
+          svg.setAttribute('aria-hidden','true');
+          svg.setAttribute('focusable','false');
+          return svg;
+        }
+        const selectors = [
+          'nav a.button[href*="discord"]',
+          'footer .footer-list a[href*="discord"]'
+        ];
+        document.querySelectorAll(selectors.join(',')).forEach(a => {
+          try {
+            a.querySelectorAll('svg').forEach(s => s.remove());
+            const icon = buildIcon();
+            try {
+              const insideDrawer = !!a.closest('#app-drawer');
+              const hasGap = !!(a.style && a.style.gap && a.style.gap !== '' && a.style.gap !== '0px');
+              if (a.closest('nav') && !insideDrawer && !hasGap) {
+                icon.style.marginRight = '6px';
+              } else {
+                icon.style.marginRight = '0px';
+              }
+            } catch {}
+            a.insertBefore(icon, a.firstChild);
+          } catch {}
+        });
+      } catch {}
+    })();
+    // ===== Lazy image loader (IO + rail-aware) =====
+    (function installLazyImages(){
+      try {
+        const ATTR = 'data-src';
+        const pending = new Set();
+
+        function load(el){
+          try {
+            if (!el || !el.getAttribute) return;
+            const src = el.getAttribute(ATTR);
+            if (!src) return;
+            el.src = src;
+            el.removeAttribute(ATTR);
+            pending.delete(el);
+          } catch {}
+        }
+
+        const io = ('IntersectionObserver' in window) ? new IntersectionObserver((entries)=>{
+          entries.forEach(entry => {
+            const el = entry.target;
+            if (entry.isIntersecting || entry.intersectionRatio > 0) {
+              try { io.unobserve(el); } catch {}
+              load(el);
+            }
+          });
+        }, { root: null, rootMargin: '600px 800px', threshold: 0.01 }) : null;
+
+        function observe(el){
+          if (!el || pending.has(el)) return;
+          pending.add(el);
+          if (io) io.observe(el); else load(el);
+        }
+
+        function scan(root){
+          const scope = root || document;
+          try { scope.querySelectorAll('img[data-src]').forEach(observe); } catch {}
+        }
+
+        // Initial scan
+        scan(document);
+
+        // Watch DOM mutations for dynamically added images
+        try {
+          const mo = new MutationObserver((mutations)=>{
+            for (const m of mutations) {
+              if (!m || !m.addedNodes) continue;
+              m.addedNodes.forEach(node => {
+                try {
+                  if (node && node.nodeType === 1) {
+                    if (node.matches && node.matches('img[data-src]')) observe(node);
+                    else if (node.querySelectorAll) scan(node);
+                  }
+                } catch {}
+              });
+            }
+          });
+          mo.observe(document, { childList: true, subtree: true });
+        } catch {}
+
+        // Preload a few upcoming images on rail arrow clicks
+        document.addEventListener('click', function(e){
+          try {
+            const btn = e.target && (e.target.closest ? e.target.closest('.rail-arrow') : null);
+            if (!btn) return;
+            const sec = btn.closest('.section, #continue-watching');
+            const rail = sec ? sec.querySelector('.rail') : null;
+            if (!rail) return;
+            const imgs = Array.from(rail.querySelectorAll('img[data-src]'));
+            if (!imgs.length) return;
+            const dir = btn.classList.contains('next') ? 1 : -1;
+            const viewportStart = rail.scrollLeft;
+            const viewportEnd = viewportStart + rail.clientWidth;
+            const candidates = imgs
+              .map(img => ({ img, left: (img.closest('.card') || img).offsetLeft }))
+              .filter(entry => dir > 0 ? entry.left >= viewportEnd : entry.left <= viewportStart - 1)
+              .sort((a,b) => dir > 0 ? a.left - b.left : b.left - a.left)
+              .slice(0, 6);
+            candidates.forEach(entry => load(entry.img));
+          } catch {}
+        }, true);
+
+        // Fallback for browsers without IO
+        if (!io) {
+          let rafId = 0;
+          const tick = () => { rafId = 0; scan(document); };
+          const schedule = () => { if (!rafId) rafId = requestAnimationFrame(tick); };
+          window.addEventListener('scroll', schedule, { passive: true });
+          window.addEventListener('resize', schedule);
+        }
+      } catch {}
+    })();
+
     // Category sections removed per request (LEGO, Minecraft, Live-action)
 
     // Build carousel with 5 random films/séries (exclude trailers)
@@ -2172,13 +2386,34 @@ document.addEventListener('DOMContentLoaded', async function () {
       const container = document.querySelector('.carousel-container'); if (!container) return;
       const slidesTrack = container.querySelector('.carousel-slides'); const indicatorsWrap = container.querySelector('.carousel-indicators'); if (!slidesTrack || !indicatorsWrap) return;
       const pool = items.filter(it => { const t = (it.type || '').toLowerCase(); return t === 'film' || t === 'série' || t === 'serie'; }); if (pool.length === 0) return;
-      const arr = pool.slice(); for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+      // Filter out items rated below 3 stars
+      const rated = pool.filter(it => {
+        const r = typeof it.rating === 'number' ? it.rating : parseFloat(it.rating);
+        return !Number.isNaN(r) && r >= 3;
+      });
+      // If no item meets the threshold, clear and hide the carousel
+      if (!rated.length) { slidesTrack.innerHTML = ''; indicatorsWrap.innerHTML = ''; try { container.style.display = 'none'; } catch {} return; }
+      const base = rated;
+      const arr = base.slice(); for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
       const chosen = arr.slice(0, Math.min(5, arr.length)); slidesTrack.innerHTML = ''; indicatorsWrap.innerHTML = '';
       chosen.forEach((it, idx) => {
         const slide = document.createElement('div'); slide.className = 'carousel-slide';
-        const bg = document.createElement('img'); bg.setAttribute('alt', ''); bg.setAttribute('aria-hidden', 'true'); bg.decoding = 'async'; if (idx === 0) { bg.loading = 'eager'; try { bg.fetchPriority = 'high'; } catch {} } else { bg.loading = 'lazy'; try { bg.fetchPriority = 'low'; } catch {} }
+        const bg = document.createElement('img');
+        bg.setAttribute('alt', '');
+        bg.setAttribute('aria-hidden', 'true');
+        bg.decoding = 'async';
+        if (idx === 0) { bg.loading = 'eager'; try { bg.fetchPriority = 'high'; } catch {} } else { bg.loading = 'lazy'; try { bg.fetchPriority = 'low'; } catch {} }
         Object.assign(bg.style, { position: 'absolute', inset: '0', width: '100%', height: '100%', objectFit: 'cover', zIndex: '0' }); if ((it.baseName || '').toLowerCase() === 'bac') { bg.style.objectPosition = 'top center'; }
-        const primaryBg = it.landscapeImage || (it.image || ''); const backs = primaryBg ? [primaryBg, ...deriveBackgrounds(primaryBg)] : deriveBackgrounds(it.image || ''); let bIdx = 0; bg.src = backs[bIdx] || (it.image || ''); bg.onerror = function () { if (bIdx < backs.length - 1) { bIdx += 1; this.src = backs[bIdx]; } };
+        const primaryBg = it.landscapeImage || (it.image || '');
+        const backs = primaryBg ? [primaryBg, ...deriveBackgrounds(primaryBg)] : deriveBackgrounds(it.image || '');
+        let bIdx = 0;
+        bg.onerror = function () { if (bIdx < backs.length - 1) { bIdx += 1; this.src = backs[bIdx]; } };
+        if (idx === 0) {
+          bg.src = backs[bIdx] || (it.image || '');
+        } else {
+          bg.dataset.src = backs[bIdx] || (it.image || '');
+          bg.src = 'apercu.webp';
+        }
         const content = document.createElement('div'); content.className = 'carousel-content';
         const h2 = document.createElement('h2'); h2.className = 'carousel-title'; h2.textContent = it.title || '';
         const genresWrap = document.createElement('div'); genresWrap.className = 'carousel-genres'; if (typeof it.rating === 'number' && !Number.isNaN(it.rating)) { const ratingSpan = document.createElement('span'); ratingSpan.className = 'carousel-rating'; const rounded = Math.round(it.rating * 10) / 10; let txt = rounded.toFixed(1); if (txt.endsWith('.0')) txt = String(Math.round(rounded)); const star = document.createElement('span'); star.className = 'star'; star.textContent = '★'; star.setAttribute('aria-hidden', 'true'); ratingSpan.appendChild(star); ratingSpan.appendChild(document.createTextNode(`${txt}/5`)); ratingSpan.setAttribute('aria-label', `Note ${txt} sur 5`); ratingSpan.setAttribute('data-rating', String(it.rating)); genresWrap.appendChild(ratingSpan); } (it.genres || []).slice(0, 3).forEach(g => { const tag = document.createElement('span'); tag.className = 'carousel-genre-tag'; tag.textContent = g; genresWrap.appendChild(tag); });
@@ -2249,6 +2484,17 @@ document.addEventListener('DOMContentLoaded', async function () {
       lastScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
       lastOpener = a;
       e.preventDefault();
+      // Force-close drawer immediately to avoid any background menu
+      try {
+        const drawer = document.getElementById('app-drawer');
+        const overlay = document.getElementById('drawer-overlay');
+        if (drawer) drawer.classList.remove('open');
+        if (overlay) overlay.classList.remove('open');
+        if (drawer) drawer.setAttribute('aria-hidden','true');
+        if (overlay) overlay.setAttribute('aria-hidden','true');
+        document.body.classList.remove('drawer-open');
+        document.documentElement.classList.remove('drawer-open');
+      } catch {}
       // Defer to allow event loop to finish before changing hash
       setTimeout(() => { 
         window.location.hash = '#' + id; 
@@ -2267,20 +2513,13 @@ document.addEventListener('DOMContentLoaded', async function () {
             document.body.style.overflow = 'hidden';
           }
         } catch {}
-        // Ensure the drawer is visible in the background behind the popup
+        // Keep the drawer closed while a popup is open (no background menu)
         try {
           const drawer = document.getElementById('app-drawer');
           const overlay = document.getElementById('drawer-overlay');
-          const targetEl = document.getElementById(id);
-          const isSeeAll = (id && /^all-/.test(id)) || (targetEl && targetEl.hasAttribute('data-no-drawer'));
-          if (!isSeeAll) {
-            if (drawer && !drawer.classList.contains('open')) {
-              drawer.classList.add('open');
-              drawerAutoOpened = true;
-            }
-            // Keep the drawer overlay closed/hidden so it doesn't interfere
-            if (overlay) overlay.classList.remove('open');
-          }
+          if (drawer) drawer.classList.remove('open');
+          if (overlay) overlay.classList.remove('open');
+          drawerAutoOpened = false;
         } catch {}
       }, 0);
     }, { capture: true });
@@ -2372,6 +2611,19 @@ document.addEventListener('DOMContentLoaded', async function () {
       try {
         const targetId = (location.hash || '').replace(/^#/, '');
         const isPopup = !!(targetId && document.getElementById(targetId) && document.getElementById(targetId).classList.contains('fiche-popup'));
+        // Always force-close drawer if a popup is targeted
+        if (isPopup) {
+          try {
+            const drawer = document.getElementById('app-drawer');
+            const overlay = document.getElementById('drawer-overlay');
+            if (drawer) drawer.classList.remove('open');
+            if (overlay) overlay.classList.remove('open');
+            if (drawer) drawer.setAttribute('aria-hidden','true');
+            if (overlay) overlay.setAttribute('aria-hidden','true');
+            document.body.classList.remove('drawer-open');
+            document.documentElement.classList.remove('drawer-open');
+          } catch {}
+        }
         if (isPopup && window.innerWidth <= 768) {
           // Engage lock if not already fixed
           document.body.classList.add('popup-open');
@@ -2653,6 +2905,26 @@ document.addEventListener('DOMContentLoaded', async function () {
           showIntroThenPlay(href, title);
         } catch {}
       }, true);
+    } catch {}
+  })();
+
+  // Smooth scroll for the blue back-to-top button in the footer
+  (function installSmoothBackToTop(){
+    try {
+      const btn = document.querySelector('.back-to-top-btn');
+      if (!btn) return;
+      btn.addEventListener('click', function(e){
+        try { e.preventDefault(); } catch {}
+        // Always scroll to the very top of the page
+        try {
+          const el = document.scrollingElement || document.documentElement || document.body;
+          if (el && typeof el.scrollTo === 'function') {
+            el.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+          } else {
+            window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+          }
+        } catch { try { window.scrollTo({ top: 0, left: 0, behavior: 'smooth' }); } catch {} }
+      });
     } catch {}
   })();
 
