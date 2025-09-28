@@ -128,17 +128,97 @@
   async function hydrateRequestsFromPublicApproved(){
     try {
       const remote = await fetchPublicApprovedArray();
-      if (!Array.isArray(remote) || !remote.length) return;
-      // Keep local approved mirror in sync so UI reflects shared state
-      try { setApproved(dedupeByIdAndTitle(remote)); } catch {}
+      const base = Array.isArray(remote) ? remote.slice() : [];
+      // Overlay local in-progress actions to avoid UI flip-backs while remote updates
+      const track = getDeployTrack();
       const list = getRequests();
+      const now = Date.now();
+      const windowMs = 120000; // suppression window for in-flight actions
       const norm = (s)=>{
         try { return String(s||'').normalize('NFD').replace(/\p{Diacritic}/gu,'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); }
         catch { return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); }
       };
+      const ovById = new Map();
+      const ovByTitleKey = new Map();
+      base.forEach(it=>{ try { if (it && it.id) ovById.set(String(it.id), it); const k = norm(it && it.title); if (k && !ovByTitleKey.has(k)) ovByTitleKey.set(k, it); } catch {} });
+      const overlay = base.slice();
+      // Helper to find request data by id or title key
+      const findRequestData = (id, tkey)=>{
+        try {
+          const li = list || [];
+          if (id) { const r = li.find(x=>x && x.data && x.data.id===id); if (r && r.data) return r.data; }
+          if (tkey) { const r = li.find(x=>x && x.data && norm(x.data.title)===tkey); if (r && r.data) return r.data; }
+        } catch {}
+        return null;
+      };
+      if (track && typeof track === 'object') {
+        const pendingDeletes = new Set();
+        const pendingUpserts = new Set();
+        const metaMap = new Map(); // id -> { titleKey }
+        Object.keys(track).forEach(id => {
+          try {
+            const t = track[id];
+            if (!t || !t.action || !t.startedAt) return;
+            if (t.confirmedAt) return; // already settled
+            if ((now - Number(t.startedAt)) > windowMs) return; // stale
+            const idStr = String(id);
+            // compute titleKey once
+            let titleKey = '';
+            try {
+              const inOverlay = ovById.get(idStr) || null;
+              titleKey = inOverlay ? norm(inOverlay.title||'') : '';
+              if (!titleKey) {
+                const fromReq = findRequestData(idStr, '');
+                if (fromReq) titleKey = norm(fromReq.title||'');
+              }
+            } catch {}
+            metaMap.set(idStr, { titleKey });
+            if (t.action === 'delete') pendingDeletes.add(idStr);
+            else if (t.action === 'upsert') pendingUpserts.add(idStr);
+          } catch {}
+        });
+        // Apply deletes first (delete wins)
+        pendingDeletes.forEach(idStr => {
+          const mk = metaMap.get(idStr) || { titleKey: '' };
+          const titleKey = mk.titleKey;
+          for (let i=overlay.length-1; i>=0; i--) {
+            const it = overlay[i] || {};
+            const sameId = (String(it.id||'') === idStr);
+            const sameTitle = titleKey && norm(it.title||'') === titleKey;
+            if (sameId || sameTitle) overlay.splice(i,1);
+          }
+          ovById.delete(idStr);
+          if (titleKey) ovByTitleKey.delete(titleKey);
+        });
+        // Then apply upserts if not scheduled for delete
+        pendingUpserts.forEach(idStr => {
+          if (pendingDeletes.has(idStr)) return; // delete has priority
+          if (!ovById.has(idStr)) {
+            const mk = metaMap.get(idStr) || { titleKey: '' };
+            const src = findRequestData(idStr, mk.titleKey) || { id: idStr, title: '', type:'film' };
+            overlay.unshift({
+              id: src.id || idStr,
+              title: src.title || (ovById.get(idStr)?.title) || '',
+              type: src.type || 'film',
+              rating: src.rating,
+              genres: Array.isArray(src.genres)?src.genres:[],
+              description: src.description || '',
+              portraitImage: src.portraitImage || src.image || '',
+              landscapeImage: src.landscapeImage || '',
+              watchUrl: src.watchUrl || '',
+              studioBadge: src.studioBadge || '',
+              actors: Array.isArray(src.actors)?src.actors:[]
+            });
+            ovById.set(idStr, overlay[0]);
+            const tk = norm(overlay[0].title||''); if (tk) ovByTitleKey.set(tk, overlay[0]);
+          }
+        });
+      }
+      // Keep local approved mirror in sync so UI reflects shared state with overlay
+      try { setApproved(dedupeByIdAndTitle(overlay)); } catch {}
       const remoteIds = new Set();
       const remoteTitles = new Set();
-      (remote||[]).forEach(it=>{ try { if (it && it.id) remoteIds.add(String(it.id)); const t = norm(it && it.title); if (t) remoteTitles.add(t); } catch {} });
+      (overlay||[]).forEach(it=>{ try { if (it && it.id) remoteIds.add(String(it.id)); const t = norm(it && it.title); if (t) remoteTitles.add(t); } catch {} });
       const byId = new Map();
       const byTitle = new Map();
       (list||[]).forEach(r=>{
@@ -491,7 +571,8 @@
     };
     const track = getDeployTrack();
     const prev = track[id] || {};
-    track[id] = { ...prev, action, startedAt: prev.startedAt || Date.now(), confirmedAt: undefined };
+    // Reset startedAt for each new action to avoid stale windows affecting overlay logic
+    track[id] = { ...prev, action, startedAt: Date.now(), confirmedAt: undefined };
     setDeployTrack(track);
     const handle = setTimeout(tick, 0);
     deployWatchers.set(key, handle);
@@ -1201,14 +1282,27 @@
       const editBtn = document.createElement('button'); editBtn.className='btn secondary'; editBtn.textContent='Modifier';
       const delBtn = document.createElement('button'); delBtn.className='btn secondary'; delBtn.textContent='Supprimer';
       const approveBtn = document.createElement('button'); approveBtn.className='btn';
-      // Derive label from shared approved list (remote-synced), fallback to local status
-      const isApprovedShared = (function(){
+      // Derive label from shared approved list (remote-synced), fallback to local status, then overlay local in-flight actions
+      let isApprovedShared = (function(){
         try {
           const id = r && r.data && r.data.id;
           const keyR = normalizeTitleKey(r && r.data && r.data.title);
           return (aprList||[]).some(x=> x && (x.id===id || normalizeTitleKey(x.title)===keyR));
         } catch { return r.status === 'approved'; }
       })();
+      try {
+        const trk = getDeployTrack();
+        const id = r && r.data && r.data.id;
+        const meta = trk && id ? trk[id] : null;
+        if (meta && !meta.confirmedAt) {
+          const started = Number(meta.startedAt||0);
+          const fresh = (Date.now() - started) < 120000; // 2 minutes overlay window
+          if (fresh) {
+            if (meta.action === 'delete') isApprovedShared = false;
+            else if (meta.action === 'upsert') isApprovedShared = true;
+          }
+        }
+      } catch {}
       approveBtn.textContent = isApprovedShared ? 'Retirer' : 'Approuver';
       actions.appendChild(editBtn); actions.appendChild(delBtn); actions.appendChild(approveBtn);
 
@@ -1241,11 +1335,13 @@
           setRequests(list);
           const apr = getApproved().filter(x=>x.id!==found.data.id);
           setApproved(apr);
-          // Remove from shared approved.json
+          // Instantly reflect locally on this device
+          approveBtn.textContent = 'Approuver';
+          try { renderTable(); } catch {}
+          // Remove from shared approved.json; mark in-flight BEFORE network to suppress overlay flicker
+          try { startDeploymentWatch(found.data.id, 'delete'); } catch {}
           showPublishWaitHint();
           await deleteApproved(found.data.id);
-          try { startDeploymentWatch(found.data.id, 'delete'); } catch {}
-          approveBtn.textContent = 'Approuver';
           // No status cell to refresh
           // Sync removed
           try { publishRequestUpsert(found); } catch {}
