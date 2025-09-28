@@ -149,6 +149,27 @@ document.addEventListener('DOMContentLoaded', async function () {
     try { setInterval(saveGenericY, 1500); } catch {}
   })();
 
+  // Canonicalize any in-site link pointing to index.html to the root in the SAME tab
+  (function preventDoubleOpenOnIndex(){
+    try {
+      document.addEventListener('click', function(e){
+        try {
+          const a = e.target && (e.target.closest ? e.target.closest('a[href]') : null);
+          if (!a) return;
+          const href = String(a.getAttribute('href') || '');
+          // Only handle same-site relative links explicitly pointing to index.html
+          if (/^https?:/i.test(href)) return;
+          if (!/index\.html(?:[?#]|$)/i.test(href)) return;
+          e.preventDefault();
+          let to = href.replace(/index\.html/i, '');
+          if (!to) to = './';
+          // Navigate in the same tab without opening a new window
+          window.location.href = to;
+        } catch {}
+      }, true);
+    } catch {}
+  })();
+
   // ===== Categories row (cards linking to search filters) =====
   (function buildCategoriesRow(){
     try {
@@ -266,6 +287,41 @@ document.addEventListener('DOMContentLoaded', async function () {
       list.insertBefore(liFav, first);
       list.insertBefore(liNew, liFav);
     } catch {}
+  })();
+
+  // Admin shortcut watcher: show only if currently logged-in (broadcast), hide immediately on logout
+  (function watchAdminShortcut(){
+    function ensure(show){
+      try {
+        // Navbar (desktop only)
+        const navLinks = document.querySelector('nav[aria-label="Navigation principale"] .nav-links');
+        const existingNav = navLinks ? navLinks.querySelector('a.admin-link') : null;
+        const desktop = (window.innerWidth || 0) > 768;
+        if (!show || !desktop) {
+          if (existingNav && existingNav.parentNode) existingNav.parentNode.removeChild(existingNav);
+        } else if (navLinks && !existingNav) {
+          const a = document.createElement('a'); a.href = 'admin/admin.html'; a.className = 'admin-link'; a.textContent = 'Admin'; navLinks.appendChild(a);
+        }
+        // Drawer (always)
+        const list = document.getElementById('drawer-sections');
+        const existingDrawer = list ? list.querySelector('a.link[href="admin/admin.html"]') : null;
+        if (!show) {
+          if (existingDrawer) { const li = existingDrawer.closest('li'); if (li && li.parentNode) li.parentNode.removeChild(li); }
+        } else if (list && !existingDrawer) {
+          const li = document.createElement('li'); li.setAttribute('data-fixed','1');
+          const a = document.createElement('a'); a.className = 'link'; a.href = 'admin/admin.html'; a.textContent = '⚙️ Admin';
+          li.appendChild(a); list.insertBefore(li, list.firstChild);
+        }
+      } catch {}
+    }
+    function isLoggedIn(){ try { return localStorage.getItem('clipsou_admin_logged_in_v1') === '1'; } catch { return false; } }
+    function update(){ ensure(isLoggedIn()); }
+    // Initial draw
+    update();
+    // React to cross-tab login/logout broadcasts
+    try { window.addEventListener('storage', (e)=>{ if (!e) return; if (e.key === 'clipsou_admin_logged_in_v1' || e.key === 'clipsou_admin_session_broadcast') update(); }); } catch {}
+    // React to viewport changes (navbar desktop-only)
+    try { window.addEventListener('resize', update); } catch {}
   })();
 
   // On homepage refresh: close any open popup (hash) and scroll to top
@@ -2396,24 +2452,46 @@ document.addEventListener('DOMContentLoaded', async function () {
       const base = rated;
       const arr = base.slice(); for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
       const chosen = arr.slice(0, Math.min(5, arr.length)); slidesTrack.innerHTML = ''; indicatorsWrap.innerHTML = '';
+
+      // Preload ALL carousel images so slide switches feel instant
+      try {
+        const head = document.head || document.getElementsByTagName('head')[0];
+        if (head && chosen.length) {
+          const seen = new Set();
+          chosen.forEach(function(it){
+            try {
+              const primary = it.landscapeImage || (it.image || '');
+              const backs = primary ? [primary, ...deriveBackgrounds(primary)] : deriveBackgrounds(it.image || '');
+              const href = backs[0] || primary;
+              if (href && !seen.has(href) && !head.querySelector('link[rel="preload"][as="image"][href="' + href + '"]')) {
+                const link = document.createElement('link');
+                link.rel = 'preload';
+                link.as = 'image';
+                link.href = href;
+                head.appendChild(link);
+                seen.add(href);
+              }
+            } catch {}
+          });
+        }
+      } catch {}
       chosen.forEach((it, idx) => {
         const slide = document.createElement('div'); slide.className = 'carousel-slide';
         const bg = document.createElement('img');
         bg.setAttribute('alt', '');
         bg.setAttribute('aria-hidden', 'true');
         bg.decoding = 'async';
-        if (idx === 0) { bg.loading = 'eager'; try { bg.fetchPriority = 'high'; } catch {} } else { bg.loading = 'lazy'; try { bg.fetchPriority = 'low'; } catch {} }
+        // Force eager for all carousel backgrounds so they are ready instantly
+        bg.loading = 'eager';
+        try { bg.fetchPriority = (idx === 0 ? 'high' : 'low'); } catch {}
         Object.assign(bg.style, { position: 'absolute', inset: '0', width: '100%', height: '100%', objectFit: 'cover', zIndex: '0' }); if ((it.baseName || '').toLowerCase() === 'bac') { bg.style.objectPosition = 'top center'; }
         const primaryBg = it.landscapeImage || (it.image || '');
         const backs = primaryBg ? [primaryBg, ...deriveBackgrounds(primaryBg)] : deriveBackgrounds(it.image || '');
         let bIdx = 0;
         bg.onerror = function () { if (bIdx < backs.length - 1) { bIdx += 1; this.src = backs[bIdx]; } };
-        if (idx === 0) {
-          bg.src = backs[bIdx] || (it.image || '');
-        } else {
-          bg.dataset.src = backs[bIdx] || (it.image || '');
-          bg.src = 'apercu.webp';
-        }
+        // Load source immediately for every slide (no data-src/lazy here)
+        bg.src = backs[bIdx] || (it.image || '');
+        try { if (typeof bg.decode === 'function') bg.decode().catch(function(){}); } catch {}
         const content = document.createElement('div'); content.className = 'carousel-content';
         const h2 = document.createElement('h2'); h2.className = 'carousel-title'; h2.textContent = it.title || '';
         const genresWrap = document.createElement('div'); genresWrap.className = 'carousel-genres'; if (typeof it.rating === 'number' && !Number.isNaN(it.rating)) { const ratingSpan = document.createElement('span'); ratingSpan.className = 'carousel-rating'; const rounded = Math.round(it.rating * 10) / 10; let txt = rounded.toFixed(1); if (txt.endsWith('.0')) txt = String(Math.round(rounded)); const star = document.createElement('span'); star.className = 'star'; star.textContent = '★'; star.setAttribute('aria-hidden', 'true'); ratingSpan.appendChild(star); ratingSpan.appendChild(document.createTextNode(`${txt}/5`)); ratingSpan.setAttribute('aria-label', `Note ${txt} sur 5`); ratingSpan.setAttribute('data-rating', String(it.rating)); genresWrap.appendChild(ratingSpan); } (it.genres || []).slice(0, 3).forEach(g => { const tag = document.createElement('span'); tag.className = 'carousel-genre-tag'; tag.textContent = g; genresWrap.appendChild(tag); });
