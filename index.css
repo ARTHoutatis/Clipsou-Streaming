@@ -877,7 +877,8 @@ main > .categories-section { transform: translateX(calc(var(--home-shift) + var(
   border-radius: 14px;
   padding: 12px 0 14px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: visible;
 }
 .categories-section .categories-title {
   margin: 0 var(--gutter) 10px; /* match other section gutters */
@@ -1124,17 +1125,28 @@ nav .filter-toggle:hover { background: rgba(255,255,255,0.08); }
   z-index: 20; /* above rail fades */
 }
 #continue-watching .rail {
-  padding: 8px var(--gutter) 0 var(--gutter);    /* match Categories rail gutters */
+  padding: 20px 0 0 var(--gutter); /* Padding à gauche uniquement */
+  scroll-padding: 0 var(--gutter);
   margin: 0;             /* flush content */
   display: flex;         /* ensure horizontal layout */
   gap: 22px;             /* larger spacing between cards */
   position: relative;    /* layer below title but above background */
   z-index: 2;
-  overflow: visible;     /* default; overridden per-viewport below */
+  overflow-x: auto;      /* allow horizontal scroll to see the padding */
+  overflow-y: visible;   /* allow vertical overflow for hover effects */
+}
+
+#continue-watching .rail::after {
+  content: '';
+  display: block;
+  width: var(--gutter);
+  flex-shrink: 0;
 }
 /* Wrapper for each continue-watching entry: card + caption */
-#continue-watching .resume-item { display: flex; flex-direction: column; }
+#continue-watching .resume-item { display: flex; flex-direction: column; position: relative; }
 #continue-watching .resume-item .card { margin-bottom: 6px; }
+/* Ensure cards in continue-watching section have proper z-index on hover */
+#continue-watching .card:hover { z-index: 60 !important; position: relative; }
 /* Remaining time caption below cards */
 #continue-watching .resume-remaining {
   margin-top: 8px;
@@ -1159,6 +1171,7 @@ nav .filter-toggle:hover { background: rgba(255,255,255,0.08); }
     overflow-y: visible !important;
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x proximity; /* optional smoother alignment */
+    padding-top: 12px !important; /* prevent card clipping on mobile hover */
   }
   #continue-watching .rail .resume-item { scroll-snap-align: start; }
 }
@@ -3412,4 +3425,9 @@ body.fiche-page-view .carousel-genre-tag:hover {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+}/* Fix: in popups, buttons should scroll with content (disable sticky) */
+.fiche-popup .button-group {
+  position: static !important;
+  bottom: auto !important;
+  padding-bottom: 0 !important;
 }
