@@ -107,6 +107,10 @@
         }
       } catch {}
     } catch {}
+
+    // Periodic syncs so other admins' actions are reflected automatically
+    try { if (!window.__requestsPoller) window.__requestsPoller = setInterval(()=>{ try { hydrateRequestsFromPublic(); } catch {} }, 30000); } catch {}
+    try { if (!window.__approvedPoller) window.__approvedPoller = setInterval(()=>{ try { hydrateRequestsFromPublicApproved(); } catch {} }, 30000); } catch {}
   }
 
   // Replace local requests with the shared public list when available
@@ -125,11 +129,16 @@
     try {
       const remote = await fetchPublicApprovedArray();
       if (!Array.isArray(remote) || !remote.length) return;
+      // Keep local approved mirror in sync so UI reflects shared state
+      try { setApproved(dedupeByIdAndTitle(remote)); } catch {}
       const list = getRequests();
       const norm = (s)=>{
         try { return String(s||'').normalize('NFD').replace(/\p{Diacritic}/gu,'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); }
         catch { return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); }
       };
+      const remoteIds = new Set();
+      const remoteTitles = new Set();
+      (remote||[]).forEach(it=>{ try { if (it && it.id) remoteIds.add(String(it.id)); const t = norm(it && it.title); if (t) remoteTitles.add(t); } catch {} });
       const byId = new Map();
       const byTitle = new Map();
       (list||[]).forEach(r=>{
@@ -142,6 +151,16 @@
         } catch {}
       });
       let changed = false;
+      // Reconcile local statuses with remote approved
+      (list||[]).forEach(r => {
+        try {
+          const id = String((r && r.data && r.data.id) || '');
+          const nt = norm(r && r.data && r.data.title || '');
+          const isRemoteApproved = (id && remoteIds.has(id)) || (nt && remoteTitles.has(nt));
+          if (isRemoteApproved && r.status !== 'approved') { r.status = 'approved'; changed = true; }
+          if (!isRemoteApproved && r.status === 'approved') { r.status = 'pending'; changed = true; }
+        } catch {}
+      });
       for (const it of remote) {
         if (!it) continue;
         const id = String(it.id||'');
@@ -1153,6 +1172,8 @@
       }
     } catch {}
     tbody.innerHTML = '';
+    // Determine shared-approved state from the current approved list
+    const aprList = getApproved();
     reqs.forEach(r => {
       const tr = document.createElement('tr');
       const g3 = (r.data.genres||[]).slice(0,3).filter(Boolean).map(g=>String(g));
@@ -1180,8 +1201,15 @@
       const editBtn = document.createElement('button'); editBtn.className='btn secondary'; editBtn.textContent='Modifier';
       const delBtn = document.createElement('button'); delBtn.className='btn secondary'; delBtn.textContent='Supprimer';
       const approveBtn = document.createElement('button'); approveBtn.className='btn';
-      // Simplified labels without status dots
-      approveBtn.textContent = (r.status === 'approved') ? 'Retirer' : 'Approuver';
+      // Derive label from shared approved list (remote-synced), fallback to local status
+      const isApprovedShared = (function(){
+        try {
+          const id = r && r.data && r.data.id;
+          const keyR = normalizeTitleKey(r && r.data && r.data.title);
+          return (aprList||[]).some(x=> x && (x.id===id || normalizeTitleKey(x.title)===keyR));
+        } catch { return r.status === 'approved'; }
+      })();
+      approveBtn.textContent = isApprovedShared ? 'Retirer' : 'Approuver';
       actions.appendChild(editBtn); actions.appendChild(delBtn); actions.appendChild(approveBtn);
 
       // No status cell anymore
@@ -1216,6 +1244,7 @@
           // Remove from shared approved.json
           showPublishWaitHint();
           await deleteApproved(found.data.id);
+          try { startDeploymentWatch(found.data.id, 'delete'); } catch {}
           approveBtn.textContent = 'Approuver';
           // No status cell to refresh
           // Sync removed
@@ -1244,6 +1273,7 @@
           if (ok) {
             approveBtn.textContent = 'Retirer';
             setTimeout(()=>{ renderTable(); }, 300);
+            try { startDeploymentWatch(found.data.id, 'upsert', found.data); } catch {}
           } else {
             // Revert local approval on failure
             found.status = 'pending';
