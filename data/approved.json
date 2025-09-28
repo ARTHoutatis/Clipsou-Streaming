@@ -252,5 +252,63 @@
         "role": "Mamie"
       }
     ]
+  },
+  {
+    "id": "custom-the-psycho-teacher-q2q6",
+    "title": "The Psycho Teacher",
+    "type": "film",
+    "rating": 3,
+    "genres": [
+      "Comédie",
+      "Action",
+      "Brickfilm"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757791064/n1kuhwiuuaz2ltttwjbj.jpg",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757791099/irrbesl8jzdw1h98p3fg.png",
+    "description": "Stanislas Charrot est un professeur de français. Il a 32 ans et vit seul. Il se fait harceler par ses élèves pour sa passion pour les Barbies. Il finit par perdre la raison et se retrouve plongé dans une folie meurtrière.",
+    "watchUrl": "https://youtu.be/pDYKdgIp9Y4?si=WyM60OB_mwfrDrMf",
+    "actors": [
+      {
+        "name": "The Brickerer",
+        "role": "Stanislas Charrot"
+      },
+      {
+        "name": "Kapirklaa",
+        "role": "Patricia Friandor"
+      },
+      {
+        "name": "Stark david",
+        "role": "Johnny"
+      },
+      {
+        "name": "Batzack Cosplayer",
+        "role": "Policier 1"
+      },
+      {
+        "name": "Lucasseurdenoix",
+        "role": "Policier 2"
+      },
+      {
+        "name": "Bataxel",
+        "role": "Élève 1"
+      },
+      {
+        "name": "Nat_Bricks",
+        "role": "Élève 2"
+      },
+      {
+        "name": "Matstudio24",
+        "role": "Élève 3"
+      },
+      {
+        "name": "SOLO_OFFICIEL",
+        "role": "Zack"
+      },
+      {
+        "name": "test",
+        "role": "test"
+      }
+    ],
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757793270/rm1rhimueqsrbwdbxqzd.png"
   }
 ]
