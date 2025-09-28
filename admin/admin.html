@@ -15,9 +15,10 @@
     <section class="auth">
       <p class="muted">Accès restreint. Votre session admin est active.</p>
       <button id="logoutBtn" type="button" class="btn">Se déconnecter</button>
+      <a id="homeShortcut" href="../" class="btn secondary" style="margin-left:8px;">Aller à l'accueil</a>
     </section>
 
-    <section class="form-section">
+    <section class="form-section" id="cloudinary-section" hidden>
       <h2 style="display:flex; align-items:center; gap:8px;">
         Stockage images (Cloudinary)
         <button type="button" id="cldLockBtn" class="btn secondary lock-btn" title="Verrouiller/déverrouiller la configuration">🔒</button>
@@ -197,6 +198,9 @@
       </label>
     </div>
     <button id="loginBtn" class="btn">Se connecter</button>
+    <div style="margin-top:8px;">
+      <a id="homeShortcutLogin" href="../" class="btn secondary">Retour à l'accueil</a>
+    </div>
   </div>
 
   <script src="admin.js" defer></script>

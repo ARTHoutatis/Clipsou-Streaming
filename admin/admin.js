@@ -871,12 +871,14 @@
       // If "remember" is set, auto-login without prompting
       if (localStorage.getItem(APP_KEY_REMEMBER) === '1') {
         sessionStorage.setItem(APP_KEY_SESSION, '1');
+        try { localStorage.setItem('clipsou_admin_logged_in_v1','1'); localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now())); } catch {}
         showApp();
         initApp();
         return;
       }
       if (sessionStorage.getItem(APP_KEY_SESSION) === '1') {
         showApp();
+        try { localStorage.setItem('clipsou_admin_logged_in_v1','1'); localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now())); } catch {}
         initApp();
         return;
       }
@@ -907,6 +909,8 @@
         try { sessionStorage.setItem(APP_KEY_SESSION, '1'); } catch {}
         // Always remember once successfully logged in
         try { localStorage.setItem(APP_KEY_REMEMBER, '1'); } catch {}
+        // Broadcast logged-in state (for public site to show Admin shortcut immediately)
+        try { localStorage.setItem('clipsou_admin_logged_in_v1','1'); localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now())); } catch {}
         showApp();
         initApp();
       } else {
@@ -1147,6 +1151,16 @@
       if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
           try { sessionStorage.removeItem(APP_KEY_SESSION); } catch {}
+          // Broadcast logout so public site hides Admin shortcut immediately
+          try { localStorage.removeItem('clipsou_admin_logged_in_v1'); localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now())); } catch {}
+          // Forget remember flag and clear any prefilled password
+          try { localStorage.removeItem(APP_KEY_REMEMBER); } catch {}
+          try {
+            const pwd = document.getElementById('passwordInput');
+            if (pwd) { pwd.value = ''; pwd.type = 'password'; }
+            const chk = document.getElementById('showPwd');
+            if (chk) chk.checked = false;
+          } catch {}
           const login = $('#login');
           if (app) app.hidden = true;
           if (login) login.hidden = false;
