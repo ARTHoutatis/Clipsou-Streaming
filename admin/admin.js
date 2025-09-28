@@ -1253,11 +1253,9 @@
           // Show publishing indicator and disable button during network call
           const originalHtml = approveBtn.innerHTML;
           approveBtn.disabled = true;
-          // Keep the button label unchanged; the hint is displayed elsewhere
-          approveBtn.innerHTML = originalHtml;
           showPublishWaitHint();
 
-          // Optimistically set approved locally
+          // Optimistically set approved locally and update UI immediately
           found.status = 'approved';
           stampUpdatedAt(found);
           setRequests(list);
@@ -1267,12 +1265,15 @@
           apr = apr.filter(x => x && x.id !== found.data.id && normalizeTitleKey(x.title) !== key);
           apr.push(found.data);
           setApproved(dedupeByIdAndTitle(apr));
-          // Sync removed
+          // Instantly reflect in UI on this device
+          approveBtn.textContent = 'Retirer';
+          try { renderTable(); } catch {}
+
           // Publish through API for everyone and reflect final status
           const ok = await publishApproved(found.data);
           if (ok) {
-            approveBtn.textContent = 'Retirer';
-            setTimeout(()=>{ renderTable(); }, 300);
+            // Keep label as Retirer; schedule a soft refresh
+            setTimeout(()=>{ try { renderTable(); } catch {} }, 300);
             try { startDeploymentWatch(found.data.id, 'upsert', found.data); } catch {}
           } else {
             // Revert local approval on failure
@@ -1281,7 +1282,7 @@
             const apr2 = getApproved().filter(x=>x.id!==found.data.id);
             setApproved(apr2);
             approveBtn.textContent = 'Approuver';
-            renderTable();
+            try { renderTable(); } catch {}
           }
           // Re-enable only if global 30s lock is not active
           try { approveBtn.disabled = isPublishLocked(); } catch { approveBtn.disabled = false; }
