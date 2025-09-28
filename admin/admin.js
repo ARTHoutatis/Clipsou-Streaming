@@ -33,9 +33,12 @@
   // Fetch public approved.json to hydrate actor photos map for admin UI
   async function fetchPublicApprovedArray(){
     const cfg = getPublishConfig();
+    const originApproved = (function(){ try { return (window.location.origin || '') + '/data/approved.json'; } catch { return null; } })();
     const tryUrls = [
       cfg && cfg.publicApprovedUrl ? cfg.publicApprovedUrl : null,
-      '../data/approved.json'
+      originApproved,
+      '../data/approved.json',
+      'data/approved.json'
     ].filter(Boolean);
     for (const u of tryUrls) {
       try {
@@ -112,6 +115,60 @@
       const arr = await fetchPublicRequestsArray();
       if (Array.isArray(arr) && arr.length) {
         setRequests(arr);
+        try { renderTable(); } catch {}
+      }
+    } catch {}
+  }
+
+  // Ensure all published films are visible in the admin requests table by merging remote approved items
+  async function hydrateRequestsFromPublicApproved(){
+    try {
+      const remote = await fetchPublicApprovedArray();
+      if (!Array.isArray(remote) || !remote.length) return;
+      const list = getRequests();
+      const norm = (s)=>{
+        try { return String(s||'').normalize('NFD').replace(/\p{Diacritic}/gu,'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); }
+        catch { return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); }
+      };
+      const byId = new Map();
+      const byTitle = new Map();
+      (list||[]).forEach(r=>{
+        try {
+          const id = r && r.data && r.data.id || '';
+          const t = r && r.data && r.data.title || '';
+          if (id) byId.set(String(id), r);
+          const nt = norm(t);
+          if (nt) byTitle.set(nt, r);
+        } catch {}
+      });
+      let changed = false;
+      for (const it of remote) {
+        if (!it) continue;
+        const id = String(it.id||'');
+        const nt = norm(it.title||'');
+        const exists = (id && byId.has(id)) || (nt && byTitle.has(nt));
+        if (!exists) {
+          const rid = id ? ('pub-'+id) : ('pub-'+(nt||Math.random().toString(36).slice(2,8)));
+          // Map remote approved shape to request data shape (best effort)
+          const data = {
+            id: id || rid,
+            title: String(it.title||''),
+            type: String(it.type||'film'),
+            rating: (typeof it.rating==='number') ? it.rating : undefined,
+            genres: Array.isArray(it.genres) ? it.genres.slice(0,3) : [],
+            description: String(it.description||''),
+            portraitImage: it.portraitImage || it.image || '',
+            landscapeImage: it.landscapeImage || '',
+            watchUrl: String(it.watchUrl||''),
+            studioBadge: String(it.studioBadge||''),
+            actors: Array.isArray(it.actors) ? it.actors : []
+          };
+          list.unshift({ requestId: rid, status: 'approved', data, meta: { importedFromPublic: true, updatedAt: Date.now() } });
+          changed = true;
+        }
+      }
+      if (changed) {
+        setRequests(list);
         try { renderTable(); } catch {}
       }
     } catch {}
@@ -1638,6 +1695,7 @@
 
     // Initial load: hydrate shared requests and render
     try { await hydrateRequestsFromPublic(); } catch {}
+    try { await hydrateRequestsFromPublicApproved(); } catch {}
     try { renderTable(); } catch {}
     emptyForm();
     renderTable();
