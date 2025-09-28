@@ -223,6 +223,36 @@
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1758042405/dy8j6d6escvajizoxmnf.png"
   },
   {
+    "id": "custom-ou-est-partie-ma-mamie-bxxd",
+    "title": "Ou Est Partie Ma Mamie ?",
+    "type": "film",
+    "rating": 2.5,
+    "genres": [
+      "Aventure",
+      "Comédie",
+      "Familial"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757697238/r53vwhdmhxcglhlckj1v.jpg",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757697239/jptiku4sy3iovtimiyiz.png",
+    "description": "Lors d’une paisible balade en forêt, Cassiel et son cousin Tom accompagnent leur grand-mère, passionnée de cueillette d’ail des ours. Tandis qu’elle s’absorbe dans sa récolte, les deux garçons s’éloignent. Mais lorsqu’ils reviennent sur leurs pas, leur mamie a disparu. Perdus au cœur de la nature, ils se lancent dans une quête pleine d’émotions et de découvertes pour la retrouver.",
+    "watchUrl": "https://youtu.be/snro9u1Vsuk?si=pxPygNHRoClwsVhM",
+    "actors": [
+      {
+        "name": "Liam Roxxor",
+        "role": "Tom",
+        "photo": "liam-roxxor.webp"
+      },
+      {
+        "name": "Kassielator",
+        "role": "Cassiel"
+      },
+      {
+        "name": "Monique Veyrat",
+        "role": "Mamie"
+      }
+    ]
+  },
+  {
     "id": "custom-the-psycho-teacher-q2q6",
     "title": "The Psycho Teacher",
     "type": "film",
