@@ -7,6 +7,20 @@
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" href="../favicon.webp" type="image/webp">
   <link rel="stylesheet" href="admin.css?v=20250910">
+  <script>
+    // Enforce apex domain online to share localStorage with the main site
+    (function(){
+      try {
+        var h = location.hostname;
+        var isLocal = location.protocol === 'file:' || h === 'localhost' || h === '127.0.0.1';
+        if (isLocal) return;
+        if (h === 'www.clipsoustreaming.com') {
+          var target = 'https://clipsoustreaming.com' + location.pathname + location.search + location.hash;
+          location.replace(target);
+        }
+      } catch {}
+    })();
+  </script>
 </head>
 <body>
   <main class="container" id="app" hidden>
@@ -203,7 +217,7 @@
     </div>
   </div>
 
-  <script src="admin.js" defer></script>
+  <script src="admin.js?v=20250928-1" defer></script>
   <script>
     // Extra guard: delay enabling typing in the search box until real user interaction
     (function(){
