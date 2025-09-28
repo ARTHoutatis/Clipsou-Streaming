@@ -29,6 +29,20 @@
       return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '').trim();
     }
   }
+  // During GitHub Pages propagation, avoid UI flapping by honoring a short per-item override
+  const PUBLISH_GRACE_MS = 90000; // 90s
+  function getActiveOverride(id){
+    try {
+      const track = getDeployTrack();
+      const t = track && track[id];
+      if (!t) return null;
+      if (t.confirmedAt) return null;
+      const started = Number(t.startedAt||0);
+      if (!started) return null;
+      if (Date.now() - started > PUBLISH_GRACE_MS) return null;
+      return t; // { action: 'upsert'|'delete', expected?: item }
+    } catch { return null; }
+  }
 
   // Fetch public approved.json to hydrate actor photos map for admin UI
   async function fetchPublicApprovedArray(){
@@ -128,44 +142,56 @@
   async function hydrateRequestsFromPublicApproved(){
     try {
       const remote = await fetchPublicApprovedArray();
-      if (!Array.isArray(remote) || !remote.length) return;
-      // Keep local approved mirror in sync so UI reflects shared state
-      try { setApproved(dedupeByIdAndTitle(remote)); } catch {}
-      const list = getRequests();
+      // Build effective approved list by merging remote (if any) with local in-flight overrides
+      const remoteDedup = dedupeByIdAndTitle(Array.isArray(remote) ? remote : []);
+      const byId = new Map();
+      const byTitle = new Map();
       const norm = (s)=>{
         try { return String(s||'').normalize('NFD').replace(/\p{Diacritic}/gu,'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); }
         catch { return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); }
       };
-      const remoteIds = new Set();
-      const remoteTitles = new Set();
-      (remote||[]).forEach(it=>{ try { if (it && it.id) remoteIds.add(String(it.id)); const t = norm(it && it.title); if (t) remoteTitles.add(t); } catch {} });
-      const byId = new Map();
-      const byTitle = new Map();
-      (list||[]).forEach(r=>{
-        try {
-          const id = r && r.data && r.data.id || '';
-          const t = r && r.data && r.data.title || '';
-          if (id) byId.set(String(id), r);
-          const nt = norm(t);
-          if (nt) byTitle.set(nt, r);
-        } catch {}
-      });
+      (remoteDedup||[]).forEach(it=>{ const id = String(it.id||''); if (id) byId.set(id, it); const nt = norm(it.title||''); if (nt && !byTitle.has(nt)) byTitle.set(nt, it); });
+      // Apply overrides
+      try {
+        const track = getDeployTrack();
+        Object.keys(track||{}).forEach(id => {
+          const ov = getActiveOverride(id);
+          if (!ov) return;
+          if (ov.action === 'upsert') {
+            // Ensure present using expected item if available
+            const item = (ov.expected && typeof ov.expected === 'object') ? ov.expected : null;
+            if (item) { byId.set(String(item.id||id), item); byTitle.set(norm(item.title||''), item); }
+          } else if (ov.action === 'delete') {
+            // Ensure removed locally even if remote still has it
+            byId.delete(id);
+          }
+        });
+      } catch {}
+      const effectiveApr = dedupeByIdAndTitle(Array.from(byId.values()));
+      try { setApproved(effectiveApr); } catch {}
+      const list = getRequests();
+      const effIds = new Set(effectiveApr.map(x=>String(x.id||'')));
+      const effTitles = new Set(effectiveApr.map(x=>norm(x && x.title || '')));
+      const reqById = new Map();
+      const reqByTitle = new Map();
+      (list||[]).forEach(r=>{ try { const id = r && r.data && r.data.id || ''; if (id) reqById.set(String(id), r); const t = norm(r && r.data && r.data.title || ''); if (t) reqByTitle.set(t, r); } catch {} });
       let changed = false;
-      // Reconcile local statuses with remote approved
+      // Reconcile local statuses with effective approved (remote + overrides)
       (list||[]).forEach(r => {
         try {
           const id = String((r && r.data && r.data.id) || '');
           const nt = norm(r && r.data && r.data.title || '');
-          const isRemoteApproved = (id && remoteIds.has(id)) || (nt && remoteTitles.has(nt));
-          if (isRemoteApproved && r.status !== 'approved') { r.status = 'approved'; changed = true; }
-          if (!isRemoteApproved && r.status === 'approved') { r.status = 'pending'; changed = true; }
+          const ov = id ? getActiveOverride(id) : null;
+          const isApprovedEff = ov ? (ov.action === 'upsert') : ((id && effIds.has(id)) || (nt && effTitles.has(nt)));
+          if (isApprovedEff && r.status !== 'approved') { r.status = 'approved'; changed = true; }
+          if (!isApprovedEff && r.status === 'approved') { r.status = 'pending'; changed = true; }
         } catch {}
       });
-      for (const it of remote) {
+      for (const it of effectiveApr) {
         if (!it) continue;
         const id = String(it.id||'');
         const nt = norm(it.title||'');
-        const exists = (id && byId.has(id)) || (nt && byTitle.has(nt));
+        const exists = (id && reqById.has(id)) || (nt && reqByTitle.has(nt));
         if (!exists) {
           const rid = id ? ('pub-'+id) : ('pub-'+(nt||Math.random().toString(36).slice(2,8)));
           // Map remote approved shape to request data shape (best effort)
@@ -1201,12 +1227,15 @@
       const editBtn = document.createElement('button'); editBtn.className='btn secondary'; editBtn.textContent='Modifier';
       const delBtn = document.createElement('button'); delBtn.className='btn secondary'; delBtn.textContent='Supprimer';
       const approveBtn = document.createElement('button'); approveBtn.className='btn';
-      // Derive label from shared approved list (remote-synced), fallback to local status
+      // Derive label from shared approved list (remote-synced) + local override, fallback to local status
       const isApprovedShared = (function(){
         try {
           const id = r && r.data && r.data.id;
           const keyR = normalizeTitleKey(r && r.data && r.data.title);
-          return (aprList||[]).some(x=> x && (x.id===id || normalizeTitleKey(x.title)===keyR));
+          const inApr = (aprList||[]).some(x=> x && (x.id===id || normalizeTitleKey(x.title)===keyR));
+          const ov = id ? getActiveOverride(id) : null;
+          if (ov) return ov.action === 'upsert';
+          return inApr;
         } catch { return r.status === 'approved'; }
       })();
       approveBtn.textContent = isApprovedShared ? 'Retirer' : 'Approuver';
@@ -1243,12 +1272,15 @@
           setApproved(apr);
           // Remove from shared approved.json
           showPublishWaitHint();
-          await deleteApproved(found.data.id);
+          // Start override immediately to avoid flapping while waiting
           try { startDeploymentWatch(found.data.id, 'delete'); } catch {}
+          await deleteApproved(found.data.id);
           approveBtn.textContent = 'Approuver';
           // No status cell to refresh
           // Sync removed
           try { publishRequestUpsert(found); } catch {}
+          // Quick reconciliation
+          try { await hydrateRequestsFromPublicApproved(); } catch {}
         } else {
           // Show publishing indicator and disable button during network call
           const originalHtml = approveBtn.innerHTML;
@@ -1269,12 +1301,21 @@
           approveBtn.textContent = 'Retirer';
           try { renderTable(); } catch {}
 
+          // Start override immediately to avoid flapping while waiting
+          try {
+            const track = getDeployTrack();
+            const prev = track[found.data.id] || {};
+            track[found.data.id] = { ...prev, action: 'upsert', startedAt: Date.now(), confirmedAt: undefined, expected: found.data };
+            setDeployTrack(track);
+          } catch {}
           // Publish through API for everyone and reflect final status
           const ok = await publishApproved(found.data);
           if (ok) {
             // Keep label as Retirer; schedule a soft refresh
             setTimeout(()=>{ try { renderTable(); } catch {} }, 300);
             try { startDeploymentWatch(found.data.id, 'upsert', found.data); } catch {}
+            // Quick reconciliation
+            try { await hydrateRequestsFromPublicApproved(); } catch {}
           } else {
             // Revert local approval on failure
             found.status = 'pending';
