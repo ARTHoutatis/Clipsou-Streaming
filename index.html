@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0b1117">
-<script>
+  <script>
   // Early guard: if loading with a popup hash, stop default target jump and pin background at saved Y
   (function(){
     try {
@@ -18,6 +18,20 @@
           try { history.replaceState(null, '', location.pathname + location.search); } catch {}
           return;
         }
+      }
+    } catch {}
+  })();
+  </script>
+  <script>
+  // Enforce apex domain online so localStorage is shared between admin and site
+  (function(){
+    try {
+      var h = location.hostname;
+      var isLocal = location.protocol === 'file:' || h === 'localhost' || h === '127.0.0.1';
+      if (isLocal) return;
+      if (h === 'www.clipsoustreaming.com') {
+        var target = 'https://clipsoustreaming.com' + location.pathname + location.search + location.hash;
+        location.replace(target);
       }
     } catch {}
   })();
@@ -1065,7 +1079,7 @@
   <a href="#contenu" class="back-to-top-btn" aria-label="Revenir en haut"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 5l-7 7h4v7h6v-7h4z"/></svg>Revenir en haut</a>
 </footer>
 
-<script src="index.js?v=20250927-1" defer></script>
+<script src="index.js?v=20250928-1" defer></script>
 <script>
   // Normalize homepage URL to root (remove /index.html) without reload
   // Skip in local dev (file:// or localhost) to keep index.html accessible
