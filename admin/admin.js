@@ -53,6 +53,27 @@
     return [];
   }
 
+  // Fetch public requests.json to hydrate requests list (shared across admins)
+  async function fetchPublicRequestsArray(){
+    const cfg = getPublishConfig();
+    const tryUrls = [
+      cfg && cfg.publicRequestsUrl ? cfg.publicRequestsUrl : null,
+      (function(){ try { return (window.location.origin || '') + '/data/requests.json'; } catch { return null; } })(),
+      '../data/requests.json',
+      'data/requests.json'
+    ].filter(Boolean);
+    for (const u of tryUrls) {
+      try {
+        const res = await fetch(u + '?v=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' });
+        if (!res.ok) continue;
+        const json = await res.json();
+        if (Array.isArray(json)) return json;
+        if (json && typeof json === 'object' && Array.isArray(json.requests)) return json.requests;
+      } catch {}
+    }
+    return [];
+  }
+
   function buildActorPhotoMapFromArray(arr) {
     // Note: keep normalization consistent with getActorPhotoMap()
     const map = {};
@@ -82,6 +103,17 @@
           renderActors(dataActors);
         }
       } catch {}
+    } catch {}
+  }
+
+  // Replace local requests with the shared public list when available
+  async function hydrateRequestsFromPublic(){
+    try {
+      const arr = await fetchPublicRequestsArray();
+      if (Array.isArray(arr) && arr.length) {
+        setRequests(arr);
+        try { renderTable(); } catch {}
+      }
     } catch {}
   }
 
@@ -664,13 +696,23 @@
       let defaultPublic = '';
       try { defaultPublic = (window.location.origin || '') + '/data/approved.json'; } catch {}
       const publicApprovedUrl = prompt('URL publique du approved.json (optionnel, ex: https://<user>.github.io/<repo>/data/approved.json):', cfg.publicApprovedUrl || defaultPublic || '');
-      cfg = { url: url.trim(), secret: secret.trim(), publicApprovedUrl: (publicApprovedUrl||'').trim() };
+      // Optional: URL publique de requests.json pour partager les requêtes entre admins
+      let defaultRequests = '';
+      try { defaultRequests = (window.location.origin || '') + '/data/requests.json'; } catch {}
+      const publicRequestsUrl = prompt('URL publique du requests.json (optionnel, ex: https://<user>.github.io/<repo>/data/requests.json):', (cfg && cfg.publicRequestsUrl) || defaultRequests || '');
+      cfg = { url: url.trim(), secret: secret.trim(), publicApprovedUrl: (publicApprovedUrl||'').trim(), publicRequestsUrl: (publicRequestsUrl||'').trim() };
       setPublishConfig(cfg);
-    } else if (!cfg.publicApprovedUrl) {
-      // Backfill publicApprovedUrl if missing
+    } else {
+      // Backfill public URLs if missing
       try {
-        const guess = (window.location.origin || '') + '/data/approved.json';
-        cfg.publicApprovedUrl = guess;
+        if (!cfg.publicApprovedUrl) {
+          const guessA = (window.location.origin || '') + '/data/approved.json';
+          cfg.publicApprovedUrl = guessA;
+        }
+        if (!cfg.publicRequestsUrl) {
+          const guessR = (window.location.origin || '') + '/data/requests.json';
+          cfg.publicRequestsUrl = guessR;
+        }
         setPublishConfig(cfg);
       } catch {}
     }
@@ -722,6 +764,32 @@
 
   async function deleteApproved(id){
     return publishApproved(id, 'delete');
+  }
+
+  // ===== Publish requests (shared across admins) =====
+  async function publishRequestUpsert(request){
+    const cfg = await ensurePublishConfig();
+    if (!cfg || !cfg.url || !cfg.secret) return false;
+    try {
+      const res = await fetch(cfg.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.secret },
+        body: JSON.stringify({ action: 'request_upsert', request })
+      });
+      return !!res.ok;
+    } catch { return false; }
+  }
+  async function publishRequestDelete(id){
+    const cfg = await ensurePublishConfig();
+    if (!cfg || !cfg.url || !cfg.secret) return false;
+    try {
+      const res = await fetch(cfg.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.secret },
+        body: JSON.stringify({ action: 'request_delete', id })
+      });
+      return !!res.ok;
+    } catch { return false; }
   }
 
   function renderActors(list){
@@ -1077,6 +1145,8 @@
           setApproved(apr);
         }
         renderTable(); emptyForm();
+        // Share deletion with other admins (server-side will remove from requests.json)
+        try { publishRequestDelete(r.requestId); } catch {}
       });
       approveBtn.addEventListener('click', async ()=>{
         const list = getRequests();
@@ -1095,6 +1165,7 @@
           approveBtn.textContent = 'Approuver';
           // No status cell to refresh
           // Sync removed
+          try { publishRequestUpsert(found); } catch {}
         } else {
           // Show publishing indicator and disable button during network call
           const originalHtml = approveBtn.innerHTML;
@@ -1130,6 +1201,8 @@
           }
           // Re-enable only if global 30s lock is not active
           try { approveBtn.disabled = isPublishLocked(); } catch { approveBtn.disabled = false; }
+          // Share new status with other admins
+          try { publishRequestUpsert(found); } catch {}
         }
         // For unapprove, immediate refresh
         if (found.status==='pending') renderTable();
@@ -1141,7 +1214,7 @@
     try { applyPublishLockUI(); } catch {}
   }
 
-  function initApp(){
+  async function initApp(){
     const app = $('#app');
     app.hidden = false;
 
@@ -1494,6 +1567,8 @@
         }
         else { list.unshift(stampUpdatedAt({ requestId: reqId, status: 'pending', data })); }
         setRequests(list);
+        // Share this request across admins
+        try { const saved = list.find(x=>x.requestId===reqId); if (saved) publishRequestUpsert(saved); } catch {}
         try { setLastEditedId(data && data.id); } catch{}
         // If already approved, keep approved in sync
         if (wasApproved) {
@@ -1561,6 +1636,9 @@
       e.target.value = '';
     });
 
+    // Initial load: hydrate shared requests and render
+    try { await hydrateRequestsFromPublic(); } catch {}
+    try { renderTable(); } catch {}
     emptyForm();
     renderTable();
     // Shared requests sync removed
@@ -1568,15 +1646,15 @@
     restoreDraft();
     populateActorNamesDatalist();
     // Hydrate actor photos from public approved.json to ensure chips display known avatars
-    try { hydrateActorPhotoMapFromPublic(); } catch {}
+    try { await hydrateActorPhotoMapFromPublic(); } catch {}
     // If no draft is present, restore the last edited item into the form for continuity
     try {
       const draft = loadJSON(APP_KEY_DRAFT, null);
       if (!draft) {
         const lastId = getLastEditedId();
         if (lastId) {
-          const reqs = getRequests();
-          const foundReq = (reqs||[]).find(x => x && x.data && x.data.id === lastId && !(x.meta && x.meta.deleted));
+          const list = getRequests();
+          const foundReq = (list||[]).find(x => x && x.data && x.data.id === lastId && !(x.meta && x.meta.deleted));
           if (foundReq && foundReq.data) {
             fillForm(foundReq.data);
           } else {
