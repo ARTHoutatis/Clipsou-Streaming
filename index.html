@@ -55,13 +55,7 @@
 <link rel="preconnect" href="https://youtu.be">
 <!-- Preload critical UI icon -->
 <link rel="preload" as="image" href="loupe.webp">
-<!-- Preload category images for instant display in "Qu'est‑ce que tu souhaites regarder aujourd'hui ?" -->
-<link rel="preload" as="image" href="Catégories/Comédi.webp" imagesrcset="Catégories/Comédi.webp 260w" imagesizes="(max-width: 768px) 200px, 260px">
-<link rel="preload" as="image" href="Catégories/Horreur.webp" imagesrcset="Catégories/Horreur.webp 260w" imagesizes="(max-width: 768px) 200px, 260px">
-<link rel="preload" as="image" href="Catégories/Action.webp" imagesrcset="Catégories/Action.webp 260w" imagesizes="(max-width: 768px) 200px, 260px">
-<link rel="preload" as="image" href="Catégories/Super-Heros.webp" imagesrcset="Catégories/Super-Heros.webp 260w" imagesizes="(max-width: 768px) 200px, 260px">
-<link rel="preload" as="image" href="Catégories/Drame.webp" imagesrcset="Catégories/Drame.webp 260w" imagesizes="(max-width: 768px) 200px, 260px">
-<link rel="preload" as="image" href="Catégories/Famillial.webp" imagesrcset="Catégories/Famillial.webp 260w" imagesizes="(max-width: 768px) 200px, 260px">
+<!-- Removed category image preloads; categories are lazy-loaded in index.js -->
 <!-- Preload critical CSS to speed up first paint (keep regular stylesheet links too) -->
 <link rel="preload" as="style" href="common.css?v=20250916-1">
 <link rel="preload" as="style" href="index.css?v=20250916-1">
@@ -203,6 +197,10 @@
   }
   /* Footer: uniform icon-text gap across all links */
   .footer .footer-list a { gap: 6px !important; }
+  /* Footer: links become white on hover/focus */
+  .footer .footer-list a { transition: color 150ms ease !important; }
+  .footer .footer-list a:hover,
+  .footer .footer-list a:focus { color: #fff !important; }
   /* Footer: Back-to-top button bottom-right */
   .footer { position: relative; }
   .footer .back-to-top-btn {
@@ -461,7 +459,7 @@
         Partenariats
       </h3>
       <p>
-        <img src="NOVA.webp" alt="Logo Nova Stream" class="partner-logo" data-pos="center" loading="lazy" decoding="async" style="width:112px;height:112px;display:block;margin:0 0 8px 0;border-radius:4px;">
+        <img src="NOVA.webp" alt="Logo Nova Stream" class="partner-logo" data-pos="center" loading="lazy" decoding="async" style="width:112px;height:112px;display:block;margin:0 0 8px 0;border-radius:4px;" fetchpriority="low">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 8px; color: #FFD700;">
           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
         </svg>
@@ -489,7 +487,7 @@
       </div>
       <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 16px 0;">
       <p>
-        <img src="CineHelp.webp" alt="Logo CineHelp" class="partner-logo" data-pos="center" loading="lazy" decoding="async" style="width:128px;height:128px;display:block;margin:0 0 8px 0;border-radius:4px;">
+        <img src="CineHelp.webp" alt="Logo CineHelp" class="partner-logo" data-pos="center" loading="lazy" decoding="async" style="width:128px;height:128px;display:block;margin:0 0 8px 0;border-radius:4px;" fetchpriority="low">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 8px; color: #FFD700;">
           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
         </svg>
@@ -509,7 +507,7 @@
       </div>
       <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 16px 0;">
       <p>
-        <img src="Cineclub.webp" alt="Logo Cinéclub" class="partner-logo" data-pos="center" loading="lazy" decoding="async" style="width:128px;height:128px;display:block;margin:0 0 8px 0;border-radius:4px;">
+        <img src="Cineclub.webp" alt="Logo Cinéclub" class="partner-logo" data-pos="center" loading="lazy" decoding="async" style="width:128px;height:128px;display:block;margin:0 0 8px 0;border-radius:4px;" fetchpriority="low">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 8px; color: #FFD700;">
           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
         </svg>

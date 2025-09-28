@@ -234,6 +234,7 @@ document.addEventListener('DOMContentLoaded', async function () {
           a.setAttribute('aria-label', 'Catégorie ' + c.name);
           const img = document.createElement('img');
           img.dataset.src = c.img; img.src = 'apercu.webp'; img.alt = c.name; img.loading = 'lazy'; img.decoding = 'async';
+          try { img.fetchPriority = 'low'; } catch {}
           img.onerror = function(){ this.onerror=null; this.src='apercu.webp'; };
           a.appendChild(img);
           rail.appendChild(a);
@@ -665,6 +666,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         img.onerror = function(){ cIdx++; if (cIdx < candidates.length) this.src = applySrc(candidates[cIdx]); else { this.onerror=null; this.src='apercu.webp'; } };
         img.alt = 'Affiche de ' + (it.title || 'contenu');
         img.loading = 'lazy'; img.decoding = 'async';
+        try { img.fetchPriority = 'low'; } catch {}
         media.appendChild(img);
         a.appendChild(media);
 
@@ -2368,7 +2370,7 @@ document.addEventListener('DOMContentLoaded', async function () {
               load(el);
             }
           });
-        }, { root: null, rootMargin: '600px 800px', threshold: 0.01 }) : null;
+        }, { root: null, rootMargin: '360px 512px', threshold: 0.01 }) : null;
 
         function observe(el){
           if (!el || pending.has(el)) return;
@@ -2529,8 +2531,9 @@ document.addEventListener('DOMContentLoaded', async function () {
 
       // Add badge if missing
       let badge = media.querySelector('.brand-badge');
-      if (!badge) { badge = document.createElement('div'); badge.className = 'brand-badge'; const logo = document.createElement('img'); logo.setAttribute('loading', 'lazy'); logo.setAttribute('decoding', 'async'); badge.appendChild(logo); media.appendChild(badge); }
+      if (!badge) { badge = document.createElement('div'); badge.className = 'brand-badge'; const logo = document.createElement('img'); logo.setAttribute('loading', 'lazy'); logo.setAttribute('decoding', 'async'); try { logo.fetchPriority = 'low'; } catch {} badge.appendChild(logo); media.appendChild(badge); }
       const logo = badge.querySelector('img');
+      try { if (logo) logo.fetchPriority = 'low'; } catch {}
       // Determine preferred badge URL from data-studio-badge if present
       let desired = '';
       try {
