@@ -470,7 +470,7 @@ function renderFiche(container, item) {
   const mediaWrap = document.createElement('div');
   mediaWrap.className = 'fiche-media-wrap';
   const img = document.createElement('img');
-  img.src = item.image || 'apercu.webp';
+  if (item.image) { try { img.src = item.image; } catch {} }
   img.alt = 'Image de ' + (item.title || 'la fiche');
   img.loading = 'lazy';
   img.decoding = 'async';
@@ -911,19 +911,21 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       candidates = dedupe(candidates);
       // Helper to safely apply src (encode local paths with spaces)
       function applySrc(c){
-        if (!c) return 'apercu.webp';
+        if (!c) return '';
         if (/^(data:|https?:)/i.test(c)) return c;
         try { return encodeURI(c); } catch { return c; }
       }
       let cIdx = 0;
-      img.src = applySrc(candidates[cIdx]) || 'apercu.webp';
+      var first = applySrc(candidates[cIdx]);
+      if (first) img.src = first;
       img.onerror = function(){
         cIdx += 1;
         if (cIdx < candidates.length) {
-          this.src = applySrc(candidates[cIdx]);
+          const next = applySrc(candidates[cIdx]);
+          if (next) this.src = next; else { this.onerror = null; try { this.removeAttribute('src'); } catch {} }
         } else {
           this.onerror = null;
-          this.src = 'apercu.webp';
+          try { this.removeAttribute('src'); } catch {}
         }
       };
       img.alt = 'Affiche de ' + (it.title || '');
@@ -1369,7 +1371,7 @@ function renderList(container, items, titleText) {
     const media = document.createElement('div');
     media.className = 'card-media';
     const img = document.createElement('img');
-    img.src = it.image || 'apercu.webp';
+    if (it.image) { try { img.src = it.image; } catch {} }
     img.alt = 'Affiche de ' + (it.title || '');
     img.loading = 'lazy';
     img.decoding = 'async';

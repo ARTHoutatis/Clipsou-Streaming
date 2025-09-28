@@ -537,6 +537,21 @@ body.popup-open nav[aria-label="Navigation principale"] {
     padding: 10px 20px !important;
     position: relative !important;
   }
+  /* Desktop/tablet: ensure Admin link is fully visible (reverts mobile icon-only) */
+  .nav-links .admin-link {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    text-indent: 0 !important;
+    overflow: visible !important;
+    width: auto !important;
+    height: auto !important;
+    padding: 10px 20px !important;
+    position: relative !important;
+    visibility: visible !important;
+  }
+  .nav-links .admin-link span { display: inline !important; }
+  .nav-links .admin-link svg { width: 18px; height: 18px; }
   /* no override for desktop; base (70px) is correct */
   .nav-links .search-link::before {
     position: static !important;

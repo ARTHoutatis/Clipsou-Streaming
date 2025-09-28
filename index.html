@@ -167,18 +167,16 @@
     .section .rail-arrow.next.hidden { transform: translateX(110%) !important; }
     .section .rail-fade.hidden { display: none !important; }
   }
-  /* Smooth transform and lock position on interaction */
-  .discord-banner-btn { transition: transform 180ms ease; }
+  /* Smooth transform only (no horizontal shift to avoid overlap) */
+  .discord-banner-btn { transition: transform 180ms ease; transform: none; }
   .discord-banner-btn:hover,
   .discord-banner-btn:focus,
-  .discord-banner-btn:active { transform: translateX(-50px); }
+  .discord-banner-btn:active { transform: translateY(-2px); }
   @media (max-width: 768px) {
     .discord-banner-title { font-size: 28px; }
     .discord-banner-text { font-size: 18px; }
   }
-  @media (min-width: 1025px) {
-    .discord-banner-btn { transform: translateX(-50px); }
-  }
+  /* No desktop horizontal shift */
   /* Sticky footer layout: footer always at bottom */
   html, body { height: 100%; }
   body { display: flex; flex-direction: column; min-height: 100vh; }
