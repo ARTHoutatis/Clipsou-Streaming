@@ -544,9 +544,21 @@ body.popup-open nav[aria-label="Navigation principale"] {
 .search-link { background: transparent; border: 0; color: #fff; }
 .search-link:hover { background: transparent; }
 
+/* Admin button: align with other nav items */
+.nav-links .admin-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: #fff;
+  border: 0;
+}
+.nav-links .admin-link svg { width: 18px; height: 18px; display: block; }
+
 /* Lower the Recherche link slightly on desktop/tablet */
 @media (min-width: 769px) {
   .nav-links .search-link { top: 2.5px; }
+  .nav-links .admin-link { position: relative; top: 2.5px; }
 }
 
 /* Index-only: raise Accueil by 1px (global is 3px, set to 2px here) */
@@ -2152,6 +2164,16 @@ html {
         overflow: hidden; 
         position: relative; 
     }
+    /* Admin: icon-only on mobile, same touch target */
+    .nav-links .admin-link {
+        padding: 0;
+        width: 40px;
+        height: 40px;
+        border: 0;
+        box-shadow: none;
+        background: transparent !important;
+    }
+    .nav-links .admin-link span { display: none; }
     /* Icon and mobile centering are defined in common.css */
     /* Title overflow rules are handled in common.css */
 
