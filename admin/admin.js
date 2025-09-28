@@ -743,21 +743,18 @@
   }
   async function ensurePublishConfig(){
     let cfg = getPublishConfig();
-    if (!cfg.url) {
-      if (!confirm('Configurer l\'API de publication maintenant ?')) return null;
-      const url = prompt('Entrez l\'URL de l\'API de publication (ex: https://votre-worker.workers.dev/publish-approved):', cfg.url||'');
-      if (!url) return null;
-      const secret = prompt('Entrez le secret de l\'API (il sera stocké uniquement dans ce navigateur):', cfg.secret||'');
-      if (!secret) return null;
-      // Optional: URL publique de approved.json pour vérifier le déploiement GitHub Pages
-      let defaultPublic = '';
-      try { defaultPublic = (window.location.origin || '') + '/data/approved.json'; } catch {}
-      const publicApprovedUrl = prompt('URL publique du approved.json (optionnel, ex: https://<user>.github.io/<repo>/data/approved.json):', cfg.publicApprovedUrl || defaultPublic || '');
-      // Optional: URL publique de requests.json pour partager les requêtes entre admins
-      let defaultRequests = '';
-      try { defaultRequests = (window.location.origin || '') + '/data/requests.json'; } catch {}
-      const publicRequestsUrl = prompt('URL publique du requests.json (optionnel, ex: https://<user>.github.io/<repo>/data/requests.json):', (cfg && cfg.publicRequestsUrl) || defaultRequests || '');
-      cfg = { url: url.trim(), secret: secret.trim(), publicApprovedUrl: (publicApprovedUrl||'').trim(), publicRequestsUrl: (publicRequestsUrl||'').trim() };
+    if (!cfg || !cfg.url) {
+      // Prefill defaults to avoid prompting admins
+      let origin = '';
+      try { origin = (window.location.origin || ''); } catch {}
+      const publicApprovedUrl = origin ? (origin + '/data/approved.json') : '';
+      const publicRequestsUrl = origin ? (origin + '/data/requests.json') : '';
+      cfg = {
+        url: 'https://clipsou-publish.arthurcapon54.workers.dev/publish-approved',
+        secret: 'Ns7kE4pP2Yq9vC1rT5wZ8hJ3uL6mQ0aR',
+        publicApprovedUrl,
+        publicRequestsUrl
+      };
       setPublishConfig(cfg);
     } else {
       // Backfill public URLs if missing
