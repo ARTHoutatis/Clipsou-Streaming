@@ -39,23 +39,23 @@
         // Remove inline button if present
         try { const link = section.querySelector(':scope > .see-all-btn'); if (link && link.parentNode) link.parentNode.removeChild(link); } catch {}
         // Remove popup element if it already exists in DOM
-        try { const oldPopup = document.getElementById(popupId); if (oldPopup && oldPopup.parentNode) oldPopup.parentNode.removeChild(oldPopup); } catch {}
         // Do not create anything; feature disabled
         return;
       } catch {}
     }
     function applyCwCacheBuster(src){
-      if (!src) return 'apercu.webp';
+      if (!src) return '';
       if (/^(data:|https?:)/i.test(src)) return src;
       const v = (window.__cw_ver || (window.__cw_ver = Date.now())) + '';
       return src + (src.includes('?') ? '&' : '?') + 'cw=' + v;
     }
     function deriveExts(src){
-      // Only return the webp variant of the provided base
-      const m = (src||'').match(/^(.*?)(\d+)?\.(?:webp|jpg|jpeg|png)$/i);
-      if (!m) return [];
-      const base = m[1];
-      return [base + '.webp'];
+      try {
+        const m = (src||'').match(/^(.*?)(\d+)?\.(webp|jpg|jpeg|png)$/i);
+        if (!m) return [];
+        const base = m[1];
+        return [base + '.webp', base + '.jpg', base + '.jpeg'];
+      } catch { return []; }
     }
     function prependLandscapeVariants(list, src){
       const m = (src||'').match(/^(.*?)(\.(?:webp|jpg|jpeg|png))$/i);
@@ -233,9 +233,9 @@ document.addEventListener('DOMContentLoaded', async function () {
           a.href = 'search.html?q=' + encodeURIComponent(c.name) + '&openFilters=1';
           a.setAttribute('aria-label', 'Catégorie ' + c.name);
           const img = document.createElement('img');
-          img.dataset.src = c.img; img.src = 'apercu.webp'; img.alt = c.name; img.loading = 'lazy'; img.decoding = 'async';
+          img.dataset.src = c.img; img.alt = c.name; img.loading = 'lazy'; img.decoding = 'async';
           try { img.fetchPriority = 'low'; } catch {}
-          img.onerror = function(){ this.onerror=null; this.src='apercu.webp'; };
+          img.onerror = function(){ try { this.removeAttribute('src'); } catch {}; this.onerror=null; };
           a.appendChild(img);
           rail.appendChild(a);
         } catch {}
@@ -661,9 +661,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         } catch {}
         if (preferred && !candidates.includes(preferred)) candidates.unshift(preferred);
         let cIdx = 0;
-        img.dataset.src = applySrc(candidates[cIdx]) || applySrc(it.landscapeImage || it.image) || 'apercu.webp';
-        img.src = 'apercu.webp';
-        img.onerror = function(){ cIdx++; if (cIdx < candidates.length) this.src = applySrc(candidates[cIdx]); else { this.onerror=null; this.src='apercu.webp'; } };
+        const first = applySrc(candidates[cIdx]) || applySrc(it.landscapeImage || it.image) || '';
+        if (first) img.dataset.src = first;
+        img.onerror = function(){ cIdx++; if (cIdx < candidates.length) { this.src = applySrc(candidates[cIdx]); } else { this.onerror=null; try { this.removeAttribute('src'); } catch {} } };
         img.alt = 'Affiche de ' + (it.title || 'contenu');
         img.loading = 'lazy'; img.decoding = 'async';
         try { img.fetchPriority = 'low'; } catch {}
@@ -1619,7 +1619,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             const imgName = (landscapeImage || portraitImage || '').split('/').pop();
             const baseName = (imgName || '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/\d+$/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
             const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-            items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || 'apercu.webp', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '', studioBadge: c.studioBadge || '' });
+            items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || '', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '', studioBadge: c.studioBadge || '' });
           });
           sharedLoaded = true;
           }
@@ -1641,7 +1641,7 @@ document.addEventListener('DOMContentLoaded', async function () {
               const imgName = (landscapeImage || portraitImage || '').split('/').pop();
               const baseName = (imgName || '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/\d+$/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
               const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-              items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || 'apercu.webp', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '', studioBadge: c.studioBadge || '' });
+              items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || '', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '', studioBadge: c.studioBadge || '' });
             });
           }
         }
@@ -1735,9 +1735,8 @@ document.addEventListener('DOMContentLoaded', async function () {
       const primaryPortrait = item.portraitImage || '';
       const thumbs = primaryPortrait ? [primaryPortrait] : deriveThumbnail(item.image);
       let idx = 0;
-      img.dataset.src = (thumbs && thumbs[0]) || item.image || 'apercu.webp';
-      img.src = 'apercu.webp';
-      img.onerror = function () { if (idx < thumbs.length - 1) { idx += 1; this.src = thumbs[idx]; } else if (this.src !== 'apercu.webp') { this.src = 'apercu.webp'; } };
+      { const candidate = (thumbs && thumbs[0]) || item.image || ''; if (candidate) img.dataset.src = candidate; }
+      img.onerror = function () { if (idx < thumbs.length - 1) { idx += 1; this.src = thumbs[idx]; } else { this.onerror = null; try { this.removeAttribute('src'); } catch {} } };
       img.setAttribute('alt', `Affiche de ${item.title}`);
       img.setAttribute('loading', 'lazy'); img.setAttribute('decoding', 'async');
       const info = document.createElement('div'); info.className = 'card-info'; info.setAttribute('data-type', item.type || 'film'); if (typeof item.rating !== 'undefined') info.setAttribute('data-rating', String(item.rating)); if (item.studioBadge) info.setAttribute('data-studio-badge', String(item.studioBadge));
