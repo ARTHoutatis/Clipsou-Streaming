@@ -54,6 +54,10 @@
   /* Prevent card clipping on hover/select */
   .search-grid { overflow: visible !important; }
   .card:hover, .card:focus-within, .card:active { z-index: 10; }
+  /* Hide "Clipsou Streaming" text in nav on mobile, keep logo only */
+  @media (max-width: 768px) {
+    .logo a span { display: none !important; }
+  }
 </style>
 <!-- Prefetch fiche page and script as likely next navigation -->
 <link rel="prefetch" href="fiche.html" as="document">

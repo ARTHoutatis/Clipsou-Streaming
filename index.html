@@ -169,6 +169,10 @@
   @media (max-width: 768px) {
     .discord-banner-text { display: none !important; }
   }
+  /* Hide "Clipsou Streaming" text in nav on mobile, keep logo only */
+  @media (max-width: 768px) {
+    .logo a span { display: none !important; }
+  }
   /* Prevent card clipping on hover/select */
   /* Desktop only: clip sections for fades/arrows; mobile: allow scroll */
   @media (min-width: 769px) {

@@ -54,6 +54,10 @@
         overflow: visible !important;
       }
     }
+    /* Hide "Clipsou Streaming" text in nav on mobile, keep logo only */
+    @media (max-width: 768px) {
+      .logo a span { display: none !important; }
+    }
   </style>
   <!-- Prefetch likely next pages/assets to improve navigation latency -->
   <link rel="prefetch" href="search.html" as="document">
