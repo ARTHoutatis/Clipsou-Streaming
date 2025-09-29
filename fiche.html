@@ -58,6 +58,24 @@
     @media (max-width: 768px) {
       .logo a span { display: none !important; }
     }
+    /* Force square actor photos on mobile */
+    @media (max-width: 768px) {
+      .actor-photo {
+        aspect-ratio: 1 / 1 !important;
+        width: 100% !important;
+      }
+      .actor-photo::before {
+        padding-top: 100% !important;
+      }
+      .actor-photo img {
+        position: absolute !important;
+        inset: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        object-position: center !important;
+      }
+    }
   </style>
   <!-- Prefetch likely next pages/assets to improve navigation latency -->
   <link rel="prefetch" href="search.html" as="document">
