@@ -1238,7 +1238,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         while (el && el !== document.body && el !== document.documentElement) {
           const style = getComputedStyle(el);
           const canScrollY = /(auto|scroll)/.test(style.overflowY);
+          const canScrollX = /(auto|scroll)/.test(style.overflowX);
           if (canScrollY && el.scrollHeight > el.clientHeight + 1) return el;
+          if (canScrollX && el.scrollWidth > el.clientWidth + 1) return el;
           el = el.parentElement;
         }
         return null;
@@ -1246,6 +1248,10 @@ document.addEventListener('DOMContentLoaded', async function () {
       function shouldPreventFor(el, deltaY) {
         // If no scrollable container, prevent to avoid background scroll
         if (!el) return true;
+        // For horizontal rails, never prevent (always allow horizontal scroll)
+        const isHorizontalRail = el.classList && el.classList.contains('rail');
+        if (isHorizontalRail) return false;
+        // For vertical scrolling
         const atTop = el.scrollTop <= 0;
         const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
         if (deltaY < 0 && atTop) return true;    // scrolling up at top
@@ -1270,12 +1276,20 @@ document.addEventListener('DOMContentLoaded', async function () {
       const onTouchMove = (e) => {
         lastTouchTs = Date.now();
         try {
+          // Check if touch is inside a horizontally scrollable rail (allow scroll even when drawer closed)
+          const scrollBox = findScrollableAncestor(/** @type {Element} */(e.target));
+          const isHorizontalRail = scrollBox && scrollBox.classList && scrollBox.classList.contains('rail');
+          
+          // ALWAYS allow rail scrolling - don't prevent!
+          if (isHorizontalRail) {
+            return; // let the browser handle rail scrolling natively
+          }
+          
           if (isInsideDrawer(e.target) || isInsidePopup(e.target)) {
             // For touch, approximate: if the list can scroll, allow; otherwise block
-            const scrollBox = findScrollableAncestor(/** @type {Element} */(e.target));
             // Mark popup-originated touch scrolls
             try { if (isInsidePopup(e.target)) window.__lastPopupScrollTs = Date.now(); } catch {}
-            if (shouldPreventFor(scrollBox, 0)) { e.preventDefault(); e.stopPropagation(); }
+            if (scrollBox && shouldPreventFor(scrollBox, 0)) { e.preventDefault(); e.stopPropagation(); }
             return;
           }
           e.preventDefault(); e.stopPropagation();

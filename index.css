@@ -1042,15 +1042,34 @@ nav .filter-toggle:hover { background: rgba(255,255,255,0.08); }
   #continue-watching .rail::-webkit-scrollbar { display: none; height: 0; }
 }
 
-/* Mobile: hide rail scrollbars globally */
+/* Mobile: enable horizontal scroll and hide scrollbars globally for all rails */
 @media (max-width: 768px) {
-  .section .rail {
-    scrollbar-width: none; /* Firefox */
+  .section .rail,
+  .fiche-popup .rail,
+  main .rail,
+  .rail {
+    overflow-x: scroll !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch !important;
+    scroll-snap-type: x proximity !important;
+    scrollbar-width: none !important; /* Firefox */
+    touch-action: pan-x pan-y !important;
   }
-  .section .rail::-webkit-scrollbar {
-    display: none; /* Chrome/Safari */
-    width: 0;
-    height: 0;
+  .section .rail::-webkit-scrollbar,
+  .fiche-popup .rail::-webkit-scrollbar,
+  main .rail::-webkit-scrollbar,
+  .rail::-webkit-scrollbar {
+    display: none !important; /* Chrome/Safari */
+    width: 0 !important;
+    height: 0 !important;
+  }
+  /* Enable snap alignment for cards on mobile */
+  .section .rail > *,
+  .fiche-popup .rail > *,
+  main .rail > *,
+  .rail > * {
+    scroll-snap-align: start;
+    touch-action: manipulation !important;
   }
 }
 
@@ -2693,8 +2712,13 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
   /* Global scrollbar styles provided by common.css */
 
 /* ===== Rail edge spacing and clipping (desktop and mobile) ===== */
-/* Ensure sections clip horizontal overflow so cards at the edges can be cut */
-.section { overflow: hidden; }
+/* Desktop: clip horizontal overflow, Mobile: allow scroll */
+@media (min-width: 769px) {
+  .section { overflow: hidden; }
+}
+@media (max-width: 768px) {
+  .section { overflow: visible; }
+}
 
 /* Desktop: keep 40px left space and clip right edge like reference site */
 @media (min-width: 769px) {
@@ -2710,13 +2734,22 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
   .rail::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 }
 
-/* Mobile: smaller inset and same clipping behavior */
+/* Mobile: smaller inset and same clipping behavior + enable horizontal scroll */
 @media (max-width: 768px) {
   .rail {
     padding-left: 16px !important;
     padding-right: 16px !important;
     margin-right: -16px !important; /* clip right edge */
     scroll-padding-inline-start: 16px !important;
+    overflow-x: scroll !important; /* force scroll même si le contenu est plus petit */
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch !important;
+    scroll-snap-type: x proximity !important;
+    touch-action: pan-x pan-y !important; /* allow horizontal AND vertical (for page scroll) */
+  }
+  .rail > * {
+    scroll-snap-align: start;
+    touch-action: manipulation !important; /* permettre toutes les interactions */
   }
 }
 

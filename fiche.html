@@ -20,13 +20,13 @@
   <link rel="preconnect" href="https://www.youtube.com">
   <link rel="preconnect" href="https://youtu.be">
   <!-- Preload critical CSS to speed up first paint (keep stylesheets below) -->
-  <link rel="preload" as="style" href="common.css?v=20250912-2">
-  <link rel="preload" as="style" href="index.css?v=20250916-1">
+  <link rel="preload" as="style" href="common.css?v=20250929-1">
+  <link rel="preload" as="style" href="index.css?v=20250929-1">
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Baloo+2:wght@700;800&family=Bevan:ital@0;1&family=Cinzel:wght@700&family=Luckiest+Guy&family=Rye&family=Shrikhand&family=VT323&display=swap" rel="stylesheet">
   <!-- Base UI font: Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="common.css?v=20250912-2">
-  <link rel="stylesheet" href="index.css?v=20250916-1">
+  <link rel="stylesheet" href="common.css?v=20250929-1">
+  <link rel="stylesheet" href="index.css?v=20250929-1">
   <style>
     /* Prevent card clipping on fiche page */
     .section .rail,
@@ -36,6 +36,24 @@
     .card:hover,
     .card:focus-within,
     .card:active { z-index: 10; }
+    
+    /* MOBILE SCROLL FIX - Force horizontal scroll on all rails */
+    @media (max-width: 768px) {
+      .rail,
+      .section .rail,
+      .fiche-popup .rail,
+      #fiche .rail {
+        overflow-x: scroll !important;
+        overflow-y: visible !important;
+        -webkit-overflow-scrolling: touch !important;
+        scroll-snap-type: x proximity !important;
+        touch-action: pan-x pan-y !important;
+      }
+      .section,
+      #fiche .section {
+        overflow: visible !important;
+      }
+    }
   </style>
   <!-- Prefetch likely next pages/assets to improve navigation latency -->
   <link rel="prefetch" href="search.html" as="document">

@@ -57,8 +57,8 @@
 <link rel="preload" as="image" href="loupe.webp">
 <!-- Removed category image preloads; categories are lazy-loaded in index.js -->
 <!-- Preload critical CSS to speed up first paint (keep regular stylesheet links too) -->
-<link rel="preload" as="style" href="common.css?v=20250916-1">
-<link rel="preload" as="style" href="index.css?v=20250916-1">
+<link rel="preload" as="style" href="common.css?v=20250929-1">
+<link rel="preload" as="style" href="index.css?v=20250929-1">
 <!-- Open Graph -->
 <meta property="og:locale" content="fr_FR">
 <meta property="og:type" content="website">
@@ -104,8 +104,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Baloo+2:wght@700;800&family=Bevan:ital@0;1&family=Cinzel:wght@700&family=Luckiest+Guy&family=Rye&family=Shrikhand&family=VT323&display=swap" rel="stylesheet">
   <!-- Base UI font: Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
- <link rel="stylesheet" href="common.css?v=20250916-1">
- <link rel="stylesheet" href="index.css?v=20250916-1">
+ <link rel="stylesheet" href="common.css?v=20250929-1">
+ <link rel="stylesheet" href="index.css?v=20250929-1">
  <style>
   /* Discord banner overrides */
   .discord-banner { background: rgba(255,255,255,0.04); }
@@ -124,13 +124,60 @@
   .home-genre-filters .genre-chip { border: 0 !important; }
   /* Also neutralize hover border color on chips */
   .home-genre-filters .genre-chip:hover { border-color: transparent !important; }
+  
+  /* MOBILE SCROLL FIX - Force horizontal scroll on all rails */
+  @media (max-width: 768px) {
+    .rail {
+      overflow-x: scroll !important;
+      overflow-y: visible !important;
+      -webkit-overflow-scrolling: touch !important;
+      touch-action: pan-x pan-y !important;
+    }
+    .section {
+      overflow: visible !important;
+    }
+    /* YouTube button: show icon + shorter text on mobile */
+    .youtube-btn { 
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: clamp(13px, 3.5vw, 16px) !important;
+      white-space: nowrap !important;
+    }
+    .youtube-btn svg { 
+      width: 16px !important; 
+      height: 16px !important;
+      flex-shrink: 0 !important;
+    }
+    .youtube-btn .btn-text-full { display: none !important; }
+    .youtube-btn .btn-text-short { display: inline !important; }
+  }
+  /* Desktop: show full text */
+  @media (min-width: 769px) {
+    .youtube-btn .btn-text-full { display: inline; }
+    .youtube-btn .btn-text-short { display: none; }
+  }
+  /* Sticky close button in Partenariats popup on mobile */
+  @media (max-width: 768px) {
+    #partenariats .top-right-close {
+      position: sticky !important;
+      top: 12px !important;
+      z-index: 100 !important;
+    }
+  }
+  /* Hide Discord banner description on mobile */
+  @media (max-width: 768px) {
+    .discord-banner-text { display: none !important; }
+  }
   /* Prevent card clipping on hover/select */
-  /* For sections in general, clip horizontally so fades/arrows work */
-  .section { overflow: hidden !important; }
+  /* Desktop only: clip sections for fades/arrows; mobile: allow scroll */
+  @media (min-width: 769px) {
+    .section { overflow: hidden !important; }
+    .section .rail { overflow-x: hidden !important; overflow-y: visible !important; }
+  }
   #continue-watching { overflow: visible !important; }
   .categories-section { overflow: hidden !important; display: none !important; }
   .categories-section .categories-rail { overflow-y: visible !important; }
-  .section .rail { overflow-y: visible !important; overflow-x: hidden !important; }
   .grid { overflow: visible !important; }
   /* Proper stacking order: fades above rails, arrows above fades */
   .section .rail { position: relative !important; z-index: 2 !important; }
@@ -535,11 +582,12 @@
           </svg>
           Rejoindre Cinéclub
         </a>
-        <a href="https://www.youtube.com/@CineMakers_ytb" target="_blank" rel="noopener noreferrer" class="button">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
+        <a href="https://www.youtube.com/@CineMakers_ytb" target="_blank" rel="noopener noreferrer" class="button youtube-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px; flex-shrink: 0;">
             <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
           </svg>
-          Chaîne YouTube CineMakers
+          <span class="btn-text-full">Chaîne YouTube CineMakers</span>
+          <span class="btn-text-short">YouTube CineMakers</span>
         </a>
       </div>
       
@@ -1089,7 +1137,7 @@
   <a href="#contenu" class="back-to-top-btn" aria-label="Revenir en haut"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 5l-7 7h4v7h6v-7h4z"/></svg>Revenir en haut</a>
 </footer>
 
-<script src="index.js?v=20250928-1" defer></script>
+<script src="index.js?v=20250929-1" defer></script>
 <script>
   // Normalize homepage URL to root (remove /index.html) without reload
   // Skip in local dev (file:// or localhost) to keep index.html accessible
