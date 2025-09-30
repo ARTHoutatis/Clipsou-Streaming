@@ -1212,12 +1212,20 @@
     setPreview($('#portraitPreview'), $('#portraitImage').value);
     setPreview($('#landscapePreview'), $('#landscapeImage').value);
 
-    // Update submit button label based on edit/new mode
+    // Update submit button label based on edit/new mode and approval status
     try {
       const submitBtn = document.querySelector('#contentForm .actions .btn[type="submit"], #contentForm .actions button[type="submit"]');
       if (submitBtn) {
-        if (data && data.requestId) submitBtn.textContent = 'Enregistrer la modification';
-        else submitBtn.textContent = 'Enregistrer la requête';
+        if (data && data.requestId) {
+          // Check if this item is currently approved
+          const requests = getRequests();
+          const existing = requests.find(x => x.requestId === data.requestId);
+          const isApproved = existing && existing.status === 'approved';
+          
+          submitBtn.textContent = isApproved ? 'Modifier et publier' : 'Enregistrer la modification';
+        } else {
+          submitBtn.textContent = 'Enregistrer la requête';
+        }
         submitBtn.disabled = false;
         submitBtn.removeAttribute('disabled');
         submitBtn.style.pointerEvents = '';
@@ -1749,17 +1757,18 @@
       try {
         const btn = document.querySelector('#contentForm .actions .btn[type="submit"], #contentForm .actions button[type="submit"]');
         if (!btn) return;
-        if (saved) {
-          btn.textContent = 'Modifications enregistrées — appuyez sur "Approuver"';
-          btn.disabled = true;
-          btn.setAttribute('disabled','disabled');
-          btn.style.pointerEvents = 'none';
-        } else {
-          const hasReqId = !!($('#requestId').value);
-          btn.textContent = hasReqId ? 'Enregistrer la modification' : 'Enregistrer la requête';
-          btn.disabled = false;
-          btn.removeAttribute('disabled');
-          btn.style.pointerEvents = '';
+        // No longer show "saved" state - button remains active for continuous editing
+        if (!saved) {
+          const reqId = $('#requestId').value;
+          const requests = getRequests();
+          const existing = requests.find(x => x.requestId === reqId);
+          const isApproved = existing && existing.status === 'approved';
+          
+          if (reqId && existing) {
+            btn.textContent = isApproved ? 'Modifier et publier' : 'Enregistrer la modification';
+          } else {
+            btn.textContent = 'Enregistrer la requête';
+          }
         }
       } catch {}
     }
@@ -1795,24 +1804,55 @@
         // Share this request across admins
         try { const saved = list.find(x=>x.requestId===reqId); if (saved) publishRequestUpsert(saved); } catch {}
         try { setLastEditedId(data && data.id); } catch{}
-        // If already approved, keep approved in sync
+        // If already approved, keep approved in sync and publish immediately
         if (wasApproved) {
           let apr = getApproved();
           const key = normalizeTitleKey(data.title);
           apr = apr.filter(x => x && x.id !== data.id && normalizeTitleKey(x.title) !== key);
           apr.push(data);
           setApproved(dedupeByIdAndTitle(apr));
+          
+          // Show immediate feedback
+          const submitBtn = document.querySelector('#contentForm .actions .btn[type="submit"], #contentForm .actions button[type="submit"]');
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = '📤 Publication en cours...';
+          }
+          
           renderTable();
+          showPublishWaitHint();
+          
           // Republish updated approved item to the site so changes go live
           (async () => {
             const ok = await publishApproved(data);
             if (ok) {
+              // Success: mark as approved and re-enable with status check
+              const found = list.find(x => x.requestId === reqId);
+              if (found) found.status = 'approved';
+              setRequests(list);
               renderTable();
               // Clear any stale draft so removed actors don't reappear on reload
               try { clearDraft(); } catch {}
+              try { startDeploymentWatch(data.id, 'upsert', data); } catch {}
+              
+              if (submitBtn) {
+                submitBtn.textContent = '✅ Publié sur GitHub';
+                setTimeout(() => {
+                  submitBtn.textContent = 'Enregistrer la modification';
+                  submitBtn.disabled = isPublishLocked();
+                }, 2000);
+              }
+            } else {
+              // Failure: revert and show error
+              if (submitBtn) {
+                submitBtn.textContent = '❌ Échec de publication';
+                submitBtn.disabled = false;
+                setTimeout(() => {
+                  submitBtn.textContent = 'Enregistrer la modification';
+                }, 3000);
+              }
             }
           })();
-          if (isEditing) setSubmitSavedUI(true);
         } else {
           renderTable();
           populateGenresDatalist();
