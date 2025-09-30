@@ -13,8 +13,6 @@
   const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
   const APP_KEY_LAST_EDIT = 'clipsou_admin_last_edit_v1';
   const APP_KEY_ACTOR_PHOTOS = 'clipsou_admin_actor_photos_v1';
-  const APP_KEY_SUPER_ADMIN = 'clipsou_super_admin_session_v1';
-  const APP_KEY_TRASH = 'clipsou_admin_trash_v1';
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
@@ -34,12 +32,8 @@
   }
 
   // Hash of "20Blabla30" - regenerate if you change the password
-  // Use admin/generate_hash.html to create a new hash if needed
+  // Use Fichiers Locaux/generate_hash.html to create a new hash if needed
   const ADMIN_PASSWORD_HASH = 'c4275fccac42bcf7cc99157a1623072d1ae33ade8a44737dab4c941729cafa13';
-  
-  // Super-Admin password hash for critical security features
-  // Default password: "Choppin2009#"
-  const SUPER_ADMIN_PASSWORD_HASH = 'e817399975c5067d567e95ff1eee1bb81b96cc2ec363596d313b3a2b09096cfa';
 
   // ===== Utilities: normalization, validation, and deduplication =====
   function normalizeTitleKey(s) {
@@ -862,66 +856,6 @@
   function getApproved(){ return loadJSON(APP_KEY_APPROVED, []); }
   function setApproved(list){ saveJSON(APP_KEY_APPROVED, list); }
   
-  // ===== Super-Admin Security Features =====
-  function isSuperAdmin(){
-    try { return sessionStorage.getItem(APP_KEY_SUPER_ADMIN) === '1'; } catch { return false; }
-  }
-  
-  // Trash/Recycle bin for deleted items (7 days retention)
-  function getTrash(){
-    try {
-      const trash = JSON.parse(localStorage.getItem(APP_KEY_TRASH) || '[]');
-      const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
-      // Auto-cleanup items older than 7 days
-      const recent = trash.filter(item => item.deletedAt > sevenDaysAgo);
-      if (recent.length !== trash.length) {
-        localStorage.setItem(APP_KEY_TRASH, JSON.stringify(recent));
-      }
-      return recent;
-    } catch { return []; }
-  }
-  
-  function addToTrash(item){
-    try {
-      const trash = getTrash();
-      trash.unshift({
-        ...item,
-        deletedAt: Date.now(),
-        deleteDate: new Date().toLocaleString('fr-FR')
-      });
-      localStorage.setItem(APP_KEY_TRASH, JSON.stringify(trash));
-    } catch {}
-  }
-  
-  function restoreFromTrash(index){
-    try {
-      const trash = getTrash();
-      if (index >= 0 && index < trash.length) {
-        const item = trash[index];
-        trash.splice(index, 1);
-        localStorage.setItem(APP_KEY_TRASH, JSON.stringify(trash));
-        
-        // Restore to requests as approved
-        const requests = getRequests();
-        const restored = {
-          requestId: item.requestId || uid(),
-          status: 'approved',
-          data: item.data,
-          meta: { ...item.meta, restoredAt: Date.now() }
-        };
-        requests.unshift(restored);
-        setRequests(requests);
-        
-        // Also add back to approved
-        const approved = getApproved();
-        approved.push(item.data);
-        setApproved(dedupeByIdAndTitle(approved));
-        
-        return true;
-      }
-    } catch {}
-    return false;
-  }
 
   function getPublishConfig(){
     try { return JSON.parse(localStorage.getItem(APP_KEY_PUB) || 'null') || {}; } catch { return {}; }
@@ -1430,10 +1364,7 @@
       // No status cell anymore
       editBtn.addEventListener('click', ()=>{ fillForm(r.data); try { setLastEditedId(r.data && r.data.id); } catch{} });
       delBtn.addEventListener('click', ()=>{
-        if (!confirm('Supprimer cette requête ? (Récupérable pendant 7 jours dans la corbeille)')) return;
-        
-        // Add to trash before deleting
-        addToTrash(r);
+        if (!confirm('Supprimer cette requête ?')) return;
         
         let list = getRequests().filter(x=>x.requestId!==r.requestId);
         // Stamp and sync
@@ -1546,74 +1477,6 @@
         });
       }
     } catch {}
-
-    // Super-Admin Panel
-    try {
-      const superAdminBtn = $('#superAdminBtn');
-      const superAdminSection = $('#super-admin-section');
-      const closeSuperAdminBtn = $('#closeSuperAdminBtn');
-      
-      if (superAdminBtn && superAdminSection) {
-        superAdminBtn.addEventListener('click', async () => {
-          // Prompt for super-admin password
-          const pwd = prompt('Entrez le mot de passe Super-Admin :');
-          if (!pwd) return;
-          
-          const hash = await hashPassword(pwd);
-          if (hash === SUPER_ADMIN_PASSWORD_HASH) {
-            sessionStorage.setItem(APP_KEY_SUPER_ADMIN, '1');
-            superAdminSection.hidden = false;
-            renderSuperAdminPanel();
-          } else {
-            alert('Mot de passe Super-Admin incorrect.');
-          }
-        });
-        
-        if (closeSuperAdminBtn) {
-          closeSuperAdminBtn.addEventListener('click', () => {
-            superAdminSection.hidden = true;
-            sessionStorage.removeItem(APP_KEY_SUPER_ADMIN);
-          });
-        }
-        
-      }
-    } catch {}
-    
-    function renderSuperAdminPanel() {
-      // Render trash
-      const trashList = $('#trashList');
-      if (trashList) {
-        const trash = getTrash();
-        if (trash.length === 0) {
-          trashList.innerHTML = '<p class="muted">La corbeille est vide.</p>';
-        } else {
-          trashList.innerHTML = trash.map((item, index) => {
-            const title = (item.data && item.data.title) || 'Sans titre';
-            const type = (item.data && item.data.type) || 'film';
-            return `
-              <div style="padding:12px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                  <strong>${title}</strong> <span class="muted">(${type})</span><br>
-                  <span class="muted" style="font-size:12px;">Supprimé le ${item.deleteDate}</span>
-                </div>
-                <button class="btn secondary" onclick="window.restoreItem(${index})" style="font-size:13px; padding:6px 12px;">♻️ Restaurer</button>
-              </div>
-            `;
-          }).join('');
-        }
-      }
-    }
-    
-    // Expose restore function globally for onclick
-    window.restoreItem = function(index) {
-      if (restoreFromTrash(index)) {
-        alert('Élément restauré avec succès !');
-        renderTable();
-        renderSuperAdminPanel();
-      } else {
-        alert('Erreur lors de la restauration.');
-      }
-    };
 
     // Wire actor photo upload
     (function wireActorPhoto(){

@@ -70,59 +70,277 @@ fieldset { border: 1px solid #334155; border-radius: 12px; padding: 12px; margin
 
 @media (max-width: 768px) {
   html, body { background: #0b1117; }
-  .container { margin: 16px auto; padding: 0 12px; max-width: 100%; }
-  .form-section { padding: 14px; border-radius: 10px; }
+  .container { margin: 12px auto; padding: 0 12px; max-width: 100%; }
+  
+  /* Meilleur espacement des sections */
+  .form-section { 
+    padding: 16px; 
+    border-radius: 12px; 
+    margin: 12px 0;
+  }
+  
+  h1 { 
+    font-size: 24px; 
+    margin: 16px 0;
+    text-align: center;
+  }
+  
+  h2 { 
+    font-size: 20px; 
+    margin: 12px 0 8px;
+  }
+  
+  h3 { 
+    font-size: 18px; 
+    margin: 10px 0 6px;
+  }
+  
+  /* Auth section plus compacte et centrée */
+  .auth {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+  
+  .auth .muted {
+    text-align: center;
+    font-size: 14px;
+  }
+  
+  .auth .btn,
+  .auth a {
+    width: 100%;
+    margin: 0 !important;
+  }
+  
   .grid { grid-template-columns: 1fr; gap: 12px; }
-  label { gap: 4px; margin: 6px 0; font-size: 15px; }
-  input[type="text"], input[type="url"], input[type="password"], input[type="number"], select { height: 46px; font-size: 16px; } /* avoid iOS zoom */
-  textarea { font-size: 16px; }
-  .actions { gap: 8px; justify-content: center; }
-  .btn { height: 46px; font-size: 16px; padding: 0 16px; }
-  .btn.small, .lock-btn { height: 40px; font-size: 14px; }
-  /* Remove horizontal scroll; make table responsive */
-  .table-wrap { width: 100%; overflow-x: hidden; }
-  .table { width: 100%; max-width: 100%; table-layout: auto; }
-  .table th, .table td { white-space: normal; word-wrap: anywhere; word-break: normal; text-align: center; }
-  /* Keep header titles intact on one line */
-  .table th { white-space: nowrap; word-break: keep-all; padding: 6px 6px; }
-  /* Stack action buttons in requests table for better fit */
+  
+  label { 
+    gap: 6px; 
+    margin: 10px 0; 
+    font-size: 15px;
+    font-weight: 500;
+  }
+  
+  /* Inputs optimisés mobile */
+  input[type="text"], 
+  input[type="url"], 
+  input[type="password"], 
+  input[type="number"], 
+  select { 
+    height: 48px; 
+    font-size: 16px;
+    padding: 0 14px;
+    border-radius: 12px;
+  }
+  
+  textarea { 
+    font-size: 16px;
+    padding: 12px 14px;
+    min-height: 120px;
+    border-radius: 12px;
+  }
+  
+  /* Boutons optimisés touch */
+  .actions { 
+    gap: 10px; 
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .btn { 
+    height: 48px; 
+    font-size: 16px; 
+    padding: 0 20px;
+    width: 100%;
+    border-radius: 12px;
+    font-weight: 600;
+  }
+  
+  .btn.small, .lock-btn { 
+    height: 44px; 
+    font-size: 15px;
+  }
+  
+  /* Tableau responsive amélioré */
+  .table-wrap { 
+    width: 100%; 
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .table { 
+    width: 100%; 
+    min-width: 600px;
+    font-size: 14px;
+  }
+  
+  .table th, .table td { 
+    padding: 12px 8px;
+    vertical-align: middle;
+  }
+  
+  .table th { 
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: #1a2332;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  
+  /* Actions du tableau empilées */
   .table .row-actions {
     flex-direction: column;
     align-items: stretch;
-    gap: 10px;
+    gap: 8px;
+    min-width: 140px;
   }
+  
   .table .row-actions .btn,
   .table .row-actions .btn.secondary {
     width: 100%;
     justify-content: center;
     white-space: nowrap;
-    word-break: keep-all;
-    min-width: 120px;
-    height: 36px;
-    padding: 6px 8px; /* ~3px visual padding around the label */
+    height: 40px;
+    padding: 0 12px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+  
+  /* Genres empilés proprement */
+  .table td.genres-cell { 
+    white-space: normal !important;
+    padding: 8px;
+  }
+  
+  .table td.genres-cell .genre { 
+    display: inline-block;
+    margin: 4px 4px 4px 0;
+    padding: 4px 10px;
+    background: #1f2937;
+    border-radius: 999px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  
+  /* Acteurs chips améliorés */
+  .actors-list { 
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .actor-chip { 
+    padding: 10px 14px; 
+    gap: 10px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
+  
+  .actor-chip img.avatar { 
+    width: 36px; 
+    height: 36px; 
+    border-radius: 10px;
+  }
+  
+  .actor-chip .edit {
+    height: 32px;
+    min-width: 32px;
+    padding: 0 10px;
     font-size: 14px;
   }
-  /* (secondary inherits the same sizing from the rule above) */
-  /* Ensure genres stack on mobile regardless of table nowrap */
-  .table td.genres-cell { white-space: normal !important; }
-  .table td.genres-cell .genre { display: block; margin: 0 0 6px; white-space: nowrap; word-break: keep-all; }
-  .table td.genres-cell .genre:last-child { margin-bottom: 0; }
-  .actors-list { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
-  .actor-chip { padding: 8px 10px; gap: 8px; }
-  .actor-chip img.avatar { width: 32px; height: 32px; border-radius: 8px; } /* square avatars on mobile */
-  /* Acteurs & Doubleurs: stack controls and give buttons full width */
+  
+  /* Fieldset acteurs */
+  fieldset {
+    padding: 16px;
+    border-radius: 12px;
+  }
+  
+  fieldset legend {
+    font-size: 16px;
+    font-weight: 600;
+    padding: 0 8px;
+  }
+  
   fieldset .actor-row {
     flex-direction: column;
     align-items: stretch;
-    gap: 10px;
+    gap: 12px;
   }
-  fieldset .actor-row > input[type="text"] { width: 100%; }
+  
+  fieldset .actor-row > input[type="text"] { 
+    width: 100%;
+  }
+  
   fieldset .actor-row .file-label,
   fieldset .actor-row .btn {
     width: 100%;
+    height: 48px;
+    justify-content: center;
   }
-  #actorPhotoPreview.img-preview.small { max-width: 100%; max-height: 140px; }
-  .login { margin: 32px auto; padding: 18px; max-width: calc(100% - 24px); }
+  
+  /* Image previews */
+  .img-preview {
+    border-radius: 12px;
+    margin: 10px 0;
+  }
+  
+  #actorPhotoPreview.img-preview.small { 
+    max-width: 100%; 
+    max-height: 160px;
+  }
+  
+  /* Login optimisé mobile */
+  .login { 
+    margin: 20px auto; 
+    padding: 24px; 
+    max-width: calc(100% - 24px);
+    border-radius: 16px;
+  }
+  
+  .login h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+  
+  .login input {
+    height: 52px;
+    font-size: 16px;
+    border-radius: 12px;
+  }
+  
+  .login .btn {
+    height: 52px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 12px;
+    margin-top: 16px;
+  }
+  
+  /* Super-Admin panel mobile */
+  #super-admin-section {
+    padding: 20px;
+  }
+  
+  #trashList,
+  #loginLogsList {
+    border-radius: 12px;
+    padding: 16px;
+    max-height: 500px;
+  }
+  
+  /* Amélioration du scroll */
+  * {
+    -webkit-tap-highlight-color: rgba(37, 99, 235, 0.2);
+  }
+  
+  /* Meilleur espacement global */
+  .form-section + .form-section {
+    margin-top: 16px;
+  }
 }
 
 /* Image previews */
