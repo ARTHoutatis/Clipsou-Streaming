@@ -559,6 +559,13 @@
   }
 
   const deployWatchers = new Map();
+  const deployCallbacks = new Map();
+  
+  function onDeploymentConfirmed(id, callback) {
+    if (!id || typeof callback !== 'function') return;
+    deployCallbacks.set(id, callback);
+  }
+  
   function startDeploymentWatch(id, action='upsert', expected){
     if (!id) return;
     const key = id + '::' + action;
@@ -580,6 +587,14 @@
             if (changed) setRequests(list);
           }
         } catch {}
+        
+        // Trigger callback if registered
+        const callback = deployCallbacks.get(id);
+        if (callback) {
+          try { callback(); } catch {}
+          deployCallbacks.delete(id);
+        }
+        
         renderTable();
         const t = deployWatchers.get(key); if (t) clearTimeout(t);
         deployWatchers.delete(key);
@@ -1420,8 +1435,16 @@
           // Publish through API for everyone and reflect final status
           const ok = await publishApproved(found.data);
           if (ok) {
-            // Keep label as Retirer; schedule a soft refresh
-            setTimeout(()=>{ try { renderTable(); } catch {} }, 300);
+            // Show deploying state
+            approveBtn.textContent = '⏳ Déploiement...';
+            
+            // Register callback for when deployment is confirmed
+            onDeploymentConfirmed(found.data.id, () => {
+              // Refresh table to show final approved state
+              try { renderTable(); } catch {}
+            });
+            
+            // Start watching for deployment
             try { startDeploymentWatch(found.data.id, 'upsert', found.data); } catch {}
           } else {
             // Revert local approval on failure
@@ -1833,15 +1856,27 @@
               renderTable();
               // Clear any stale draft so removed actors don't reappear on reload
               try { clearDraft(); } catch {}
-              try { startDeploymentWatch(data.id, 'upsert', data); } catch {}
               
+              // Show intermediate state while waiting for GitHub to deploy
               if (submitBtn) {
-                submitBtn.textContent = '✅ Publié sur GitHub';
-                setTimeout(() => {
-                  submitBtn.textContent = 'Enregistrer la modification';
-                  submitBtn.disabled = isPublishLocked();
-                }, 2000);
+                submitBtn.textContent = '⏳ Déploiement GitHub...';
+                submitBtn.disabled = true;
               }
+              
+              // Register callback for when deployment is confirmed live
+              onDeploymentConfirmed(data.id, () => {
+                if (submitBtn) {
+                  submitBtn.textContent = '✅ Publié par GitHub';
+                  submitBtn.disabled = false;
+                  setTimeout(() => {
+                    submitBtn.textContent = 'Modifier et publier';
+                    submitBtn.disabled = isPublishLocked();
+                  }, 3000);
+                }
+              });
+              
+              // Start watching for deployment
+              try { startDeploymentWatch(data.id, 'upsert', data); } catch {}
             } else {
               // Failure: revert and show error
               if (submitBtn) {
