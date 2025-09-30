@@ -559,12 +559,6 @@
   }
 
   const deployWatchers = new Map();
-  const deployCallbacks = new Map();
-  
-  function onDeploymentConfirmed(id, callback) {
-    if (!id || typeof callback !== 'function') return;
-    deployCallbacks.set(id, callback);
-  }
   
   function startDeploymentWatch(id, action='upsert', expected){
     if (!id) return;
@@ -587,13 +581,6 @@
             if (changed) setRequests(list);
           }
         } catch {}
-        
-        // Trigger callback if registered
-        const callback = deployCallbacks.get(id);
-        if (callback) {
-          try { callback(); } catch {}
-          deployCallbacks.delete(id);
-        }
         
         renderTable();
         const t = deployWatchers.get(key); if (t) clearTimeout(t);
@@ -1435,16 +1422,8 @@
           // Publish through API for everyone and reflect final status
           const ok = await publishApproved(found.data);
           if (ok) {
-            // Show deploying state
-            approveBtn.textContent = '⏳ Déploiement...';
-            
-            // Register callback for when deployment is confirmed
-            onDeploymentConfirmed(found.data.id, () => {
-              // Refresh table to show final approved state
-              try { renderTable(); } catch {}
-            });
-            
-            // Start watching for deployment
+            // Keep label as Retirer; schedule a soft refresh
+            setTimeout(()=>{ try { renderTable(); } catch {} }, 300);
             try { startDeploymentWatch(found.data.id, 'upsert', found.data); } catch {}
           } else {
             // Revert local approval on failure
@@ -1835,13 +1814,6 @@
           apr.push(data);
           setApproved(dedupeByIdAndTitle(apr));
           
-          // Show immediate feedback
-          const submitBtn = document.querySelector('#contentForm .actions .btn[type="submit"], #contentForm .actions button[type="submit"]');
-          if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.textContent = '📤 Publication en cours...';
-          }
-          
           renderTable();
           showPublishWaitHint();
           
@@ -1849,43 +1821,14 @@
           (async () => {
             const ok = await publishApproved(data);
             if (ok) {
-              // Success: mark as approved and re-enable with status check
+              // Success: mark as approved and show deployment started
               const found = list.find(x => x.requestId === reqId);
               if (found) found.status = 'approved';
               setRequests(list);
               renderTable();
               // Clear any stale draft so removed actors don't reappear on reload
               try { clearDraft(); } catch {}
-              
-              // Show intermediate state while waiting for GitHub to deploy
-              if (submitBtn) {
-                submitBtn.textContent = '⏳ Déploiement GitHub...';
-                submitBtn.disabled = true;
-              }
-              
-              // Register callback for when deployment is confirmed live
-              onDeploymentConfirmed(data.id, () => {
-                if (submitBtn) {
-                  submitBtn.textContent = '✅ Publié par GitHub';
-                  submitBtn.disabled = false;
-                  setTimeout(() => {
-                    submitBtn.textContent = 'Modifier et publier';
-                    submitBtn.disabled = isPublishLocked();
-                  }, 3000);
-                }
-              });
-              
-              // Start watching for deployment
               try { startDeploymentWatch(data.id, 'upsert', data); } catch {}
-            } else {
-              // Failure: revert and show error
-              if (submitBtn) {
-                submitBtn.textContent = '❌ Échec de publication';
-                submitBtn.disabled = false;
-                setTimeout(() => {
-                  submitBtn.textContent = 'Enregistrer la modification';
-                }, 3000);
-              }
             }
           })();
         } else {
