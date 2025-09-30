@@ -34,64 +34,15 @@
     </section>
 
     <section class="form-section" id="super-admin-section" hidden>
-      <h2 style="color:#ff6b35;">🔐 Panneau Super-Admin</h2>
-      <p class="muted">Fonctionnalités de sécurité avancées. Accès restreint.</p>
-      
-      <div style="margin-bottom:24px;">
-        <h3>📋 Connexions récentes</h3>
-        <div id="loginLogsList" style="max-height:200px; overflow-y:auto; background:#0a1016; padding:12px; border-radius:8px; margin-top:8px;">
-          <p class="muted">Chargement...</p>
-        </div>
+      <h2 style="color:#ff6b35;">🗑️ Corbeille</h2>
+      <p class="muted">Les éléments supprimés sont conservés 7 jours et peuvent être restaurés en 1 clic.</p>
+
+      <div id="trashList" style="max-height:400px; overflow-y:auto; background:#0a1016; padding:12px; border-radius:8px; margin-top:16px;">
+        <p class="muted">Chargement...</p>
       </div>
 
-      <div style="margin-bottom:24px;">
-        <h3>🗑️ Corbeille (7 derniers jours)</h3>
-        <div id="trashList" style="max-height:300px; overflow-y:auto; background:#0a1016; padding:12px; border-radius:8px; margin-top:8px;">
-          <p class="muted">Chargement...</p>
-        </div>
-      </div>
-
-      <div class="actions">
-        <button id="emergencyPirateBtn" type="button" class="btn" style="background:#dc2626; font-weight:700;">🚨 URGENCE PIRATAGE</button>
-        <button id="revokeAllBtn" type="button" class="btn" style="background:#ea580c;">🔴 Révoquer sessions</button>
-        <button id="changePasswordBtn" type="button" class="btn secondary">🔑 Changer mot de passe</button>
+      <div class="actions" style="margin-top:20px;">
         <button id="closeSuperAdminBtn" type="button" class="btn secondary">Fermer</button>
-      </div>
-      
-      <div id="emergencyModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); z-index:99999; padding:20px; overflow-y:auto;">
-        <div style="max-width:600px; margin:40px auto; background:#1a2332; padding:30px; border-radius:12px; border:2px solid #dc2626;">
-          <h2 style="color:#dc2626; margin-top:0;">🚨 Procédure d'Urgence Anti-Piratage</h2>
-          <div id="emergencyStep1" style="margin:20px 0;">
-            <h3>Étape 1/3 : Nouveau mot de passe Admin</h3>
-            <p class="muted">Choisissez un nouveau mot de passe fort (min. 12 caractères)</p>
-            <input type="text" id="newPasswordInput" placeholder="Nouveau mot de passe admin" style="width:100%; padding:12px; margin:10px 0; font-size:16px; border-radius:8px; border:1px solid #dc2626; background:#0f1720; color:#fff;">
-            <button id="generateHashBtn" class="btn" style="background:#dc2626;">Générer le hash →</button>
-          </div>
-          
-          <div id="emergencyStep2" style="display:none; margin:20px 0;">
-            <h3>Étape 2/3 : Copier le nouveau hash</h3>
-            <p class="muted">Hash SHA-256 de votre nouveau mot de passe :</p>
-            <textarea id="newHashDisplay" readonly style="width:100%; padding:12px; margin:10px 0; font-family:monospace; font-size:13px; background:#0a1016; color:#10b981; border:1px solid #10b981; border-radius:8px; height:80px;"></textarea>
-            <button id="copyHashBtn" class="btn secondary">📋 Copier le hash</button>
-            <p style="margin-top:15px; padding:15px; background:#0a1016; border-left:3px solid #dc2626;">
-              <strong>Instructions :</strong><br>
-              1. Ouvrez <code style="background:#dc2626; padding:2px 6px; border-radius:4px;">admin/admin.js</code><br>
-              2. Cherchez ligne ~36 : <code style="background:#334155; padding:2px 6px; border-radius:4px;">const ADMIN_PASSWORD_HASH =</code><br>
-              3. Remplacez le hash par celui ci-dessus<br>
-              4. Sauvegardez le fichier
-            </p>
-            <button id="confirmChangeBtn" class="btn" style="background:#10b981;">✅ J'ai changé le hash dans admin.js</button>
-          </div>
-          
-          <div id="emergencyStep3" style="display:none; margin:20px 0;">
-            <h3>Étape 3/3 : Révocation des sessions</h3>
-            <p style="color:#10b981; font-weight:600;">✅ Nouveau mot de passe configuré !</p>
-            <p class="muted">Toutes les sessions vont maintenant être révoquées. Le pirate ne pourra plus se reconnecter car le mot de passe a changé.</p>
-            <button id="finalRevokeBtn" class="btn" style="background:#dc2626; font-size:18px; padding:15px 30px;">🔴 RÉVOQUER TOUTES LES SESSIONS</button>
-          </div>
-          
-          <button id="cancelEmergencyBtn" class="btn secondary" style="margin-top:20px;">Annuler</button>
-        </div>
       </div>
     </section>
 

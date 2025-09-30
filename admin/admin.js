@@ -14,10 +14,7 @@
   const APP_KEY_LAST_EDIT = 'clipsou_admin_last_edit_v1';
   const APP_KEY_ACTOR_PHOTOS = 'clipsou_admin_actor_photos_v1';
   const APP_KEY_SUPER_ADMIN = 'clipsou_super_admin_session_v1';
-  const APP_KEY_LOGIN_LOG = 'clipsou_admin_login_log_v1';
   const APP_KEY_TRASH = 'clipsou_admin_trash_v1';
-  const APP_KEY_REVOKE_TOKEN = 'clipsou_admin_revoke_token_v1';
-  const APP_KEY_SESSION_TOKEN = 'clipsou_admin_session_token_v1';
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
@@ -870,62 +867,6 @@
     try { return sessionStorage.getItem(APP_KEY_SUPER_ADMIN) === '1'; } catch { return false; }
   }
   
-  function logLogin(){
-    try {
-      const logs = JSON.parse(localStorage.getItem(APP_KEY_LOGIN_LOG) || '[]');
-      logs.unshift({
-        timestamp: Date.now(),
-        date: new Date().toLocaleString('fr-FR'),
-        userAgent: navigator.userAgent || 'Unknown',
-        ip: 'Local' // Static sites can't get real IP
-      });
-      // Keep only last 50 logins
-      localStorage.setItem(APP_KEY_LOGIN_LOG, JSON.stringify(logs.slice(0, 50)));
-    } catch {}
-  }
-  
-  function getLoginLogs(){
-    try { return JSON.parse(localStorage.getItem(APP_KEY_LOGIN_LOG) || '[]'); } catch { return []; }
-  }
-  
-  function clearAllSessions(){
-    try {
-      // Generate a new revoke token to invalidate all existing sessions
-      const revokeToken = Date.now().toString(36) + Math.random().toString(36).slice(2);
-      localStorage.setItem(APP_KEY_REVOKE_TOKEN, revokeToken);
-      
-      // Clear local session
-      sessionStorage.removeItem(APP_KEY_SESSION);
-      sessionStorage.removeItem(APP_KEY_SUPER_ADMIN);
-      sessionStorage.removeItem(APP_KEY_SESSION_TOKEN);
-      localStorage.removeItem(APP_KEY_REMEMBER);
-      localStorage.removeItem('clipsou_admin_logged_in_v1');
-      localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now()));
-    } catch {}
-  }
-  
-  function isSessionRevoked(){
-    try {
-      const revokeToken = localStorage.getItem(APP_KEY_REVOKE_TOKEN);
-      const sessionToken = sessionStorage.getItem(APP_KEY_SESSION_TOKEN);
-      
-      // If there's a revoke token but no session token, or they don't match
-      if (revokeToken && (!sessionToken || sessionToken < revokeToken)) {
-        return true;
-      }
-      return false;
-    } catch {
-      return false;
-    }
-  }
-  
-  function createSessionToken(){
-    try {
-      const token = Date.now().toString(36) + Math.random().toString(36).slice(2);
-      sessionStorage.setItem(APP_KEY_SESSION_TOKEN, token);
-    } catch {}
-  }
-  
   // Trash/Recycle bin for deleted items (7 days retention)
   function getTrash(){
     try {
@@ -1271,10 +1212,6 @@
           try { localStorage.setItem(APP_KEY_REMEMBER, '1'); } catch {}
           // Broadcast logged-in state (for public site to show Admin shortcut immediately)
           try { localStorage.setItem('clipsou_admin_logged_in_v1','1'); localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now())); } catch {}
-          // Log this login
-          logLogin();
-          // Create session token for revoke check
-          createSessionToken();
           showApp();
           initApp();
         } else {
@@ -1298,30 +1235,15 @@
     
     // Existing session
     try {
-      // Check if session has been revoked
-      if (isSessionRevoked()) {
-        // Force logout if revoked
-        sessionStorage.removeItem(APP_KEY_SESSION);
-        sessionStorage.removeItem(APP_KEY_SUPER_ADMIN);
-        sessionStorage.removeItem(APP_KEY_SESSION_TOKEN);
-        localStorage.removeItem(APP_KEY_REMEMBER);
-        localStorage.removeItem('clipsou_admin_logged_in_v1');
-        showLogin();
-        alert('⚠️ Votre session a été révoquée par un administrateur. Veuillez vous reconnecter.');
-        return;
-      }
-      
       // If "remember" is set, auto-login without prompting
       if (localStorage.getItem(APP_KEY_REMEMBER) === '1') {
         sessionStorage.setItem(APP_KEY_SESSION, '1');
-        createSessionToken();
         try { localStorage.setItem('clipsou_admin_logged_in_v1','1'); localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now())); } catch {}
         showApp();
         initApp();
         return;
       }
       if (sessionStorage.getItem(APP_KEY_SESSION) === '1') {
-        createSessionToken();
         showApp();
         try { localStorage.setItem('clipsou_admin_logged_in_v1','1'); localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now())); } catch {}
         initApp();
@@ -1654,137 +1576,10 @@
           });
         }
         
-        // Revoke all sessions
-        const revokeAllBtn = $('#revokeAllBtn');
-        if (revokeAllBtn) {
-          revokeAllBtn.addEventListener('click', () => {
-            if (!confirm('⚠️ Cela va déconnecter TOUTES les sessions admin actives (y compris la vôtre). Continuer ?')) return;
-            clearAllSessions();
-            alert('Toutes les sessions ont été révoquées. Vous allez être déconnecté.');
-            window.location.reload();
-          });
-        }
-        
-        // Emergency Pirate Procedure (3-step workflow)
-        const emergencyPirateBtn = $('#emergencyPirateBtn');
-        const emergencyModal = $('#emergencyModal');
-        const cancelEmergencyBtn = $('#cancelEmergencyBtn');
-        
-        if (emergencyPirateBtn && emergencyModal) {
-          let newPasswordHash = '';
-          
-          emergencyPirateBtn.addEventListener('click', () => {
-            emergencyModal.style.display = 'block';
-            $('#emergencyStep1').style.display = 'block';
-            $('#emergencyStep2').style.display = 'none';
-            $('#emergencyStep3').style.display = 'none';
-            $('#newPasswordInput').value = '';
-            $('#newHashDisplay').value = '';
-          });
-          
-          if (cancelEmergencyBtn) {
-            cancelEmergencyBtn.addEventListener('click', () => {
-              emergencyModal.style.display = 'none';
-            });
-          }
-          
-          // Step 1: Generate hash
-          const generateHashBtn = $('#generateHashBtn');
-          const newPasswordInput = $('#newPasswordInput');
-          if (generateHashBtn && newPasswordInput) {
-            generateHashBtn.addEventListener('click', async () => {
-              const pwd = newPasswordInput.value.trim();
-              if (!pwd) {
-                alert('⚠️ Veuillez entrer un mot de passe.');
-                return;
-              }
-              if (pwd.length < 12) {
-                alert('⚠️ Le mot de passe doit contenir au moins 12 caractères pour être sécurisé.');
-                return;
-              }
-              
-              generateHashBtn.disabled = true;
-              generateHashBtn.textContent = 'Génération...';
-              
-              const hash = await hashPassword(pwd);
-              newPasswordHash = hash;
-              $('#newHashDisplay').value = hash;
-              
-              $('#emergencyStep1').style.display = 'none';
-              $('#emergencyStep2').style.display = 'block';
-              
-              generateHashBtn.disabled = false;
-              generateHashBtn.textContent = 'Générer le hash →';
-            });
-          }
-          
-          // Step 2: Copy hash
-          const copyHashBtn = $('#copyHashBtn');
-          const confirmChangeBtn = $('#confirmChangeBtn');
-          if (copyHashBtn) {
-            copyHashBtn.addEventListener('click', () => {
-              const hashDisplay = $('#newHashDisplay');
-              hashDisplay.select();
-              document.execCommand('copy');
-              copyHashBtn.textContent = '✅ Copié !';
-              setTimeout(() => {
-                copyHashBtn.textContent = '📋 Copier le hash';
-              }, 2000);
-            });
-          }
-          
-          if (confirmChangeBtn) {
-            confirmChangeBtn.addEventListener('click', () => {
-              if (!confirm('⚠️ Avez-vous bien remplacé le hash dans admin.js et sauvegardé le fichier ?')) return;
-              
-              $('#emergencyStep2').style.display = 'none';
-              $('#emergencyStep3').style.display = 'block';
-            });
-          }
-          
-          // Step 3: Final revoke
-          const finalRevokeBtn = $('#finalRevokeBtn');
-          if (finalRevokeBtn) {
-            finalRevokeBtn.addEventListener('click', () => {
-              if (!confirm('🚨 DERNIÈRE CONFIRMATION\n\nToutes les sessions vont être révoquées.\nLe nouveau mot de passe sera : ' + $('#newPasswordInput').value + '\n\nContinuer ?')) return;
-              
-              clearAllSessions();
-              emergencyModal.style.display = 'none';
-              alert('✅ Toutes les sessions ont été révoquées !\n\n🔐 Nouveau mot de passe actif.\n\nVous allez être déconnecté. Reconnectez-vous avec votre nouveau mot de passe.');
-              setTimeout(() => {
-                window.location.reload();
-              }, 500);
-            });
-          }
-        }
-        
-        // Change password (simple)
-        const changePasswordBtn = $('#changePasswordBtn');
-        if (changePasswordBtn) {
-          changePasswordBtn.addEventListener('click', () => {
-            alert('Pour changer le mot de passe :\n\n1. Ouvrez Fichiers Locaux/generate_hash.html\n2. Entrez votre nouveau mot de passe\n3. Copiez le hash généré\n4. Remplacez ADMIN_PASSWORD_HASH dans admin.js\n5. Sauvegardez et rechargez la page');
-          });
-        }
       }
     } catch {}
     
     function renderSuperAdminPanel() {
-      // Render login logs
-      const loginLogsList = $('#loginLogsList');
-      if (loginLogsList) {
-        const logs = getLoginLogs();
-        if (logs.length === 0) {
-          loginLogsList.innerHTML = '<p class="muted">Aucune connexion enregistrée.</p>';
-        } else {
-          loginLogsList.innerHTML = logs.slice(0, 10).map(log => `
-            <div style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.1); font-size:13px;">
-              <strong>${log.date}</strong><br>
-              <span class="muted" style="font-size:12px;">${log.userAgent.substring(0, 80)}...</span>
-            </div>
-          `).join('');
-        }
-      }
-      
       // Render trash
       const trashList = $('#trashList');
       if (trashList) {
