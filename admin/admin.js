@@ -13,6 +13,9 @@
   const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
   const APP_KEY_LAST_EDIT = 'clipsou_admin_last_edit_v1';
   const APP_KEY_ACTOR_PHOTOS = 'clipsou_admin_actor_photos_v1';
+  const APP_KEY_SUPER_ADMIN = 'clipsou_super_admin_session_v1';
+  const APP_KEY_LOGIN_LOG = 'clipsou_admin_login_log_v1';
+  const APP_KEY_TRASH = 'clipsou_admin_trash_v1';
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
@@ -34,6 +37,10 @@
   // Hash of "20Blabla30" - regenerate if you change the password
   // Use admin/generate_hash.html to create a new hash if needed
   const ADMIN_PASSWORD_HASH = 'c4275fccac42bcf7cc99157a1623072d1ae33ade8a44737dab4c941729cafa13';
+  
+  // Super-Admin password hash for critical security features
+  // Default password: "Choppin2009#"
+  const SUPER_ADMIN_PASSWORD_HASH = 'e817399975c5067d567e95ff1eee1bb81b96cc2ec363596d313b3a2b09096cfa';
 
   // ===== Utilities: normalization, validation, and deduplication =====
   function normalizeTitleKey(s) {
@@ -855,6 +862,95 @@
   function setRequests(list){ saveJSON(APP_KEY_REQ, list); }
   function getApproved(){ return loadJSON(APP_KEY_APPROVED, []); }
   function setApproved(list){ saveJSON(APP_KEY_APPROVED, list); }
+  
+  // ===== Super-Admin Security Features =====
+  function isSuperAdmin(){
+    try { return sessionStorage.getItem(APP_KEY_SUPER_ADMIN) === '1'; } catch { return false; }
+  }
+  
+  function logLogin(){
+    try {
+      const logs = JSON.parse(localStorage.getItem(APP_KEY_LOGIN_LOG) || '[]');
+      logs.unshift({
+        timestamp: Date.now(),
+        date: new Date().toLocaleString('fr-FR'),
+        userAgent: navigator.userAgent || 'Unknown',
+        ip: 'Local' // Static sites can't get real IP
+      });
+      // Keep only last 50 logins
+      localStorage.setItem(APP_KEY_LOGIN_LOG, JSON.stringify(logs.slice(0, 50)));
+    } catch {}
+  }
+  
+  function getLoginLogs(){
+    try { return JSON.parse(localStorage.getItem(APP_KEY_LOGIN_LOG) || '[]'); } catch { return []; }
+  }
+  
+  function clearAllSessions(){
+    try {
+      sessionStorage.removeItem(APP_KEY_SESSION);
+      sessionStorage.removeItem(APP_KEY_SUPER_ADMIN);
+      localStorage.removeItem(APP_KEY_REMEMBER);
+      localStorage.removeItem('clipsou_admin_logged_in_v1');
+      localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now()));
+    } catch {}
+  }
+  
+  // Trash/Recycle bin for deleted items (7 days retention)
+  function getTrash(){
+    try {
+      const trash = JSON.parse(localStorage.getItem(APP_KEY_TRASH) || '[]');
+      const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+      // Auto-cleanup items older than 7 days
+      const recent = trash.filter(item => item.deletedAt > sevenDaysAgo);
+      if (recent.length !== trash.length) {
+        localStorage.setItem(APP_KEY_TRASH, JSON.stringify(recent));
+      }
+      return recent;
+    } catch { return []; }
+  }
+  
+  function addToTrash(item){
+    try {
+      const trash = getTrash();
+      trash.unshift({
+        ...item,
+        deletedAt: Date.now(),
+        deleteDate: new Date().toLocaleString('fr-FR')
+      });
+      localStorage.setItem(APP_KEY_TRASH, JSON.stringify(trash));
+    } catch {}
+  }
+  
+  function restoreFromTrash(index){
+    try {
+      const trash = getTrash();
+      if (index >= 0 && index < trash.length) {
+        const item = trash[index];
+        trash.splice(index, 1);
+        localStorage.setItem(APP_KEY_TRASH, JSON.stringify(trash));
+        
+        // Restore to requests as approved
+        const requests = getRequests();
+        const restored = {
+          requestId: item.requestId || uid(),
+          status: 'approved',
+          data: item.data,
+          meta: { ...item.meta, restoredAt: Date.now() }
+        };
+        requests.unshift(restored);
+        setRequests(requests);
+        
+        // Also add back to approved
+        const approved = getApproved();
+        approved.push(item.data);
+        setApproved(dedupeByIdAndTitle(approved));
+        
+        return true;
+      }
+    } catch {}
+    return false;
+  }
 
   function getPublishConfig(){
     try { return JSON.parse(localStorage.getItem(APP_KEY_PUB) || 'null') || {}; } catch { return {}; }
@@ -1145,6 +1241,8 @@
           try { localStorage.setItem(APP_KEY_REMEMBER, '1'); } catch {}
           // Broadcast logged-in state (for public site to show Admin shortcut immediately)
           try { localStorage.setItem('clipsou_admin_logged_in_v1','1'); localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now())); } catch {}
+          // Log this login
+          logLogin();
           showApp();
           initApp();
         } else {
@@ -1363,7 +1461,11 @@
       // No status cell anymore
       editBtn.addEventListener('click', ()=>{ fillForm(r.data); try { setLastEditedId(r.data && r.data.id); } catch{} });
       delBtn.addEventListener('click', ()=>{
-        if (!confirm('Supprimer cette requête ?')) return;
+        if (!confirm('Supprimer cette requête ? (Récupérable pendant 7 jours dans la corbeille)')) return;
+        
+        // Add to trash before deleting
+        addToTrash(r);
+        
         let list = getRequests().filter(x=>x.requestId!==r.requestId);
         // Stamp and sync
         const deleted = { ...r, meta: { ...(r.meta||{}), updatedAt: Date.now(), deleted: true } };
@@ -1475,6 +1577,201 @@
         });
       }
     } catch {}
+
+    // Super-Admin Panel
+    try {
+      const superAdminBtn = $('#superAdminBtn');
+      const superAdminSection = $('#super-admin-section');
+      const closeSuperAdminBtn = $('#closeSuperAdminBtn');
+      
+      if (superAdminBtn && superAdminSection) {
+        superAdminBtn.addEventListener('click', async () => {
+          // Prompt for super-admin password
+          const pwd = prompt('Entrez le mot de passe Super-Admin :');
+          if (!pwd) return;
+          
+          const hash = await hashPassword(pwd);
+          if (hash === SUPER_ADMIN_PASSWORD_HASH) {
+            sessionStorage.setItem(APP_KEY_SUPER_ADMIN, '1');
+            superAdminSection.hidden = false;
+            renderSuperAdminPanel();
+          } else {
+            alert('Mot de passe Super-Admin incorrect.');
+          }
+        });
+        
+        if (closeSuperAdminBtn) {
+          closeSuperAdminBtn.addEventListener('click', () => {
+            superAdminSection.hidden = true;
+            sessionStorage.removeItem(APP_KEY_SUPER_ADMIN);
+          });
+        }
+        
+        // Revoke all sessions
+        const revokeAllBtn = $('#revokeAllBtn');
+        if (revokeAllBtn) {
+          revokeAllBtn.addEventListener('click', () => {
+            if (!confirm('⚠️ Cela va déconnecter TOUTES les sessions admin actives (y compris la vôtre). Continuer ?')) return;
+            clearAllSessions();
+            alert('Toutes les sessions ont été révoquées. Vous allez être déconnecté.');
+            window.location.reload();
+          });
+        }
+        
+        // Emergency Pirate Procedure (3-step workflow)
+        const emergencyPirateBtn = $('#emergencyPirateBtn');
+        const emergencyModal = $('#emergencyModal');
+        const cancelEmergencyBtn = $('#cancelEmergencyBtn');
+        
+        if (emergencyPirateBtn && emergencyModal) {
+          let newPasswordHash = '';
+          
+          emergencyPirateBtn.addEventListener('click', () => {
+            emergencyModal.style.display = 'block';
+            $('#emergencyStep1').style.display = 'block';
+            $('#emergencyStep2').style.display = 'none';
+            $('#emergencyStep3').style.display = 'none';
+            $('#newPasswordInput').value = '';
+            $('#newHashDisplay').value = '';
+          });
+          
+          if (cancelEmergencyBtn) {
+            cancelEmergencyBtn.addEventListener('click', () => {
+              emergencyModal.style.display = 'none';
+            });
+          }
+          
+          // Step 1: Generate hash
+          const generateHashBtn = $('#generateHashBtn');
+          const newPasswordInput = $('#newPasswordInput');
+          if (generateHashBtn && newPasswordInput) {
+            generateHashBtn.addEventListener('click', async () => {
+              const pwd = newPasswordInput.value.trim();
+              if (!pwd) {
+                alert('⚠️ Veuillez entrer un mot de passe.');
+                return;
+              }
+              if (pwd.length < 12) {
+                alert('⚠️ Le mot de passe doit contenir au moins 12 caractères pour être sécurisé.');
+                return;
+              }
+              
+              generateHashBtn.disabled = true;
+              generateHashBtn.textContent = 'Génération...';
+              
+              const hash = await hashPassword(pwd);
+              newPasswordHash = hash;
+              $('#newHashDisplay').value = hash;
+              
+              $('#emergencyStep1').style.display = 'none';
+              $('#emergencyStep2').style.display = 'block';
+              
+              generateHashBtn.disabled = false;
+              generateHashBtn.textContent = 'Générer le hash →';
+            });
+          }
+          
+          // Step 2: Copy hash
+          const copyHashBtn = $('#copyHashBtn');
+          const confirmChangeBtn = $('#confirmChangeBtn');
+          if (copyHashBtn) {
+            copyHashBtn.addEventListener('click', () => {
+              const hashDisplay = $('#newHashDisplay');
+              hashDisplay.select();
+              document.execCommand('copy');
+              copyHashBtn.textContent = '✅ Copié !';
+              setTimeout(() => {
+                copyHashBtn.textContent = '📋 Copier le hash';
+              }, 2000);
+            });
+          }
+          
+          if (confirmChangeBtn) {
+            confirmChangeBtn.addEventListener('click', () => {
+              if (!confirm('⚠️ Avez-vous bien remplacé le hash dans admin.js et sauvegardé le fichier ?')) return;
+              
+              $('#emergencyStep2').style.display = 'none';
+              $('#emergencyStep3').style.display = 'block';
+            });
+          }
+          
+          // Step 3: Final revoke
+          const finalRevokeBtn = $('#finalRevokeBtn');
+          if (finalRevokeBtn) {
+            finalRevokeBtn.addEventListener('click', () => {
+              if (!confirm('🚨 DERNIÈRE CONFIRMATION\n\nToutes les sessions vont être révoquées.\nLe nouveau mot de passe sera : ' + $('#newPasswordInput').value + '\n\nContinuer ?')) return;
+              
+              clearAllSessions();
+              emergencyModal.style.display = 'none';
+              alert('✅ Toutes les sessions ont été révoquées !\n\n🔐 Nouveau mot de passe actif.\n\nVous allez être déconnecté. Reconnectez-vous avec votre nouveau mot de passe.');
+              setTimeout(() => {
+                window.location.reload();
+              }, 500);
+            });
+          }
+        }
+        
+        // Change password (simple)
+        const changePasswordBtn = $('#changePasswordBtn');
+        if (changePasswordBtn) {
+          changePasswordBtn.addEventListener('click', () => {
+            alert('Pour changer le mot de passe :\n\n1. Ouvrez Fichiers Locaux/generate_hash.html\n2. Entrez votre nouveau mot de passe\n3. Copiez le hash généré\n4. Remplacez ADMIN_PASSWORD_HASH dans admin.js\n5. Sauvegardez et rechargez la page');
+          });
+        }
+      }
+    } catch {}
+    
+    function renderSuperAdminPanel() {
+      // Render login logs
+      const loginLogsList = $('#loginLogsList');
+      if (loginLogsList) {
+        const logs = getLoginLogs();
+        if (logs.length === 0) {
+          loginLogsList.innerHTML = '<p class="muted">Aucune connexion enregistrée.</p>';
+        } else {
+          loginLogsList.innerHTML = logs.slice(0, 10).map(log => `
+            <div style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.1); font-size:13px;">
+              <strong>${log.date}</strong><br>
+              <span class="muted" style="font-size:12px;">${log.userAgent.substring(0, 80)}...</span>
+            </div>
+          `).join('');
+        }
+      }
+      
+      // Render trash
+      const trashList = $('#trashList');
+      if (trashList) {
+        const trash = getTrash();
+        if (trash.length === 0) {
+          trashList.innerHTML = '<p class="muted">La corbeille est vide.</p>';
+        } else {
+          trashList.innerHTML = trash.map((item, index) => {
+            const title = (item.data && item.data.title) || 'Sans titre';
+            const type = (item.data && item.data.type) || 'film';
+            return `
+              <div style="padding:12px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <strong>${title}</strong> <span class="muted">(${type})</span><br>
+                  <span class="muted" style="font-size:12px;">Supprimé le ${item.deleteDate}</span>
+                </div>
+                <button class="btn secondary" onclick="window.restoreItem(${index})" style="font-size:13px; padding:6px 12px;">♻️ Restaurer</button>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+    }
+    
+    // Expose restore function globally for onclick
+    window.restoreItem = function(index) {
+      if (restoreFromTrash(index)) {
+        alert('Élément restauré avec succès !');
+        renderTable();
+        renderSuperAdminPanel();
+      } else {
+        alert('Erreur lors de la restauration.');
+      }
+    };
 
     // Wire actor photo upload
     (function wireActorPhoto(){
