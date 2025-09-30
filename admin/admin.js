@@ -16,6 +16,8 @@
   const APP_KEY_SUPER_ADMIN = 'clipsou_super_admin_session_v1';
   const APP_KEY_LOGIN_LOG = 'clipsou_admin_login_log_v1';
   const APP_KEY_TRASH = 'clipsou_admin_trash_v1';
+  const APP_KEY_REVOKE_TOKEN = 'clipsou_admin_revoke_token_v1';
+  const APP_KEY_SESSION_TOKEN = 'clipsou_admin_session_token_v1';
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
@@ -888,11 +890,39 @@
   
   function clearAllSessions(){
     try {
+      // Generate a new revoke token to invalidate all existing sessions
+      const revokeToken = Date.now().toString(36) + Math.random().toString(36).slice(2);
+      localStorage.setItem(APP_KEY_REVOKE_TOKEN, revokeToken);
+      
+      // Clear local session
       sessionStorage.removeItem(APP_KEY_SESSION);
       sessionStorage.removeItem(APP_KEY_SUPER_ADMIN);
+      sessionStorage.removeItem(APP_KEY_SESSION_TOKEN);
       localStorage.removeItem(APP_KEY_REMEMBER);
       localStorage.removeItem('clipsou_admin_logged_in_v1');
       localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now()));
+    } catch {}
+  }
+  
+  function isSessionRevoked(){
+    try {
+      const revokeToken = localStorage.getItem(APP_KEY_REVOKE_TOKEN);
+      const sessionToken = sessionStorage.getItem(APP_KEY_SESSION_TOKEN);
+      
+      // If there's a revoke token but no session token, or they don't match
+      if (revokeToken && (!sessionToken || sessionToken < revokeToken)) {
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }
+  
+  function createSessionToken(){
+    try {
+      const token = Date.now().toString(36) + Math.random().toString(36).slice(2);
+      sessionStorage.setItem(APP_KEY_SESSION_TOKEN, token);
     } catch {}
   }
   
@@ -1243,6 +1273,8 @@
           try { localStorage.setItem('clipsou_admin_logged_in_v1','1'); localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now())); } catch {}
           // Log this login
           logLogin();
+          // Create session token for revoke check
+          createSessionToken();
           showApp();
           initApp();
         } else {
@@ -1266,15 +1298,30 @@
     
     // Existing session
     try {
+      // Check if session has been revoked
+      if (isSessionRevoked()) {
+        // Force logout if revoked
+        sessionStorage.removeItem(APP_KEY_SESSION);
+        sessionStorage.removeItem(APP_KEY_SUPER_ADMIN);
+        sessionStorage.removeItem(APP_KEY_SESSION_TOKEN);
+        localStorage.removeItem(APP_KEY_REMEMBER);
+        localStorage.removeItem('clipsou_admin_logged_in_v1');
+        showLogin();
+        alert('⚠️ Votre session a été révoquée par un administrateur. Veuillez vous reconnecter.');
+        return;
+      }
+      
       // If "remember" is set, auto-login without prompting
       if (localStorage.getItem(APP_KEY_REMEMBER) === '1') {
         sessionStorage.setItem(APP_KEY_SESSION, '1');
+        createSessionToken();
         try { localStorage.setItem('clipsou_admin_logged_in_v1','1'); localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now())); } catch {}
         showApp();
         initApp();
         return;
       }
       if (sessionStorage.getItem(APP_KEY_SESSION) === '1') {
+        createSessionToken();
         showApp();
         try { localStorage.setItem('clipsou_admin_logged_in_v1','1'); localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now())); } catch {}
         initApp();
