@@ -16,6 +16,25 @@
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
+  // ===== Security: Password hashing with SHA-256 =====
+  async function hashPassword(password) {
+    try {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return hashHex;
+    } catch (err) {
+      console.error('Erreur de hachage:', err);
+      return null;
+    }
+  }
+
+  // Hash of "20Blabla30" - regenerate if you change the password
+  // Use admin/generate_hash.html to create a new hash if needed
+  const ADMIN_PASSWORD_HASH = 'c4275fccac42bcf7cc99157a1623072d1ae33ade8a44737dab4c941729cafa13';
+
   // ===== Utilities: normalization, validation, and deduplication =====
   function normalizeTitleKey(s) {
     try {
@@ -1088,6 +1107,63 @@
     const login = $('#login');
     function showLogin(){ if (app) app.hidden = true; if (login) login.hidden = false; }
     function showApp(){ if (login) login.hidden = true; if (app) app.hidden = false; }
+    
+    // Initialize login elements and handlers (must be done before any early returns)
+    const btn = $('#loginBtn');
+    const pwdInput = $('#passwordInput');
+    const showPwd = $('#showPwd');
+    
+    // Show/hide password
+    if (showPwd && pwdInput) {
+      showPwd.addEventListener('change', () => {
+        pwdInput.type = showPwd.checked ? 'text' : 'password';
+      });
+    }
+    
+    // Define doLogin function before attaching handlers
+    async function doLogin(){
+      const pwd = (pwdInput && pwdInput.value) || '';
+      if (!pwd) {
+        alert('Veuillez entrer un mot de passe.');
+        return;
+      }
+      
+      // Disable button during verification
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Vérification...';
+      }
+      
+      try {
+        const hash = await hashPassword(pwd);
+        
+        if (hash === ADMIN_PASSWORD_HASH) {
+          try { sessionStorage.setItem(APP_KEY_SESSION, '1'); } catch {}
+          // Always remember once successfully logged in
+          try { localStorage.setItem(APP_KEY_REMEMBER, '1'); } catch {}
+          // Broadcast logged-in state (for public site to show Admin shortcut immediately)
+          try { localStorage.setItem('clipsou_admin_logged_in_v1','1'); localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now())); } catch {}
+          showApp();
+          initApp();
+        } else {
+          alert('Mot de passe incorrect.');
+          if (pwdInput) pwdInput.value = '';
+        }
+      } catch (err) {
+        console.error('Erreur d\'authentification:', err);
+        alert('Erreur lors de la vérification du mot de passe.');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Se connecter';
+        }
+      }
+    }
+    
+    // Attach login handlers
+    if (btn) btn.addEventListener('click', doLogin);
+    if (pwdInput) pwdInput.addEventListener('keydown', (e)=>{ if (e.key==='Enter') { e.preventDefault(); doLogin(); } });
+    
     // Existing session
     try {
       // If "remember" is set, auto-login without prompting
@@ -1107,40 +1183,8 @@
     } catch {}
 
     showLogin();
-    const btn = $('#loginBtn');
-    const pwdInput = $('#passwordInput');
-    const showPwd = $('#showPwd');
 
-    // Prefill password if previously remembered
-    try {
-      if (localStorage.getItem(APP_KEY_REMEMBER) === '1') {
-        if (pwdInput) pwdInput.value = '20Blabla30';
-      }
-    } catch {}
-
-    // Show/hide password
-    if (showPwd && pwdInput) {
-      showPwd.addEventListener('change', () => {
-        pwdInput.type = showPwd.checked ? 'text' : 'password';
-      });
-    }
-
-    function doLogin(){
-      const pwd = (pwdInput && pwdInput.value) || '';
-      if (pwd === '20Blabla30') {
-        try { sessionStorage.setItem(APP_KEY_SESSION, '1'); } catch {}
-        // Always remember once successfully logged in
-        try { localStorage.setItem(APP_KEY_REMEMBER, '1'); } catch {}
-        // Broadcast logged-in state (for public site to show Admin shortcut immediately)
-        try { localStorage.setItem('clipsou_admin_logged_in_v1','1'); localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now())); } catch {}
-        showApp();
-        initApp();
-      } else {
-        alert('Mot de passe incorrect.');
-      }
-    }
-    if (btn) btn.addEventListener('click', doLogin);
-    if (pwdInput) pwdInput.addEventListener('keydown', (e)=>{ if (e.key==='Enter') { e.preventDefault(); doLogin(); } });
+    // Don't prefill password for security - user must type it each time after logout
   }
 
   function fillForm(data){
