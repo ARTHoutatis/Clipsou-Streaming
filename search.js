@@ -26,6 +26,16 @@ const LOCAL_FALLBACK_DB = [
                 if (!el || !el.getAttribute) return;
                 const src = el.getAttribute(ATTR);
                 if (!src) return;
+                // Add loaded class for smooth fade-in
+                el.addEventListener('load', function onLoad() {
+                    el.classList.add('loaded');
+                    el.removeEventListener('load', onLoad);
+                }, { once: true });
+                // Handle errors gracefully
+                el.addEventListener('error', function onError() {
+                    el.classList.add('loaded'); // Still fade in even on error
+                    el.removeEventListener('error', onError);
+                }, { once: true });
                 el.src = src;
                 el.removeAttribute(ATTR);
                 pending.delete(el);
