@@ -1727,10 +1727,11 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
     display: grid;
     gap: 30px;
     padding: 30px;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
     position: relative;
     margin: auto; /* ensure centering even if container alignment is overridden */
+    -webkit-overflow-scrolling: touch; /* smooth scrolling sur iOS */
 }
 
 /* Popups should be centered on the full page (including under the nav) */
@@ -2543,7 +2544,9 @@ html {
         gap: 10px;
         padding: 16px;
         max-height: min(92svh, 92dvh);
-        overflow-y: auto;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch;
     }
     .fiche-popup .fiche-right {
         padding-left: 0 !important;
@@ -3148,9 +3151,32 @@ body.is-mobile #partenariats-title { display: none !important; }
   overflow: visible;
 }
 
-/* S'assurer que le conteneur parent ne coupe pas non plus */
+/* S'assurer que le conteneur principal a toujours le scroll pour afficher tout le contenu */
 .fiche-popup .fiche-content {
-  overflow: visible;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch; /* smooth scrolling sur iOS */
+}
+
+/* Style de scrollbar amélioré pour les popups */
+.fiche-popup .fiche-content {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.3) rgba(0,0,0,0.2);
+}
+.fiche-popup .fiche-content::-webkit-scrollbar {
+  width: 10px;
+}
+.fiche-popup .fiche-content::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.2);
+  border-radius: 10px;
+}
+.fiche-popup .fiche-content::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.3);
+  border-radius: 10px;
+  border: 2px solid rgba(0,0,0,0.2);
+}
+.fiche-popup .fiche-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.45);
 }
 
 .button:hover, .carousel-btn:hover {
