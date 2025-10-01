@@ -4,8 +4,6 @@
     --brand-1: #2B22EE;
     --brand-2: #6c5ce7;
     --home-shift: 20px; /* desktop default */
-    --categories-nudge: 0px; /* align Categories with other sections */
-    --categories-extra-shift: 0px; /* no extra nudge by default */
 }
 
 /* ===== Homepage Hero ===== */

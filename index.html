@@ -38,8 +38,8 @@
   </script>
 <title>Clipsou Streaming</title>
 <meta name="description" content="Regardez des films et séries comme La vie au petit âge, Dédoublement, Jackson Goup, Karma et Alex. Gratuit, rapide et sans inscription.">
-<link rel="icon" href="favicon.webp" type="image/webp">
-<link rel="apple-touch-icon" href="favicon.webp">
+<link rel="icon" href="images/favicon.webp" type="image/webp">
+<link rel="apple-touch-icon" href="images/favicon.webp">
 <link rel="canonical" href="https://clipsoustreaming.com/">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <!-- Preconnects for faster Google Fonts -->
@@ -54,10 +54,9 @@
 <link rel="preconnect" href="https://www.youtube.com">
 <link rel="preconnect" href="https://youtu.be">
 <!-- Preload critical UI icon -->
-<link rel="preload" as="image" href="loupe.webp">
+<link rel="preload" as="image" href="images/loupe.webp">
 <!-- Preload first carousel image for faster LCP -->
-<link rel="preload" as="image" href="La1.webp" fetchpriority="high">
-<!-- Removed category image preloads; categories are lazy-loaded in index.js -->
+<link rel="preload" as="image" href="images/La1.webp" fetchpriority="high">
 <!-- Preload critical CSS to speed up first paint (keep regular stylesheet links too) -->
 <link rel="preload" as="style" href="common.css?v=20250929-1">
 <link rel="preload" as="style" href="index.css?v=20250929-1">
@@ -68,15 +67,15 @@
 <meta property="og:title" content="Clipsou Streaming – Brickfilms et animations en streaming français">
 <meta property="og:description" content="Streaming français de brickfilms et animations. Découvrez La vie au petit âge, Dédoublement, Jackson Goup, Karma, Alex et plus.">
 <meta property="og:url" content="https://clipsoustreaming.com/">
-<meta property="og:image" content="https://clipsoustreaming.com/apercu.webp">
-<meta property="og:image:secure_url" content="https://clipsoustreaming.com/apercu.webp">
+<meta property="og:image" content="https://clipsoustreaming.com/images/apercu.webp">
+<meta property="og:image:secure_url" content="https://clipsoustreaming.com/images/apercu.webp">
 <meta property="og:image:alt" content="Clipsou Streaming – sélection de brickfilms et animations">
 <meta property="og:image:type" content="image/webp">
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Clipsou Streaming – Brickfilms et animations en streaming français">
 <meta name="twitter:description" content="Streaming français de brickfilms et animations. Gratuit, rapide et sans inscription.">
-<meta name="twitter:image" content="https://clipsoustreaming.com/apercu.webp">
+<meta name="twitter:image" content="https://clipsoustreaming.com/images/apercu.webp">
 <!-- JSON-LD Organization + WebSite -->
 <script type="application/ld+json">
 {
@@ -84,7 +83,7 @@
   "@type": "Organization",
   "name": "Clipsou Streaming",
   "url": "https://clipsoustreaming.com/",
-  "logo": "https://clipsoustreaming.com/favicon.webp",
+  "logo": "https://clipsoustreaming.com/images/favicon.webp",
   "sameAs": [
   ]
 }
@@ -118,7 +117,6 @@
   .discord-banner-btn svg[viewBox="0 0 32 32"] { display: none !important; }
   /* Remove thin white borders on home boxes/cards */
   .card,
-  .categories-section .category-card,
   #continue-watching,
   .home-filters,
   .resume-dialog-box,
@@ -192,8 +190,6 @@
     .section .rail { overflow-x: hidden !important; overflow-y: visible !important; }
   }
   #continue-watching { overflow: visible !important; }
-  .categories-section { overflow: hidden !important; display: none !important; }
-  .categories-section .categories-rail { overflow-y: visible !important; }
   .grid { overflow: visible !important; }
   /* Proper stacking order: fades above rails, arrows above fades */
   .section .rail { position: relative !important; z-index: 2 !important; }
@@ -201,12 +197,10 @@
   .section .rail-arrow { z-index: 6 !important; }
   #continue-watching .rail { position: relative !important; z-index: 30 !important; }
   .card:hover, .card:focus-within, .card:active { z-index: 50; }
-  .category-card:hover, .category-card:focus-within, .category-card:active { z-index: 50; }
   /* Give a small breathing room above cards on desktop so translateY doesn't clip */
   @media (min-width: 769px) {
     .grid { padding-top: 16px !important; }
     .section .rail { padding-top: 16px !important; }
-    .categories-section .categories-rail { padding-top: 16px !important; }
   }
   /* Continue Watching: keep cards contained inside the box while preserving arrows */
   #continue-watching { overflow-x: hidden !important; overflow-y: visible !important; padding-top: 22px !important; }
@@ -327,7 +321,7 @@
      </button>
      <div class="logo">
        <a href="./" aria-label="Accueil Clipsou Streaming" style="display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none">
-         <img src="favicon.webp" alt="Logo Clipsou" width="35" height="35" fetchpriority="high" decoding="async">
+         <img src="images/favicon.webp" alt="Logo Clipsou" width="35" height="35" fetchpriority="high" decoding="async">
          <span>Clipsou</span>
          <span>Streaming</span>
        </a>
@@ -383,7 +377,7 @@
         <div class="carousel-slides">
             <!-- Slide 1: La vie au petit âge -->
             <div class="carousel-slide">
-                <img class="carousel-bg" data-src="La1.webp" alt="" aria-hidden="true" decoding="async" loading="eager" fetchpriority="high" width="1920" height="1080">
+                <img class="carousel-bg" data-src="images/La1.webp" alt="" aria-hidden="true" decoding="async" loading="eager" fetchpriority="high" width="1920" height="1080">
                 <div class="carousel-content">
                     <h2 class="carousel-title">La vie au petit âge</h2>
                     <div class="carousel-genres">
@@ -400,7 +394,7 @@
 
             <!-- Slide 2: Dédoublement -->
             <div class="carousel-slide">
-                <img class="carousel-bg" data-src="Dé1.webp" alt="" aria-hidden="true" decoding="async" loading="lazy" fetchpriority="low" width="1920" height="1080">
+                <img class="carousel-bg" data-src="images/Dé1.webp" alt="" aria-hidden="true" decoding="async" loading="lazy" fetchpriority="low" width="1920" height="1080">
                 <div class="carousel-content">
                     <h2 class="carousel-title">Dédoublement</h2>
                     <div class="carousel-genres">
@@ -417,7 +411,7 @@
 
             <!-- Slide 3: Jackson Goup -->
             <div class="carousel-slide">
-                <img class="carousel-bg" data-src="Ja1.webp" alt="" aria-hidden="true" decoding="async" loading="lazy" fetchpriority="low" width="1920" height="1080">
+                <img class="carousel-bg" data-src="images/Ja1.webp" alt="" aria-hidden="true" decoding="async" loading="lazy" fetchpriority="low" width="1920" height="1080">
                 <div class="carousel-content">
                     <h2 class="carousel-title">Jackson Goup</h2>
                     <div class="carousel-genres">
@@ -434,7 +428,7 @@
 
             <!-- Slide 4: Alex (Série) -->
             <div class="carousel-slide alex-focus">
-                <img class="carousel-bg" data-src="Al1.webp" alt="" aria-hidden="true" decoding="async" loading="lazy" fetchpriority="low" width="1920" height="1080">
+                <img class="carousel-bg" data-src="images/Al1.webp" alt="" aria-hidden="true" decoding="async" loading="lazy" fetchpriority="low" width="1920" height="1080">
                 <div class="carousel-content">
                     <h2 class="carousel-title">Alex</h2>
                     <div class="carousel-genres">
@@ -451,7 +445,7 @@
 
             <!-- Slide 5: Karma -->
             <div class="carousel-slide">
-                <img class="carousel-bg" data-src="Ka1.webp" alt="" aria-hidden="true" decoding="async" loading="lazy" fetchpriority="low" width="1920" height="1080">
+                <img class="carousel-bg" data-src="images/Ka1.webp" alt="" aria-hidden="true" decoding="async" loading="lazy" fetchpriority="low" width="1920" height="1080">
                 <div class="carousel-content">
                     <h2 class="carousel-title">Karma</h2>
                     <div class="carousel-genres">
@@ -569,7 +563,7 @@
         Partenariats
       </h3>
       <p>
-        <img src="NOVA.webp" alt="Logo Nova Stream" class="partner-logo" data-pos="center" loading="lazy" decoding="async" style="width:112px;height:112px;display:block;margin:0 0 8px 0;border-radius:4px;" fetchpriority="low">
+        <img src="images/NOVA.webp" alt="Logo Nova Stream" class="partner-logo" data-pos="center" loading="lazy" decoding="async" style="width:112px;height:112px;display:block;margin:0 0 8px 0;border-radius:4px;" fetchpriority="low">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 8px; color: #FFD700;">
           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
         </svg>
@@ -597,7 +591,7 @@
       </div>
       <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 16px 0;">
       <p>
-        <img src="CineHelp.webp" alt="Logo CineHelp" class="partner-logo" data-pos="center" loading="lazy" decoding="async" style="width:128px;height:128px;display:block;margin:0 0 8px 0;border-radius:4px;" fetchpriority="low">
+        <img src="images/CineHelp.webp" alt="Logo CineHelp" class="partner-logo" data-pos="center" loading="lazy" decoding="async" style="width:128px;height:128px;display:block;margin:0 0 8px 0;border-radius:4px;" fetchpriority="low">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 8px; color: #FFD700;">
           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
         </svg>
@@ -617,7 +611,7 @@
       </div>
       <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 16px 0;">
       <p>
-        <img src="Cineclub.webp" alt="Logo Cinéclub" class="partner-logo" data-pos="center" loading="lazy" decoding="async" style="width:128px;height:128px;display:block;margin:0 0 8px 0;border-radius:4px;" fetchpriority="low">
+        <img src="images/Cineclub.webp" alt="Logo Cinéclub" class="partner-logo" data-pos="center" loading="lazy" decoding="async" style="width:128px;height:128px;display:block;margin:0 0 8px 0;border-radius:4px;" fetchpriority="low">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 8px; color: #FFD700;">
           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
         </svg>
@@ -649,7 +643,7 @@
 <div id="film1" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film1-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="La1.webp" alt="Image du film La vie au petit âge" class="landscape" decoding="async" loading="lazy">
+            <img src="images/La1.webp" alt="Image du film La vie au petit âge" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
             <h3 id="film1-title">La vie au petit age</h3>
@@ -684,7 +678,7 @@
 <div id="film2" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film2-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Dé1.webp" alt="Image du film Dédoublement" class="landscape" decoding="async" loading="lazy">
+            <img src="images/Dé1.webp" alt="Image du film Dédoublement" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
             <h3 id="film2-title">DEDOUBLEMENT</h3>
@@ -717,7 +711,7 @@
 <div id="film3" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film3-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Ja1.webp" alt="Image du film Jackson Goup" class="landscape" decoding="async" loading="lazy">
+            <img src="images/Ja1.webp" alt="Image du film Jackson Goup" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
             <h3 id="film3-title">Jackson Goup</h3>
@@ -750,7 +744,7 @@
 <div id="serie1" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="serie1-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Al1.webp" alt="Image de la série Alex" class="landscape" decoding="async" loading="lazy">
+            <img src="images/Al1.webp" alt="Image de la série Alex" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
             <h3 id="serie1-title"><span class="al">AL</span><span class="ex">EX</span></h3>
@@ -783,7 +777,7 @@
 <div id="serie2" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="serie2-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Law1.webp" alt="Image de la série Lawless Legend" class="landscape" decoding="async" loading="lazy">
+            <img src="images/Law1.webp" alt="Image de la série Lawless Legend" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
             <h3 id="serie2-title">Lawless Legend</h3>
@@ -816,7 +810,7 @@
 <div id="serie3" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="serie3-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Je1.webp" alt="Image de la série Les Aventures de Jean-Michel Content" class="landscape" decoding="async" loading="lazy">
+            <img src="images/Je1.webp" alt="Image de la série Les Aventures de Jean-Michel Content" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
             <h3 id="serie3-title">Les Aventures de Jean‑Michel Content</h3>
@@ -850,7 +844,7 @@
 <div id="film4" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film4-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Ka1.webp" alt="Image du film Karma" class="landscape" decoding="async" loading="lazy">
+            <img src="images/Ka1.webp" alt="Image du film Karma" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
             <h3 id="film4-title">Karma</h3>
@@ -883,7 +877,7 @@
 <div id="film5" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film5-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Ba1.webp" alt="Image du trailer Batman" class="landscape" decoding="async" loading="lazy">
+            <img src="images/Ba1.webp" alt="Image du trailer Batman" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
             <h3 id="film5-title"><span class="trailer-word">Trailer</span> <span class="batman-word">BATMAN</span></h3>
@@ -915,7 +909,7 @@
 <div id="film6" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film6-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Ur1.webp" alt="Image du film Urbanos City" class="landscape" decoding="async" loading="lazy">
+            <img src="images/Ur1.webp" alt="Image du film Urbanos City" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
             <h3 id="film6-title"><span class="urbanos">URBANOS</span> <span class="city">city</span></h3>
@@ -948,7 +942,7 @@
 <div id="film7" class="fiche-popup" role="dialog" aria-modal="true" aria-labelledby="film7-title">
     <div class="fiche-content landscape-layout">
         <div class="fiche-left">
-            <img src="Bac1.webp" alt="Image du film Backrooms Urbanos" class="landscape" decoding="async" loading="lazy">
+            <img src="images/Bac1.webp" alt="Image du film Backrooms Urbanos" class="landscape" decoding="async" loading="lazy">
         </div>
         <div class="fiche-right">
             <h3 id="film7-title"><span class="backrooms-vhs">Backrooms</span> <span class="urbanos-svg" role="img" aria-label="URBANOS">

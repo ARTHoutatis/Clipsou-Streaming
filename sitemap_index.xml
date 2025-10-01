@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Sitemap index for static site pages only - Content is added dynamically -->
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
     <loc>https://clipsoustreaming.com/sitemap.xml</loc>
-    <lastmod>2025-09-10</lastmod>
+    <lastmod>2025-10-01</lastmod>
   </sitemap>
   <sitemap>
     <loc>https://clipsoustreaming.com/sitemap_images.xml</loc>
-    <lastmod>2025-09-10</lastmod>
+    <lastmod>2025-10-01</lastmod>
   </sitemap>
 </sitemapindex>

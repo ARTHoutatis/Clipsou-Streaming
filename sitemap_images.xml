@@ -1,87 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- v2: ETag refresh to force re-fetch by crawlers -->
+<!-- Image sitemap for static pages only - Content images are added dynamically via admin -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-  <!-- Image sitemap to improve image discovery and rich results -->
 
-  <url>
-    <loc>https://clipsoustreaming.com/</loc>
-    <lastmod>2025-09-10</lastmod>
-    <image:image>
-      <image:loc>https://clipsoustreaming.com/apercu.webp</image:loc>
-      <image:title>Clipsou Streaming – Aperçu</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://clipsoustreaming.com/Al1.jpg</image:loc>
-      <image:title>Alex – Série brickfilm</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://clipsoustreaming.com/Ja1.jpg</image:loc>
-      <image:title>Jackson Goup – Film d'aventure</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://clipsoustreaming.com/Ka1.jpg</image:loc>
-      <image:title>Karma – Film d'horreur</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://clipsoustreaming.com/La1.jpg</image:loc>
-      <image:title>La vie au petit âge – Comédie familiale</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://clipsoustreaming.com/Law1.jpg</image:loc>
-      <image:title>Lawless Legend – Western rétro</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://clipsoustreaming.com/Ur1.jpg</image:loc>
-      <image:title>Urbanos City – Film comique</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://clipsoustreaming.com/Ba1.jpg</image:loc>
-      <image:title>Trailer Batman – Super-héros</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://clipsoustreaming.com/Bac1.webp</image:loc>
-      <image:title>Backrooms Urbanos – Horreur</image:title>
-    </image:image>
-  </url>
+<!-- Homepage - Site preview image -->
+<url>
+  <loc>https://clipsoustreaming.com/</loc>
+  <lastmod>2025-10-01</lastmod>
+  <image:image>
+    <image:loc>https://clipsoustreaming.com/images/apercu.webp</image:loc>
+    <image:title>Clipsou Streaming – Aperçu</image:title>
+    <image:caption>Plateforme de streaming gratuit de brickfilms et animations en français</image:caption>
+  </image:image>
+</url>
 
-  <url>
-    <loc>https://clipsoustreaming.com/search.html</loc>
-    <lastmod>2025-09-10</lastmod>
-    <image:image>
-      <image:loc>https://clipsoustreaming.com/Al.jpg</image:loc>
-      <image:title>Alex – Affiche</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://clipsoustreaming.com/Ja.jpg</image:loc>
-      <image:title>Jackson Goup – Affiche</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://clipsoustreaming.com/Ka.jpeg</image:loc>
-      <image:title>Karma – Affiche</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://clipsoustreaming.com/La.jpeg</image:loc>
-      <image:title>La vie au petit âge – Affiche</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://clipsoustreaming.com/Ur.jpg</image:loc>
-      <image:title>Urbanos City – Affiche</image:title>
-    </image:image>
-  </url>
-  
-  <url>
-    <loc>https://clipsoustreaming.com/fiche.html?id=serie3</loc>
-    <lastmod>2025-09-10</lastmod>
-    <image:image>
-      <image:loc>https://clipsoustreaming.com/Je1.webp</image:loc>
-      <image:title>Les Aventures de Jean‑Michel Content – Image paysage</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://clipsoustreaming.com/Je.webp</image:loc>
-      <image:title>Les Aventures de Jean‑Michel Content – Affiche</image:title>
-    </image:image>
-  </url>
 </urlset>
 
 

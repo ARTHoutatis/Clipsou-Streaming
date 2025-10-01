@@ -170,89 +170,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     } catch {}
   })();
 
-  // ===== Categories row (cards linking to search filters) =====
-  (function buildCategoriesRow(){
-    try {
-      const container = document.querySelector('main') || document.body;
-      if (!container) return;
-      // Strategic position: after Favorites if present; else after Top Rated.
-      // This guarantees it's not above the carousel section.
-      const afterEl = document.getElementById('favorites') || document.getElementById('top-rated');
-      const id = 'categories-pro';
-      const titleText = "Catégories";
-      // Known images available in /Catégories based on index.html preloads
-      const cats = [
-        { name: 'Comédie', img: 'Catégories/Comédi.webp' },
-        { name: 'Horreur', img: 'Catégories/Horreur.webp' },
-        { name: 'Action',  img: 'Catégories/Action.webp' },
-        { name: 'Familial', img: 'Catégories/Famillial.webp' },
-        { name: 'Drame', img: 'Catégories/Drame.webp' },
-        { name: 'Super-Heros', img: 'Catégories/Super-Heros.webp' }
-      ];
-      // Create or update section
-      let section = document.getElementById(id);
-      if (!section) {
-        section = document.createElement('div');
-        section.className = 'section categories-section compact pro';
-        section.id = id;
-        const h2 = document.createElement('h2');
-        h2.className = 'categories-title';
-        h2.textContent = titleText;
-        const rail = document.createElement('div');
-        rail.className = 'categories-rail';
-        section.appendChild(h2); section.appendChild(rail);
-        const refParent = container;
-        if (afterEl && afterEl.parentNode === refParent) {
-          refParent.insertBefore(section, afterEl.nextSibling);
-        } else if (document.getElementById('top-rated') && document.getElementById('top-rated').parentNode === refParent) {
-          refParent.insertBefore(section, document.getElementById('top-rated').nextSibling);
-        } else {
-          refParent.appendChild(section);
-        }
-      }
-      // Ensure the Discord invite banner sits inside the categories section so widths match
-      try {
-        const invite = document.getElementById('discord-invite');
-        if (invite && section && invite.parentNode !== section) {
-          section.appendChild(invite);
-        }
-        // If the old static categories container is now empty, remove it
-        const staticCats = document.getElementById('categories');
-        if (staticCats && staticCats.children && staticCats.children.length === 0) {
-          staticCats.remove();
-        }
-      } catch {}
-      const rail = section.querySelector('.categories-rail');
-      if (!rail) return;
-      rail.innerHTML = '';
-      cats.forEach(c => {
-        try {
-          const a = document.createElement('a');
-          a.className = 'category-card';
-          a.setAttribute('role','listitem');
-          a.href = 'search.html?q=' + encodeURIComponent(c.name) + '&openFilters=1';
-          a.setAttribute('aria-label', 'Catégorie ' + c.name);
-          const img = document.createElement('img');
-          img.dataset.src = c.img; img.alt = c.name; img.loading = 'lazy'; img.decoding = 'async';
-          try { img.fetchPriority = 'low'; } catch {}
-          img.onerror = function(){ try { this.removeAttribute('src'); } catch {}; this.onerror=null; };
-          a.appendChild(img);
-          rail.appendChild(a);
-        } catch {}
-      });
-    } catch {}
-  })();
-
-  // ===== Remove obsolete category image preloads from <head> =====
-  (function removeObsoletePreloads(){
-    try {
-      const head = document.head || document.getElementsByTagName('head')[0];
-      if (!head) return;
-      head.querySelectorAll('link[rel="preload"][as="image"][href*="Catégories/"]').forEach(el => {
-        try { el.parentNode && el.parentNode.removeChild(el); } catch {}
-      });
-    } catch {}
-  })();
 
   // ===== Drawer shortcuts: put Favoris then Nouveautés at the top =====
   (function updateDrawerShortcuts(){
@@ -415,10 +332,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     } catch {}
   })();
 
-  // Ensure Discord invite sits right under the Categories section
+  // Ensure Discord invite sits right before the Séries section
   (function placeDiscordInvite(){
     try {
-      var categories = document.getElementById('categories');
       var invite = document.getElementById('discord-invite');
       if (!invite) return;
       // If a dedicated Séries section exists, place banner just before it
@@ -428,12 +344,6 @@ document.addEventListener('DOMContentLoaded', async function () {
           series.parentNode.insertBefore(invite, series);
         }
         return;
-      }
-      // Fallback: place right after Categories for now
-      if (categories && categories.parentNode) {
-        if (invite.previousElementSibling !== categories) {
-          categories.insertAdjacentElement('afterend', invite);
-        }
       }
       // Observe future additions to place right before #series when it appears
       var main = document.querySelector('main') || document.body;
@@ -454,21 +364,6 @@ document.addEventListener('DOMContentLoaded', async function () {
       observer.observe(main, { childList: true, subtree: true });
       // Safety timeout: stop observing after some time
       setTimeout(function(){ try { observer.disconnect(); } catch {} }, 8000);
-    } catch {}
-  })();
-
-  // Remove the now-empty Categories wrapper but keep the Discord invite banner
-  (function removeCategoriesWrapper(){
-    try {
-      var cat = document.getElementById('categories');
-      if (!cat) return;
-      var invite = document.getElementById('discord-invite');
-      // Move invite out of the wrapper to keep it visible
-      if (invite && cat.parentNode && invite.parentNode === cat) {
-        cat.parentNode.insertBefore(invite, cat);
-      }
-      // Remove the empty wrapper
-      if (cat.parentNode) cat.parentNode.removeChild(cat);
     } catch {}
   })();
 
@@ -638,16 +533,16 @@ document.addEventListener('DOMContentLoaded', async function () {
         const candidates = [];
         // Deterministic overrides from portrait base to landscape file present in repo
         const landscapeOverrides = {
-          'al': 'Al1.webp',
-          'ba': 'Ba1.webp',
-          'bac': 'Bac1.webp',
-          'dé': 'Dé1.webp',
-          'ja': 'Ja1.webp',
-          'je': 'Je1.webp',
-          'ka': 'Ka1.webp',
-          'la': 'La1.webp',
-          'law': 'Law1.webp',
-          'ur': 'Ur1.webp'
+          'al': 'images/Al1.webp',
+          'ba': 'images/Ba1.webp',
+          'bac': 'images/Bac1.webp',
+          'dé': 'images/Dé1.webp',
+          'ja': 'images/Ja1.webp',
+          'je': 'images/Je1.webp',
+          'ka': 'images/Ka1.webp',
+          'la': 'images/La1.webp',
+          'law': 'images/Law1.webp',
+          'ur': 'images/Ur1.webp'
         };
         const getBaseKey = (p)=>{
           try {
@@ -1787,7 +1682,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       img.setAttribute('loading', 'lazy'); img.setAttribute('decoding', 'async');
       const info = document.createElement('div'); info.className = 'card-info'; info.setAttribute('data-type', item.type || 'film'); if (typeof item.rating !== 'undefined') info.setAttribute('data-rating', String(item.rating)); if (item.studioBadge) info.setAttribute('data-studio-badge', String(item.studioBadge));
       const media = document.createElement('div'); media.className = 'card-media';
-      const badge = document.createElement('div'); badge.className = 'brand-badge'; const logo = document.createElement('img'); logo.src = (item.studioBadge && String(item.studioBadge).trim()) || 'clipsoustudio.webp'; logo.alt = 'Studio'; logo.setAttribute('loading', 'lazy'); logo.setAttribute('decoding', 'async'); badge.appendChild(logo);
+      const badge = document.createElement('div'); badge.className = 'brand-badge'; const logo = document.createElement('img'); logo.src = (item.studioBadge && String(item.studioBadge).trim()) || 'images/clipsoustudio.webp'; logo.alt = 'Studio'; logo.setAttribute('loading', 'lazy'); logo.setAttribute('decoding', 'async'); badge.appendChild(logo);
       media.appendChild(img); media.appendChild(badge); a.appendChild(media); a.appendChild(info); card.appendChild(a);
       // Favorite heart button inside info line to align with type/rating
       try { info.appendChild(makeFavButton(item)); } catch {}
@@ -1838,11 +1733,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     try { const favSec = document.getElementById('favorites'); if (favSec) favSec.classList.add('modern'); } catch {}
     try { const trSec = document.getElementById('top-rated'); if (trSec) trSec.classList.add('modern'); } catch {}
 
-    // Ensure Categories row sits right after Favorites (re-run to reposition if needed)
-    (function ensureCategoriesPlacement(){ try {
-      const cats = document.getElementById('categories-pro'); const fav = document.getElementById('favorites'); const parent = (document.querySelector('main')||document.body);
-      if (cats && fav && parent && fav.parentNode===parent) parent.insertBefore(cats, fav.nextSibling);
-    } catch {} })();
 
     (function buildNouveautes(){
       try {
@@ -1907,13 +1797,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             if (topRatedSec && topRatedSec.parentNode === parent) {
               parent.insertBefore(fav, topRatedSec);
             }
-            // Keep dynamic Categories row (#categories-pro) immediately after Favorites
-            try {
-              const cats = document.getElementById('categories-pro');
-              if (cats && fav && fav.parentNode === parent) {
-                parent.insertBefore(cats, fav.nextSibling);
-              }
-            } catch {}
           } catch {}
         })();
       } catch {}
@@ -1935,28 +1818,24 @@ document.addEventListener('DOMContentLoaded', async function () {
       try { const sec = document.getElementById('top-rated'); ensureSectionSeeAll(sec, '⭐ Mieux notés', sorted, createCard); } catch {}
     }
 
-    // Insert 'Séries' and selected Genre sections after the Categories block (between Top Rated and Series)
+    // Insert 'Séries' and selected Genre sections
     (function buildSeriesAndGenresOnHome(){
       try {
         const container = document.querySelector('main') || document.body;
-        const categoriesEl = document.getElementById('categories');
         const heroEl = document.getElementById('hero-claim');
         // Maintain a tail insertion point so order remains: Series, then each genre
         let tailEl = (function(){
-          if (categoriesEl) return categoriesEl;
           if (heroEl) return heroEl.previousSibling || null;
           return (container && container.lastChild) || null;
         })();
         function insertSection(section){
           if (!section) return;
-          const parent = (categoriesEl && categoriesEl.parentNode) || (heroEl && heroEl.parentNode) || container;
+          const parent = (heroEl && heroEl.parentNode) || container;
           if (!parent) return;
           if (tailEl && tailEl.parentNode === parent) {
             // Insert after tail
             const ref = tailEl.nextSibling; // may be null to append
             parent.insertBefore(section, ref);
-          } else if (categoriesEl && categoriesEl.parentNode) {
-            categoriesEl.parentNode.insertBefore(section, categoriesEl.nextSibling);
           } else if (heroEl && heroEl.parentNode) {
             heroEl.parentNode.insertBefore(section, heroEl);
           } else {
@@ -2595,7 +2474,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         const info = a.querySelector('.card-info');
         desired = (info && info.getAttribute('data-studio-badge')) || '';
       } catch {}
-      if (!desired) desired = 'clipsoustudio.webp';
+      if (!desired) desired = 'images/clipsoustudio.webp';
       if (logo && logo.src !== desired) { logo.src = desired; logo.alt = 'Studio'; }
     });
   })();

@@ -110,7 +110,7 @@ const LOCAL_FALLBACK_DB = [
   {
     id: 'film1',
     title: 'La vie au petit âge',
-    image: 'La1.webp',
+    image: 'images/La1.webp',
     genres: ['Comédie','Familial','Aventure'],
     rating: 2.5,
     type: 'film',
@@ -120,7 +120,7 @@ const LOCAL_FALLBACK_DB = [
   {
     id: 'film2',
     title: 'Dédoublement',
-    image: 'Dé1.webp',
+    image: 'images/Dé1.webp',
     genres: ['Thriller','Comédie','Action'],
     rating: 4,
     type: 'film',
@@ -130,7 +130,7 @@ const LOCAL_FALLBACK_DB = [
   {
     id: 'film3',
     title: 'Jackson Goup',
-    image: 'Ja1.webp',
+    image: 'images/Ja1.webp',
     genres: ['Aventure','Fantastique','Comédie'],
     rating: 3.5,
     type: 'film',
@@ -140,7 +140,7 @@ const LOCAL_FALLBACK_DB = [
   {
     id: 'serie1',
     title: 'Alex',
-    image: 'Al1.webp',
+    image: 'images/Al1.webp',
     genres: ['Action','Comédie','Familial'],
     rating: 3,
     type: 'série',
@@ -150,7 +150,7 @@ const LOCAL_FALLBACK_DB = [
   {
     id: 'serie2',
     title: 'Lawless Legend',
-    image: 'Law1.webp',
+    image: 'images/Law1.webp',
     genres: ['Western','Comédie','Action'],
     rating: 3,
     type: 'série',
@@ -160,7 +160,7 @@ const LOCAL_FALLBACK_DB = [
   {
     id: 'film4',
     title: 'Karma',
-    image: 'Ka1.webp',
+    image: 'images/Ka1.webp',
     genres: ['Horreur','Mystère','Psychologique'],
     rating: 2.5,
     type: 'film',
@@ -170,7 +170,7 @@ const LOCAL_FALLBACK_DB = [
   {
     id: 'film5',
     title: 'Trailer BATMAN',
-    image: 'Ba1.webp',
+    image: 'images/Ba1.webp',
     genres: ['Action','Drame','Super-héros'],
     type: 'trailer',
     description: "Un nouveau trailer de Batman, sombre et intense, réimaginé dans l'univers Minecraft. Découvrez des premières images qui redéfinissent le chevalier noir avec une approche moderne et spectaculaire.",
@@ -179,7 +179,7 @@ const LOCAL_FALLBACK_DB = [
   {
     id: 'film6',
     title: 'URBANOS city',
-    image: 'Ur1.webp',
+    image: 'images/Ur1.webp',
     genres: ['Comédie','Familial','Enfants'],
     rating: 2,
     type: 'film',
@@ -189,7 +189,7 @@ const LOCAL_FALLBACK_DB = [
   {
     id: 'film7',
     title: 'Backrooms URBANOS',
-    image: 'Bac1.webp',
+    image: 'images/Bac1.webp',
     genres: ['Horreur','Mystère','Ambience'],
     rating: 3.5,
     type: 'film',
@@ -199,7 +199,7 @@ const LOCAL_FALLBACK_DB = [
   {
     id: 'serie3',
     title: 'Les Aventures de Jean‑Michel Content',
-    image: 'Je1.webp',
+    image: 'images/Je1.webp',
     genres: ['Familial','Aventure','Comédie'],
     rating: 3.5,
     type: 'série',
@@ -936,11 +936,11 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       const badge = document.createElement('div');
       badge.className = 'brand-badge';
       const logo = document.createElement('img');
-      // Use configured studio badge if present, otherwise default to absolute URL
+      // Use configured studio badge if present, otherwise default to local path
       try {
-        const src = it.studioBadge || 'https://clipsoustreaming.com/clipsoustudio.webp';
+        const src = it.studioBadge || 'images/clipsoustudio.webp';
         logo.src = src;
-      } catch { logo.src = 'https://clipsoustreaming.com/clipsoustudio.webp'; }
+      } catch { logo.src = 'images/clipsoustudio.webp'; }
       logo.alt = 'Clipsou Studio';
       logo.loading = 'lazy';
       logo.decoding = 'async';
@@ -1096,13 +1096,23 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       // Prefer the explicit photo provided by admin if present; otherwise use slug-based local images
       const globalPhoto = resolveActorPhoto(photoMap, nameRaw);
       if (a && a.photo) {
-        try { img.src = a.photo; } catch { img.src = a.photo || './unknown.webp'; }
+        // If photo is a local path (not http/https), prepend images/
+        let photoSrc = a.photo;
+        if (photoSrc && !/^https?:\/\//i.test(photoSrc) && !photoSrc.startsWith('images/')) {
+          photoSrc = 'images/' + photoSrc;
+        }
+        try { img.src = photoSrc; } catch { img.src = photoSrc || 'images/unknown.webp'; }
         img.setAttribute('data-explicit-photo', '1');
       } else if (globalPhoto) {
-        try { img.src = globalPhoto; } catch { img.src = globalPhoto || './unknown.webp'; }
+        // If globalPhoto is a local path (not http/https), prepend images/
+        let globalPhotoSrc = globalPhoto;
+        if (globalPhotoSrc && !/^https?:\/\//i.test(globalPhotoSrc) && !globalPhotoSrc.startsWith('images/')) {
+          globalPhotoSrc = 'images/' + globalPhotoSrc;
+        }
+        try { img.src = globalPhotoSrc; } catch { img.src = globalPhotoSrc || 'images/unknown.webp'; }
         img.setAttribute('data-explicit-photo', '1');
       } else {
-        img.src = './' + baseSlug + '.webp';
+        img.src = 'images/' + baseSlug + '.webp';
         img.setAttribute('data-slug', baseSlug);
       }
       img.alt = a.name;
@@ -1119,15 +1129,15 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       img.onerror = function(){
         if (this.getAttribute('data-explicit-photo') === '1') {
           // If explicit photo fails, fallback to Unknown directly
-          this.onerror = null; this.src = './unknown.webp'; return;
+          this.onerror = null; this.src = 'images/unknown.webp'; return;
         }
         var slug = this.getAttribute('data-slug');
-        if (!slug) { this.onerror = null; this.src = './unknown.webp'; return; }
+        if (!slug) { this.onerror = null; this.src = 'images/unknown.webp'; return; }
         var i = (parseInt(this.dataset.i || '0', 10) || 0) + 1;
         this.dataset.i = i;
         // Only try webp once
-        if (i === 1) { this.src = './' + slug + '.webp'; }
-        else { this.onerror = null; this.src = './unknown.webp'; }
+        if (i === 1) { this.src = 'images/' + slug + '.webp'; }
+        else { this.onerror = null; this.src = 'images/unknown.webp'; }
       };
       imgWrap.appendChild(img);
       const nameEl = document.createElement('div');
@@ -1378,7 +1388,7 @@ function renderList(container, items, titleText) {
     const badge = document.createElement('div');
     badge.className = 'brand-badge';
     const logo = document.createElement('img');
-    logo.src = 'clipsoustudio.webp';
+    logo.src = 'images/clipsoustudio.webp';
     logo.alt = 'Clipsou Studio';
     logo.loading = 'lazy';
     logo.decoding = 'async';
@@ -1404,7 +1414,7 @@ function updateHeadSEO(item) {
   document.title = `${item.title} – ${baseTitle}`;
   const desc = item.description || 'Fiche du film ou de la série';
   const url = new URL(location.href);
-  const imageAbs = new URL(item.image || 'apercu.webp', location.origin + location.pathname.replace(/[^\/]+$/, ''));
+  const imageAbs = new URL(item.image || 'images/apercu.webp', location.origin + location.pathname.replace(/[^\/]+$/, ''));
 
   setMetaTag('meta[name="description"]', 'content', desc);
   setMetaTag('meta[property="og:title"]', 'content', document.title);
