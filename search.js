@@ -1,6 +1,19 @@
 // Base dynamique (remplie en parsant index.html au chargement). Un fallback local est utilisé si le fetch échoue (ex: ouverture en file://)
 let moviesDatabase = [];
 
+// Optimise les URLs Cloudinary pour performances maximales
+function optimizeCloudinaryUrl(url){
+  if (!url || typeof url !== 'string') return url;
+  if (!url.includes('res.cloudinary.com') && !url.includes('cloudinary.com')) return url;
+  const optimized = 'f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit';
+  if (url.includes('/upload/f_auto,q_auto/')) {
+    return url.replace('/upload/f_auto,q_auto/', '/upload/' + optimized + '/');
+  } else if (url.includes('/upload/')) {
+    return url.replace('/upload/', '/upload/' + optimized + '/');
+  }
+  return url;
+}
+
 // Fallback minimal (s'active seulement si on ne peut pas lire index.html)
 const LOCAL_FALLBACK_DB = [
     { id: 'film1',  title: 'La vie au petit âge', type: 'film',  rating: 2.5, genres: ['Comédie','Familial','Aventure'], image: 'images/La.webp' },
@@ -151,8 +164,8 @@ async function buildDatabaseFromIndex() {
                             const type = c.type || 'film';
                             const rating = (typeof c.rating === 'number') ? c.rating : undefined;
                             const genres = Array.isArray(c.genres) ? c.genres.filter(Boolean) : [];
-                            const image = c.portraitImage || c.image || c.landscapeImage || '';
-                            const studioBadge = c.studioBadge || '';
+                            const image = optimizeCloudinaryUrl(c.portraitImage || c.image || c.landscapeImage || '');
+                            const studioBadge = optimizeCloudinaryUrl(c.studioBadge || '');
                             items.push({ id: c.id, title: c.title, type, rating, genres, image, studioBadge });
                         });
                     }
@@ -171,8 +184,8 @@ async function buildDatabaseFromIndex() {
                         const type = c.type || 'film';
                         const rating = (typeof c.rating === 'number') ? c.rating : undefined;
                         const genres = Array.isArray(c.genres) ? c.genres.filter(Boolean) : [];
-                        const image = c.portraitImage || c.image || '';
-                        const studioBadge = c.studioBadge || '';
+                        const image = optimizeCloudinaryUrl(c.portraitImage || c.image || '');
+                        const studioBadge = optimizeCloudinaryUrl(c.studioBadge || '');
                         items.push({ id: c.id, title: c.title, type, rating, genres, image, studioBadge });
                     });
                 }

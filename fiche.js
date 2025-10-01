@@ -1,5 +1,18 @@
 'use strict';
 
+// Optimise les URLs Cloudinary pour performances maximales
+function optimizeCloudinaryUrl(url){
+  if (!url || typeof url !== 'string') return url;
+  if (!url.includes('res.cloudinary.com') && !url.includes('cloudinary.com')) return url;
+  const optimized = 'f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit';
+  if (url.includes('/upload/f_auto,q_auto/')) {
+    return url.replace('/upload/f_auto,q_auto/', '/upload/' + optimized + '/');
+  } else if (url.includes('/upload/')) {
+    return url.replace('/upload/', '/upload/' + optimized + '/');
+  }
+  return url;
+}
+
 // Force revenir en haut de la page au chargement / rafraîchissement
 // et désactiver la restauration automatique de position par le navigateur
 (function ensureTopOnLoad(){
@@ -398,11 +411,11 @@ async function buildItemsFromIndex() {
               const genres = Array.isArray(c.genres)
                 ? c.genres.map(g => String(g || '').trim()).filter(Boolean)
                 : [];
-              const image = c.landscapeImage || c.image || c.portraitImage || '';
+              const image = optimizeCloudinaryUrl(c.landscapeImage || c.image || c.portraitImage || '');
               const description = c.description || '';
               const watchUrl = c.watchUrl || '';
               const actors = Array.isArray(c.actors) ? c.actors.filter(a=>a && a.name) : [];
-              const studioBadge = c.studioBadge || '';
+              const studioBadge = optimizeCloudinaryUrl(c.studioBadge || '');
               items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '', studioBadge });
             });
           }
@@ -1101,6 +1114,8 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
         if (photoSrc && !/^https?:\/\//i.test(photoSrc) && !photoSrc.startsWith('images/')) {
           photoSrc = 'images/' + photoSrc;
         }
+        // Optimize Cloudinary URLs for actor photos
+        photoSrc = optimizeCloudinaryUrl(photoSrc);
         try { img.src = photoSrc; } catch { img.src = photoSrc || 'images/unknown.webp'; }
         img.setAttribute('data-explicit-photo', '1');
       } else if (globalPhoto) {
@@ -1109,6 +1124,8 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
         if (globalPhotoSrc && !/^https?:\/\//i.test(globalPhotoSrc) && !globalPhotoSrc.startsWith('images/')) {
           globalPhotoSrc = 'images/' + globalPhotoSrc;
         }
+        // Optimize Cloudinary URLs for actor photos
+        globalPhotoSrc = optimizeCloudinaryUrl(globalPhotoSrc);
         try { img.src = globalPhotoSrc; } catch { img.src = globalPhotoSrc || 'images/unknown.webp'; }
         img.setAttribute('data-explicit-photo', '1');
       } else {

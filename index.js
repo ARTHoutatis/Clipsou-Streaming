@@ -49,6 +49,22 @@
       const v = (window.__cw_ver || (window.__cw_ver = Date.now())) + '';
       return src + (src.includes('?') ? '&' : '?') + 'cw=' + v;
     }
+    
+    // Optimise les URLs Cloudinary pour performances maximales
+    function optimizeCloudinaryUrl(url){
+      if (!url || typeof url !== 'string') return url;
+      // Vérifie si c'est une URL Cloudinary
+      if (!url.includes('res.cloudinary.com') && !url.includes('cloudinary.com')) return url;
+      // Transformations optimales pour performances maximales
+      const optimized = 'f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit';
+      // Remplace les anciennes transformations
+      if (url.includes('/upload/f_auto,q_auto/')) {
+        return url.replace('/upload/f_auto,q_auto/', '/upload/' + optimized + '/');
+      } else if (url.includes('/upload/')) {
+        return url.replace('/upload/', '/upload/' + optimized + '/');
+      }
+      return url;
+    }
     function deriveExts(src){
       try {
         const m = (src||'').match(/^(.*?)(\d+)?\.(webp|jpg|jpeg|png)$/i);
@@ -566,15 +582,15 @@ document.addEventListener('DOMContentLoaded', async function () {
         const addDerived = (src)=>{ deriveExts(src).forEach(s=>candidates.push(s)); };
         const addLandscapeVariant = (src)=>{ prependLandscapeVariants(candidates, src); };
         // Prefer landscape first for Continue Watching
-        if (it.landscapeImage) addDerived(it.landscapeImage);
+        if (it.landscapeImage) addDerived(optimizeCloudinaryUrl(it.landscapeImage));
         if (it.image) {
           // Generate a potential landscape variant from the portrait filename (webp only)
-          addLandscapeVariant(it.image);
-          addDerived(it.image);
+          addLandscapeVariant(optimizeCloudinaryUrl(it.image));
+          addDerived(optimizeCloudinaryUrl(it.image));
         }
         // Always include original URLs as fallbacks (even if not .webp), so Cloudinary PNG/JPG still work
-        if (it.landscapeImage) candidates.push(it.landscapeImage);
-        if (it.image) candidates.push(it.image);
+        if (it.landscapeImage) candidates.push(optimizeCloudinaryUrl(it.landscapeImage));
+        if (it.image) candidates.push(optimizeCloudinaryUrl(it.image));
         // Force try '<base>1.webp' exactly first (e.g., 'Dé.webp' -> 'Dé1.webp').
         // Avoid doubling the '1' if the filename already ends with '1.webp'.
         let preferred = null;
@@ -1673,10 +1689,10 @@ document.addEventListener('DOMContentLoaded', async function () {
       const card = document.createElement('div'); card.className = 'card';
       const a = document.createElement('a'); a.setAttribute('href', `fiche.html?id=${item.id}`);
       const img = document.createElement('img');
-      const primaryPortrait = item.portraitImage || '';
+      const primaryPortrait = optimizeCloudinaryUrl(item.portraitImage || '');
       const thumbs = primaryPortrait ? [primaryPortrait] : deriveThumbnail(item.image);
       let idx = 0;
-      { const candidate = (thumbs && thumbs[0]) || item.image || ''; if (candidate) img.dataset.src = candidate; }
+      { const candidate = (thumbs && thumbs[0]) || optimizeCloudinaryUrl(item.image) || ''; if (candidate) img.dataset.src = candidate; }
       img.onerror = function () { if (idx < thumbs.length - 1) { idx += 1; this.src = thumbs[idx]; } else { this.onerror = null; try { this.removeAttribute('src'); } catch {} } };
       img.setAttribute('alt', `Affiche de ${item.title}`);
       img.setAttribute('loading', 'lazy'); img.setAttribute('decoding', 'async');
@@ -2421,8 +2437,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         bg.loading = 'eager';
         try { bg.fetchPriority = (idx === 0 ? 'high' : 'low'); } catch {}
         Object.assign(bg.style, { position: 'absolute', inset: '0', width: '100%', height: '100%', objectFit: 'cover', zIndex: '0' }); if ((it.baseName || '').toLowerCase() === 'bac') { bg.style.objectPosition = 'top center'; }
-        const primaryBg = it.landscapeImage || (it.image || '');
-        const backs = primaryBg ? [primaryBg, ...deriveBackgrounds(primaryBg)] : deriveBackgrounds(it.image || '');
+        const primaryBg = optimizeCloudinaryUrl(it.landscapeImage || (it.image || ''));
+        const backs = primaryBg ? [primaryBg, ...deriveBackgrounds(primaryBg)] : deriveBackgrounds(optimizeCloudinaryUrl(it.image || ''));
         let bIdx = 0;
         bg.onerror = function () { if (bIdx < backs.length - 1) { bIdx += 1; this.src = backs[bIdx]; } };
         // Load source immediately for every slide (no data-src/lazy here)
