@@ -1,7 +1,16 @@
-# Compression GZIP pour accélérer le chargement
+# Compression Brotli (meilleure que GZIP, si disponible)
+<IfModule mod_brotli.c>
+  AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/xml text/css text/javascript application/javascript application/json
+  AddOutputFilterByType BROTLI_COMPRESS image/svg+xml
+</IfModule>
+
+# Compression GZIP pour accélérer le chargement (fallback)
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
   AddOutputFilterByType DEFLATE image/svg+xml
+  
+  # Compression GZIP niveau optimal
+  DeflateCompressionLevel 6
 </IfModule>
 
 # Cache du navigateur pour les images et assets statiques
@@ -10,6 +19,7 @@
   
   # Images - cache long (1 an)
   ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/avif "access plus 1 year"
   ExpiresByType image/jpeg "access plus 1 year"
   ExpiresByType image/jpg "access plus 1 year"
   ExpiresByType image/png "access plus 1 year"
@@ -44,14 +54,28 @@
   Header set X-Content-Type-Options "nosniff"
   Header set X-Frame-Options "SAMEORIGIN"
   
-  # Cache-Control pour les images
-  <FilesMatch "\.(webp|jpg|jpeg|png|gif|svg|ico)$">
+  # Cache-Control pour les images (optimisé avec stale-while-revalidate)
+  <FilesMatch "\.(webp|avif|jpg|jpeg|png|gif|svg|ico)$">
     Header set Cache-Control "public, max-age=31536000, immutable"
+    Header set Vary "Accept"
+    # Accepter les formats d'images modernes
+    Header append Accept-CH "Sec-CH-Width, Sec-CH-Viewport-Width, Sec-CH-DPR"
   </FilesMatch>
   
-  # Cache-Control pour CSS/JS
+  # Cache-Control pour CSS/JS avec stale-while-revalidate
   <FilesMatch "\.(css|js)$">
-    Header set Cache-Control "public, max-age=2592000"
+    Header set Cache-Control "public, max-age=2592000, stale-while-revalidate=86400"
+  </FilesMatch>
+  
+  # Cache-Control pour HTML (court mais avec revalidation)
+  <FilesMatch "\.(html)$">
+    Header set Cache-Control "public, max-age=3600, must-revalidate"
+  </FilesMatch>
+  
+  # Préchargement des images critiques via Link headers
+  <FilesMatch "index\.html$">
+    Header add Link "</images/La1.webp>; rel=preload; as=image; type=image/webp"
+    Header add Link "</images/loupe.webp>; rel=preload; as=image; type=image/webp"
   </FilesMatch>
 </IfModule>
 
@@ -72,4 +96,39 @@
   H2PushPriority * after
   H2PushPriority text/css before
   H2PushPriority image/webp interleaved
+  H2PushPriority image/avif interleaved
+  # Optimiser les connexions HTTP/2
+  H2MaxSessionStreams 100
+  H2StreamMaxMemSize 65536
+</IfModule>
+
+# Keep-Alive pour réduire la latence
+<IfModule mod_headers.c>
+  Header set Connection keep-alive
+</IfModule>
+
+# Optimisation des connexions Keep-Alive
+KeepAlive On
+KeepAliveTimeout 5
+MaxKeepAliveRequests 100
+
+# Optimisation serveur pour images
+<IfModule mod_setenvif.c>
+  # Désactiver l'accès direct aux fichiers image sans referer (protection hotlinking légère)
+  SetEnvIfNoCase Referer "^$" allow_hotlink
+  SetEnvIfNoCase Referer "^https://clipsoustreaming\.com" allow_hotlink
+  SetEnvIfNoCase Referer "^https://www\.clipsoustreaming\.com" allow_hotlink
+</IfModule>
+
+# Priorités de chargement pour les images
+<IfModule mod_headers.c>
+  # Priority hints pour les images Above The Fold
+  <FilesMatch "^(La1|loupe|apercu|Al1|Ja1|Ka1)\.webp$">
+    Header set Priority "high"
+  </FilesMatch>
+  
+  # Priority hints pour les autres images
+  <FilesMatch "\.(webp|avif|jpg|jpeg|png)$">
+    Header set Priority "auto"
+  </FilesMatch>
 </IfModule>
