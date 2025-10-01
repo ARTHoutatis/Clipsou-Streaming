@@ -774,15 +774,15 @@
         const map = {};
         // Known assets available in project root
         const pairs = [
-          ['Liam Roxxor','liam-roxxor.webp'],
-          ['Kassielator','kassielator.webp'],
-          ['Ferrisbu','ferrisbu.webp'],
-          ['Clone Prod','clone-prod.webp'],
-          ['Raiback','raiback.webp'],
-          ['Beat Vortex','beat-vortex.webp'],
-          ['Arth','arth.webp'],
-          ['Steve Animation','steve-animation.webp'],
-          ["Le Zebre'ifique",'le-zebre-ifique.webp']
+          ['Liam Roxxor','images/liam-roxxor.webp'],
+          ['Kassielator','images/kassielator.webp'],
+          ['Ferrisbu','images/ferrisbu.webp'],
+          ['Clone Prod','images/clone-prod.webp'],
+          ['Raiback','images/raiback.webp'],
+          ['Beat Vortex','images/beat-vortex.webp'],
+          ['Arth','images/arth.webp'],
+          ['Steve Animation','images/steve-animation.webp'],
+          ["Le Zebre'ifique",'images/le-zebre-ifique.webp']
         ];
         pairs.forEach(([name, file])=>{ const k = norm(name); if (k && !map[k]) map[k] = file; });
         return map;
@@ -1205,7 +1205,7 @@
     $('#watchUrl').value = data.watchUrl || '';
     // New: studio badge
     const studioBadgeEl = $('#studioBadge');
-    if (studioBadgeEl) studioBadgeEl.value = data.studioBadge || 'https://clipsoustreaming.com/clipsoustudio.webp';
+    if (studioBadgeEl) studioBadgeEl.value = data.studioBadge || 'https://clipsoustreaming.com/images/clipsoustudio.webp';
     // Preview studio badge
     setPreview($('#studioBadgePreview'), (studioBadgeEl && studioBadgeEl.value) || '');
     const actors = Array.isArray(data.actors) ? data.actors.slice() : [];
@@ -1251,7 +1251,7 @@
     // New: studio badge with default
     let studioBadge = '';
     try { studioBadge = String($('#studioBadge').value || '').trim(); } catch {}
-    if (!studioBadge) studioBadge = 'https://clipsoustreaming.com/clipsoustudio.webp';
+    if (!studioBadge) studioBadge = 'https://clipsoustreaming.com/images/clipsoustudio.webp';
     return {
       id,
       requestId: $('#requestId').value || '',
