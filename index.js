@@ -2826,18 +2826,24 @@ document.addEventListener('DOMContentLoaded', async function () {
           const params = new URLSearchParams(url.search);
           const autoplay = '1';
           const common = '&autoplay=1&rel=0&modestbranding=1&controls=1&playsinline=1';
+          // Some browsers require an explicit origin when enablejsapi=1 is set
+          const isWebOrigin = (function(){ try { return location && (location.protocol === 'http:' || location.protocol === 'https:'); } catch { return false; } })();
+          const originParam = isWebOrigin ? ('&origin=' + encodeURIComponent(location.origin)) : '';
+          const apiParam = isWebOrigin ? ('?enablejsapi=1' + originParam) : '?';
           if (h.includes('youtu.be')){
             const id = url.pathname.replace(/^\//,'');
-            return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?enablejsapi=1' + common;
+            return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + apiParam + common;
           }
           if (h.includes('youtube.com')){
             if (url.pathname.startsWith('/watch')){
               const id = params.get('v') || '';
-              return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?enablejsapi=1' + common;
+              return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + apiParam + common;
             }
             if (url.pathname.startsWith('/playlist')){
               const list = params.get('list') || '';
-              return 'https://www.youtube.com/embed/videoseries?list=' + encodeURIComponent(list) + common;
+              return isWebOrigin
+                ? ('https://www.youtube.com/embed/videoseries?enablejsapi=1&list=' + encodeURIComponent(list) + common + originParam)
+                : ('https://www.youtube.com/embed/videoseries?list=' + encodeURIComponent(list) + common);
             }
           }
         } catch {}
@@ -2860,7 +2866,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         // Clear stage and show intro video first
         stage.innerHTML = '';
         const intro = document.createElement('video');
-        intro.src = 'intro.mp4';
+        intro.src = 'images/intro.mp4';
         intro.autoplay = true;
         intro.playsInline = true;
         intro.controls = false;

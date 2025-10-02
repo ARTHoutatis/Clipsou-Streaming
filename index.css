@@ -2990,6 +2990,38 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
         body.fiche-page-view .fiche-right { flex-basis: clamp(420px, 44vw, 540px); }
     }
     
+    /* Fiche page: unify card design with other pages (no white border, prevent hover cut on mobile) */
+    body.fiche-page-view #fiche .section .card {
+        border: 0 !important; /* remove white border */
+    }
+
+    /* Remove white outline ring on hover for fiche cards */
+    body.fiche-page-view #fiche .section .card:hover {
+        box-shadow:
+          0 20px 40px rgba(0, 0, 0, 0.4),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    }
+
+    /* Ensure raised cards are not clipped on fiche */
+    body.fiche-page-view #fiche .section .card:hover,
+    body.fiche-page-view #fiche .section .card:focus-within,
+    body.fiche-page-view #fiche .section .card:active {
+        z-index: 10;
+        position: relative;
+    }
+
+    /* Mobile: guarantee overflow visible and space for lift */
+    @media (max-width: 768px) {
+      body.fiche-page-view #fiche .section,
+      body.fiche-page-view #fiche .section .rail,
+      body.fiche-page-view #fiche .section .grid {
+        overflow: visible !important;
+      }
+      body.fiche-page-view #fiche .section .rail {
+        padding-top: 10px !important; /* room for translateY hover */
+      }
+    }
+    
     /* Hide the top-right search button on fiche pages */
     body.fiche-page-view .nav-links .search-link { display: none !important; }
     

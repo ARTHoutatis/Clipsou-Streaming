@@ -1849,18 +1849,24 @@ const container = document.getElementById('fiche-container');
           const params = new URLSearchParams(url.search);
           // Autoplay enabled
           const common = '&autoplay=1&rel=0&modestbranding=1&controls=1&playsinline=1';
+          // Some browsers require an explicit origin when enablejsapi=1 is set
+          const isWebOrigin = (function(){ try { return location && (location.protocol === 'http:' || location.protocol === 'https:'); } catch { return false; } })();
+          const originParam = isWebOrigin ? ('&origin=' + encodeURIComponent(location.origin)) : '';
+          const apiParam = isWebOrigin ? ('?enablejsapi=1' + originParam) : '?';
           if (h.includes('youtu.be')){
             const id = url.pathname.replace(/^\//,'');
-            return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?enablejsapi=1' + common;
+            return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + apiParam + common;
           }
           if (h.includes('youtube.com')){
             if (url.pathname.startsWith('/watch')){
               const id = params.get('v') || '';
-              return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?enablejsapi=1' + common;
+              return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + apiParam + common;
             }
             if (url.pathname.startsWith('/playlist')){
               const list = params.get('list') || '';
-              return 'https://www.youtube.com/embed/videoseries?list=' + encodeURIComponent(list) + common;
+              return isWebOrigin
+                ? ('https://www.youtube.com/embed/videoseries?enablejsapi=1&list=' + encodeURIComponent(list) + common + originParam)
+                : ('https://www.youtube.com/embed/videoseries?list=' + encodeURIComponent(list) + common);
             }
           }
         } catch {}
@@ -2012,7 +2018,7 @@ const container = document.getElementById('fiche-container');
         try { if (overlay.__skipBtn && !overlay.__skipBtn.parentNode) stage.appendChild(overlay.__skipBtn); } catch {}
 
         const intro = document.createElement('video');
-        intro.src = 'intro.mp4'; intro.autoplay = true; intro.playsInline = true; intro.controls = false; intro.preload = 'auto';
+        intro.src = 'images/intro.mp4'; intro.autoplay = true; intro.playsInline = true; intro.controls = false; intro.preload = 'auto';
         try { intro.muted = false; intro.defaultMuted = false; intro.volume = 1.0; } catch {}
         Object.assign(intro.style, { width: '100%', height: '100%', objectFit: (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) ? 'contain' : 'cover', display: 'block' });
         let started = false;
