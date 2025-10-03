@@ -630,6 +630,15 @@ body.popup-open nav[aria-label="Navigation principale"] {
 }
 .card:hover .card-media > img { transform: none; }
 
+/* Mobile landscape: keep posters centered inside their 9:12 frame
+   Some mobile browsers anchor cover crops toward the top in landscape.
+   Force center to avoid visible top bias on film cards. */
+@media (max-width: 768px) and (orientation: landscape) {
+  .card .card-media > img {
+    object-position: center center !important;
+  }
+}
+
 /* Brand badge (shared across pages) */
 .brand-badge {
   padding: 7px;
