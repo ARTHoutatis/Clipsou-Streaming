@@ -623,37 +623,12 @@ body.popup-open nav[aria-label="Navigation principale"] {
 .card::after { content: none; }
 
 .card .card-media > img {
-  position: absolute;
-  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center center;
   transition: transform 0.3s ease;
 }
 .card:hover .card-media > img { transform: none; }
-
-/* Mobile landscape: keep posters centered inside their 9:12 frame
-   Some mobile browsers anchor cover crops toward the top in landscape.
-   Force center to avoid visible top bias on film cards. */
-@media (max-width: 768px) and (orientation: landscape) {
-  .card .card-media > img {
-    object-position: center center !important;
-  }
-}
-
-/* Touch devices in landscape (phones/tablets): keep posters centered and pinned */
-@media (orientation: landscape) and (hover: none), (orientation: landscape) and (pointer: coarse) {
-  .card .card-media { position: relative; overflow: hidden; }
-  .card .card-media > img {
-    position: absolute;
-    inset: 0;
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    object-position: center center !important;
-  }
-}
 
 /* Brand badge (shared across pages) */
 .brand-badge {

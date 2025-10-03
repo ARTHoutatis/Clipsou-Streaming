@@ -1803,7 +1803,6 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center center;
     max-height: none; /* aucune contrainte verticale sur mobile */
     border-radius: 0; /* pas d'arrondi pour occuper tout l'espace */
   }
@@ -1815,7 +1814,6 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
     max-width: none !important;
     max-height: none !important;
     object-fit: cover !important;
-    object-position: center center !important;
     display: block !important;
   }
 
@@ -2609,8 +2607,9 @@ html {
     body.fiche-page-view #fiche .section .card .card-media > img {
         width: 100% !important;
         height: 100% !important;
+        aspect-ratio: 9/12 !important;
         object-fit: cover !important;
-        object-position: center center !important;
+        display: block !important;
     }
     /* Badge sizing/position centralized in common.css */
 
