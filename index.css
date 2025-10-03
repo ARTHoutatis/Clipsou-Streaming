@@ -2290,13 +2290,14 @@ html {
     .carousel-arrow:focus-visible,
     .carousel-arrow:active { outline: none !important; box-shadow: none !important; }
 
-    .section { margin: 30px 0; padding-top: 12px !important; }
+    .section { margin: 20px 0; padding-top: 8px !important; }
     .section h2 { margin: 0 16px 16px; font-size: 24px; color: #2B22EE; }
     .section-header { margin: 28px 16px 36px !important; }
     .actors-panel { margin: 0 16px 12px; padding: 12px; }
+    .actors-panel .actor-card { margin-bottom: 12px; }
     .actors-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
-    /* Ensure space between the fiche content block and the toggle section */
-    #fiche .fiche-content + .section { margin-top: 18px !important; }
+      /* Ensure space between the fiche content block and the toggle section */
+    #fiche .fiche-content + .section { margin-top: 12px !important; }
     /* Keep a bit of extra room if the button group is the last element inside fiche-content */
     .button-group { margin-bottom: 12px; }
     /* Ensure space between the header buttons and the next block (actors panel or rail) */
@@ -2304,7 +2305,7 @@ html {
     .section-header + .rail { margin-top: 14px !important; }
     .section-header + .episodes-panel { margin-top: 14px !important; }
     /* Safety: keep actor photo visible on mobile with a fixed minimum height */
-    .actors-panel .actor-photo { min-height: 140px; }
+    .actors-panel .actor-photo { min-height: 0; }
 
     /* Stop scrolling into empty space after the last section */
     html, body { height: auto; overflow-x: hidden; overscroll-behavior-y: contain; }
@@ -2318,13 +2319,13 @@ html {
     .rail { 
         padding: 0; 
         /* Smaller cards in rails on mobile */
-        grid-auto-columns: 150px;
+        grid-auto-columns: clamp(120px, 42vw, 160px);
         gap: 12px;
         scroll-snap-type: none !important;   /* force disable snapping on mobile */
         scroll-padding-left: 0 !important;   /* ensure first card aligns exactly at left */
         scroll-padding-inline-start: 0 !important;
     }
-    .rail > * { width: 150px !important; }
+    .rail > * { width: auto; }
     /* Also disable snap alignment on children for mobile */
     .rail > .card, .rail > * {
         scroll-snap-align: none !important;
@@ -2577,8 +2578,7 @@ html {
     #fiche .section {
         padding: 0; /* let inner .grid/.rail carry the 16px side padding like index/search */
         text-align: left;  /* do NOT center */
-        border-top: 0; /* no separator on mobile to avoid visual gap */
-        margin: 12px 0 !important; /* tighten spacing to remove void */
+        border-top: 1px solid rgba(255,255,255,0.12); /* thin separator like desktop */
     }
     #fiche .section h2 { 
         text-align: left; 
@@ -2594,10 +2594,10 @@ html {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
     }
     body.fiche-page-view #fiche .section .rail {
-        grid-auto-columns: 150px !important;
+        grid-auto-columns: clamp(130px, 44vw, 170px) !important;
     }
     body.fiche-page-view #fiche .section .rail > * {
-        width: 150px !important;
+        width: auto !important;
     }
     body.fiche-page-view #fiche .section .card .card-media > img {
         width: 100% !important;
@@ -2675,6 +2675,9 @@ html {
   .footer { margin-top: 24px; }
   main#contenu { padding-bottom: 48px !important; }
   .section:last-of-type { margin-bottom: 24px !important; }
+  body.fiche-page-view main#contenu { padding-bottom: 0 !important; }
+  body.fiche-page-view #fiche .section:last-of-type,
+  body.fiche-page-view #fiche .section:last-child { margin-bottom: 0 !important; }
 }
 
 /* Header extras (menu, search, avatar) */
@@ -2918,7 +2921,7 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
      .footer .footer-inner > div:nth-child(2)::after { content: ""; display: table; clear: both; }
 
      /* Prevent cards from being clipped on hover translateY in all sections */
-    .section .rail { padding-top: 10px; }
+    .section .rail { padding-top: 4px; }
 
      /* Focus-visible ring */
      :where(a, button, .quick-btn, input, [tabindex]):focus-visible {
@@ -3026,7 +3029,7 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
       body.fiche-page-view #fiche .section .rail {
         overflow-x: scroll !important;
         overflow-y: visible !important;
-        padding-top: 10px !important; /* room for translateY hover */
+        padding-top: 4px !important; /* room for translateY hover */
       }
     }
     
