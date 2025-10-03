@@ -626,9 +626,32 @@ body.popup-open nav[aria-label="Navigation principale"] {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center center;
   transition: transform 0.3s ease;
 }
 .card:hover .card-media > img { transform: none; }
+
+/* Mobile paysage: réduire la hauteur des cartes pour éviter trop d'espace gris en bas */
+@media (max-width: 768px) and (orientation: landscape) {
+  /* Réduire l'aspect-ratio des cartes en mode paysage pour qu'elles soient moins hautes */
+  .card .card-media {
+    aspect-ratio: 3/4 !important; /* Moins haut que le ratio portrait standard 9/12 */
+  }
+  .card .card-media > img {
+    object-position: center top !important; /* Ancrer en haut pour éviter l'espace gris en bas */
+  }
+  /* Spécifique pour les cartes de contenu similaire et sections */
+  .similar-section .card .card-media,
+  .section .card .card-media,
+  #fiche .section .card .card-media {
+    aspect-ratio: 3/4 !important;
+  }
+  .similar-section .card .card-media > img,
+  .section .card .card-media > img,
+  #fiche .section .card .card-media > img {
+    object-position: center top !important;
+  }
+}
 
 /* Brand badge (shared across pages) */
 .brand-badge {

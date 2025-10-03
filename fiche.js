@@ -842,7 +842,8 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   if (hasEpisodes) section.appendChild(episodesPanel);
 
   const rail = document.createElement('div');
-  rail.className = 'rail';
+  // Use 'grid' instead of 'rail' to match index/search layout on mobile
+  rail.className = 'grid';
   rail.hidden = false;
   rail.style.display = '';
   rail.setAttribute('aria-hidden', 'false');

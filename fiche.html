@@ -47,28 +47,15 @@
     #fiche .section .rail-fade { z-index: 65 !important; }
     #fiche .section .rail-arrow { z-index: 70 !important; }
     
-    /* MOBILE SCROLL FIX - Force horizontal scroll on all rails */
+    /* MOBILE - Allow sections to show cards properly */
     @media (max-width: 768px) {
-      .rail,
-      .section .rail,
-      .fiche-popup .rail,
-      #fiche .rail {
-        overflow-x: scroll !important;
-        overflow-y: visible !important;
-        -webkit-overflow-scrolling: touch !important;
-        scroll-snap-type: x proximity !important;
-        touch-action: pan-x pan-y !important;
-        grid-auto-columns: 150px !important;
-      }
-      .rail > *,
-      .section .rail > *,
-      .fiche-popup .rail > *,
-      #fiche .rail > * {
-        width: 150px !important;
-      }
       .section,
       #fiche .section {
         overflow: visible !important;
+      }
+      /* Grids should wrap naturally on mobile */
+      #fiche .section .grid {
+        display: grid !important;
       }
     }
     /* Hide "Clipsou Streaming" text in nav on mobile, keep logo only */
