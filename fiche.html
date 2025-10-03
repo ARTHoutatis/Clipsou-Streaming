@@ -31,13 +31,20 @@
   <link rel="stylesheet" href="index.css?v=20250929-1">
   <style>
     /* Prevent card clipping on fiche page */
-    .section .rail,
     .grid,
     #fiche .section,
     #fiche .fiche-content { overflow: visible !important; }
+    /* Allow rails to scroll horizontally */
+    .section .rail {
+      overflow-x: auto;
+      overflow-y: visible;
+    }
     .card:hover,
     .card:focus-within,
-    .card:active { z-index: 10; }
+    .card:active { z-index: 50; }
+    /* Keep fades and arrows above cards on fiche page */
+    #fiche .section .rail-fade { z-index: 65 !important; }
+    #fiche .section .rail-arrow { z-index: 70 !important; }
     
     /* MOBILE SCROLL FIX - Force horizontal scroll on all rails */
     @media (max-width: 768px) {
@@ -54,6 +61,13 @@
       .section,
       #fiche .section {
         overflow: visible !important;
+      }
+      /* Landscape mode: prevent card stretching */
+      @media (orientation: landscape) {
+        .rail,
+        #fiche .rail {
+          grid-auto-columns: clamp(100px, 28vw, 140px) !important;
+        }
       }
     }
     /* Hide "Clipsou Streaming" text in nav on mobile, keep logo only */

@@ -1008,6 +1008,8 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     }
   } catch {}
   showSimilar();
+  // Initialize arrows after section is in DOM
+  setTimeout(()=>{ try { if (window.__enhanceFicheRails) window.__enhanceFicheRails(); } catch {} }, 100);
   function openEpisodesIfRequested(scroll){
     if (!hasEpisodes) return;
     try {
@@ -2311,5 +2313,152 @@ const container = document.getElementById('fiche-container');
       document.addEventListener('click', handleYouTubeClick, false);
     } catch {}
   })();
+
+  // Add desktop-only arrows for similar content rail
+  window.__enhanceFicheRails = function enhanceRailsWithArrows(){
+    try {
+      if (window.innerWidth <= 768) return; // desktop only
+      const section = document.querySelector('#fiche .section');
+      if (!section) return;
+      const rail = section.querySelector('.rail');
+      if (!rail) return;
+
+      // Avoid duplicates - remove existing arrows first
+      section.querySelectorAll('.rail-arrow, .rail-fade').forEach(el => el.remove());
+
+      // Create prev arrow
+      const prev = document.createElement('button');
+      prev.className = 'rail-arrow prev';
+      prev.setAttribute('aria-label', 'Défiler vers la gauche');
+      prev.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>';
+      prev.classList.add('hidden');
+      section.appendChild(prev);
+
+      // Create next arrow
+      const next = document.createElement('button');
+      next.className = 'rail-arrow next';
+      next.setAttribute('aria-label', 'Défiler vers la droite');
+      next.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>';
+      next.classList.add('hidden');
+      section.appendChild(next);
+
+      // Create gradient fades
+      const fadeL = document.createElement('div');
+      fadeL.className = 'rail-fade left hidden';
+      section.appendChild(fadeL);
+
+      const fadeR = document.createElement('div');
+      fadeR.className = 'rail-fade right hidden';
+      section.appendChild(fadeR);
+
+      const prevBtn = prev;
+      const nextBtn = next;
+      const fadeLeft = fadeL;
+      const fadeRight = fadeR;
+      const card = rail.querySelector('.card');
+      const gap = parseInt(getComputedStyle(rail).columnGap || getComputedStyle(rail).gap || '18', 10) || 18;
+      const cardWidth = card ? card.getBoundingClientRect().width : 220;
+      const step = Math.round(cardWidth + gap);
+
+      function positionArrows(){
+        const secRect = section.getBoundingClientRect();
+        const firstCard = rail.querySelector('.card');
+        const cardRect = firstCard ? firstCard.getBoundingClientRect() : rail.getBoundingClientRect();
+        const topOffset = Math.max(0, Math.round(cardRect.top - secRect.top - 6));
+        const cardH = Math.round(cardRect.height + 12);
+        [fadeLeft, fadeRight].forEach(el => {
+          if (!el) return;
+          el.style.top = topOffset + 'px';
+          el.style.height = cardH + 'px';
+        });
+        const arrowH = Math.round(cardRect.height * 0.75);
+        const arrowTop = Math.max(0, Math.round((cardRect.top - secRect.top) + (cardRect.height - arrowH) / 2));
+        [prevBtn, nextBtn].forEach(btn => {
+          btn.style.top = arrowTop + 'px';
+          btn.style.height = arrowH + 'px';
+          btn.style.alignItems = 'center';
+        });
+      }
+
+      function setHidden(el, hide, immediate){
+        if (!el) return;
+        if (hide) {
+          if (immediate) el.classList.add('immediate');
+          el.classList.add('hidden');
+          if (immediate) requestAnimationFrame(()=>{ try { el.classList.remove('immediate'); } catch {} });
+        } else {
+          el.classList.remove('hidden');
+        }
+      }
+
+      function updateArrows(){
+        const maxScroll = rail.scrollWidth - rail.clientWidth - 1;
+        const hasOverflow = rail.scrollWidth > rail.clientWidth + 1;
+        if (!hasOverflow) {
+          setHidden(prevBtn, true, true);
+          setHidden(nextBtn, true, true);
+          setHidden(fadeLeft, true, true);
+          setHidden(fadeRight, true, true);
+          return;
+        }
+        setHidden(prevBtn, false);
+        setHidden(nextBtn, false);
+        setHidden(fadeLeft, false);
+        setHidden(fadeRight, false);
+        const atStart = rail.scrollLeft <= 0;
+        const atEnd = rail.scrollLeft >= maxScroll;
+        setHidden(prevBtn, atStart, true);
+        setHidden(fadeLeft, atStart, true);
+        setHidden(nextBtn, atEnd, true);
+        setHidden(fadeRight, atEnd, true);
+      }
+
+      function perPage(){ return Math.max(1, Math.floor(rail.clientWidth / step)); }
+      function scrollByPage(dir){
+        const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const firstIndex = Math.max(0, Math.floor(rail.scrollLeft / step));
+        const page = perPage();
+        const maxFirst = Math.max(0, Math.ceil((rail.scrollWidth - rail.clientWidth) / step));
+        let newFirst = dir > 0 ? firstIndex + page : firstIndex - page;
+        if (newFirst < 0) newFirst = 0;
+        if (newFirst > maxFirst) newFirst = maxFirst;
+        const target = Math.round(newFirst * step);
+        rail.scrollTo({ left: target, behavior: prefersReduced ? 'auto' : 'smooth' });
+        setTimeout(updateArrows, 300);
+      }
+
+      prevBtn.onclick = ()=>scrollByPage(-1);
+      nextBtn.onclick = ()=>scrollByPage(1);
+      rail.addEventListener('scroll', updateArrows, { passive: true });
+
+      // Initial update
+      positionArrows();
+      updateArrows();
+
+      // Reposition after images load
+      rail.querySelectorAll('img').forEach(img => {
+        img.addEventListener('load', () => { positionArrows(); }, { once: true });
+      });
+
+      // Observe size changes
+      try {
+        const ro = new ResizeObserver(() => positionArrows());
+        ro.observe(rail);
+      } catch {}
+    } catch (e) {
+      console.warn('Could not enhance rails with arrows:', e);
+    }
+  };
+
+  // Re-enhance on window resize (single listener)
+  window.addEventListener('resize', ()=>{
+    try {
+      if (window.innerWidth <= 768) {
+        document.querySelectorAll('#fiche .rail-arrow, #fiche .rail-fade').forEach(el => el.remove());
+      } else if (window.__enhanceFicheRails) {
+        window.__enhanceFicheRails();
+      }
+    } catch {}
+  });
 
 });

@@ -311,8 +311,9 @@ body.player-open, html.player-open {
       rgba(11,17,23,0.00) 100%
     ) !important;
   }
-  /* Keep arrows above fades */
-  .rail-arrow { z-index: 6; }
+  /* Keep fades above cards and arrows above fades */
+  .rail-fade { z-index: 65; }
+  .rail-arrow { z-index: 70; }
 
   /* Hidden states: slide out of the viewport with fade */
   .rail-arrow.prev.hidden, .rail-fade.left.hidden { transform: translateX(-110%); opacity: 0; }
@@ -2323,6 +2324,16 @@ html {
         scroll-padding-left: 0 !important;   /* ensure first card aligns exactly at left */
         scroll-padding-inline-start: 0 !important;
     }
+    
+    /* Landscape mode: reduce card width to prevent stretching */
+    @media (max-width: 768px) and (orientation: landscape) {
+      .rail {
+        grid-auto-columns: clamp(100px, 28vw, 140px) !important;
+      }
+      body.fiche-page-view #fiche .section .rail {
+        grid-auto-columns: clamp(100px, 28vw, 140px) !important;
+      }
+    }
     /* Also disable snap alignment on children for mobile */
     .rail > .card, .rail > * {
         scroll-snap-align: none !important;
@@ -3013,11 +3024,13 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     /* Mobile: guarantee overflow visible and space for lift */
     @media (max-width: 768px) {
       body.fiche-page-view #fiche .section,
-      body.fiche-page-view #fiche .section .rail,
       body.fiche-page-view #fiche .section .grid {
         overflow: visible !important;
       }
+      /* Rail needs horizontal scroll on mobile */
       body.fiche-page-view #fiche .section .rail {
+        overflow-x: scroll !important;
+        overflow-y: visible !important;
         padding-top: 10px !important; /* room for translateY hover */
       }
     }

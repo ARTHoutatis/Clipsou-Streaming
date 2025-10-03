@@ -193,10 +193,10 @@
   }
   #continue-watching { overflow: visible !important; }
   .grid { overflow: visible !important; }
-  /* Proper stacking order: fades above rails, arrows above fades */
+  /* Proper stacking order: fades above rails and cards, arrows above fades */
   .section .rail { position: relative !important; z-index: 2 !important; }
-  .section .rail-fade { z-index: 5 !important; }
-  .section .rail-arrow { z-index: 6 !important; }
+  .section .rail-fade { z-index: 65 !important; }
+  .section .rail-arrow { z-index: 70 !important; }
   #continue-watching .rail { position: relative !important; z-index: 30 !important; }
   .card:hover, .card:focus-within, .card:active { z-index: 50; }
   /* Give a small breathing room above cards on desktop so translateY doesn't clip */
@@ -207,8 +207,8 @@
   /* Continue Watching: keep cards contained inside the box while preserving arrows */
   #continue-watching { overflow-x: hidden !important; overflow-y: visible !important; padding-top: 22px !important; }
   #continue-watching .rail { padding-top: 16px !important; overflow-y: visible !important; }
-  #continue-watching .rail-fade { z-index: 35 !important; }
-  #continue-watching .rail-arrow { z-index: 40 !important; }
+  #continue-watching .rail-fade { z-index: 68 !important; }
+  #continue-watching .rail-arrow { z-index: 75 !important; }
   /* Arrows across sections: same color as page background, opaque on hover */
   @media (min-width: 769px) {
     .section .rail-arrow {
