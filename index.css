@@ -2765,6 +2765,12 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
   }
 }
 
+@media (max-width: 768px) and (orientation: landscape) {
+  .rail .card .card-media > img {
+    object-position: center !important;
+  }
+}
+
   /* Card hover actions */
   .card { position: relative; }
   .card-actions {
