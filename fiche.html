@@ -57,17 +57,17 @@
         -webkit-overflow-scrolling: touch !important;
         scroll-snap-type: x proximity !important;
         touch-action: pan-x pan-y !important;
+        grid-auto-columns: 150px !important;
+      }
+      .rail > *,
+      .section .rail > *,
+      .fiche-popup .rail > *,
+      #fiche .rail > * {
+        width: 150px !important;
       }
       .section,
       #fiche .section {
         overflow: visible !important;
-      }
-      /* Landscape mode: prevent card stretching */
-      @media (orientation: landscape) {
-        .rail,
-        #fiche .rail {
-          grid-auto-columns: clamp(100px, 28vw, 140px) !important;
-        }
       }
     }
     /* Hide "Clipsou Streaming" text in nav on mobile, keep logo only */

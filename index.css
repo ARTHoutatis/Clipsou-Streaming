@@ -2318,22 +2318,13 @@ html {
     .rail { 
         padding: 0; 
         /* Smaller cards in rails on mobile */
-        grid-auto-columns: clamp(120px, 42vw, 180px);
+        grid-auto-columns: 150px;
         gap: 12px;
         scroll-snap-type: none !important;   /* force disable snapping on mobile */
         scroll-padding-left: 0 !important;   /* ensure first card aligns exactly at left */
         scroll-padding-inline-start: 0 !important;
     }
-    
-    /* Landscape mode: reduce card width to prevent stretching */
-    @media (max-width: 768px) and (orientation: landscape) {
-      .rail {
-        grid-auto-columns: clamp(100px, 28vw, 140px) !important;
-      }
-      body.fiche-page-view #fiche .section .rail {
-        grid-auto-columns: clamp(100px, 28vw, 140px) !important;
-      }
-    }
+    .rail > * { width: 150px !important; }
     /* Also disable snap alignment on children for mobile */
     .rail > .card, .rail > * {
         scroll-snap-align: none !important;
@@ -2586,7 +2577,8 @@ html {
     #fiche .section {
         padding: 0; /* let inner .grid/.rail carry the 16px side padding like index/search */
         text-align: left;  /* do NOT center */
-        border-top: 1px solid rgba(255,255,255,0.12); /* thin separator like desktop */
+        border-top: 0; /* no separator on mobile to avoid visual gap */
+        margin: 12px 0 !important; /* tighten spacing to remove void */
     }
     #fiche .section h2 { 
         text-align: left; 
@@ -2602,15 +2594,16 @@ html {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
     }
     body.fiche-page-view #fiche .section .rail {
-        grid-auto-columns: clamp(120px, 42vw, 180px) !important;
+        grid-auto-columns: 150px !important;
+    }
+    body.fiche-page-view #fiche .section .rail > * {
+        width: 150px !important;
     }
     body.fiche-page-view #fiche .section .card .card-media > img {
         width: 100% !important;
         height: 100% !important;
-        aspect-ratio: 9/12 !important;
         object-fit: cover !important;
         object-position: center center !important;
-        display: block !important;
     }
     /* Badge sizing/position centralized in common.css */
 
