@@ -1,18 +1,7 @@
 // Base dynamique (remplie en parsant index.html au chargement). Un fallback local est utilisé si le fetch échoue (ex: ouverture en file://)
 let moviesDatabase = [];
 
-// Optimise les URLs Cloudinary pour performances maximales
-function optimizeCloudinaryUrl(url){
-  if (!url || typeof url !== 'string') return url;
-  if (!url.includes('res.cloudinary.com') && !url.includes('cloudinary.com')) return url;
-  const optimized = 'f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit';
-  if (url.includes('/upload/f_auto,q_auto/')) {
-    return url.replace('/upload/f_auto,q_auto/', '/upload/' + optimized + '/');
-  } else if (url.includes('/upload/')) {
-    return url.replace('/upload/', '/upload/' + optimized + '/');
-  }
-  return url;
-}
+// Utilise la fonction partagée de utilities.js (pas de duplication)
 
 // Fallback minimal (s'active seulement si on ne peut pas lire index.html)
 const LOCAL_FALLBACK_DB = [
@@ -28,89 +17,8 @@ const LOCAL_FALLBACK_DB = [
     { id: 'film7',  title: 'Backrooms Urbanos',   type: 'film',  rating: 3,   genres: ['Horreur','Mystère','Ambience'], image: 'images/Bac.webp' }
 ];
 
-// Install a robust lazy loader for images with data-src on the search page
-(function installLazyImages(){
-    try {
-        const ATTR = 'data-src';
-        const pending = new Set();
-
-        function load(el){
-            try {
-                if (!el || !el.getAttribute) return;
-                const src = el.getAttribute(ATTR);
-                if (!src) return;
-                // Add loaded class for smooth fade-in
-                el.addEventListener('load', function onLoad() {
-                    el.classList.add('loaded');
-                    el.removeEventListener('load', onLoad);
-                }, { once: true });
-                // Handle errors gracefully
-                el.addEventListener('error', function onError() {
-                    el.classList.add('loaded'); // Still fade in even on error
-                    el.removeEventListener('error', onError);
-                }, { once: true });
-                el.src = src;
-                el.removeAttribute(ATTR);
-                pending.delete(el);
-            } catch {}
-        }
-
-        const io = ('IntersectionObserver' in window) ? new IntersectionObserver((entries)=>{
-            entries.forEach(entry => {
-                const el = entry.target;
-                if (entry.isIntersecting || entry.intersectionRatio > 0) {
-                    try { io.unobserve(el); } catch {}
-                    load(el);
-                }
-            });
-        }, { root: null, rootMargin: '600px 800px', threshold: 0.01 }) : null;
-
-        function observe(el){
-            if (!el || pending.has(el)) return;
-            pending.add(el);
-            if (io) io.observe(el); else load(el);
-        }
-
-        function scan(root){
-            const scope = root || document;
-            try { scope.querySelectorAll('img[data-src]').forEach(observe); } catch {}
-        }
-
-        // Initial scan
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function(){ scan(document); });
-        } else {
-            scan(document);
-        }
-
-        // Watch DOM for new results
-        try {
-            const mo = new MutationObserver((mutations)=>{
-                for (const m of mutations) {
-                    if (!m || !m.addedNodes) continue;
-                    m.addedNodes.forEach(node => {
-                        try {
-                            if (node && node.nodeType === 1) {
-                                if (node.matches && node.matches('img[data-src]')) observe(node);
-                                else if (node.querySelectorAll) scan(node);
-                            }
-                        } catch {}
-                    });
-                }
-            });
-            mo.observe(document, { childList: true, subtree: true });
-        } catch {}
-
-        // Fallback if no IO support
-        if (!io) {
-            let rafId = 0;
-            const tick = () => { rafId = 0; scan(document); };
-            const schedule = () => { if (!rafId) rafId = requestAnimationFrame(tick); };
-            window.addEventListener('scroll', schedule, { passive: true });
-            window.addEventListener('resize', schedule);
-        }
-    } catch {}
-})();
+// Utilise le système de lazy loading partagé de utilities.js
+installLazyImageLoader();
 
 // Construit dynamiquement la base à partir de index.html (cartes + popups)
 async function buildDatabaseFromIndex() {
@@ -194,7 +102,7 @@ async function buildDatabaseFromIndex() {
 
         if (items.length > 0) {
             // Dedupe by id and normalized title, prefer entries with better data (image, rating)
-            moviesDatabase = dedupeItems(items);
+            moviesDatabase = dedupeByIdAndTitle(items);
         } else {
             // Aucun item trouvé (ex: ouverture sans serveur) -> fallback local
             moviesDatabase = LOCAL_FALLBACK_DB;
@@ -205,88 +113,7 @@ async function buildDatabaseFromIndex() {
     }
 }
 
-// Helper: remove accents/diacritics for accent-insensitive matching
-function normalizeStr(str) {
-    return (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-}
-
-// Normalize title to a comparable key (remove diacritics, non-alphanumerics, lowercase)
-function normalizeTitleKey(s) {
-    try {
-        return String(s || '')
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '')
-          .trim();
-    } catch {
-        return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '').trim();
-    }
-}
-
-// Choose the better item when duplicates by id/title exist
-function preferBetter(a, b) {
-    const score = (x) => {
-        let s = 0;
-        if (x && x.image) s += 3; // has image
-        if (typeof x.rating === 'number') s += 1; // has rating
-        if (Array.isArray(x.genres) && x.genres.length) s += 1; // has genres
-        // Prefer entries carrying a custom studio badge (ensures correct logo display)
-        if (x && x.studioBadge) s += 4;
-        // Prefer approved-origin entries that likely have Cloudinary URLs (heuristic: http)
-        if (x && /^https?:\/\//i.test(x.image || '')) s += 1;
-        return s;
-    };
-    return score(a) >= score(b) ? a : b;
-}
-
-// Dedupe by id and normalized title
-function dedupeItems(list) {
-    const byId = new Map();
-    const byTitle = new Map();
-    for (const it of list) {
-        if (!it) continue;
-        const id = it.id || '';
-        const key = normalizeTitleKey(it.title || '');
-        if (id) {
-            const chosen = byId.has(id) ? preferBetter(byId.get(id), it) : it;
-            // Merge important fields we don't want to lose (e.g., studioBadge)
-            const prev = byId.get(id) || {};
-            const merged = {
-                ...chosen,
-                // If best item lacks studioBadge, carry it over from the other duplicate
-                studioBadge: (chosen && chosen.studioBadge) || (it && it.studioBadge) || (prev && prev.studioBadge) || ''
-            };
-            byId.set(id, merged);
-        }
-        if (key) {
-            const chosenT = byTitle.has(key) ? preferBetter(byTitle.get(key), it) : it;
-            const prevT = byTitle.get(key) || {};
-            const mergedT = {
-                ...chosenT,
-                studioBadge: (chosenT && chosenT.studioBadge) || (it && it.studioBadge) || (prevT && prevT.studioBadge) || ''
-            };
-            byTitle.set(key, mergedT);
-        }
-    }
-    // Merge preferring title uniqueness. If an id maps to a different title key, keep best.
-    const out = new Map();
-    byTitle.forEach((v, k) => out.set(k, v));
-    byId.forEach((v) => {
-        const k = normalizeTitleKey(v.title || '');
-        if (!out.has(k)) {
-            out.set(k, v);
-        } else {
-            const chosen = preferBetter(out.get(k), v);
-            const other = chosen === out.get(k) ? v : out.get(k);
-            // Ensure studioBadge is preserved if present on either
-            const merged = { ...chosen };
-            if (!merged.studioBadge && other && other.studioBadge) merged.studioBadge = other.studioBadge;
-            out.set(k, merged);
-        }
-    });
-    return Array.from(out.values());
-}
+// Utilise les fonctions partagées de utilities.js (pas de duplication)
 
 // Fonction de recherche (accent-insensitive)
 function searchMovies(query, selectedGenres = []) {

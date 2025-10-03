@@ -43,44 +43,7 @@
         return;
       } catch {}
     }
-    function applyCwCacheBuster(src){
-      if (!src) return '';
-      if (/^(data:|https?:)/i.test(src)) return src;
-      const v = (window.__cw_ver || (window.__cw_ver = Date.now())) + '';
-      return src + (src.includes('?') ? '&' : '?') + 'cw=' + v;
-    }
-    
-    // Optimise les URLs Cloudinary pour performances maximales
-    function optimizeCloudinaryUrl(url){
-      if (!url || typeof url !== 'string') return url;
-      // Vérifie si c'est une URL Cloudinary
-      if (!url.includes('res.cloudinary.com') && !url.includes('cloudinary.com')) return url;
-      // Transformations optimales pour performances maximales
-      const optimized = 'f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit';
-      // Remplace les anciennes transformations
-      if (url.includes('/upload/f_auto,q_auto/')) {
-        return url.replace('/upload/f_auto,q_auto/', '/upload/' + optimized + '/');
-      } else if (url.includes('/upload/')) {
-        return url.replace('/upload/', '/upload/' + optimized + '/');
-      }
-      return url;
-    }
-    function deriveExts(src){
-      try {
-        const m = (src||'').match(/^(.*?)(\d+)?\.(webp|jpg|jpeg|png)$/i);
-        if (!m) return [];
-        const base = m[1];
-        return [base + '.webp', base + '.jpg', base + '.jpeg'];
-      } catch { return []; }
-    }
-    function prependLandscapeVariants(list, src){
-      const m = (src||'').match(/^(.*?)(\.(?:webp|jpg|jpeg|png))$/i);
-      if (!m) return;
-      const base = m[1];
-      // If base already ends with '1' (e.g., 'Law1'), do not append another '1'
-      if (/1$/i.test(base)) return;
-      list.unshift(base + '1.webp');
-    }
+    // Utilise les fonctions partagées de utilities.js (pas de duplication)
 document.addEventListener('DOMContentLoaded', async function () {
   // Preserve scroll position on load/refresh
   try { if ('scrollRestoration' in history) history.scrollRestoration = 'auto'; } catch {}

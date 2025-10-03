@@ -874,6 +874,35 @@ html { scrollbar-color: #615d5d #0a0a0a; scrollbar-width: thin; }
     filter: none !important;
     opacity: 1 !important;
   }
+  
+  /* Mobile: Admin link devient icon-only comme Recherche */
+  .nav-links .admin-link {
+    padding: 0 !important;
+    font-size: 16px;
+    background: transparent !important;
+    border-radius: 5px;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    box-shadow: none;
+    text-indent: -9999px; /* hide text label on mobile */
+    overflow: hidden;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nav-links .admin-link svg {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px !important;
+    height: 20px !important;
+  }
+  .nav-links .admin-link span {
+    display: none !important; /* hide text on mobile */
+  }
 }
 
 /* Ultra-small phones: extra tightening */

@@ -1,17 +1,6 @@
 'use strict';
 
-// Optimise les URLs Cloudinary pour performances maximales
-function optimizeCloudinaryUrl(url){
-  if (!url || typeof url !== 'string') return url;
-  if (!url.includes('res.cloudinary.com') && !url.includes('cloudinary.com')) return url;
-  const optimized = 'f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit';
-  if (url.includes('/upload/f_auto,q_auto/')) {
-    return url.replace('/upload/f_auto,q_auto/', '/upload/' + optimized + '/');
-  } else if (url.includes('/upload/')) {
-    return url.replace('/upload/', '/upload/' + optimized + '/');
-  }
-  return url;
-}
+// Utilise les fonctions partagées de utilities.js (pas de duplication)
 
 // Force revenir en haut de la page au chargement / rafraîchissement
 // et désactiver la restauration automatique de position par le navigateur
@@ -328,20 +317,7 @@ const ACTOR_IMAGE_MAP = {
   'Unknown': 'unknown'
 };
 
-// Normalize titles to match regardless of accents/case/spaces
-function normalizeTitleKey(s) {
-  try {
-    return String(s || '')
-      .normalize('NFD')                     // split accents
-      .replace(/[\u0300-\u036f]/g, '')    // remove diacritics
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '')          // remove all non-alphanumeric
-      .trim();
-  } catch(_) {
-    // Fallback if normalize isn't supported
-    return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '').trim();
-  }
-}
+// Utilise normalizeTitleKey de utilities.js
 
 // Build a normalized lookup for actor lists
 const ACTOR_DB_NORM = (() => {
