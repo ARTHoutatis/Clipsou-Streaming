@@ -3,16 +3,17 @@
 (function(){
   const APP_KEY_REQ = 'clipsou_requests_v1';
   const APP_KEY_APPROVED = 'clipsou_items_approved_v1';
-  const APP_KEY_DRAFT = 'clipsou_admin_form_draft_v1';
+  const APP_KEY_DRAFT = 'clipsou_admin_draft_v1';
   const APP_KEY_SESSION = 'clipsou_admin_session_v1';
-  const APP_KEY_REMEMBER = 'clipsou_admin_remember_v1';
   const APP_KEY_CLD = 'clipsou_admin_cloudinary_v1';
+  const APP_KEY_ACTOR_PHOTOS = 'clipsou_admin_actor_photos_v1';
+  const APP_KEY_PAGE_STATE = 'clipsou_admin_page_state_v1';
   const APP_KEY_CLD_LOCK = 'clipsou_admin_cloudinary_lock_v1';
   const APP_KEY_PUB = 'clipsou_admin_publish_api_v1';
   const APP_KEY_PUB_TIMES = 'clipsou_admin_publish_times_v1';
   const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
   const APP_KEY_LAST_EDIT = 'clipsou_admin_last_edit_v1';
-  const APP_KEY_ACTOR_PHOTOS = 'clipsou_admin_actor_photos_v1';
+  const APP_KEY_REMEMBER = 'clipsou_admin_remember_v1';
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
@@ -52,7 +53,6 @@
   // Fetch public approved.json to hydrate actor photos map for admin UI
   async function fetchPublicApprovedArray(){
     const cfg = getPublishConfig();
-    const isLocal = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
     const originApproved = (function(){ try { return (window.location.origin || '') + '/data/approved.json'; } catch { return null; } })();
     const tryUrls = [
       cfg && cfg.publicApprovedUrl ? cfg.publicApprovedUrl : null,
@@ -60,8 +60,6 @@
       '../data/approved.json',
       'data/approved.json'
     ].filter(Boolean);
-    
-    // En mode local (file://), fetch peut échouer - essayer XMLHttpRequest en fallback
     for (const u of tryUrls) {
       try {
         const res = await fetch(u + '?v=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' });
@@ -73,25 +71,7 @@
           if (Array.isArray(json.items)) return json.items;
           if (Array.isArray(json.data)) return json.data;
         }
-      } catch (fetchErr) {
-        // Fallback pour protocole file:// ou localhost sans serveur
-        if (isLocal) {
-          try {
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', u, false); // synchrone pour simplicité
-            xhr.send();
-            if (xhr.status === 200 || xhr.status === 0) { // 0 = file://
-              const json = JSON.parse(xhr.responseText);
-              if (Array.isArray(json)) return json;
-              if (json && typeof json === 'object') {
-                if (Array.isArray(json.approved)) return json.approved;
-                if (Array.isArray(json.items)) return json.items;
-                if (Array.isArray(json.data)) return json.data;
-              }
-            }
-          } catch (xhrErr) { /* continue */ }
-        }
-      }
+      } catch {}
     }
     return [];
   }
@@ -99,14 +79,12 @@
   // Fetch public requests.json to hydrate requests list (shared across admins)
   async function fetchPublicRequestsArray(){
     const cfg = getPublishConfig();
-    const isLocal = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
     const tryUrls = [
       cfg && cfg.publicRequestsUrl ? cfg.publicRequestsUrl : null,
       (function(){ try { return (window.location.origin || '') + '/data/requests.json'; } catch { return null; } })(),
       '../data/requests.json',
       'data/requests.json'
     ].filter(Boolean);
-    
     for (const u of tryUrls) {
       try {
         const res = await fetch(u + '?v=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' });
@@ -114,21 +92,7 @@
         const json = await res.json();
         if (Array.isArray(json)) return json;
         if (json && typeof json === 'object' && Array.isArray(json.requests)) return json.requests;
-      } catch (fetchErr) {
-        // Fallback pour protocole file:// ou localhost sans serveur
-        if (isLocal) {
-          try {
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', u, false); // synchrone pour simplicité
-            xhr.send();
-            if (xhr.status === 200 || xhr.status === 0) { // 0 = file://
-              const json = JSON.parse(xhr.responseText);
-              if (Array.isArray(json)) return json;
-              if (json && typeof json === 'object' && Array.isArray(json.requests)) return json.requests;
-            }
-          } catch (xhrErr) { /* continue */ }
-        }
-      }
+      } catch {}
     }
     return [];
   }
@@ -181,6 +145,65 @@
   }
 
   // Ensure all published films are visible in the admin requests table by merging remote approved items
+  // Load hardcoded local films from index.html into admin requests
+  async function hydrateLocalFilms(){
+    try {
+      const KEY_LOADED = 'clipsou_local_films_loaded_v1';
+      // Only load once to avoid duplicates on every page load
+      if (localStorage.getItem(KEY_LOADED) === '1') return;
+      
+      const res = await fetch('../data/local_films.json', { cache: 'no-store', credentials: 'same-origin' });
+      if (!res.ok) return;
+      const localFilms = await res.json();
+      if (!Array.isArray(localFilms) || !localFilms.length) return;
+      
+      const list = getRequests();
+      const norm = (s)=>{
+        try { return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); }
+        catch { return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); }
+      };
+      
+      // Build index of existing requests by title and id to avoid duplicates
+      const existingIds = new Set();
+      const existingTitles = new Set();
+      (list||[]).forEach(r => {
+        try {
+          if (r && r.data) {
+            if (r.data.id) existingIds.add(String(r.data.id));
+            if (r.data.title) existingTitles.add(norm(r.data.title));
+          }
+        } catch {}
+      });
+      
+      // Add only films that don't already exist
+      let added = 0;
+      localFilms.forEach(film => {
+        try {
+          if (!film || !film.data) return;
+          const filmId = String(film.data.id || '');
+          const filmTitle = norm(film.data.title || '');
+          
+          // Skip if already exists by id or title
+          if ((filmId && existingIds.has(filmId)) || (filmTitle && existingTitles.has(filmTitle))) {
+            return;
+          }
+          
+          // Add to requests list
+          list.push(film);
+          added++;
+        } catch {}
+      });
+      
+      if (added > 0) {
+        setRequests(list);
+        localStorage.setItem(KEY_LOADED, '1');
+        console.log(`✅ ${added} films locaux ajoutés aux requêtes admin`);
+      }
+    } catch (err) {
+      console.warn('Impossible de charger les films locaux:', err);
+    }
+  }
+
   async function hydrateRequestsFromPublicApproved(){
     try {
       const remote = await fetchPublicApprovedArray();
@@ -558,7 +581,6 @@
   // Poll GitHub Pages public JSON to detect when an approved item is live and, for upsert, when fields match the expected item
   async function isItemLivePublic(id, expected){
     const cfg = getPublishConfig();
-    const isLocal = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
     const absolute = (typeof window !== 'undefined' && window.location) ? (window.location.origin + '/data/approved.json') : null;
     const tryUrls = [
       cfg && cfg.publicApprovedUrl ? cfg.publicApprovedUrl : null,
@@ -591,36 +613,7 @@
             }
           }
         }
-      } catch (fetchErr) {
-        // Fallback pour protocole file:// ou localhost sans serveur
-        if (isLocal) {
-          try {
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', base, false);
-            xhr.send();
-            if (xhr.status === 200 || xhr.status === 0) {
-              const json = JSON.parse(xhr.responseText);
-              const collect = [];
-              if (Array.isArray(json)) collect.push(json);
-              if (json && typeof json === 'object') {
-                if (Array.isArray(json.approved)) collect.push(json.approved);
-                if (Array.isArray(json.items)) collect.push(json.items);
-                if (Array.isArray(json.data)) collect.push(json.data);
-              }
-              for (const arr of collect) {
-                const found = arr.find(x => x && x.id === id);
-                if (found) {
-                  if (expected && typeof expected === 'object') {
-                    if (itemMatchesPublic(expected, found)) return true;
-                  } else {
-                    return true;
-                  }
-                }
-              }
-            }
-          } catch (xhrErr) { /* continue */ }
-        }
-      }
+      } catch {}
     }
     return false;
   }
@@ -1183,6 +1176,59 @@
     });
   }
 
+  // ===== Episodes management for series - simple input list =====
+  function renderEpisodesInputs(episodes){
+    const wrap = $('#episodesInputsList');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    
+    episodes.forEach((ep, idx) => {
+      const row = document.createElement('div');
+      row.className = 'episode-input-row';
+      
+      const label = document.createElement('label');
+      const span = document.createElement('span');
+      span.textContent = `Lien épisode ${idx + 1}`;
+      const input = document.createElement('input');
+      input.type = 'url';
+      input.className = 'episode-url-input';
+      input.placeholder = 'https://www.youtube.com/watch?v=...';
+      input.value = ep.url || '';
+      input.dataset.index = idx;
+      
+      // Update on change
+      input.addEventListener('input', ()=>{
+        const episodes = JSON.parse($('#contentForm').dataset.episodes || '[]');
+        episodes[idx] = { url: input.value.trim() };
+        $('#contentForm').dataset.episodes = JSON.stringify(episodes);
+        saveDraft();
+      });
+      
+      label.appendChild(span);
+      label.appendChild(input);
+      row.appendChild(label);
+      
+      // Remove button (sauf pour le premier)
+      if (idx > 0) {
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'remove-episode-btn';
+        removeBtn.textContent = '✕';
+        removeBtn.title = 'Supprimer cet épisode';
+        removeBtn.addEventListener('click', ()=>{
+          const episodes = JSON.parse($('#contentForm').dataset.episodes || '[]');
+          episodes.splice(idx, 1);
+          $('#contentForm').dataset.episodes = JSON.stringify(episodes);
+          renderEpisodesInputs(episodes);
+          saveDraft();
+        });
+        row.appendChild(removeBtn);
+      }
+      
+      wrap.appendChild(row);
+    });
+  }
+
   function ensureAuth(){
     const app = $('#app');
     const login = $('#login');
@@ -1286,6 +1332,22 @@
     if (studioBadgeEl) studioBadgeEl.value = data.studioBadge || 'https://clipsoustreaming.com/images/clipsoustudio.webp';
     // Preview studio badge
     setPreview($('#studioBadgePreview'), (studioBadgeEl && studioBadgeEl.value) || '');
+    // Episodes list for series - normalize to array of {url: string}
+    let episodes = [];
+    if (Array.isArray(data.episodes)) {
+      episodes = data.episodes.map(ep => {
+        if (typeof ep === 'string') return { url: ep };
+        if (ep && ep.url) return { url: ep.url };
+        return { url: '' };
+      });
+      // Only filter out truly empty ones (keep all URLs even if empty string for now)
+      episodes = episodes.filter(ep => ep && ep.url !== undefined);
+    }
+    // Always have at least one field for series
+    if (episodes.length === 0) episodes = [{ url: '' }];
+    $('#contentForm').dataset.episodes = JSON.stringify(episodes);
+    // Show/hide series fields based on type (this will also render episodes if series)
+    toggleSeriesFields(data.type || 'film');
     const actors = Array.isArray(data.actors) ? data.actors.slice() : [];
     $('#contentForm').dataset.actors = JSON.stringify(actors);
     renderActors(actors);
@@ -1316,6 +1378,34 @@
 
   function emptyForm(){ fillForm({}); }
 
+  function toggleSeriesFields(type){
+    try {
+      const watchUrlContainer = $('#watchUrlContainer');
+      const episodesContainer = $('#episodesContainer');
+      const isSeries = String(type||'').toLowerCase() === 'série';
+      
+      // Pour série : masquer watchUrl, afficher épisodes
+      // Pour film/trailer : afficher watchUrl, masquer épisodes
+      if (watchUrlContainer) watchUrlContainer.style.display = isSeries ? 'none' : '';
+      if (episodesContainer) episodesContainer.style.display = isSeries ? '' : 'none';
+      
+      // Initialize episodes list ONLY if empty (don't overwrite existing data)
+      if (isSeries) {
+        try {
+          const episodes = JSON.parse($('#contentForm').dataset.episodes || '[]');
+          // Only initialize with one empty field if truly empty
+          if (episodes.length === 0) {
+            $('#contentForm').dataset.episodes = JSON.stringify([{ url: '' }]);
+            renderEpisodesInputs([{ url: '' }]);
+          } else {
+            // Episodes already exist, just render them
+            renderEpisodesInputs(episodes);
+          }
+        } catch {}
+      }
+    } catch {}
+  }
+
   function collectForm(){
     const actors = JSON.parse($('#contentForm').dataset.actors || '[]');
     // Keep order, enforce uniqueness and non-empty for genres
@@ -1330,7 +1420,8 @@
     let studioBadge = '';
     try { studioBadge = String($('#studioBadge').value || '').trim(); } catch {}
     if (!studioBadge) studioBadge = 'https://clipsoustreaming.com/images/clipsoustudio.webp';
-    return {
+    
+    const data = {
       id,
       requestId: $('#requestId').value || '',
       title,
@@ -1344,12 +1435,84 @@
       studioBadge,
       actors
     };
+    
+    // Add series-specific fields if type is série
+    const type = String($('#type').value || '').toLowerCase();
+    if (type === 'série') {
+      // Episodes array - convert to full format with number
+      try {
+        const episodes = JSON.parse($('#contentForm').dataset.episodes || '[]');
+        if (Array.isArray(episodes) && episodes.length > 0) {
+          const validEpisodes = episodes
+            .map((ep, idx) => {
+              const url = (ep && ep.url) ? ep.url.trim() : '';
+              if (!url) return null;
+              return {
+                number: idx + 1,
+                title: (ep && ep.title) ? ep.title : '',
+                url: url
+              };
+            })
+            .filter(ep => ep !== null);
+          
+          if (validEpisodes.length > 0) {
+            data.episodes = validEpisodes;
+          }
+        }
+      } catch {}
+    }
+    
+    return data;
   }
 
   function saveDraft(){
     try { saveJSON(APP_KEY_DRAFT, collectForm()); } catch {}
   }
   function clearDraft(){ try { localStorage.removeItem(APP_KEY_DRAFT); } catch {}
+  }
+
+  // ===== Page state persistence =====
+  function savePageState(){
+    try {
+      const state = {
+        scrollY: window.scrollY,
+        searchValue: $('#requestsSearch') ? $('#requestsSearch').value : '',
+        timestamp: Date.now()
+      };
+      saveJSON(APP_KEY_PAGE_STATE, state);
+    } catch {}
+  }
+
+  function restorePageState(){
+    try {
+      const state = loadJSON(APP_KEY_PAGE_STATE);
+      if (!state || !state.timestamp) return;
+      
+      // Only restore if saved within last 5 minutes (avoid stale state)
+      if (Date.now() - state.timestamp > 5 * 60 * 1000) {
+        localStorage.removeItem(APP_KEY_PAGE_STATE);
+        return;
+      }
+      
+      // Restore search
+      if (state.searchValue && $('#requestsSearch')) {
+        $('#requestsSearch').value = state.searchValue;
+        // Trigger search if there's a value
+        if (state.searchValue.trim()) {
+          try { filterTable(); } catch {}
+        }
+      }
+      
+      // Restore scroll position after a short delay
+      if (state.scrollY > 0) {
+        setTimeout(() => {
+          window.scrollTo(0, state.scrollY);
+        }, 100);
+      }
+      
+      // Clear state after restoration
+      localStorage.removeItem(APP_KEY_PAGE_STATE);
+    } catch {}
   }
   function restoreDraft(){
     try {
@@ -1362,17 +1525,6 @@
     const tbody = $('#requestsTable tbody');
     // Exclude requests marked as deleted from the UI
     let reqs = getRequests().filter(r => !(r && r.meta && r.meta.deleted));
-    
-    // Update film count display
-    try {
-      const countEl = $('#filmCount');
-      if (countEl) {
-        const approvedCount = reqs.filter(r => r.status === 'approved').length;
-        const pendingCount = reqs.filter(r => r.status === 'pending').length;
-        countEl.textContent = `(${reqs.length} total${approvedCount > 0 ? ', ' + approvedCount + ' publiés' : ''}${pendingCount > 0 ? ', ' + pendingCount + ' en attente' : ''})`;
-      }
-    } catch {}
-    
     // Apply search filter if any
     try {
       const input = $('#requestsSearch');
@@ -1629,32 +1781,16 @@
       const searchInput = $('#requestsSearch');
       if (searchInput) {
         let raf = null;
-        const rerender = () => { if (raf) cancelAnimationFrame(raf); raf = requestAnimationFrame(()=>{ try { renderTable(); } catch {} }); };
+        const rerender = () => { 
+          if (raf) cancelAnimationFrame(raf); 
+          raf = requestAnimationFrame(()=>{ 
+            try { renderTable(); } catch {} 
+            // Save state when search changes
+            savePageState();
+          }); 
+        };
         searchInput.addEventListener('input', rerender);
         searchInput.addEventListener('change', rerender);
-      }
-    } catch {}
-
-    // ===== Manual sync button for films from approved.json =====
-    try {
-      const syncBtn = $('#syncFilmsBtn');
-      if (syncBtn) {
-        syncBtn.addEventListener('click', async () => {
-          const originalText = syncBtn.textContent;
-          syncBtn.disabled = true;
-          syncBtn.textContent = '🔄 Synchronisation...';
-          try {
-            await hydrateRequestsFromPublicApproved();
-            await hydrateActorPhotoMapFromPublic();
-            renderTable();
-            syncBtn.textContent = '✓ Synchronisé';
-            setTimeout(() => { syncBtn.textContent = originalText; syncBtn.disabled = false; }, 2000);
-          } catch (err) {
-            console.error('Sync error:', err);
-            syncBtn.textContent = '✗ Erreur';
-            setTimeout(() => { syncBtn.textContent = originalText; syncBtn.disabled = false; }, 2000);
-          }
-        });
       }
     } catch {}
 
@@ -1694,6 +1830,18 @@
     });
 
     $('#resetBtn').addEventListener('click', ()=>{ emptyForm(); clearDraft(); });
+
+    // ===== Episode management for series - simple add button =====
+    const addEpisodeFieldBtn = $('#addEpisodeFieldBtn');
+    if (addEpisodeFieldBtn) {
+      addEpisodeFieldBtn.addEventListener('click', ()=>{
+        const episodes = JSON.parse($('#contentForm').dataset.episodes || '[]');
+        episodes.push({ url: '' });
+        $('#contentForm').dataset.episodes = JSON.stringify(episodes);
+        renderEpisodesInputs(episodes);
+        saveDraft();
+      });
+    }
 
     // ===== Cloudinary settings form =====
     (function wireCloudinaryForm(){
@@ -1764,6 +1912,14 @@
         applyLockUI(next);
       });
     })();
+
+    // ===== Type selector: toggle series fields =====
+    const typeSelect = $('#type');
+    if (typeSelect) {
+      typeSelect.addEventListener('change', ()=>{
+        toggleSeriesFields(typeSelect.value);
+      });
+    }
 
     // ===== Upload & previews wiring =====
     const portraitInput = $('#portraitFileInput');
@@ -1978,6 +2134,21 @@
       URL.revokeObjectURL(url);
     });
 
+    const reloadLocalFilmsBtn = $('#reloadLocalFilmsBtn');
+    if (reloadLocalFilmsBtn) reloadLocalFilmsBtn.addEventListener('click', async ()=>{
+      try {
+        const ok = confirm('Recharger les 10 films locaux hardcodés dans index.html ?\n\nCela permettra de les migrer vers Cloudinary via l\'admin.\nLes doublons seront automatiquement évités.');
+        if (!ok) return;
+        // Clear the loaded flag to force reload
+        localStorage.removeItem('clipsou_local_films_loaded_v1');
+        await hydrateLocalFilms();
+        renderTable();
+        alert('✅ Films locaux rechargés avec succès !');
+      } catch (err) {
+        alert('❌ Erreur lors du rechargement : ' + err.message);
+      }
+    });
+
     const importInput = $('#importInput');
     if (importInput) importInput.addEventListener('change', async (e)=>{
       const file = e.target.files && e.target.files[0];
@@ -1993,19 +2164,10 @@
       e.target.value = '';
     });
 
-    // Initial load: hydrate shared requests and render
-    const isLocalMode = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-    if (isLocalMode) {
-      console.log('🔧 Mode localhost détecté - Utilisation du fallback XMLHttpRequest pour charger les fichiers JSON');
-    }
+    // Initial load: hydrate local films first, then shared requests and render
+    try { await hydrateLocalFilms(); } catch {}
     try { await hydrateRequestsFromPublic(); } catch {}
-    try { 
-      await hydrateRequestsFromPublicApproved(); 
-      const filmCount = getRequests().filter(r => r.status === 'approved' && !(r.meta && r.meta.deleted)).length;
-      console.log(`✓ Films locaux synchronisés depuis approved.json (${filmCount} films chargés)`);
-    } catch (err) {
-      console.warn('⚠ Erreur lors de la synchronisation des films locaux:', err);
-    }
+    try { await hydrateRequestsFromPublicApproved(); } catch {}
     try { renderTable(); } catch {}
     emptyForm();
     renderTable();
@@ -2035,11 +2197,20 @@
     } catch {}
   }
 
+  // ===== Auto-save page state before unload =====
+  window.addEventListener('beforeunload', savePageState);
+  
   // Boot
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', ensureAuth);
+    document.addEventListener('DOMContentLoaded', () => {
+      ensureAuth();
+      // Restore page state after everything is loaded
+      setTimeout(restorePageState, 200);
+    });
   } else {
     ensureAuth();
+    // Restore page state after everything is loaded
+    setTimeout(restorePageState, 200);
   }
 })();
 
