@@ -980,9 +980,13 @@
   }
 
   async function publishApproved(item, action='upsert'){
-    const cfg = await ensurePublishConfig();
-    if (!cfg || !cfg.url || !cfg.secret) return false;
     try {
+      const cfg = await ensurePublishConfig();
+      if (!cfg || !cfg.url || !cfg.secret) {
+        console.warn('API de publication non configurée - fonctionnement local uniquement');
+        return true; // Permet le fonctionnement local
+      }
+      
       const res = await fetch(cfg.url, {
         method: 'POST',
         headers: {
@@ -995,17 +999,22 @@
             : { action: 'upsert', item }
         )
       });
+      
       if (!res.ok) {
         const text = await res.text().catch(()=>String(res.status));
-        alert('Publication API: échec ('+res.status+'). ' + text);
-        return false;
+        console.error('Publication API: échec ('+res.status+'). ' + text);
+        // Ne pas bloquer le workflow local
+        alert(`⚠️ Erreur de publication vers le site (${res.status})\n\nLe contenu est sauvegardé localement mais pas encore publié sur le site.\n\nConfigurez l'API CloudFlare pour la publication automatique.`);
+        return true; // Permet de continuer
       }
+      
       console.log('Publication API: succès');
       return true;
     } catch (e) {
-      console.error(e);
-      alert('Publication API: erreur réseau.');
-      return false;
+      console.error('Erreur publication:', e);
+      // Ne pas bloquer le workflow local
+      alert(`⚠️ Erreur de connexion à l'API de publication\n\nLe contenu est sauvegardé localement mais pas encore publié sur le site.\n\nVérifiez votre connexion et la configuration de l'API.`);
+      return true; // Permet de continuer
     }
   }
 
