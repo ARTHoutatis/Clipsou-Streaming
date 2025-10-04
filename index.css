@@ -2318,8 +2318,8 @@ html {
     /* Rails padding on mobile */
     .rail { 
         padding: 0; 
-        /* Smaller cards in rails on mobile */
-        grid-auto-columns: clamp(120px, 42vw, 160px);
+        /* Cartes de largeur fixe pour une cohérence portrait/paysage */
+        grid-auto-columns: 150px;
         gap: 12px;
         scroll-snap-type: none !important;   /* force disable snapping on mobile */
         scroll-padding-left: 0 !important;   /* ensure first card aligns exactly at left */
@@ -2594,7 +2594,7 @@ html {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
     }
     body.fiche-page-view #fiche .section .rail {
-        grid-auto-columns: clamp(130px, 44vw, 170px) !important;
+        grid-auto-columns: 150px !important;
     }
     body.fiche-page-view #fiche .section .rail > * {
         width: auto !important;

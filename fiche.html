@@ -47,15 +47,17 @@
     #fiche .section .rail-fade { z-index: 65 !important; }
     #fiche .section .rail-arrow { z-index: 70 !important; }
     
-    /* MOBILE - Allow sections to show cards properly */
+    /* MOBILE: align fiche rails with index/search behavior */
     @media (max-width: 768px) {
-      .section,
+      #fiche .section .rail {
+        overflow-x: auto !important;
+        overflow-y: visible !important;
+        -webkit-overflow-scrolling: touch !important;
+        scroll-snap-type: x proximity !important;
+        touch-action: pan-x pan-y !important;
+      }
       #fiche .section {
         overflow: visible !important;
-      }
-      /* Grids should wrap naturally on mobile */
-      #fiche .section .grid {
-        display: grid !important;
       }
     }
     /* Hide "Clipsou Streaming" text in nav on mobile, keep logo only */
