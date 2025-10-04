@@ -167,6 +167,22 @@
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757790111/epmm5uvpnyers3wcnzwo.png"
   },
   {
+    "id": "custom-la-vie-au-petit-age-local",
+    "title": "La vie au petit âge",
+    "type": "film",
+    "rating": 2.5,
+    "genres": [
+      "Comédie",
+      "Familial",
+      "Aventure"
+    ],
+    "portraitImage": "images/La.webp",
+    "landscapeImage": "images/La1.webp",
+    "description": "Timmy, un enfant espiègle, nous fait visiter son village dans un monde entièrement construit en briques LEGO. Mais chaque coin de rue réserve son lot de gags et de surprises ! Une aventure familiale pleine d'humour et de tendresse qui ravira petits et grands.",
+    "watchUrl": "https://www.youtube.com/watch?v=XtqzuhtuH2E",
+    "actors": []
+  },
+  {
     "id": "custom-le-cafe-des-heros-k4a8",
     "title": "Le Café Des Héros",
     "type": "film",
