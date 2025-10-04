@@ -3,17 +3,16 @@
 (function(){
   const APP_KEY_REQ = 'clipsou_requests_v1';
   const APP_KEY_APPROVED = 'clipsou_items_approved_v1';
-  const APP_KEY_DRAFT = 'clipsou_admin_draft_v1';
+  const APP_KEY_DRAFT = 'clipsou_admin_form_draft_v1';
   const APP_KEY_SESSION = 'clipsou_admin_session_v1';
+  const APP_KEY_REMEMBER = 'clipsou_admin_remember_v1';
   const APP_KEY_CLD = 'clipsou_admin_cloudinary_v1';
-  const APP_KEY_ACTOR_PHOTOS = 'clipsou_admin_actor_photos_v1';
-  const APP_KEY_PAGE_STATE = 'clipsou_admin_page_state_v1';
   const APP_KEY_CLD_LOCK = 'clipsou_admin_cloudinary_lock_v1';
   const APP_KEY_PUB = 'clipsou_admin_publish_api_v1';
   const APP_KEY_PUB_TIMES = 'clipsou_admin_publish_times_v1';
   const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
   const APP_KEY_LAST_EDIT = 'clipsou_admin_last_edit_v1';
-  const APP_KEY_REMEMBER = 'clipsou_admin_remember_v1';
+  const APP_KEY_ACTOR_PHOTOS = 'clipsou_admin_actor_photos_v1';
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
@@ -145,65 +144,6 @@
   }
 
   // Ensure all published films are visible in the admin requests table by merging remote approved items
-  // Load hardcoded local films from index.html into admin requests
-  async function hydrateLocalFilms(){
-    try {
-      const KEY_LOADED = 'clipsou_local_films_loaded_v1';
-      // Only load once to avoid duplicates on every page load
-      if (localStorage.getItem(KEY_LOADED) === '1') return;
-      
-      const res = await fetch('../data/local_films.json', { cache: 'no-store', credentials: 'same-origin' });
-      if (!res.ok) return;
-      const localFilms = await res.json();
-      if (!Array.isArray(localFilms) || !localFilms.length) return;
-      
-      const list = getRequests();
-      const norm = (s)=>{
-        try { return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); }
-        catch { return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); }
-      };
-      
-      // Build index of existing requests by title and id to avoid duplicates
-      const existingIds = new Set();
-      const existingTitles = new Set();
-      (list||[]).forEach(r => {
-        try {
-          if (r && r.data) {
-            if (r.data.id) existingIds.add(String(r.data.id));
-            if (r.data.title) existingTitles.add(norm(r.data.title));
-          }
-        } catch {}
-      });
-      
-      // Add only films that don't already exist
-      let added = 0;
-      localFilms.forEach(film => {
-        try {
-          if (!film || !film.data) return;
-          const filmId = String(film.data.id || '');
-          const filmTitle = norm(film.data.title || '');
-          
-          // Skip if already exists by id or title
-          if ((filmId && existingIds.has(filmId)) || (filmTitle && existingTitles.has(filmTitle))) {
-            return;
-          }
-          
-          // Add to requests list
-          list.push(film);
-          added++;
-        } catch {}
-      });
-      
-      if (added > 0) {
-        setRequests(list);
-        localStorage.setItem(KEY_LOADED, '1');
-        console.log(`✅ ${added} films locaux ajoutés aux requêtes admin`);
-      }
-    } catch (err) {
-      console.warn('Impossible de charger les films locaux:', err);
-    }
-  }
-
   async function hydrateRequestsFromPublicApproved(){
     try {
       const remote = await fetchPublicApprovedArray();
@@ -980,13 +920,9 @@
   }
 
   async function publishApproved(item, action='upsert'){
+    const cfg = await ensurePublishConfig();
+    if (!cfg || !cfg.url || !cfg.secret) return false;
     try {
-      const cfg = await ensurePublishConfig();
-      if (!cfg || !cfg.url || !cfg.secret) {
-        console.log('Mode local uniquement - API de publication non configurée');
-        return true; // Permet le fonctionnement local
-      }
-      
       const res = await fetch(cfg.url, {
         method: 'POST',
         headers: {
@@ -999,18 +935,17 @@
             : { action: 'upsert', item }
         )
       });
-      
       if (!res.ok) {
         const text = await res.text().catch(()=>String(res.status));
-        console.error('Publication API: échec ('+res.status+'). ' + text);
-        return true; // Permet de continuer en mode local
+        alert('Publication API: échec ('+res.status+'). ' + text);
+        return false;
       }
-      
-      console.log('Publication API: succès - Contenu publié sur le site');
+      console.log('Publication API: succès');
       return true;
     } catch (e) {
-      console.error('Erreur publication:', e);
-      return true; // Permet de continuer en mode local
+      console.error(e);
+      alert('Publication API: erreur réseau.');
+      return false;
     }
   }
 
@@ -1181,59 +1116,6 @@
     });
   }
 
-  // ===== Episodes management for series - simple input list =====
-  function renderEpisodesInputs(episodes){
-    const wrap = $('#episodesInputsList');
-    if (!wrap) return;
-    wrap.innerHTML = '';
-    
-    episodes.forEach((ep, idx) => {
-      const row = document.createElement('div');
-      row.className = 'episode-input-row';
-      
-      const label = document.createElement('label');
-      const span = document.createElement('span');
-      span.textContent = `Lien épisode ${idx + 1}`;
-      const input = document.createElement('input');
-      input.type = 'url';
-      input.className = 'episode-url-input';
-      input.placeholder = 'https://www.youtube.com/watch?v=...';
-      input.value = ep.url || '';
-      input.dataset.index = idx;
-      
-      // Update on change
-      input.addEventListener('input', ()=>{
-        const episodes = JSON.parse($('#contentForm').dataset.episodes || '[]');
-        episodes[idx] = { url: input.value.trim() };
-        $('#contentForm').dataset.episodes = JSON.stringify(episodes);
-        saveDraft();
-      });
-      
-      label.appendChild(span);
-      label.appendChild(input);
-      row.appendChild(label);
-      
-      // Remove button (sauf pour le premier)
-      if (idx > 0) {
-        const removeBtn = document.createElement('button');
-        removeBtn.type = 'button';
-        removeBtn.className = 'remove-episode-btn';
-        removeBtn.textContent = '✕';
-        removeBtn.title = 'Supprimer cet épisode';
-        removeBtn.addEventListener('click', ()=>{
-          const episodes = JSON.parse($('#contentForm').dataset.episodes || '[]');
-          episodes.splice(idx, 1);
-          $('#contentForm').dataset.episodes = JSON.stringify(episodes);
-          renderEpisodesInputs(episodes);
-          saveDraft();
-        });
-        row.appendChild(removeBtn);
-      }
-      
-      wrap.appendChild(row);
-    });
-  }
-
   function ensureAuth(){
     const app = $('#app');
     const login = $('#login');
@@ -1337,22 +1219,6 @@
     if (studioBadgeEl) studioBadgeEl.value = data.studioBadge || 'https://clipsoustreaming.com/images/clipsoustudio.webp';
     // Preview studio badge
     setPreview($('#studioBadgePreview'), (studioBadgeEl && studioBadgeEl.value) || '');
-    // Episodes list for series - normalize to array of {url: string}
-    let episodes = [];
-    if (Array.isArray(data.episodes)) {
-      episodes = data.episodes.map(ep => {
-        if (typeof ep === 'string') return { url: ep };
-        if (ep && ep.url) return { url: ep.url };
-        return { url: '' };
-      });
-      // Only filter out truly empty ones (keep all URLs even if empty string for now)
-      episodes = episodes.filter(ep => ep && ep.url !== undefined);
-    }
-    // Always have at least one field for series
-    if (episodes.length === 0) episodes = [{ url: '' }];
-    $('#contentForm').dataset.episodes = JSON.stringify(episodes);
-    // Show/hide series fields based on type (this will also render episodes if series)
-    toggleSeriesFields(data.type || 'film');
     const actors = Array.isArray(data.actors) ? data.actors.slice() : [];
     $('#contentForm').dataset.actors = JSON.stringify(actors);
     renderActors(actors);
@@ -1383,34 +1249,6 @@
 
   function emptyForm(){ fillForm({}); }
 
-  function toggleSeriesFields(type){
-    try {
-      const watchUrlContainer = $('#watchUrlContainer');
-      const episodesContainer = $('#episodesContainer');
-      const isSeries = String(type||'').toLowerCase() === 'série';
-      
-      // Pour série : masquer watchUrl, afficher épisodes
-      // Pour film/trailer : afficher watchUrl, masquer épisodes
-      if (watchUrlContainer) watchUrlContainer.style.display = isSeries ? 'none' : '';
-      if (episodesContainer) episodesContainer.style.display = isSeries ? '' : 'none';
-      
-      // Initialize episodes list ONLY if empty (don't overwrite existing data)
-      if (isSeries) {
-        try {
-          const episodes = JSON.parse($('#contentForm').dataset.episodes || '[]');
-          // Only initialize with one empty field if truly empty
-          if (episodes.length === 0) {
-            $('#contentForm').dataset.episodes = JSON.stringify([{ url: '' }]);
-            renderEpisodesInputs([{ url: '' }]);
-          } else {
-            // Episodes already exist, just render them
-            renderEpisodesInputs(episodes);
-          }
-        } catch {}
-      }
-    } catch {}
-  }
-
   function collectForm(){
     const actors = JSON.parse($('#contentForm').dataset.actors || '[]');
     // Keep order, enforce uniqueness and non-empty for genres
@@ -1425,8 +1263,7 @@
     let studioBadge = '';
     try { studioBadge = String($('#studioBadge').value || '').trim(); } catch {}
     if (!studioBadge) studioBadge = 'https://clipsoustreaming.com/images/clipsoustudio.webp';
-    
-    const data = {
+    return {
       id,
       requestId: $('#requestId').value || '',
       title,
@@ -1440,84 +1277,12 @@
       studioBadge,
       actors
     };
-    
-    // Add series-specific fields if type is série
-    const type = String($('#type').value || '').toLowerCase();
-    if (type === 'série') {
-      // Episodes array - convert to full format with number
-      try {
-        const episodes = JSON.parse($('#contentForm').dataset.episodes || '[]');
-        if (Array.isArray(episodes) && episodes.length > 0) {
-          const validEpisodes = episodes
-            .map((ep, idx) => {
-              const url = (ep && ep.url) ? ep.url.trim() : '';
-              if (!url) return null;
-              return {
-                number: idx + 1,
-                title: (ep && ep.title) ? ep.title : '',
-                url: url
-              };
-            })
-            .filter(ep => ep !== null);
-          
-          if (validEpisodes.length > 0) {
-            data.episodes = validEpisodes;
-          }
-        }
-      } catch {}
-    }
-    
-    return data;
   }
 
   function saveDraft(){
     try { saveJSON(APP_KEY_DRAFT, collectForm()); } catch {}
   }
   function clearDraft(){ try { localStorage.removeItem(APP_KEY_DRAFT); } catch {}
-  }
-
-  // ===== Page state persistence =====
-  function savePageState(){
-    try {
-      const state = {
-        scrollY: window.scrollY,
-        searchValue: $('#requestsSearch') ? $('#requestsSearch').value : '',
-        timestamp: Date.now()
-      };
-      saveJSON(APP_KEY_PAGE_STATE, state);
-    } catch {}
-  }
-
-  function restorePageState(){
-    try {
-      const state = loadJSON(APP_KEY_PAGE_STATE);
-      if (!state || !state.timestamp) return;
-      
-      // Only restore if saved within last 5 minutes (avoid stale state)
-      if (Date.now() - state.timestamp > 5 * 60 * 1000) {
-        localStorage.removeItem(APP_KEY_PAGE_STATE);
-        return;
-      }
-      
-      // Restore search
-      if (state.searchValue && $('#requestsSearch')) {
-        $('#requestsSearch').value = state.searchValue;
-        // Trigger search if there's a value
-        if (state.searchValue.trim()) {
-          try { filterTable(); } catch {}
-        }
-      }
-      
-      // Restore scroll position after a short delay
-      if (state.scrollY > 0) {
-        setTimeout(() => {
-          window.scrollTo(0, state.scrollY);
-        }, 100);
-      }
-      
-      // Clear state after restoration
-      localStorage.removeItem(APP_KEY_PAGE_STATE);
-    } catch {}
   }
   function restoreDraft(){
     try {
@@ -1786,14 +1551,7 @@
       const searchInput = $('#requestsSearch');
       if (searchInput) {
         let raf = null;
-        const rerender = () => { 
-          if (raf) cancelAnimationFrame(raf); 
-          raf = requestAnimationFrame(()=>{ 
-            try { renderTable(); } catch {} 
-            // Save state when search changes
-            savePageState();
-          }); 
-        };
+        const rerender = () => { if (raf) cancelAnimationFrame(raf); raf = requestAnimationFrame(()=>{ try { renderTable(); } catch {} }); };
         searchInput.addEventListener('input', rerender);
         searchInput.addEventListener('change', rerender);
       }
@@ -1835,18 +1593,6 @@
     });
 
     $('#resetBtn').addEventListener('click', ()=>{ emptyForm(); clearDraft(); });
-
-    // ===== Episode management for series - simple add button =====
-    const addEpisodeFieldBtn = $('#addEpisodeFieldBtn');
-    if (addEpisodeFieldBtn) {
-      addEpisodeFieldBtn.addEventListener('click', ()=>{
-        const episodes = JSON.parse($('#contentForm').dataset.episodes || '[]');
-        episodes.push({ url: '' });
-        $('#contentForm').dataset.episodes = JSON.stringify(episodes);
-        renderEpisodesInputs(episodes);
-        saveDraft();
-      });
-    }
 
     // ===== Cloudinary settings form =====
     (function wireCloudinaryForm(){
@@ -1917,14 +1663,6 @@
         applyLockUI(next);
       });
     })();
-
-    // ===== Type selector: toggle series fields =====
-    const typeSelect = $('#type');
-    if (typeSelect) {
-      typeSelect.addEventListener('change', ()=>{
-        toggleSeriesFields(typeSelect.value);
-      });
-    }
 
     // ===== Upload & previews wiring =====
     const portraitInput = $('#portraitFileInput');
@@ -2139,21 +1877,6 @@
       URL.revokeObjectURL(url);
     });
 
-    const reloadLocalFilmsBtn = $('#reloadLocalFilmsBtn');
-    if (reloadLocalFilmsBtn) reloadLocalFilmsBtn.addEventListener('click', async ()=>{
-      try {
-        const ok = confirm('Recharger les 10 films locaux hardcodés dans index.html ?\n\nCela permettra de les migrer vers Cloudinary via l\'admin.\nLes doublons seront automatiquement évités.');
-        if (!ok) return;
-        // Clear the loaded flag to force reload
-        localStorage.removeItem('clipsou_local_films_loaded_v1');
-        await hydrateLocalFilms();
-        renderTable();
-        alert('✅ Films locaux rechargés avec succès !');
-      } catch (err) {
-        alert('❌ Erreur lors du rechargement : ' + err.message);
-      }
-    });
-
     const importInput = $('#importInput');
     if (importInput) importInput.addEventListener('change', async (e)=>{
       const file = e.target.files && e.target.files[0];
@@ -2169,8 +1892,7 @@
       e.target.value = '';
     });
 
-    // Initial load: hydrate local films first, then shared requests and render
-    try { await hydrateLocalFilms(); } catch {}
+    // Initial load: hydrate shared requests and render
     try { await hydrateRequestsFromPublic(); } catch {}
     try { await hydrateRequestsFromPublicApproved(); } catch {}
     try { renderTable(); } catch {}
@@ -2202,20 +1924,11 @@
     } catch {}
   }
 
-  // ===== Auto-save page state before unload =====
-  window.addEventListener('beforeunload', savePageState);
-  
   // Boot
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      ensureAuth();
-      // Restore page state after everything is loaded
-      setTimeout(restorePageState, 200);
-    });
+    document.addEventListener('DOMContentLoaded', ensureAuth);
   } else {
     ensureAuth();
-    // Restore page state after everything is loaded
-    setTimeout(restorePageState, 200);
   }
 })();
 

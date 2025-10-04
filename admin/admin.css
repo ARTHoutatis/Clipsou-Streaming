@@ -376,10 +376,3 @@ fieldset { border: 1px solid #334155; border-radius: 12px; padding: 12px; margin
   0%, 100% { opacity: .5; }
   50% { opacity: 1; }
 }
-
-/* Episodes list for series - simple stacked inputs */
-.episodes-inputs-list { display: flex; flex-direction: column; gap: 12px; }
-.episode-input-row { display: flex; gap: 8px; align-items: flex-end; }
-.episode-input-row label { flex: 1; margin: 0; }
-.episode-input-row .remove-episode-btn { background: transparent; border: 1px solid #e11d48; color: #e11d48; border-radius: 8px; height: 44px; width: 44px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-.episode-input-row .remove-episode-btn:hover { background: rgba(225, 29, 72, 0.1); }
