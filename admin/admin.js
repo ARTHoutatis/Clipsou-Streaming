@@ -943,7 +943,7 @@
       const publicApprovedUrl = origin ? (origin + '/data/approved.json') : '';
       const publicRequestsUrl = origin ? (origin + '/data/requests.json') : '';
       cfg = {
-        url: '', // URL vide par défaut - à configurer manuellement
+        url: '', // Désactivé - déployez le worker CloudFlare puis mettez l'URL ici
         secret: 'Ns7kE4pP2Yq9vC1rT5wZ8hJ3uL6mQ0aR',
         publicApprovedUrl,
         publicRequestsUrl
@@ -983,7 +983,7 @@
     try {
       const cfg = await ensurePublishConfig();
       if (!cfg || !cfg.url || !cfg.secret) {
-        console.warn('API de publication non configurée - fonctionnement local uniquement');
+        console.log('Mode local uniquement - API de publication non configurée');
         return true; // Permet le fonctionnement local
       }
       
@@ -1003,18 +1003,14 @@
       if (!res.ok) {
         const text = await res.text().catch(()=>String(res.status));
         console.error('Publication API: échec ('+res.status+'). ' + text);
-        // Ne pas bloquer le workflow local
-        alert(`⚠️ Erreur de publication vers le site (${res.status})\n\nLe contenu est sauvegardé localement mais pas encore publié sur le site.\n\nConfigurez l'API CloudFlare pour la publication automatique.`);
-        return true; // Permet de continuer
+        return true; // Permet de continuer en mode local
       }
       
-      console.log('Publication API: succès');
+      console.log('Publication API: succès - Contenu publié sur le site');
       return true;
     } catch (e) {
       console.error('Erreur publication:', e);
-      // Ne pas bloquer le workflow local
-      alert(`⚠️ Erreur de connexion à l'API de publication\n\nLe contenu est sauvegardé localement mais pas encore publié sur le site.\n\nVérifiez votre connexion et la configuration de l'API.`);
-      return true; // Permet de continuer
+      return true; // Permet de continuer en mode local
     }
   }
 
