@@ -943,7 +943,7 @@
       const publicApprovedUrl = origin ? (origin + '/data/approved.json') : '';
       const publicRequestsUrl = origin ? (origin + '/data/requests.json') : '';
       cfg = {
-        url: '', // Désactivé - déployez le worker CloudFlare puis mettez l'URL ici
+        url: 'https://clipsou-publish.arthurcapon54.workers.dev/publish-approved',
         secret: 'Ns7kE4pP2Yq9vC1rT5wZ8hJ3uL6mQ0aR',
         publicApprovedUrl,
         publicRequestsUrl
