@@ -52,6 +52,7 @@
   // Fetch public approved.json to hydrate actor photos map for admin UI
   async function fetchPublicApprovedArray(){
     const cfg = getPublishConfig();
+    const isLocal = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
     const originApproved = (function(){ try { return (window.location.origin || '') + '/data/approved.json'; } catch { return null; } })();
     const tryUrls = [
       cfg && cfg.publicApprovedUrl ? cfg.publicApprovedUrl : null,
@@ -59,6 +60,8 @@
       '../data/approved.json',
       'data/approved.json'
     ].filter(Boolean);
+    
+    // En mode local (file://), fetch peut échouer - essayer XMLHttpRequest en fallback
     for (const u of tryUrls) {
       try {
         const res = await fetch(u + '?v=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' });
@@ -70,7 +73,25 @@
           if (Array.isArray(json.items)) return json.items;
           if (Array.isArray(json.data)) return json.data;
         }
-      } catch {}
+      } catch (fetchErr) {
+        // Fallback pour protocole file:// ou localhost sans serveur
+        if (isLocal) {
+          try {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', u, false); // synchrone pour simplicité
+            xhr.send();
+            if (xhr.status === 200 || xhr.status === 0) { // 0 = file://
+              const json = JSON.parse(xhr.responseText);
+              if (Array.isArray(json)) return json;
+              if (json && typeof json === 'object') {
+                if (Array.isArray(json.approved)) return json.approved;
+                if (Array.isArray(json.items)) return json.items;
+                if (Array.isArray(json.data)) return json.data;
+              }
+            }
+          } catch (xhrErr) { /* continue */ }
+        }
+      }
     }
     return [];
   }
@@ -78,12 +99,14 @@
   // Fetch public requests.json to hydrate requests list (shared across admins)
   async function fetchPublicRequestsArray(){
     const cfg = getPublishConfig();
+    const isLocal = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
     const tryUrls = [
       cfg && cfg.publicRequestsUrl ? cfg.publicRequestsUrl : null,
       (function(){ try { return (window.location.origin || '') + '/data/requests.json'; } catch { return null; } })(),
       '../data/requests.json',
       'data/requests.json'
     ].filter(Boolean);
+    
     for (const u of tryUrls) {
       try {
         const res = await fetch(u + '?v=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' });
@@ -91,7 +114,21 @@
         const json = await res.json();
         if (Array.isArray(json)) return json;
         if (json && typeof json === 'object' && Array.isArray(json.requests)) return json.requests;
-      } catch {}
+      } catch (fetchErr) {
+        // Fallback pour protocole file:// ou localhost sans serveur
+        if (isLocal) {
+          try {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', u, false); // synchrone pour simplicité
+            xhr.send();
+            if (xhr.status === 200 || xhr.status === 0) { // 0 = file://
+              const json = JSON.parse(xhr.responseText);
+              if (Array.isArray(json)) return json;
+              if (json && typeof json === 'object' && Array.isArray(json.requests)) return json.requests;
+            }
+          } catch (xhrErr) { /* continue */ }
+        }
+      }
     }
     return [];
   }
@@ -521,6 +558,7 @@
   // Poll GitHub Pages public JSON to detect when an approved item is live and, for upsert, when fields match the expected item
   async function isItemLivePublic(id, expected){
     const cfg = getPublishConfig();
+    const isLocal = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
     const absolute = (typeof window !== 'undefined' && window.location) ? (window.location.origin + '/data/approved.json') : null;
     const tryUrls = [
       cfg && cfg.publicApprovedUrl ? cfg.publicApprovedUrl : null,
@@ -553,7 +591,36 @@
             }
           }
         }
-      } catch {}
+      } catch (fetchErr) {
+        // Fallback pour protocole file:// ou localhost sans serveur
+        if (isLocal) {
+          try {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', base, false);
+            xhr.send();
+            if (xhr.status === 200 || xhr.status === 0) {
+              const json = JSON.parse(xhr.responseText);
+              const collect = [];
+              if (Array.isArray(json)) collect.push(json);
+              if (json && typeof json === 'object') {
+                if (Array.isArray(json.approved)) collect.push(json.approved);
+                if (Array.isArray(json.items)) collect.push(json.items);
+                if (Array.isArray(json.data)) collect.push(json.data);
+              }
+              for (const arr of collect) {
+                const found = arr.find(x => x && x.id === id);
+                if (found) {
+                  if (expected && typeof expected === 'object') {
+                    if (itemMatchesPublic(expected, found)) return true;
+                  } else {
+                    return true;
+                  }
+                }
+              }
+            }
+          } catch (xhrErr) { /* continue */ }
+        }
+      }
     }
     return false;
   }
@@ -616,8 +683,19 @@
   }
 
   function transformDeliveryUrl(url){
-    // Ajoute les transformations f_auto,q_auto pour servir en WEBP/AVIF avec qualité auto
-    try { return url.replace('/upload/', '/upload/f_auto,q_auto/'); } catch { return url; }
+    // Ajoute des transformations Cloudinary optimales pour performances maximales
+    // f_auto: format automatique (AVIF > WebP > JPG selon support navigateur)
+    // q_auto:best: qualité automatique optimale
+    // dpr_auto: adaptation au ratio de pixels de l'écran (Retina, etc.)
+    // fl_progressive: chargement progressif (JPEG/WebP)
+    // fl_lossy: compression avec perte optimisée pour WebP
+    // w_auto: largeur automatique selon viewport (avec Client Hints)
+    // c_limit: ne jamais agrandir l'image au-delà de sa taille originale
+    try { 
+      return url.replace('/upload/', '/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/'); 
+    } catch { 
+      return url; 
+    }
   }
 
   // Lightweight progress HUD
@@ -1284,6 +1362,17 @@
     const tbody = $('#requestsTable tbody');
     // Exclude requests marked as deleted from the UI
     let reqs = getRequests().filter(r => !(r && r.meta && r.meta.deleted));
+    
+    // Update film count display
+    try {
+      const countEl = $('#filmCount');
+      if (countEl) {
+        const approvedCount = reqs.filter(r => r.status === 'approved').length;
+        const pendingCount = reqs.filter(r => r.status === 'pending').length;
+        countEl.textContent = `(${reqs.length} total${approvedCount > 0 ? ', ' + approvedCount + ' publiés' : ''}${pendingCount > 0 ? ', ' + pendingCount + ' en attente' : ''})`;
+      }
+    } catch {}
+    
     // Apply search filter if any
     try {
       const input = $('#requestsSearch');
@@ -1543,6 +1632,29 @@
         const rerender = () => { if (raf) cancelAnimationFrame(raf); raf = requestAnimationFrame(()=>{ try { renderTable(); } catch {} }); };
         searchInput.addEventListener('input', rerender);
         searchInput.addEventListener('change', rerender);
+      }
+    } catch {}
+
+    // ===== Manual sync button for films from approved.json =====
+    try {
+      const syncBtn = $('#syncFilmsBtn');
+      if (syncBtn) {
+        syncBtn.addEventListener('click', async () => {
+          const originalText = syncBtn.textContent;
+          syncBtn.disabled = true;
+          syncBtn.textContent = '🔄 Synchronisation...';
+          try {
+            await hydrateRequestsFromPublicApproved();
+            await hydrateActorPhotoMapFromPublic();
+            renderTable();
+            syncBtn.textContent = '✓ Synchronisé';
+            setTimeout(() => { syncBtn.textContent = originalText; syncBtn.disabled = false; }, 2000);
+          } catch (err) {
+            console.error('Sync error:', err);
+            syncBtn.textContent = '✗ Erreur';
+            setTimeout(() => { syncBtn.textContent = originalText; syncBtn.disabled = false; }, 2000);
+          }
+        });
       }
     } catch {}
 
@@ -1882,8 +1994,18 @@
     });
 
     // Initial load: hydrate shared requests and render
+    const isLocalMode = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    if (isLocalMode) {
+      console.log('🔧 Mode localhost détecté - Utilisation du fallback XMLHttpRequest pour charger les fichiers JSON');
+    }
     try { await hydrateRequestsFromPublic(); } catch {}
-    try { await hydrateRequestsFromPublicApproved(); } catch {}
+    try { 
+      await hydrateRequestsFromPublicApproved(); 
+      const filmCount = getRequests().filter(r => r.status === 'approved' && !(r.meta && r.meta.deleted)).length;
+      console.log(`✓ Films locaux synchronisés depuis approved.json (${filmCount} films chargés)`);
+    } catch (err) {
+      console.warn('⚠ Erreur lors de la synchronisation des films locaux:', err);
+    }
     try { renderTable(); } catch {}
     emptyForm();
     renderTable();
