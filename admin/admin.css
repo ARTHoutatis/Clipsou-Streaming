@@ -376,3 +376,23 @@ fieldset { border: 1px solid #334155; border-radius: 12px; padding: 12px; margin
   0%, 100% { opacity: .5; }
   50% { opacity: 1; }
 }
+
+/* Trash section styling */
+#trashSection {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+#trashSection .table {
+  background: #0b1117;
+}
+
+#emptyTrashBtn {
+  background: #dc2626;
+}
+
+#emptyTrashBtn:hover {
+  background: #b91c1c;
+}

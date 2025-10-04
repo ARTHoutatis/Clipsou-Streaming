@@ -13,6 +13,7 @@
   const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
   const APP_KEY_LAST_EDIT = 'clipsou_admin_last_edit_v1';
   const APP_KEY_ACTOR_PHOTOS = 'clipsou_admin_actor_photos_v1';
+  const APP_KEY_TRASH = 'clipsou_admin_trash_v1';
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
@@ -866,6 +867,8 @@
   function setRequests(list){ saveJSON(APP_KEY_REQ, list); }
   function getApproved(){ return loadJSON(APP_KEY_APPROVED, []); }
   function setApproved(list){ saveJSON(APP_KEY_APPROVED, list); }
+  function getTrash(){ return loadJSON(APP_KEY_TRASH, []); }
+  function setTrash(list){ saveJSON(APP_KEY_TRASH, list); }
   
 
   function getPublishConfig(){
@@ -1374,20 +1377,38 @@
 
       // No status cell anymore
       editBtn.addEventListener('click', ()=>{ fillForm(r.data); try { setLastEditedId(r.data && r.data.id); } catch{} });
-      delBtn.addEventListener('click', ()=>{
-        if (!confirm('Supprimer cette requête ?')) return;
+      delBtn.addEventListener('click', async ()=>{
+        if (!confirm('Déplacer ce film vers la corbeille ?')) return;
         
+        // Move to trash instead of deleting
         let list = getRequests().filter(x=>x.requestId!==r.requestId);
-        // Stamp and sync
-        const deleted = { ...r, meta: { ...(r.meta||{}), updatedAt: Date.now(), deleted: true } };
-        list.unshift(deleted);
         setRequests(list);
+        
+        // Add to trash
+        let trash = getTrash();
+        const trashed = { ...r, meta: { ...(r.meta||{}), updatedAt: Date.now(), deleted: true, trashedAt: Date.now() } };
+        trash.unshift(trashed);
+        setTrash(trash);
+        
         try { if ((r && r.data && r.data.id) === getLastEditedId()) clearLastEditedId(); } catch{}
+        
+        // If it was approved, send unpublish request
         if (r.status==='approved') {
           const apr = getApproved().filter(x=>x.id!==r.data.id);
           setApproved(apr);
+          
+          // Send unpublish request (delete action)
+          showPublishWaitHint();
+          try { 
+            await deleteApproved(r.data.id);
+            try { startDeploymentWatch(r.data.id, 'delete'); } catch {}
+          } catch {}
         }
-        renderTable(); emptyForm();
+        
+        renderTable(); 
+        renderTrash();
+        emptyForm();
+        
         // Share deletion with other admins (server-side will remove from requests.json)
         try { publishRequestDelete(r.requestId); } catch {}
       });
@@ -1460,6 +1481,121 @@
     populateActorNamesDatalist();
     // Apply global 30s lock state to any newly rendered buttons
     try { applyPublishLockUI(); } catch {}
+  }
+
+  function renderTrash(){
+    const tbody = $('#trashTable tbody');
+    if (!tbody) return;
+    const trash = getTrash();
+    tbody.innerHTML = '';
+    
+    if (!trash || trash.length === 0) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td colspan="4" style="text-align:center;padding:20px;color:#94a3b8;">La corbeille est vide</td>';
+      tbody.appendChild(tr);
+      // Hide empty trash button if trash is empty
+      try {
+        const emptyBtn = $('#emptyTrashBtn');
+        if (emptyBtn) emptyBtn.style.display = 'none';
+      } catch {}
+      return;
+    }
+    
+    // Show empty trash button
+    try {
+      const emptyBtn = $('#emptyTrashBtn');
+      if (emptyBtn) emptyBtn.style.display = '';
+    } catch {}
+    
+    trash.forEach(r => {
+      const tr = document.createElement('tr');
+      const g3 = (r.data.genres||[]).slice(0,3).filter(Boolean).map(g=>String(g));
+      tr.innerHTML = `
+        <td>${r.data.title||''}</td>
+        <td>${r.data.type||''}</td>
+        <td class="genres-cell"></td>
+        <td class="row-actions"></td>
+      `;
+      
+      // Fill genres
+      try {
+        const tdGenres = tr.querySelector('.genres-cell');
+        if (tdGenres) {
+          tdGenres.innerHTML = '';
+          g3.forEach((g) => {
+            const span = document.createElement('span');
+            span.className = 'genre';
+            span.textContent = g;
+            tdGenres.appendChild(span);
+          });
+        }
+      } catch {}
+      
+      const actions = tr.querySelector('.row-actions');
+      const restoreBtn = document.createElement('button');
+      restoreBtn.className = 'btn';
+      restoreBtn.textContent = 'Restaurer';
+      
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'btn secondary';
+      deleteBtn.textContent = 'Supprimer définitivement';
+      
+      actions.appendChild(restoreBtn);
+      actions.appendChild(deleteBtn);
+      
+      // Restore button handler
+      restoreBtn.addEventListener('click', async () => {
+        if (!confirm('Restaurer ce film ?')) return;
+        
+        // Remove from trash
+        let trashList = getTrash().filter(x => x.requestId !== r.requestId);
+        setTrash(trashList);
+        
+        // Add back to requests
+        let requestsList = getRequests();
+        // Remove the deleted flag
+        const restored = { ...r, meta: { ...(r.meta||{}), deleted: false, updatedAt: Date.now() } };
+        requestsList.unshift(restored);
+        setRequests(requestsList);
+        
+        // If it was approved, restore to approved list and republish
+        if (r.status === 'approved') {
+          let apr = getApproved();
+          const key = normalizeTitleKey(r.data.title);
+          apr = apr.filter(x => x && x.id !== r.data.id && normalizeTitleKey(x.title) !== key);
+          apr.push(r.data);
+          setApproved(dedupeByIdAndTitle(apr));
+          
+          // Republish to go live again
+          showPublishWaitHint();
+          const ok = await publishApproved(r.data);
+          if (ok) {
+            try { startDeploymentWatch(r.data.id, 'upsert', r.data); } catch {}
+          }
+        }
+        
+        // Sync with server
+        try { publishRequestUpsert(restored); } catch {}
+        
+        renderTrash();
+        renderTable();
+        alert('Film restauré avec succès.');
+      });
+      
+      // Delete permanently button handler
+      deleteBtn.addEventListener('click', () => {
+        if (!confirm('Supprimer définitivement ce film ? Cette action est irréversible.')) return;
+        
+        // Remove from trash permanently
+        let trashList = getTrash().filter(x => x.requestId !== r.requestId);
+        setTrash(trashList);
+        
+        renderTrash();
+        alert('Film supprimé définitivement.');
+      });
+      
+      tbody.appendChild(tr);
+    });
   }
 
   async function initApp(){
@@ -1892,12 +2028,29 @@
       e.target.value = '';
     });
 
+    // Wire empty trash button
+    const emptyTrashBtn = $('#emptyTrashBtn');
+    if (emptyTrashBtn) {
+      emptyTrashBtn.addEventListener('click', () => {
+        const trash = getTrash();
+        if (!trash || trash.length === 0) return;
+        
+        if (!confirm(`Vider la corbeille ? Cela supprimera définitivement ${trash.length} film(s). Cette action est irréversible.`)) return;
+        
+        setTrash([]);
+        renderTrash();
+        alert('Corbeille vidée.');
+      });
+    }
+
     // Initial load: hydrate shared requests and render
     try { await hydrateRequestsFromPublic(); } catch {}
     try { await hydrateRequestsFromPublicApproved(); } catch {}
     try { renderTable(); } catch {}
+    try { renderTrash(); } catch {}
     emptyForm();
     renderTable();
+    renderTrash();
     // Shared requests sync removed
     populateGenresDatalist();
     restoreDraft();
