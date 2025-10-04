@@ -887,16 +887,16 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
         for (const s of arr) { if (s && !seen.has(s)) { seen.add(s); out.push(s); } }
         return out;
       }
-      // Build ordered candidates:
+      // Build ordered candidates (optimize for small card size):
       // 1) portraitImage
-      if (it.portraitImage) candidates.push(it.portraitImage);
+      if (it.portraitImage) candidates.push(optimizeCloudinaryUrlCard(it.portraitImage));
       // 2) derived-from image (to target portrait base like Al.jpg before Al1.jpg)
-      if (it.image && isDerivable(it.image)) candidates.push(...derivedList(it.image));
+      if (it.image && isDerivable(it.image)) candidates.push(...derivedList(optimizeCloudinaryUrlCard(it.image)));
       // 3) derived-from landscapeImage if provided
-      if (it.landscapeImage && isDerivable(it.landscapeImage)) candidates.push(...derivedList(it.landscapeImage));
+      if (it.landscapeImage && isDerivable(it.landscapeImage)) candidates.push(...derivedList(optimizeCloudinaryUrlCard(it.landscapeImage)));
       // 4) original image, then landscapeImage
-      if (it.image) candidates.push(it.image);
-      if (it.landscapeImage) candidates.push(it.landscapeImage);
+      if (it.image) candidates.push(optimizeCloudinaryUrlCard(it.image));
+      if (it.landscapeImage) candidates.push(optimizeCloudinaryUrlCard(it.landscapeImage));
       candidates = dedupe(candidates);
       // Helper to safely apply src (encode local paths with spaces)
       function applySrc(c){
@@ -1376,7 +1376,7 @@ function renderList(container, items, titleText) {
     const media = document.createElement('div');
     media.className = 'card-media';
     const img = document.createElement('img');
-    if (it.image) { try { img.src = it.image; } catch {} }
+    if (it.image) { try { img.src = optimizeCloudinaryUrlCard(it.image); } catch {} }
     img.alt = 'Affiche de ' + (it.title || '');
     img.loading = 'lazy';
     img.decoding = 'async';

@@ -25,6 +25,60 @@ function optimizeCloudinaryUrl(url) {
   return url;
 }
 
+/**
+ * Optimise les URLs Cloudinary pour les petites cartes (Continue Watching)
+ */
+function optimizeCloudinaryUrlSmall(url) {
+  if (!url || typeof url !== 'string') return url;
+  if (!url.includes('res.cloudinary.com') && !url.includes('cloudinary.com')) return url;
+  
+  const optimized = 'f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit';
+  
+  if (url.includes('/upload/f_auto,q_auto/')) {
+    return url.replace('/upload/f_auto,q_auto/', '/upload/' + optimized + '/');
+  } else if (url.includes('/upload/')) {
+    return url.replace('/upload/', '/upload/' + optimized + '/');
+  }
+  
+  return url;
+}
+
+/**
+ * Optimise les URLs Cloudinary pour les cartes de films (500px)
+ */
+function optimizeCloudinaryUrlCard(url) {
+  if (!url || typeof url !== 'string') return url;
+  if (!url.includes('res.cloudinary.com') && !url.includes('cloudinary.com')) return url;
+  
+  const optimized = 'f_auto,q_auto:good,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:500,c_limit';
+  
+  if (url.includes('/upload/f_auto,q_auto/')) {
+    return url.replace('/upload/f_auto,q_auto/', '/upload/' + optimized + '/');
+  } else if (url.includes('/upload/')) {
+    return url.replace('/upload/', '/upload/' + optimized + '/');
+  }
+  
+  return url;
+}
+
+/**
+ * Optimise les URLs Cloudinary pour Continue Watching (400px)
+ */
+function optimizeCloudinaryUrlContinue(url) {
+  if (!url || typeof url !== 'string') return url;
+  if (!url.includes('res.cloudinary.com') && !url.includes('cloudinary.com')) return url;
+  
+  const optimized = 'f_auto,q_auto:good,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:400,c_limit';
+  
+  if (url.includes('/upload/f_auto,q_auto/')) {
+    return url.replace('/upload/f_auto,q_auto/', '/upload/' + optimized + '/');
+  } else if (url.includes('/upload/')) {
+    return url.replace('/upload/', '/upload/' + optimized + '/');
+  }
+  
+  return url;
+}
+
 // ===== Normalisation de texte =====
 
 /**
@@ -321,6 +375,9 @@ function installLazyImageLoader() {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     optimizeCloudinaryUrl,
+    optimizeCloudinaryUrlSmall,
+    optimizeCloudinaryUrlCard,
+    optimizeCloudinaryUrlContinue,
     normalizeTitleKey,
     normalizeStr,
     deriveExts,

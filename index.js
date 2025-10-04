@@ -544,16 +544,16 @@ document.addEventListener('DOMContentLoaded', async function () {
         } catch {}
         const addDerived = (src)=>{ deriveExts(src).forEach(s=>candidates.push(s)); };
         const addLandscapeVariant = (src)=>{ prependLandscapeVariants(candidates, src); };
-        // Prefer landscape first for Continue Watching
-        if (it.landscapeImage) addDerived(optimizeCloudinaryUrl(it.landscapeImage));
+        // Prefer landscape first for Continue Watching (use 400px optimization)
+        if (it.landscapeImage) addDerived(optimizeCloudinaryUrlContinue(it.landscapeImage));
         if (it.image) {
           // Generate a potential landscape variant from the portrait filename (webp only)
-          addLandscapeVariant(optimizeCloudinaryUrl(it.image));
-          addDerived(optimizeCloudinaryUrl(it.image));
+          addLandscapeVariant(optimizeCloudinaryUrlContinue(it.image));
+          addDerived(optimizeCloudinaryUrlContinue(it.image));
         }
         // Always include original URLs as fallbacks (even if not .webp), so Cloudinary PNG/JPG still work
-        if (it.landscapeImage) candidates.push(optimizeCloudinaryUrl(it.landscapeImage));
-        if (it.image) candidates.push(optimizeCloudinaryUrl(it.image));
+        if (it.landscapeImage) candidates.push(optimizeCloudinaryUrlContinue(it.landscapeImage));
+        if (it.image) candidates.push(optimizeCloudinaryUrlContinue(it.image));
         // Force try '<base>1.webp' exactly first (e.g., 'Dé.webp' -> 'Dé1.webp').
         // Avoid doubling the '1' if the filename already ends with '1.webp'.
         let preferred = null;
@@ -1652,10 +1652,10 @@ document.addEventListener('DOMContentLoaded', async function () {
       const card = document.createElement('div'); card.className = 'card';
       const a = document.createElement('a'); a.setAttribute('href', `fiche.html?id=${item.id}`);
       const img = document.createElement('img');
-      const primaryPortrait = optimizeCloudinaryUrl(item.portraitImage || '');
+      const primaryPortrait = optimizeCloudinaryUrlCard(item.portraitImage || '');
       const thumbs = primaryPortrait ? [primaryPortrait] : deriveThumbnail(item.image);
       let idx = 0;
-      { const candidate = (thumbs && thumbs[0]) || optimizeCloudinaryUrl(item.image) || ''; if (candidate) img.dataset.src = candidate; }
+      { const candidate = (thumbs && thumbs[0]) || optimizeCloudinaryUrlCard(item.image) || ''; if (candidate) img.dataset.src = candidate; }
       img.onerror = function () { if (idx < thumbs.length - 1) { idx += 1; this.src = thumbs[idx]; } else { this.onerror = null; try { this.removeAttribute('src'); } catch {} } };
       img.setAttribute('alt', `Affiche de ${item.title}`);
       img.setAttribute('loading', 'lazy'); img.setAttribute('decoding', 'async');
