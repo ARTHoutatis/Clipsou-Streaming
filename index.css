@@ -2920,7 +2920,7 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
      .footer .footer-inner > div:nth-child(2)::after { content: ""; display: table; clear: both; }
 
      /* Prevent cards from being clipped on hover translateY in all sections */
-    .section .rail { padding-top: 4px; }
+    .section .rail { padding-top: 12px; }
 
      /* Focus-visible ring */
      :where(a, button, .quick-btn, input, [tabindex]):focus-visible {
@@ -3028,7 +3028,7 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
       body.fiche-page-view #fiche .section .rail {
         overflow-x: scroll !important;
         overflow-y: visible !important;
-        padding-top: 4px !important; /* room for translateY hover */
+        padding-top: 12px !important; /* room for translateY hover */
       }
     }
     

@@ -14,7 +14,7 @@ function optimizeCloudinaryUrl(url) {
   if (!url || typeof url !== 'string') return url;
   if (!url.includes('res.cloudinary.com') && !url.includes('cloudinary.com')) return url;
   
-  const optimized = 'f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit';
+  const optimized = 'f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:1920,c_limit';
   
   if (url.includes('/upload/f_auto,q_auto/')) {
     return url.replace('/upload/f_auto,q_auto/', '/upload/' + optimized + '/');
