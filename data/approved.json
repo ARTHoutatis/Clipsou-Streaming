@@ -254,6 +254,23 @@
     ]
   },
   {
+    "id": "custom-test-nuhk",
+    "title": "test",
+    "type": "film",
+    "rating": 0,
+    "genres": [
+      "Action",
+      "Ambience",
+      "Aventure"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1759256129/synolf0bo2onod5ys9t0.png",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1759256134/rkigjutcj5grb1vbq8y6.jpg",
+    "description": "test",
+    "watchUrl": "https://youtu.be/r6TLYhN7WQk?si=FWojvAXeGBm_USR4",
+    "actors": [],
+    "studioBadge": "https://clipsoustreaming.com/clipsoustudio.webp"
+  },
+  {
     "id": "custom-the-psycho-teacher-q2q6",
     "title": "The Psycho Teacher",
     "type": "film",
