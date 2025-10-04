@@ -183,6 +183,22 @@
     "actors": []
   },
   {
+    "id": "custom-lawless-legend-local",
+    "title": "Lawless Legend",
+    "type": "série",
+    "rating": 3,
+    "genres": [
+      "Western",
+      "Comédie",
+      "Action"
+    ],
+    "portraitImage": "images/Law.webp",
+    "landscapeImage": "images/Law1.webp",
+    "description": "Plongez dans l'univers du Far West à travers cette série brickfilm unique ! Cowboys en briques LEGO, duels au soleil couchant et esthétique VHS nostalgique : cette série réinvente le western avec humour dans un style rétro irrésistible.",
+    "watchUrl": "",
+    "actors": []
+  },
+  {
     "id": "custom-le-cafe-des-heros-k4a8",
     "title": "Le Café Des Héros",
     "type": "film",
