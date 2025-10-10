@@ -631,8 +631,8 @@ body.popup-open nav[aria-label="Navigation principale"] {
 }
 .card:hover .card-media > img { transform: none; }
 
-/* Mobile: conserver le ratio portrait et coller l'image en haut dans toutes les orientations */
-@media (max-width: 768px) {
+/* Mobile: conserver le ratio portrait et coller l'image en haut uniquement en mode portrait */
+@media (max-width: 768px) and (orientation: portrait) {
   .card .card-media,
   .similar-section .card .card-media,
   #fiche .section .card .card-media {
