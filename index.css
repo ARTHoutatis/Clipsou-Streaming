@@ -2181,27 +2181,25 @@ html {
 
     /* Banderole (mobile layout unified in common.css) */
     /* Hide partenariat button on mobile */
-    .nav-links .partner-link { display: none; }
-    .nav-links a { padding: 8px 12px; font-size: 14px; width: auto; flex: 0 0 auto; }
-    .nav-links a:not([href*="youtu"]) { padding: 6px 10px; }
-    .nav-links .search-link { 
-        padding: 0; 
-        font-size: 16px; 
-        background: transparent !important; 
-        border-radius: 5px; 
-        width: 40px; 
-        height: 40px; 
-        border: 0; 
-        box-shadow: none; 
-        margin-left: auto !important; 
-    } /* Transparent button on mobile, icon-only */
-    .nav-links .search-link { 
-        text-indent: -9999px; 
-        overflow: hidden; 
-        position: relative; 
+    body:not(.fiche-page-view) .nav-links .partner-link { display: none; }
+    body:not(.fiche-page-view) .nav-links a { padding: 8px 12px; font-size: 14px; width: auto; flex: 0 0 auto; }
+    body:not(.fiche-page-view) .nav-links a:not([href*="youtu"]) { padding: 6px 10px; }
+    body:not(.fiche-page-view) .nav-links .search-link {
+        padding: 0;
+        font-size: 16px;
+        background: transparent !important;
+        border-radius: 5px;
+        width: 40px;
+        height: 40px;
+        border: 0;
+        box-shadow: none;
+        margin-left: auto !important;
+        text-indent: -9999px;
+        overflow: hidden;
+        position: relative;
     }
     /* Admin: icon-only on mobile, same touch target */
-    .nav-links .admin-link {
+    body:not(.fiche-page-view) .nav-links .admin-link {
         padding: 0;
         width: 40px;
         height: 40px;
@@ -2209,7 +2207,7 @@ html {
         box-shadow: none;
         background: transparent !important;
     }
-    .nav-links .admin-link span { display: none; }
+    body:not(.fiche-page-view) .nav-links .admin-link span { display: none; }
     /* Icon and mobile centering are defined in common.css */
     /* Title overflow rules are handled in common.css */
 
@@ -2786,151 +2784,115 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     border: 1px solid #2B22EE;
     color: #fff;
     padding: 10px 14px;
-    }
-    /* Ensure any yt link in nav stays hidden if present */
-    nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
+}
+.quick-btn:hover { background: #241DE0; }
 
-    /* Rails (rows like Netflix) - desktop only duplication */
-    @media (min-width: 769px) {
-        .rail {
-            display: grid;
-            grid-auto-flow: column;
-            grid-auto-columns: clamp(180px, 18vw, 240px);
-            gap: 18px;
-            padding: 0 40px;
-            overflow-x: auto;
-            overflow-y: visible; /* allow hover lift without clipping */
-            overscroll-behavior-x: contain;
-            scroll-snap-type: inline mandatory; /* desktop only */
-        }
-        .rail::-webkit-scrollbar { height: 10px; }
-        .rail::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
-        .rail > .card { scroll-snap-align: start; }
-    }
+/* Subtle animated gradient background */
+body {
+  background: radial-gradient(1200px 600px at 10% -10%, rgba(43,34,238,0.18), transparent 60%),
+              radial-gradient(1000px 700px at 100% 10%, rgba(108,92,231,0.18), transparent 60%),
+              linear-gradient(180deg, var(--bg-2), var(--bg-1));
+}
 
-    /* Card hover actions */
-    .card { position: relative; }
-    .card-actions {
-        position: absolute;
-        inset: 0;
-        display: grid;
-        place-items: center;
-        background: linear-gradient(180deg, rgba(0,0,0,0) 20%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.75) 100%);
-        opacity: 0;
-        transition: opacity .25s ease;
-    }
-    .card:hover .card-actions { opacity: 1; }
-    .quick-btn:hover { background: #241DE0; }
+/* ===== Visual Enhancements (Index) ===== */
+/* Section titles: plain white, no underline */
+.section h2 {
+  border: none;
+  color: #ffffff;
+}
 
-    /* Mobile overrides for rails (use grid like before) */
- 
+/* Card polish */
+.card {
+  background: linear-gradient(180deg, rgba(26,35,50,0.65), rgba(26,35,50,0.9));
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 38px rgba(0,0,0,0.45);
+}
+.card img { will-change: transform; }
 
-     /* Subtle animated gradient background */
-     body {
-         background: radial-gradient(1200px 600px at 10% -10%, rgba(43,34,238,0.18), transparent 60%),
-                     radial-gradient(1000px 700px at 100% 10%, rgba(108,92,231,0.18), transparent 60%),
-                     linear-gradient(180deg, var(--bg-2), var(--bg-1));
-     }
-     
-     /* ===== Visual Enhancements (Index) ===== */
-    /* Section titles: plain white, no underline */
-    .section h2 {
-        border: none;
-        color: #ffffff;
-    }
+/* Buttons */
+.carousel-btn,
+.quick-btn,
+.button {
+  background: var(--brand-1);
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 10px 20px rgba(43,34,238,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.carousel-btn:hover,
+.quick-btn:hover,
+.button:hover {
+  filter: brightness(0.95);
+  transform: translateY(-1px);
+}
 
-    /* Card polish */
-    .card {
-        background: linear-gradient(180deg, rgba(26,35,50,0.65), rgba(26,35,50,0.9));
-        box-shadow:
-          0 10px 30px rgba(0,0,0,0.35),
-          inset 0 1px 0 rgba(255,255,255,0.06);
-    }
-    .card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 14px 38px rgba(0,0,0,0.45);
-    }
-    .card img { will-change: transform; }
+/* Keep partenariat button green even when using .button styles */
+.button.partner-link {
+  background: #16a34a !important;
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 10px 20px rgba(22,163,74,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.button.partner-link:hover {
+  background: #15803d !important;
+  filter: brightness(0.98);
+}
 
-     /* Buttons */
-     .carousel-btn,
-     .quick-btn,
-     .button {
-         background: var(--brand-1);
-         border: 1px solid rgba(255,255,255,0.14);
-         box-shadow: 0 10px 20px rgba(43,34,238,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
-     }
-     .carousel-btn:hover,
-     .quick-btn:hover,
-     .button:hover {
-         filter: brightness(0.95);
-         transform: translateY(-1px);
-     }
+/* Discord footer button (blue) */
+.button.discord-btn {
+  background: #5865F2 !important; /* Discord brand */
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 10px 20px rgba(88,101,242,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.button.discord-btn:hover {
+  background: #4752C4 !important;
+  filter: brightness(0.98);
+}
+.button.discord-btn svg {
+  width: 35px;
+  height: 35px;
+  display: inline-block;
+  vertical-align: middle;
+}
 
-     /* Keep partenariat button green even when using .button styles */
-     .button.partner-link {
-         background: #16a34a !important;
-         border: 1px solid rgba(255,255,255,0.14);
-         box-shadow: 0 10px 20px rgba(22,163,74,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
-     }
-     .button.partner-link:hover {
-         background: #15803d !important;
-         filter: brightness(0.98);
-     }
+/* YouTube footer button (red) */
+.button.youtube-btn {
+  background: #FF0000 !important; /* YouTube brand */
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 10px 20px rgba(255,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.button.youtube-btn:hover {
+  background: #CC0000 !important;
+  filter: brightness(0.98);
+}
+.button.youtube-btn svg {
+  width: 30px;
+  height: 30px;
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  top: -2px; /* slightly up */
+}
 
-     /* Discord footer button (blue) */
-     .button.discord-btn {
-         background: #5865F2 !important; /* Discord brand */
-         border: 1px solid rgba(255,255,255,0.14);
-         box-shadow: 0 10px 20px rgba(88,101,242,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
-     }
-     .button.discord-btn:hover {
-         background: #4752C4 !important;
-         filter: brightness(0.98);
-     }
-     .button.discord-btn svg {
-         width: 35px;
-         height: 35px;
-         display: inline-block;
-         vertical-align: middle;
-     }
+/* Footer buttons aligned to the right while keeping original layout */
+.footer .footer-inner > div:nth-child(2) { text-align: right; }
+.footer .footer-inner > div:nth-child(2) > span { float: left; }
+.footer .footer-inner > div:nth-child(2)::after { content: ""; display: table; clear: both; }
 
-     /* YouTube footer button (red) */
-     .button.youtube-btn {
-         background: #FF0000 !important; /* YouTube brand */
-         border: 1px solid rgba(255,255,255,0.14);
-         box-shadow: 0 10px 20px rgba(255,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
-     }
-     .button.youtube-btn:hover {
-         background: #CC0000 !important;
-         filter: brightness(0.98);
-     }
-     .button.youtube-btn svg {
-         width: 30px;
-         height: 30px;
-         display: inline-block;
-         vertical-align: middle;
-         position: relative;
-         top: -2px; /* slightly up */
-     }
+/* Prevent cards from being clipped on hover translateY in all sections */
+.section .rail { padding-top: 12px; }
 
-     /* Footer buttons aligned to the right while keeping original layout */
-     .footer .footer-inner > div:nth-child(2) { text-align: right; }
-     .footer .footer-inner > div:nth-child(2) > span { float: left; }
-     .footer .footer-inner > div:nth-child(2)::after { content: ""; display: table; clear: both; }
+/* Focus-visible ring */
+:where(a, button, .quick-btn, input, [tabindex]):focus-visible {
+  outline: 2px solid rgba(99,102,241,0.9);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px rgba(99,102,241,0.25);
+}
 
-     /* Prevent cards from being clipped on hover translateY in all sections */
-    .section .rail { padding-top: 12px; }
-
-     /* Focus-visible ring */
-     :where(a, button, .quick-btn, input, [tabindex]):focus-visible {
-         outline: 2px solid rgba(99,102,241,0.9);
-         outline-offset: 2px;
-         box-shadow: 0 0 0 6px rgba(99,102,241,0.25);
-     }
-
-     /* Smoother transitions */
-    * { transition: background-color .25s ease, color .25s ease, border-color .25s ease, transform .25s ease, box-shadow .25s ease; }
+/* Smoother transitions */
+* { transition: background-color .25s ease, color .25s ease, border-color .25s ease, transform .25s ease, box-shadow .25s ease; }
 
     /* Category label via data-type attribute for new genre sections */
     .card .card-info::before { margin-right: 8px; }
@@ -3031,11 +2993,7 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
         padding-top: 12px !important; /* room for translateY hover */
       }
     }
-    
-    /* Hide the top-right search button on fiche pages */
-    body.fiche-page-view .nav-links .search-link { display: none !important; }
-    
-    
+
 /* FINAL OVERRIDE: hide all popup titles on mobile (placed at end to win cascade) */
 @media (max-width: 768px) {
   .fiche-popup .fiche-content h3,
@@ -3562,7 +3520,9 @@ body.fiche-page-view .carousel-genre-tag:hover {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-}/* Fix: in popups, buttons should scroll with content (disable sticky) */
+}
+
+/* Fix: in popups, buttons should scroll with content (disable sticky) */
 .fiche-popup .button-group {
   position: static !important;
   bottom: auto !important;

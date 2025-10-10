@@ -938,3 +938,22 @@ html { scrollbar-color: #615d5d #0a0a0a; scrollbar-width: thin; }
     scroll-behavior: auto !important;
   }
 }
+
+/* Force square actor photos on mobile */
+@media (max-width: 768px) {
+  .actor-photo {
+    aspect-ratio: 1 / 1 !important;
+    width: 100% !important;
+  }
+  .actor-photo::before {
+    padding-top: 100% !important;
+  }
+  .actor-photo img {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+  }
+}

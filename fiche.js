@@ -425,7 +425,7 @@ async function buildItemsFromIndex() {
 
     return items.length > 0 ? items : LOCAL_FALLBACK_DB;
   } catch (e) {
-    console.warn('Impossible de construire la base depuis index.html', e);
+    // Fallback silencieux en cas d'erreur de construction
     return LOCAL_FALLBACK_DB;
   }
 }
@@ -1552,7 +1552,7 @@ const container = document.getElementById('fiche-container');
     };
     if (window.requestIdleCallback) requestIdleCallback(() => { renderSimilarNow(); }); else setTimeout(renderSimilarNow, 0);
   } catch (e) {
-    console.warn('Impossible de générer le contenu similaire', e);
+    // Génération du contenu similaire échouée silencieusement
   }
 
   // On-site player: play intro.mp4 then embed the YouTube video in a full-screen overlay (fiche page)
@@ -2422,7 +2422,7 @@ const container = document.getElementById('fiche-container');
         ro.observe(rail);
       } catch {}
     } catch (e) {
-      console.warn('Could not enhance rails with arrows:', e);
+      // Enhancement des rails échoué silencieusement
     }
   };
 
