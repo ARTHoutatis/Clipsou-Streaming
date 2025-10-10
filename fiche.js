@@ -975,6 +975,11 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   };
 
   placeSimilar();
+
+  function refreshRails(){
+    try { if (window.__enhanceFicheRails) window.__enhanceFicheRails(); } catch {}
+  }
+
   // Default view: show Similar by default; open Episodes only when explicitly requested.
   // If a leftover hash exists from a previous navigation, clear it to avoid jumping on load.
   try {
@@ -985,7 +990,7 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   } catch {}
   showSimilar();
   // Initialize arrows after section is in DOM
-  setTimeout(()=>{ try { if (window.__enhanceFicheRails) window.__enhanceFicheRails(); } catch {} }, 100);
+  setTimeout(refreshRails, 100);
   function openEpisodesIfRequested(scroll){
     if (!hasEpisodes) return;
     try {
@@ -1169,6 +1174,7 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     similarBtn.setAttribute('aria-expanded', 'true');
     if (hasEpisodes) episodesBtn.setAttribute('aria-expanded', 'false');
     actorsBtn.setAttribute('aria-expanded', 'false');
+    refreshRails();
   }
   function showActors() {
     populateActors();
@@ -1188,6 +1194,7 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     actorsBtn.setAttribute('aria-expanded', 'true');
     similarBtn.setAttribute('aria-expanded', 'false');
     if (hasEpisodes) episodesBtn.setAttribute('aria-expanded', 'false');
+    refreshRails();
   }
   function populateEpisodes(){
     episodesRail.innerHTML = '';
@@ -1307,6 +1314,7 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     similarBtn.setAttribute('aria-expanded', 'false');
     actorsBtn.setAttribute('aria-expanded', 'false');
     episodesBtn.setAttribute('aria-expanded', 'true');
+    refreshRails();
     // Smooth scroll to the episodes section for a clear animation down the page
     try {
       setTimeout(() => { if (episodesPanel && episodesPanel.scrollIntoView) episodesPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 0);
@@ -2293,14 +2301,23 @@ const container = document.getElementById('fiche-container');
   // Add desktop-only arrows for similar content rail
   window.__enhanceFicheRails = function enhanceRailsWithArrows(){
     try {
-      if (window.innerWidth <= 768) return; // desktop only
       const section = document.querySelector('#fiche .section');
       if (!section) return;
       const rail = section.querySelector('.rail');
       if (!rail) return;
 
-      // Avoid duplicates - remove existing arrows first
+      // Always remove existing arrows/fades before evaluating state
       section.querySelectorAll('.rail-arrow, .rail-fade').forEach(el => el.remove());
+
+      if (window.innerWidth <= 768) return; // desktop only
+
+      const isHidden = rail.hidden === true || rail.getAttribute('aria-hidden') === 'true';
+      let isDisplayed = true;
+      try {
+        const display = window.getComputedStyle(rail).display;
+        if (!display || display === 'none') isDisplayed = false;
+      } catch { isDisplayed = !rail.hidden; }
+      if (isHidden || !isDisplayed) return;
 
       // Create prev arrow
       const prev = document.createElement('button');
@@ -2407,18 +2424,26 @@ const container = document.getElementById('fiche-container');
       nextBtn.onclick = ()=>scrollByPage(1);
       rail.addEventListener('scroll', updateArrows, { passive: true });
 
-      // Initial update
+      // Initial update with deferred overflow check to allow layout recalculation
       positionArrows();
-      updateArrows();
+      requestAnimationFrame(() => {
+        setTimeout(() => updateArrows(), 50);
+      });
 
       // Reposition after images load
       rail.querySelectorAll('img').forEach(img => {
-        img.addEventListener('load', () => { positionArrows(); }, { once: true });
+        img.addEventListener('load', () => { 
+          positionArrows(); 
+          updateArrows(); 
+        }, { once: true });
       });
 
       // Observe size changes
       try {
-        const ro = new ResizeObserver(() => positionArrows());
+        const ro = new ResizeObserver(() => {
+          positionArrows();
+          updateArrows();
+        });
         ro.observe(rail);
       } catch {}
     } catch (e) {
