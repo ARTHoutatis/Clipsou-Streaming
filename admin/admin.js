@@ -54,9 +54,7 @@
   async function fetchPublicApprovedArray(){
     const cfg = getPublishConfig();
     const originApproved = (function(){ try { return (window.location.origin || '') + '/data/approved.json'; } catch { return null; } })();
-    const githubRaw = 'https://raw.githubusercontent.com/ARTHoutatis/Clipsou-Streaming/main/data/approved.json';
     const tryUrls = [
-      githubRaw,
       cfg && cfg.publicApprovedUrl ? cfg.publicApprovedUrl : null,
       originApproved,
       '../data/approved.json',
@@ -81,9 +79,7 @@
   // Fetch public requests.json to hydrate requests list (shared across admins)
   async function fetchPublicRequestsArray(){
     const cfg = getPublishConfig();
-    const githubRaw = 'https://raw.githubusercontent.com/ARTHoutatis/Clipsou-Streaming/main/data/requests.json';
     const tryUrls = [
-      githubRaw,
       cfg && cfg.publicRequestsUrl ? cfg.publicRequestsUrl : null,
       (function(){ try { return (window.location.origin || '') + '/data/requests.json'; } catch { return null; } })(),
       '../data/requests.json',
@@ -527,9 +523,7 @@
   async function isItemLivePublic(id, expected){
     const cfg = getPublishConfig();
     const absolute = (typeof window !== 'undefined' && window.location) ? (window.location.origin + '/data/approved.json') : null;
-    const githubRaw = 'https://raw.githubusercontent.com/ARTHoutatis/Clipsou-Streaming/main/data/approved.json';
     const tryUrls = [
-      githubRaw,
       cfg && cfg.publicApprovedUrl ? cfg.publicApprovedUrl : null,
       absolute,
       '../data/approved.json',
@@ -1696,39 +1690,6 @@
         const rerender = () => { if (raf) cancelAnimationFrame(raf); raf = requestAnimationFrame(()=>{ try { renderTable(); } catch {} }); };
         searchInput.addEventListener('input', rerender);
         searchInput.addEventListener('change', rerender);
-      }
-    } catch {}
-
-    // ===== Refresh data button =====
-    try {
-      const refreshBtn = $('#refreshDataBtn');
-      if (refreshBtn) {
-        refreshBtn.addEventListener('click', async () => {
-          const originalText = refreshBtn.textContent;
-          try {
-            refreshBtn.disabled = true;
-            refreshBtn.textContent = '🔄 Synchronisation...';
-            // Force reload from GitHub
-            console.log('[DEBUG] Starting refresh...');
-            await hydrateRequestsFromPublic();
-            console.log('[DEBUG] Requests hydrated');
-            await hydrateRequestsFromPublicApproved();
-            console.log('[DEBUG] Approved hydrated, approved list:', getApproved());
-            await hydrateActorPhotoMapFromPublic();
-            console.log('[DEBUG] Actor photos hydrated');
-            renderTable();
-            renderTrash();
-            refreshBtn.textContent = '✅ Synchronisé !';
-            setTimeout(() => { refreshBtn.textContent = originalText; }, 2000);
-          } catch (e) {
-            console.error('Refresh error:', e);
-            alert('Erreur de synchronisation: ' + e.message);
-            refreshBtn.textContent = '❌ Erreur';
-            setTimeout(() => { refreshBtn.textContent = originalText; }, 2000);
-          } finally {
-            refreshBtn.disabled = false;
-          }
-        });
       }
     } catch {}
 
