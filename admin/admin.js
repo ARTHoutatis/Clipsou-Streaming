@@ -1693,6 +1693,34 @@
       }
     } catch {}
 
+    // ===== Refresh data button =====
+    try {
+      const refreshBtn = $('#refreshDataBtn');
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', async () => {
+          const originalText = refreshBtn.textContent;
+          try {
+            refreshBtn.disabled = true;
+            refreshBtn.textContent = '🔄 Synchronisation...';
+            // Force reload from GitHub
+            await hydrateRequestsFromPublic();
+            await hydrateRequestsFromPublicApproved();
+            await hydrateActorPhotoMapFromPublic();
+            renderTable();
+            renderTrash();
+            refreshBtn.textContent = '✅ Synchronisé !';
+            setTimeout(() => { refreshBtn.textContent = originalText; }, 2000);
+          } catch (e) {
+            console.error('Refresh error:', e);
+            refreshBtn.textContent = '❌ Erreur';
+            setTimeout(() => { refreshBtn.textContent = originalText; }, 2000);
+          } finally {
+            refreshBtn.disabled = false;
+          }
+        });
+      }
+    } catch {}
+
     $('#addActorBtn').addEventListener('click', ()=>{
       const name = $('#actorName').value.trim();
       const role = $('#actorRole').value.trim();
