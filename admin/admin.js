@@ -1709,15 +1709,20 @@
             refreshBtn.disabled = true;
             refreshBtn.textContent = '🔄 Synchronisation...';
             // Force reload from GitHub
+            console.log('[DEBUG] Starting refresh...');
             await hydrateRequestsFromPublic();
+            console.log('[DEBUG] Requests hydrated');
             await hydrateRequestsFromPublicApproved();
+            console.log('[DEBUG] Approved hydrated, approved list:', getApproved());
             await hydrateActorPhotoMapFromPublic();
+            console.log('[DEBUG] Actor photos hydrated');
             renderTable();
             renderTrash();
             refreshBtn.textContent = '✅ Synchronisé !';
             setTimeout(() => { refreshBtn.textContent = originalText; }, 2000);
           } catch (e) {
             console.error('Refresh error:', e);
+            alert('Erreur de synchronisation: ' + e.message);
             refreshBtn.textContent = '❌ Erreur';
             setTimeout(() => { refreshBtn.textContent = originalText; }, 2000);
           } finally {
