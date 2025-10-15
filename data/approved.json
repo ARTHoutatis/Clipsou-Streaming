@@ -167,30 +167,30 @@
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757790111/epmm5uvpnyers3wcnzwo.png"
   },
   {
-    "id": "custom-le-cafe-des-heros-6yxx",
-    "title": "Le Café Des Heros",
+    "id": "custom-le-cafe-des-heros-k4a8",
+    "title": "Le Café Des Héros",
     "type": "film",
     "rating": 4,
     "genres": [
-      "Brickfilm",
-      "Comédie",
+      "Comedie",
+      "Familial",
       "Sitcom"
     ],
-    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1760550511/hy90l6ngpiocgonjl7w2.webp",
-    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1760550514/surevny8tpzexor7dgnp.png",
-    "description": "Des Heros de Pop Culture se retrouve a parler entre eux dans le café de la serie Friend, reprenant le style des series Sitcom",
-    "watchUrl": "https://youtu.be/m8aQ6TRvI2Q?si=RuvBD10_1wUTKY5l",
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757713565/qnf53otisqig9afovnkq.jpg",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757713553/wh79xnjhsfl8e7xo6mqs.png",
+    "description": "Des héros de Pop Culture se retrouvent par hasard au Central Perk. Entre gags absurdes et références geek, ce brickfilm parodique réunit la pop culture autour d’un café déjanté !",
+    "watchUrl": "https://youtu.be/m8aQ6TRvI2Q?si=ZPZgHU2AninJRYkL",
     "actors": [
       {
         "name": "Colosseo Production",
         "role": "Doomguy"
       },
       {
-        "name": "Stark david",
+        "name": "Starkdavid",
         "role": "Luigi"
       },
       {
-        "name": "Matstudio24",
+        "name": "Matstudio",
         "role": "Steve"
       },
       {
@@ -199,70 +199,25 @@
       },
       {
         "name": "Ferrisbu",
-        "role": "Guts",
-        "photo": "ferrisbu.webp"
+        "role": "Guts"
+      },
+      {
+        "name": "Liam Roxxor",
+        "role": "Shaggy ( Samy )",
+        "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1758041902/clzeg7tw2hwbx2qob6ha.webp"
       },
       {
         "name": "Liam Roxxor",
         "role": "Shaggy",
-        "photo": "liam-roxxor.webp"
+        "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1758041902/clzeg7tw2hwbx2qob6ha.webp"
       },
       {
         "name": "MikaMil",
-        "role": "Chucknorris"
+        "role": "Chuck norris"
       },
       {
         "name": "StickGuy03",
-        "role": "Duck Norris"
-      }
-    ],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1760550417/lfybakfaypnx6hksuc4g.webp"
-  },
-  {
-    "id": "custom-le-cafe-des-heros-k4a8",
-    "title": "Le Grand Braquage De Lego City",
-    "type": "film",
-    "rating": 4,
-    "genres": [
-      "Comedie",
-      "Action",
-      "Brickfilm"
-    ],
-    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1760549644/xramfug9ae4ox4cwntrb.png",
-    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1760549645/bdnfqwhja8ionocpzcjc.png",
-    "description": "Dans Lego City, un braquage a eu lieu à la banque centrale. Les policiers se mobilisent pour arrêter le voleur, tandis que la télévision diffuse les dernières nouvelles en direct.",
-    "watchUrl": "https://youtu.be/CpQBTLoUgrg?si=De6DvrYbjzvGqpdm",
-    "actors": [
-      {
-        "name": "Clone prod",
-        "role": "Doryan (policier), Ungars (sur le plateau télé) et lui même",
-        "photo": "clone-prod.webp"
-      },
-      {
-        "name": "Le Ciné2brick",
-        "role": "Voleur"
-      },
-      {
-        "name": "Bidouche",
-        "role": "Commisaire"
-      },
-      {
-        "name": "Liam Roxxor",
-        "role": "Ricard",
-        "photo": "liam-roxxor.webp"
-      },
-      {
-        "name": "Ferrisbu",
-        "role": "Unautregars (le mec avec une tête de lion)",
-        "photo": "ferrisbu.webp"
-      },
-      {
-        "name": "Matstudio24",
-        "role": "Inspecteur"
-      },
-      {
-        "name": "maxou",
-        "role": "maxou"
+        "role": "Duck norris"
       }
     ],
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1758042405/dy8j6d6escvajizoxmnf.png"
