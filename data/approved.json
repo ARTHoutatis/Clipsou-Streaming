@@ -167,6 +167,58 @@
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757790111/epmm5uvpnyers3wcnzwo.png"
   },
   {
+    "id": "custom-le-cafe-des-heros-6yxx",
+    "title": "Le Café Des Heros",
+    "type": "film",
+    "rating": 4,
+    "genres": [
+      "Brickfilm",
+      "Comédie",
+      "Sitcom"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1760550511/hy90l6ngpiocgonjl7w2.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1760550514/surevny8tpzexor7dgnp.png",
+    "description": "Des Heros de Pop Culture se retrouve a parler entre eux dans le café de la serie Friend, reprenant le style des series Sitcom",
+    "watchUrl": "https://youtu.be/m8aQ6TRvI2Q?si=RuvBD10_1wUTKY5l",
+    "actors": [
+      {
+        "name": "Colosseo Production",
+        "role": "Doomguy"
+      },
+      {
+        "name": "Stark david",
+        "role": "Luigi"
+      },
+      {
+        "name": "Matstudio24",
+        "role": "Steve"
+      },
+      {
+        "name": "Alastor",
+        "role": "Punisher"
+      },
+      {
+        "name": "Ferrisbu",
+        "role": "Guts",
+        "photo": "ferrisbu.webp"
+      },
+      {
+        "name": "Liam Roxxor",
+        "role": "Shaggy",
+        "photo": "liam-roxxor.webp"
+      },
+      {
+        "name": "MikaMil",
+        "role": "Chucknorris"
+      },
+      {
+        "name": "StickGuy03",
+        "role": "Duck Norris"
+      }
+    ],
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1760550417/lfybakfaypnx6hksuc4g.webp"
+  },
+  {
     "id": "custom-le-cafe-des-heros-k4a8",
     "title": "Le Grand Braquage De Lego City",
     "type": "film",
