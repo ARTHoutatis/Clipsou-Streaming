@@ -54,7 +54,9 @@
   async function fetchPublicApprovedArray(){
     const cfg = getPublishConfig();
     const originApproved = (function(){ try { return (window.location.origin || '') + '/data/approved.json'; } catch { return null; } })();
+    const githubRaw = 'https://raw.githubusercontent.com/ARTHoutatis/Clipsou-Streaming/main/data/approved.json';
     const tryUrls = [
+      githubRaw,
       cfg && cfg.publicApprovedUrl ? cfg.publicApprovedUrl : null,
       originApproved,
       '../data/approved.json',
@@ -79,7 +81,9 @@
   // Fetch public requests.json to hydrate requests list (shared across admins)
   async function fetchPublicRequestsArray(){
     const cfg = getPublishConfig();
+    const githubRaw = 'https://raw.githubusercontent.com/ARTHoutatis/Clipsou-Streaming/main/data/requests.json';
     const tryUrls = [
+      githubRaw,
       cfg && cfg.publicRequestsUrl ? cfg.publicRequestsUrl : null,
       (function(){ try { return (window.location.origin || '') + '/data/requests.json'; } catch { return null; } })(),
       '../data/requests.json',
@@ -523,7 +527,9 @@
   async function isItemLivePublic(id, expected){
     const cfg = getPublishConfig();
     const absolute = (typeof window !== 'undefined' && window.location) ? (window.location.origin + '/data/approved.json') : null;
+    const githubRaw = 'https://raw.githubusercontent.com/ARTHoutatis/Clipsou-Streaming/main/data/approved.json';
     const tryUrls = [
+      githubRaw,
       cfg && cfg.publicApprovedUrl ? cfg.publicApprovedUrl : null,
       absolute,
       '../data/approved.json',
