@@ -254,6 +254,29 @@
     ]
   },
   {
+    "id": "custom-test-r47c",
+    "title": "test",
+    "type": "film",
+    "rating": 0.5,
+    "genres": [
+      "Horreur",
+      "Brickfilm",
+      "Drame"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1760553117/jmv4d86hmajjxadih5uv.jpg",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1760553126/diydmtbgw5nzdi9bp5uo.jpg",
+    "description": "test",
+    "watchUrl": "https://www.youtube.com/shorts/OQz5boiZkk8",
+    "actors": [
+      {
+        "name": "Arth",
+        "role": "test",
+        "photo": "images/arth.webp"
+      }
+    ],
+    "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp"
+  },
+  {
     "id": "custom-the-psycho-teacher-q2q6",
     "title": "The Psycho Teacher",
     "type": "film",
