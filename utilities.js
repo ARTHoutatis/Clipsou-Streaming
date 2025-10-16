@@ -14,11 +14,14 @@ function optimizeCloudinaryUrl(url) {
   if (!url || typeof url !== 'string') return url;
   if (!url.includes('res.cloudinary.com') && !url.includes('cloudinary.com')) return url;
   
+  // Si l'URL a déjà des transformations, ne pas les modifier
+  if (/\/upload\/[^\/]*(?:f_auto|q_auto|w_auto|dpr_auto)/.test(url)) {
+    return url;
+  }
+  
   const optimized = 'f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:1920,c_limit';
   
-  if (url.includes('/upload/f_auto,q_auto/')) {
-    return url.replace('/upload/f_auto,q_auto/', '/upload/' + optimized + '/');
-  } else if (url.includes('/upload/')) {
+  if (url.includes('/upload/')) {
     return url.replace('/upload/', '/upload/' + optimized + '/');
   }
   
@@ -32,11 +35,14 @@ function optimizeCloudinaryUrlSmall(url) {
   if (!url || typeof url !== 'string') return url;
   if (!url.includes('res.cloudinary.com') && !url.includes('cloudinary.com')) return url;
   
+  // Si l'URL a déjà des transformations, ne pas les modifier
+  if (/\/upload\/[^\/]*(?:f_auto|q_auto|w_auto|dpr_auto)/.test(url)) {
+    return url;
+  }
+  
   const optimized = 'f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit';
   
-  if (url.includes('/upload/f_auto,q_auto/')) {
-    return url.replace('/upload/f_auto,q_auto/', '/upload/' + optimized + '/');
-  } else if (url.includes('/upload/')) {
+  if (url.includes('/upload/')) {
     return url.replace('/upload/', '/upload/' + optimized + '/');
   }
   
@@ -50,11 +56,14 @@ function optimizeCloudinaryUrlCard(url) {
   if (!url || typeof url !== 'string') return url;
   if (!url.includes('res.cloudinary.com') && !url.includes('cloudinary.com')) return url;
   
+  // Si l'URL a déjà des transformations (f_auto, q_auto, w_auto, etc.), ne pas les modifier
+  if (/\/upload\/[^\/]*(?:f_auto|q_auto|w_auto|dpr_auto)/.test(url)) {
+    return url;
+  }
+  
   const optimized = 'f_auto,q_auto:good,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:500,c_limit';
   
-  if (url.includes('/upload/f_auto,q_auto/')) {
-    return url.replace('/upload/f_auto,q_auto/', '/upload/' + optimized + '/');
-  } else if (url.includes('/upload/')) {
+  if (url.includes('/upload/')) {
     return url.replace('/upload/', '/upload/' + optimized + '/');
   }
   
@@ -68,11 +77,14 @@ function optimizeCloudinaryUrlContinue(url) {
   if (!url || typeof url !== 'string') return url;
   if (!url.includes('res.cloudinary.com') && !url.includes('cloudinary.com')) return url;
   
+  // Si l'URL a déjà des transformations, ne pas les modifier
+  if (/\/upload\/[^\/]*(?:f_auto|q_auto|w_auto|dpr_auto)/.test(url)) {
+    return url;
+  }
+  
   const optimized = 'f_auto,q_auto:good,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:400,c_limit';
   
-  if (url.includes('/upload/f_auto,q_auto/')) {
-    return url.replace('/upload/f_auto,q_auto/', '/upload/' + optimized + '/');
-  } else if (url.includes('/upload/')) {
+  if (url.includes('/upload/')) {
     return url.replace('/upload/', '/upload/' + optimized + '/');
   }
   
