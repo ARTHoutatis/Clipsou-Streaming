@@ -254,6 +254,29 @@
     ]
   },
   {
+    "id": "custom-test-vgqe",
+    "title": "test",
+    "type": "film",
+    "rating": 0.5,
+    "genres": [
+      "Comedie",
+      "Fantastique",
+      "Aventure"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1760554035/w0tq7xs1qe0pjwqcnzdj.jpg",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1760554038/mupj6kcnuxc2l9ussm8l.jpg",
+    "description": "test",
+    "watchUrl": "https://www.youtube.com/watch?v=ObPQcuBIMYI",
+    "actors": [
+      {
+        "name": "Arth",
+        "role": "testeur",
+        "photo": "images/arth.webp"
+      }
+    ],
+    "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp"
+  },
+  {
     "id": "custom-the-psycho-teacher-q2q6",
     "title": "The Psycho Teacher",
     "type": "film",
