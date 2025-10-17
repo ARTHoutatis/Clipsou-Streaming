@@ -2603,6 +2603,16 @@ html {
         object-fit: cover !important;
     }
     /* Badge sizing/position centralized in common.css */
+}
+
+/* Correction pour formats très bas (landscape): ajuster largeur des cartes dans rail */
+@media (max-width: 768px) and (max-height: 400px) {
+    body.fiche-page-view #fiche .section .rail {
+        grid-auto-columns: 135px !important; /* cartes adaptées pour formats bas */
+    }
+    body.fiche-page-view #fiche .section .grid {
+        grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)) !important;
+    }
 
     .button { 
         flex: 1 1 auto;

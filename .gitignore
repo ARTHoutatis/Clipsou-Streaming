@@ -1,6 +1,11 @@
 # Security files - DO NOT COMMIT
-# All files in "Fichiers Locaux" are private and should never be committed
-Fichiers Locaux/
+# Block sensitive files in Fichiers Locaux
+Fichiers Locaux/*.pem
+Fichiers Locaux/*.key
+Fichiers Locaux/*.env
+Fichiers Locaux/*secret*
+Fichiers Locaux/*token*
+Fichiers Locaux/*password*
 
 # OS files
 .DS_Store

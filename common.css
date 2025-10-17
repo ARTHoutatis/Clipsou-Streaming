@@ -645,6 +645,21 @@ body.popup-open nav[aria-label="Navigation principale"] {
   }
 }
 
+/* Correction pour les formats très étroits en hauteur (landscape bas): empêcher le décalage d'image */
+@media (max-width: 768px) and (max-height: 400px) {
+  /* Sur la page fiche, ajuster le ratio des cartes pour les formats bas */
+  body.fiche-page-view #fiche .section .card .card-media {
+    aspect-ratio: 3/4 !important; /* ratio adapté aux formats très bas */
+  }
+  /* Centrer l'image et assurer un crop propre */
+  body.fiche-page-view #fiche .section .card .card-media > img {
+    object-position: center center !important;
+    object-fit: cover !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+}
+
 /* Brand badge (shared across pages) */
 .brand-badge {
   padding: 7px;
