@@ -27,6 +27,39 @@
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757915610/tn39ga32agrfxtgp5xzy.png"
   },
   {
+    "id": "custom-cassette-n-13-sh76",
+    "title": "Cassette N°13",
+    "type": "film",
+    "rating": 3.5,
+    "genres": [
+      "Horreur",
+      "Mystère",
+      "Psychologique"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1760726887/ur63zvyb3gyy6dgpdwbh.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1760726920/aww5g9vxav3wlkmubuxq.png",
+    "description": "J’ai retrouvé cette Cassette n°13 dans un vide-grenier… et ce qu’elle contient est troublant. On y voit des amis filmer leur sortie scolaire, jusqu’au moment où tout bascule dans le cauchemar. C’est difficile à expliquer, mais on dirait que cette ville est maudite.",
+    "watchUrl": "https://youtu.be/DX5M4sDLhO0?si=r3ZDENiza3FOEHkj",
+    "actors": [
+      {
+        "name": "Zack Dewez",
+        "role": "Zack",
+        "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1760727612/nj2pgd8bolnqnmtxlqx3.jpg"
+      },
+      {
+        "name": "Liam Roxxor",
+        "role": "Robin",
+        "photo": "liam-roxxor.webp"
+      },
+      {
+        "name": "Beat Vortex",
+        "role": "Maxime",
+        "photo": "beat-vortex.webp"
+      }
+    ],
+    "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp"
+  },
+  {
     "id": "custom-elden-ring-le-film-le-pire-guerrier-pxql",
     "title": "ELDEN RING Le Film : Le pire guerrier",
     "type": "film",
