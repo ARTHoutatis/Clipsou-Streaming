@@ -1233,11 +1233,25 @@
     try {
       const submitBtn = document.querySelector('#contentForm .actions .btn[type="submit"], #contentForm .actions button[type="submit"]');
       if (submitBtn) {
-        if (data && data.requestId) {
-          // Check if this item is currently approved
-          const requests = getRequests();
-          const existing = requests.find(x => x.requestId === data.requestId);
-          const isApproved = existing && existing.status === 'approved';
+        let isApproved = false;
+        let isEditing = false;
+        
+        // Check if editing an existing item
+        if (data && (data.requestId || data.id)) {
+          isEditing = true;
+          
+          // Check if this item is currently approved by requestId in requests
+          if (data.requestId) {
+            const requests = getRequests();
+            const existing = requests.find(x => x.requestId === data.requestId);
+            isApproved = existing && existing.status === 'approved';
+          }
+          
+          // Also check if the film exists in the approved list (for films loaded from approved.json)
+          if (!isApproved && data.id) {
+            const approved = getApproved();
+            isApproved = approved.some(x => x && x.id === data.id);
+          }
           
           submitBtn.textContent = isApproved ? 'Modifier et publier' : 'Enregistrer la modification';
         } else {
@@ -1911,11 +1925,27 @@
         // No longer show "saved" state - button remains active for continuous editing
         if (!saved) {
           const reqId = $('#requestId').value;
-          const requests = getRequests();
-          const existing = requests.find(x => x.requestId === reqId);
-          const isApproved = existing && existing.status === 'approved';
+          const filmId = $('#id').value;
+          let isApproved = false;
+          let isEditing = false;
           
-          if (reqId && existing) {
+          // Check if editing an existing item
+          if (reqId || filmId) {
+            isEditing = true;
+            
+            // Check if this item is currently approved by requestId in requests
+            if (reqId) {
+              const requests = getRequests();
+              const existing = requests.find(x => x.requestId === reqId);
+              isApproved = existing && existing.status === 'approved';
+            }
+            
+            // Also check if the film exists in the approved list
+            if (!isApproved && filmId) {
+              const approved = getApproved();
+              isApproved = approved.some(x => x && x.id === filmId);
+            }
+            
             btn.textContent = isApproved ? 'Modifier et publier' : 'Enregistrer la modification';
           } else {
             btn.textContent = 'Enregistrer la requête';
@@ -1932,6 +1962,19 @@
         // Upsert request by requestId, otherwise create new request entry
         let list = getRequests();
         let reqId = data.requestId || '';
+        
+        // Check if film exists in approved list (for films loaded from approved.json without requestId)
+        const approvedList = getApproved();
+        const existsInApproved = data.id && approvedList.some(x => x && x.id === data.id);
+        
+        // If film is approved but has no requestId, try to find existing request by film ID
+        if (!reqId && existsInApproved && data.id) {
+          const existingByFilmId = list.find(x => x.data && x.data.id === data.id);
+          if (existingByFilmId) {
+            reqId = existingByFilmId.requestId;
+          }
+        }
+        
         if (!reqId) reqId = uid();
         data.requestId = reqId;
         // Persist the requestId in the hidden input to avoid duplicate creation on rapid double-submit
@@ -1943,7 +1986,7 @@
         const existing = list.find(x=>x.requestId===reqId);
         const isEditing = !!existing; // used to alter submit button state
         // Removed: do not show the 30s publish wait hint when saving modifications
-        const wasApproved = !!(existing && existing.status === 'approved');
+        const wasApproved = !!(existing && existing.status === 'approved') || existsInApproved;
         if (existing) {
           existing.data = data;
           // IMPORTANT: switch to 'pending' during publication to reflect real-time GitHub propagation
