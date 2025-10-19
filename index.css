@@ -48,8 +48,22 @@
 }
 .home-hero .hero-subtitle { margin: 0 0 12px; font-size: clamp(13px, 2vw, 16px); color: rgba(255,255,255,0.9); }
 .home-hero .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-.home-hero .button.primary { background: var(--brand-1); border: 1px solid rgba(255,255,255,0.08); text-decoration: none; color: #fff; padding: 10px 14px; border-radius: 8px; font-weight: 800; }
-.home-hero .button.primary:hover { filter: brightness(1.06); }
+.home-hero .button.primary { 
+  background: #2B22EE; 
+  border: 1px solid #2B22EE; 
+  text-decoration: none; 
+  color: #fff; 
+  padding: 10px 14px; 
+  border-radius: 8px; 
+  font-weight: 800;
+  transition: filter 0.2s ease !important;
+  box-shadow: none !important;
+}
+.home-hero .button.primary:hover { 
+  filter: brightness(1.08) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
 .home-hero .button.ghost { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); text-decoration: none; color: #fff; padding: 10px 14px; border-radius: 8px; font-weight: 800; }
 .home-hero .button.ghost:hover { background: rgba(255,255,255,0.10); }
 @media (max-width: 768px) {
@@ -539,8 +553,16 @@ body.popup-open nav[aria-label="Navigation principale"] {
 .nav-links { display: flex; gap: 15px; }
 .nav-links a { padding: 10px 20px; border-radius: 5px; font-weight: 600; color: #fff; text-decoration: none; transition: all .3s ease; white-space: nowrap; }
 
-.discord-link { background: #2B22EE; }
-.discord-link:hover { background: #241DE0; }
+.discord-link { 
+  background: #2B22EE;
+  transition: filter 0.2s ease !important;
+  box-shadow: none !important;
+}
+.discord-link:hover { 
+  filter: brightness(1.08) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
 
 .yt-link { background: #FF0000; display: none !important; }
 .yt-link:hover { background: #CC0000; }
@@ -730,19 +752,42 @@ body.popup-open nav[aria-label="Navigation principale"] {
     margin-right: 4px;
 }
 
-.carousel-btn { display: inline-flex; align-items: center; gap: 8px; background: #2B22EE; color: #fff; padding: 12px 24px; border-radius: 5px; text-decoration: none; font-weight: 600; font-size: .95rem; transition: all .3s ease; backdrop-filter: none; border: 1px solid #2B22EE; }
+.carousel-btn { 
+  display: inline-flex; 
+  align-items: center; 
+  gap: 8px; 
+  background: #2B22EE; 
+  color: #fff; 
+  padding: 12px 24px; 
+  border-radius: 5px; 
+  text-decoration: none; 
+  font-weight: 600; 
+  font-size: .95rem; 
+  transition: filter 0.2s ease !important; 
+  backdrop-filter: none; 
+  border: 1px solid #2B22EE;
+  outline: none !important;
+  margin: 0;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+}
 
-.carousel-btn:hover { background: #241DE0; transform: translateY(-1px); box-shadow: none; }
+.carousel-btn:hover,
+.carousel-btn:focus { 
+  background: #241DE0; 
+  transform: none !important; 
+  box-shadow: none !important;
+  border: 1px solid #2B22EE !important;
+  outline: none !important;
+  padding: 12px 24px !important;
+  margin: 0 !important;
+  font-weight: 600 !important;
+  font-size: .95rem !important;
+}
 
 .carousel-btn::before {
     content: 'ⓘ';
     font-size: 1rem;
-}
-
-.carousel-btn:hover {
-    background: var(--brand-1) !important;
-    color: #fff !important;
-    filter: none !important;
 }
 
 /* Indicateurs de slides */
@@ -801,13 +846,15 @@ main > .categories-section { transform: translateX(calc(var(--home-shift) + var(
 }
 
 .section h2 {
-  margin: 0 var(--gutter) 12px;
-  font-size: 28px;
-  font-weight: 700; 
+  margin: 0 var(--gutter) 16px;
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 800; 
   color: #ffffff; 
   display: inline-block; 
   padding-bottom: 0; 
-  border: none; 
+  border: none;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
 }
 
 /* Keep section titles and subtitles above rail fades and arrows */
@@ -900,13 +947,14 @@ main > .categories-section { transform: translateX(calc(var(--home-shift) + var(
 /* ===== Continue Watching (Reprendre la lecture) matches Categories look ===== */
 #continue-watching {
   margin: 6px 0 8px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 14px;
-  padding: 12px 0 14px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  border: none;
+  border-radius: 16px;
+  padding: 16px 0 18px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
   overflow-x: hidden;
   overflow-y: visible;
+  backdrop-filter: blur(8px);
 }
 .categories-section .categories-title {
   margin: 0 var(--gutter) 10px; /* match other section gutters */
@@ -918,11 +966,12 @@ main > .categories-section { transform: translateX(calc(var(--home-shift) + var(
 /* ===== Home Filters (genres) ===== */
 .home-filters {
   margin: 10px 0 10px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 14px;
-  padding: 12px 0 14px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  border: none;
+  border-radius: 16px;
+  padding: 16px 0 18px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  backdrop-filter: blur(8px);
 }
 .home-filters > h2 { margin: 0 var(--gutter) 10px; }
 .home-genre-filters {
@@ -985,13 +1034,16 @@ nav .filter-toggle:hover { background: rgba(255,255,255,0.08); }
   justify-content: flex-start;
 }
 .category-card {
+  position: relative;
   display: block;
-  flex: 0 0 auto;
+  text-decoration: none;
+  color: #fff;
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.12);
-  box-shadow: 0 10px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+  border: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
   transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+  backdrop-filter: blur(8px);
 }
 .category-card img {
   display: block;
@@ -999,7 +1051,7 @@ nav .filter-toggle:hover { background: rgba(255,255,255,0.08); }
   height: auto;
   max-height: 120px;
 }
-.category-card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(0,0,0,0.45); filter: none; }
+.category-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 8px 24px rgba(0,0,0,0.4); filter: none; }
 
 /* Use responsive card sizes for categories without stretching */
 .category-card { flex: 0 0 260px; width: 260px; max-width: 260px; }
@@ -1108,7 +1160,7 @@ nav .filter-toggle:hover { background: rgba(255,255,255,0.08); }
 }
 /* Hover lift only on hover-capable devices to avoid mobile jump */
 @media (hover: hover) {
-  .pill:hover { transform: scale(1.06); box-shadow: 0 14px 30px rgba(0,0,0,0.45); }
+  .pill:hover { transform: none !important; box-shadow: 0 14px 30px rgba(0,0,0,0.45); }
 }
 .pill:focus-visible { box-shadow: 0 0 0 3px rgba(255,255,255,0.3), 0 10px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06); }
 .pill.discord { background: radial-gradient(100% 100% at 0% 0%, #5865F2 0%, #3B46CC 100%); }
@@ -1281,29 +1333,72 @@ body.fiche-page-view .section-header .button.secondary {
   }
 }
 
-/* Secondary button style for header actions */
+/* Secondary button style for header actions - style moderne */
 .button.secondary {
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.22);
+  background: rgba(255,255,255,0.08);
+  border: none;
   color: #ffffff;
-  padding: 10px 16px;
-  border-radius: 8px;
-  min-height: 40px;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 10px;
+  min-height: 44px;
+  max-height: 44px;
+  height: 44px;
   outline: none;
   box-shadow: none;
   text-shadow: none;
+  transition: background-color 0.2s ease, filter 0.2s ease;
+  margin: 0;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  top: 0;
+  left: 0;
 }
-.button.secondary:hover { 
-  background: rgba(255,255,255,0.08); 
-  outline: none;
-  box-shadow: none;
+.button.secondary:hover,
+.button.secondary:focus,
+.button.secondary:active { 
+  background: rgba(255,255,255,0.15); 
+  outline: none !important;
+  box-shadow: none !important;
   filter: none;
+  transform: none !important;
+  padding: 12px 20px !important;
+  margin: 0 !important;
+  border: none !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  position: relative !important;
+  top: 0 !important;
+  left: 0 !important;
 }
 .button.secondary.active {
   background: #2B22EE;
-  border-color: #2B22EE;
+  color: #ffffff;
+  border: none !important; /* Pas de bordure pour garder les mêmes dimensions */
   outline: none;
-  box-shadow: none;
+  box-shadow: none !important;
+  font-weight: 600 !important; /* Garder le même poids pour éviter le décalage */
+  filter: brightness(1.15);
+  padding: 12px 20px !important;
+  margin: 0 !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  transform: none !important;
+  position: relative !important;
+  top: 0 !important;
+  left: 0 !important;
+  font-size: 15px !important; /* Même taille */
+}
+/* Pas d'outline sur focus-visible pour les boutons secondaires */
+.button.secondary:focus-visible {
+  outline: none !important;
+  outline-offset: 0 !important;
 }
 
 /* "Voir tout" expanded panel per section */
@@ -1328,31 +1423,32 @@ body.fiche-page-view .section-header .button.secondary {
   filter: none !important;
 }
 
-/* Actors panel */
+/* Actors panel - style moderne sans bordures */
 .actors-panel {
   margin: 0 var(--gutter) 24px;
-  padding: 16px;
-  border-radius: 12px;
-  background: rgba(26,35,50,0.65);
-  border: 1px solid rgba(255,255,255,0.12);
+  padding: 24px;
+  border-radius: 16px;
+  background: transparent;
+  border: none;
 }
 .section.actors-open .rail { display: none !important; }
 .section.actors-open .actors-panel { display: block !important; }
 .section:not(.actors-open) .actors-panel { display: none !important; }
 .actors-panel > h3 {
-  margin: 0 0 12px 0;
-  font-size: 22px;
+  display: none !important; /* Cacher le grand titre */
 }
 
-/* Episodes panel behaves similarly to actors panel */
+/* Episodes panel - style moderne sans bordures */
 .episodes-panel {
   margin: 0 var(--gutter) 24px;
-  padding: 16px;
-  border-radius: 12px;
-  background: rgba(26,35,50,0.65);
-  border: 1px solid rgba(255,255,255,0.12);
+  padding: 24px;
+  border-radius: 16px;
+  background: transparent;
+  border: none;
 }
-.episodes-panel > h3 { margin: 0 0 12px 0; font-size: 22px; }
+.episodes-panel > h3 { 
+  display: none !important; /* Cacher le grand titre */
+}
 .section.episodes-open .rail { display: none !important; }
 .section.episodes-open .episodes-panel { display: block !important; }
 .section:not(.episodes-open) .episodes-panel { display: none !important; }
@@ -1362,22 +1458,23 @@ body.fiche-page-view .section-header .button.secondary {
   display: block !important;
   width: 100% !important;
   text-align: left;
-  margin-bottom: 12px !important;
-  padding: 16px 20px !important;
   background: rgba(255,255,255,0.05) !important;
-  border: 1px solid rgba(255,255,255,0.08) !important;
-  border-radius: 8px !important;
+  border: none !important;
+  border-radius: 10px !important;
   color: #fff !important;
   box-shadow: none !important;
   text-shadow: none !important;
   filter: none !important;
   position: relative !important;
-  overflow: visible !important; /* Pas de masquage pour éviter les effets */
-  /* Prevent text from overflowing the rounded frame; allow wrapping of long words */
-  white-space: normal !important;
-  overflow-wrap: anywhere !important;
+  padding: 16px 20px !important;
+  margin-bottom: 12px !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
   word-break: break-word !important;
   hyphens: auto !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
 }
 /* Supprimer complètement tous les effets de balayage sur les boutons d'épisodes */
 .episodes-panel .episodes-rail .button::before,
@@ -1387,12 +1484,12 @@ body.fiche-page-view .section-header .button.secondary {
 
 .episodes-panel .episodes-rail .button:hover,
 .episodes-panel .episodes-rail .button:focus {
-  background: rgba(255,255,255,0.1) !important; /* éclaircissement simple */
-  border-color: rgba(255,255,255,0.2) !important;
+  background: rgba(255,255,255,0.12) !important;
   outline: none !important;
-  box-shadow: none !important; /* remove any glow */
+  box-shadow: none !important;
   filter: none !important;
-  transition: all 0.2s ease !important; /* transition douce */
+  transform: none !important;
+  transition: all 0.2s ease !important;
 }
 
 /* Grey style for episode viewing status suffix */
@@ -1573,13 +1670,19 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
 .card .card-info span { display: none; }
 
 /* ===== Favorites primary button (fiche popups and fiche page) ===== */
-.button.fav-primary {
+.button.fav-primary,
+.button.fav-primary:hover,
+.button.fav-primary:focus,
+.button.fav-primary:active {
   background: transparent !important;
-  border: 1px solid #ff4d88 !important; /* red-rose border */
-  color: #ff4d88 !important;          /* red-rose text/icon */
+  border: 1px solid #ff4d88 !important;
+  color: #ff4d88 !important;
+  filter: none !important; /* Jamais de brightness */
 }
 .button.fav-primary:hover {
-  background: transparent !important;  /* keep transparent on hover */
+  background: rgba(255, 77, 136, 0.15) !important; /* Fond rose clair au survol */
+  border-color: #ff6ba3 !important; /* Bordure rose plus claire */
+  color: #ff4d88 !important; /* Texte reste rose */
 }
 
 /* ===== Remove glow from buttons globally (keep outline only) ===== */
@@ -1596,20 +1699,92 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
   box-shadow: none !important;
 }
 
-/* ===== Hover behavior: lighten instead of sweep/scale ===== */
+/* ===== Stabilité totale des boutons ===== */
+.button,
+.button:hover,
+.button:focus,
+.button:active {
+  transform: none !important;
+  will-change: auto !important;
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+}
+/* Empêcher les icônes/SVG de bouger */
+.button svg,
+.button:hover svg,
+.button:focus svg,
+.button:active svg {
+  transform: none !important;
+  width: 1em !important; /* Taille fixe */
+  height: 1em !important;
+}
+/* Empêcher le texte interne de bouger */
+.button span,
+.button:hover span,
+.button:focus span,
+.button:active span {
+  display: inline-block;
+  transform: translateZ(0) !important; /* GPU pour le texte */
+  position: relative;
+  top: 0 !important;
+  left: 0 !important;
+  backface-visibility: hidden !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: geometricPrecision !important;
+  font-weight: inherit !important;
+  font-size: inherit !important;
+  letter-spacing: inherit !important;
+  line-height: 1 !important;
+  will-change: filter !important;
+}
+/* Texte direct dans le bouton (pas dans span) */
+button,
 .button {
-  transition: filter .2s ease, background-color .2s ease, border-color .2s ease, color .2s ease !important;
+  text-align: center !important;
 }
-.button:hover {
+.button:hover,
+.button:focus {
+  text-align: center !important;
+}
+/* Stabiliser TOUS les enfants du bouton */
+.button > *,
+.button:hover > *,
+.button:focus > * {
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  will-change: filter !important;
+  position: relative !important;
+  flex-shrink: 0 !important;
+}
+/* Forcer le rendering stable sur tous les états */
+.button::before,
+.button::after,
+.button:hover::before,
+.button:hover::after {
+  content: none !important; /* Pas de pseudo-éléments */
+}
+/* Forcer les mêmes dimensions au survol */
+.button:hover,
+.button:focus {
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  letter-spacing: 0.3px !important;
+}
+
+/* ===== Hover behavior unifié: style carrousel pour tous les boutons */
+.button,
+.pill,
+.carousel-btn {
+  transition: filter 0.2s ease, background-color 0.2s ease !important;
+  box-shadow: none !important;
+}
+.button:hover,
+.pill:hover,
+.carousel-btn:hover {
   filter: brightness(1.08) !important;
-  transform: none !important; /* cancel any lift/scale on hover */
-}
-.pill {
-  transition: filter .2s ease, background-color .2s ease, border-color .2s ease, color .2s ease !important;
-}
-.pill:hover {
-  filter: brightness(1.08) !important;
-  transform: none !important; /* cancel scale on hover */
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 /* Carousel 'Voir la fiche' button: no glow/sweep, just lighten on hover */
@@ -1728,7 +1903,7 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
     padding: 30px;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    position: relative;
+    position: relative !important; /* Pour que le bouton absolute se positionne dedans */
     margin: auto; /* ensure centering even if container alignment is overridden */
     -webkit-overflow-scrolling: touch; /* smooth scrolling sur iOS */
 }
@@ -1776,7 +1951,10 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
 
 /* Desktop/tablet: rounded corners for fiche images */
 @media (min-width: 769px) {
-  .fiche-content img.landscape { border-radius: 8px; }
+  .fiche-content img.landscape { 
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
 }
 
 /* Mobile: forcer un rendu cover dans un cadre 16:9 */
@@ -1829,11 +2007,13 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
 }
 
 .fiche-content h3 { 
-    margin: 0 0 16px 0; 
-    font-size: 28px;
-    font-weight: 700;
+    margin: 0 0 20px 0; 
+    font-size: clamp(32px, 4vw, 48px);
+    font-weight: 800;
     color: #ffffff;
     scroll-margin-top: 12px;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
 }
 
 /* Per-title font styles */
@@ -1996,19 +2176,20 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
 /* Card title styles removed per request */
 
 .fiche-content p { 
-    margin: 15px 0; 
-    font-size: 16px;
-    line-height: 1.6;
-    color: #fff;
-    text-align: justify;
+    margin: 0 0 24px 0; 
+    font-size: 17px;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.85);
+    max-width: 100%;
+    font-weight: 400;
 }
 
-.rating-genres {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
+.rating-genres { 
+    display: flex; 
     flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    margin: 0 0 24px 0;
 }
 
 /* Fiche page: remove any glow around ratings/notes (defensive: kill text/box shadows and filters) */
@@ -2043,63 +2224,178 @@ body.fiche-page-view .carousel-genres .carousel-rating .star {
 }
 
 .genre-tag {
-    background: rgba(255, 255, 255, 0.06);
-    color: #e6eef5;
-    padding: 4px 12px;
-    border-radius: 16px;
-    font-size: 14px;
-    font-weight: 500;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
     white-space: nowrap;
+    backdrop-filter: blur(8px);
+    letter-spacing: 0.3px;
 }
 
 .button-group {
     display: flex;
-    gap: 16px;
+    gap: 12px;
     flex-wrap: wrap;
-    margin-top: auto;
-    position: sticky;
-    bottom: 0;
-    padding-top: 12px;
-    margin-top: 16px;
-    background: transparent;
-    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    margin-top: 24px;
+    align-items: center;
+}
+/* Stabilité du button-group lui-même */
+.button-group {
+    transform: none !important;
+    position: relative !important;
+}
+.button-group > *,
+.button-group:hover > * {
+    flex-shrink: 0 !important; /* Empêcher le rétrécissement */
 }
 
+/* Bouton primaire - style carrousel (bleu qui s'éclaircit) */
 .button {
     background: #2B22EE;
-    border-radius: 5px;
-    padding: 12px 24px;
-    color: #fff;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    border: none;
+    color: #ffffff;
+    border-radius: 6px;
+    padding: 14px 32px;
+    font-weight: 700;
+    font-size: 16px;
+    transition: filter 0.2s ease, background-color 0.2s ease !important;
+    border: 1px solid #2B22EE;
     cursor: pointer;
-    font-size: 14px;
     white-space: nowrap;
-    min-height: 44px;
+    min-height: 48px;
+    max-height: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    letter-spacing: 0.3px;
+    box-shadow: none !important;
+    outline: none !important;
+    margin: 0;
+    position: relative;
+    top: 0;
+    left: 0;
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: geometricPrecision;
+    contain: layout style;
+    isolation: isolate;
+    vertical-align: middle;
+    flex-shrink: 0;
+    will-change: filter; /* Optimiser le filter brightness */
+    transform: translateZ(0); /* Forcer GPU */
+    line-height: 1; /* Hauteur de ligne fixe */
 }
 
-.button:hover { 
-    transform: translateY(-1px);
-    box-shadow: none;
+.button:hover,
+.button:focus,
+.button:active { 
+    filter: brightness(1.08) !important;
+    transform: translateZ(0) !important; /* Maintenir GPU */
+    box-shadow: none !important;
+    border: 1px solid #2B22EE !important;
+    outline: none !important;
+    padding: 14px 32px !important;
+    margin: 0 !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    letter-spacing: 0.3px !important;
+    line-height: 1 !important; /* Même hauteur de ligne */
+    gap: 8px !important; /* Même gap */
+    align-items: center !important;
+    justify-content: center !important;
 }
 
-.close-btn { 
-    background: #ff4444;
+/* Bouton secondaire - même style bleu carrousel */
+.button.secondary-action {
+    background: #2B22EE;
+    color: #ffffff;
+    border: 1px solid #2B22EE;
+    backdrop-filter: none;
+    font-weight: 600;
+    padding: 14px 28px;
+    transition: filter 0.2s ease, background-color 0.2s ease !important;
+    box-shadow: none !important;
 }
 
-.close-btn:hover { 
-    background: #cc0000;
-    box-shadow: none;
+.button.secondary-action:hover {
+    filter: brightness(1.08) !important;
+    transform: none !important;
+    box-shadow: none !important;
 }
 
-/* Position the close button at the top-right of popup content */
-.fiche-content .top-right-close {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    z-index: 2;
+/* BOUTON FERMER - Bleu par défaut, rouge au survol */
+.fiche-popup .close-btn,
+.fiche-content .close-btn,
+.fiche-popup .button.close-btn,
+.fiche-content .button.close-btn,
+a.button.close-btn { 
+    position: absolute !important;
+    top: 12px !important;
+    right: 12px !important;
+    left: auto !important;
+    bottom: auto !important;
+    background: #2B22EE !important; /* Bleu par défaut */
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 8px 16px !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    z-index: 10000 !important;
+    transform: none !important;
+    margin: 0 !important;
+    width: auto !important;
+    min-width: auto !important;
+    max-width: fit-content !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.fiche-popup .close-btn:hover,
+.fiche-content .close-btn:hover,
+.fiche-popup .button.close-btn:hover,
+.fiche-content .button.close-btn:hover,
+a.button.close-btn:hover,
+.fiche-popup .close-btn:focus,
+.fiche-content .close-btn:focus,
+.fiche-popup .button.close-btn:focus,
+.fiche-content .button.close-btn:focus,
+a.button.close-btn:focus,
+.fiche-popup .close-btn:active,
+.fiche-content .close-btn:active,
+.fiche-popup .button.close-btn:active,
+.fiche-content .button.close-btn:active,
+a.button.close-btn:active { 
+    background: #FF0000 !important; /* Même rouge que YouTube */
+    position: absolute !important;
+    top: 12px !important;
+    right: 12px !important;
+    left: auto !important;
+    bottom: auto !important;
+    padding: 8px 16px !important;
+    font-size: 14px !important;
+    transform: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+/* Enfants du bouton ne bloquent pas les clics */
+.close-btn *,
+.button.close-btn * {
+    pointer-events: none !important;
 }
 
 /* Style pour empêcher le scroll vers le haut lors de la fermeture */
@@ -2109,11 +2405,39 @@ html {
 
 /* Responsive mobile */
 @media (max-width: 768px) {
-  /* Place close button above the text on mobile */
-  .fiche-content .top-right-close {
-    position: static !important;
-    align-self: flex-end;
-    margin: 0 0 8px 0;
+  /* Mobile: bouton plus compact */
+  .fiche-popup .close-btn,
+  .fiche-content .close-btn,
+  .fiche-popup .button.close-btn,
+  .fiche-content .button.close-btn,
+  a.button.close-btn {
+    top: 8px !important;
+    right: 8px !important;
+    left: auto !important;
+    padding: 6px 12px !important;
+    font-size: 13px !important;
+  }
+  
+  .fiche-popup .close-btn:hover,
+  .fiche-content .close-btn:hover,
+  .fiche-popup .button.close-btn:hover,
+  .fiche-content .button.close-btn:hover,
+  a.button.close-btn:hover,
+  .fiche-popup .close-btn:focus,
+  .fiche-content .close-btn:focus,
+  .fiche-popup .button.close-btn:focus,
+  .fiche-content .button.close-btn:focus,
+  a.button.close-btn:focus,
+  .fiche-popup .close-btn:active,
+  .fiche-content .close-btn:active,
+  .fiche-popup .button.close-btn:active,
+  .fiche-content .button.close-btn:active,
+  a.button.close-btn:active {
+    top: 8px !important;
+    right: 8px !important;
+    left: auto !important;
+    padding: 6px 12px !important;
+    font-size: 13px !important;
   }
     /* Kill 100vh on mobile to avoid extra blank space below content */
     html, body { height: auto !important; }
@@ -2794,14 +3118,34 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     border: 1px solid #2B22EE;
     color: #fff;
     padding: 10px 14px;
+    transition: filter 0.2s ease !important;
+    box-shadow: none !important;
+    outline: none !important;
+    margin: 0;
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
 }
-.quick-btn:hover { background: #241DE0; }
+.quick-btn:hover,
+.quick-btn:focus { 
+  filter: brightness(1.08) !important;
+  transform: none !important;
+  box-shadow: none !important;
+  border: 1px solid #2B22EE !important;
+  outline: none !important;
+  padding: 10px 14px !important;
+  margin: 0 !important;
+}
 
 /* Subtle animated gradient background */
 body {
   background: radial-gradient(1200px 600px at 10% -10%, rgba(43,34,238,0.18), transparent 60%),
               radial-gradient(1000px 700px at 100% 10%, rgba(108,92,231,0.18), transparent 60%),
               linear-gradient(180deg, var(--bg-2), var(--bg-1));
+}
+
+/* Pas de dégradé sur la page fiche - fond uni */
+body.fiche-page-view {
+  background: var(--bg-1) !important;
 }
 
 /* ===== Visual Enhancements (Index) ===== */
@@ -2824,19 +3168,21 @@ body {
 }
 .card img { will-change: transform; }
 
-/* Buttons */
+/* Buttons - style carrousel unifié */
 .carousel-btn,
 .quick-btn,
 .button {
-  background: var(--brand-1);
-  border: 1px solid rgba(255,255,255,0.14);
-  box-shadow: 0 10px 20px rgba(43,34,238,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+  background: #2B22EE;
+  border: 1px solid #2B22EE;
+  box-shadow: none !important;
+  transition: filter 0.2s ease !important;
 }
 .carousel-btn:hover,
 .quick-btn:hover,
 .button:hover {
-  filter: brightness(0.95);
-  transform: translateY(-1px);
+  filter: brightness(1.08) !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 /* Keep partenariat button green even when using .button styles */
@@ -2867,15 +3213,34 @@ body {
   vertical-align: middle;
 }
 
-/* YouTube footer button (red) */
-.button.youtube-btn {
+/* YouTube footer button (red) - Spécificité maximale */
+a.button.youtube-btn,
+.button.youtube-btn.youtube-btn {
   background: #FF0000 !important; /* YouTube brand */
-  border: 1px solid rgba(255,255,255,0.14);
-  box-shadow: 0 10px 20px rgba(255,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  border-color: rgba(255,255,255,0.14) !important;
+  box-shadow: none !important; /* Pas de glow */
+  outline: none !important;
 }
-.button.youtube-btn:hover {
+a.button.youtube-btn:hover,
+a.button.youtube-btn:focus,
+a.button.youtube-btn:active,
+a.button.youtube-btn:focus-visible,
+.button.youtube-btn.youtube-btn:hover,
+.button.youtube-btn.youtube-btn:focus,
+.button.youtube-btn.youtube-btn:active,
+.button.youtube-btn.youtube-btn:focus-visible {
   background: #CC0000 !important;
-  filter: brightness(0.98);
+  filter: brightness(0.98) !important;
+  outline: none !important;
+  outline-width: 0 !important;
+  outline-color: transparent !important;
+  outline-style: none !important;
+  box-shadow: none !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  border-color: rgba(255,255,255,0.14) !important;
+  -webkit-box-shadow: none !important;
+  -moz-box-shadow: none !important;
 }
 .button.youtube-btn svg {
   width: 30px;
@@ -2886,6 +3251,29 @@ body {
   top: -2px; /* slightly up */
 }
 
+/* Boutons "Lien de la chaîne" dans la popup YouTube - En rouge */
+#youtube .button:not(.close-btn),
+#youtube a.button:not(.close-btn) {
+  background: #FF0000 !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  border-color: rgba(255,255,255,0.14) !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+#youtube .button:not(.close-btn):hover,
+#youtube .button:not(.close-btn):focus,
+#youtube .button:not(.close-btn):active,
+#youtube a.button:not(.close-btn):hover,
+#youtube a.button:not(.close-btn):focus,
+#youtube a.button:not(.close-btn):active {
+  background: #CC0000 !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  border-color: rgba(255,255,255,0.14) !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
 /* Footer buttons aligned to the right while keeping original layout */
 .footer .footer-inner > div:nth-child(2) { text-align: right; }
 .footer .footer-inner > div:nth-child(2) > span { float: left; }
@@ -2894,15 +3282,25 @@ body {
 /* Prevent cards from being clipped on hover translateY in all sections */
 .section .rail { padding-top: 12px; }
 
-/* Focus-visible ring */
-:where(a, button, .quick-btn, input, [tabindex]):focus-visible {
+/* Focus-visible ring - désactivé pour les boutons */
+:where(a, input, [tabindex]):focus-visible {
   outline: 2px solid rgba(99,102,241,0.9);
   outline-offset: 2px;
   box-shadow: 0 0 0 6px rgba(99,102,241,0.25);
 }
+/* Pas d'outline pour les boutons qui causent des décalages */
+button:focus-visible,
+.button:focus-visible,
+.quick-btn:focus-visible {
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+}
 
-/* Smoother transitions */
-* { transition: background-color .25s ease, color .25s ease, border-color .25s ease, transform .25s ease, box-shadow .25s ease; }
+/* Smoother transitions - SAUF pour les boutons (cause des décalages) */
+*:not(.button):not(button):not(.quick-btn) { 
+  transition: background-color .25s ease, color .25s ease, border-color .25s ease, transform .25s ease, box-shadow .25s ease; 
+}
 
     /* Category label via data-type attribute for new genre sections */
     .card .card-info::before { margin-right: 8px; }
@@ -2940,24 +3338,42 @@ body {
         margin-left: 88px !important;
       }
     }
-    /* Subtle top separator before similar section on fiche pages */
+    /* Subtle top separator before similar section on fiche pages - style moderne */
     #fiche > .section {
-        border-top: 1px solid rgba(255,255,255,0.16);
-        padding-top: 20px;
-        margin-top: 12px;
+        border-top: none;
+        padding-top: 32px;
+        margin-top: 24px;
+        position: relative;
     }
-    body.fiche-page-view .fiche-content.landscape-layout { display: flex !important; }
+    #fiche > .section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    }
+    body.fiche-page-view .fiche-content.landscape-layout { 
+        display: flex !important;
+        background: transparent !important;
+        padding: 32px 40px !important;
+        gap: 48px !important;
+    }
     /* Responsive, non-cutting columns using clamp() so they adapt to viewport */
     body.fiche-page-view .fiche-left {
         align-items: stretch !important;
-        flex: 1 1 clamp(520px, 44vw, 640px);
-        min-width: 0; /* allow shrink without overflow */
+        flex: 1 1 clamp(580px, 50vw, 800px); /* Image plus grande */
+        min-width: 0;
     }
     body.fiche-page-view .fiche-right {
         padding-left: 0 !important;
         flex: 1 1 clamp(480px, 36vw, 560px);
-        min-width: 0; /* allow text to shrink inside */
+        min-width: 0;
         max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
     /* Ensure inner content can wrap instead of overflowing out of the container */
     body.fiche-page-view .fiche-right, 
@@ -2966,20 +3382,54 @@ body {
     /* Medium screens: relax gaps and bases a bit so nothing touches edges */
     @media (max-width: 1100px) {
         body.fiche-page-view .fiche-content { gap: 20px; }
-        body.fiche-page-view .fiche-left  { flex-basis: clamp(460px, 48vw, 600px); }
+        body.fiche-page-view .fiche-left  { flex-basis: clamp(500px, 52vw, 680px); } /* Image plus grande */
         body.fiche-page-view .fiche-right { flex-basis: clamp(420px, 44vw, 540px); }
     }
     
-    /* Fiche page: unify card design with other pages (no white border, prevent hover cut on mobile) */
+    /* Narrow screens (4:3 aspect ratio or less): stack content vertically */
+    @media (min-width: 769px) and (max-width: 1200px) {
+        body.fiche-page-view .fiche-content.landscape-layout {
+            flex-direction: column !important;
+            align-items: center !important;
+            gap: 32px !important;
+            padding: 24px 32px !important;
+        }
+        
+        body.fiche-page-view .fiche-left {
+            flex: 0 0 auto !important;
+            width: 100% !important;
+            max-width: 1000px !important;
+            align-items: center !important;
+        }
+        
+        body.fiche-page-view .fiche-left img.landscape {
+            width: 100% !important;
+            max-height: 60vh !important;
+            border-radius: 12px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        
+        body.fiche-page-view .fiche-right {
+            flex: 0 0 auto !important;
+            width: 100% !important;
+            max-width: 1000px !important;
+            padding: 0 !important;
+            text-align: left !important;
+        }
+    }
+    
+    /* Fiche page: cards avec même fond que index */
     body.fiche-page-view #fiche .section .card {
-        border: 0 !important; /* remove white border */
+        border: none !important;
+        background: linear-gradient(180deg, rgba(26,35,50,0.65), rgba(26,35,50,0.9)); /* Même fond que index */
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        backdrop-filter: blur(8px);
     }
 
-    /* Remove white outline ring on hover for fiche cards */
+    /* Hover subtil style streaming pro */
     body.fiche-page-view #fiche .section .card:hover {
-        box-shadow:
-          0 20px 40px rgba(0, 0, 0, 0.4),
-          inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+        transform: translateY(-4px) scale(1.02);
     }
 
     /* Ensure raised cards are not clipped on fiche */
@@ -3033,15 +3483,15 @@ body.is-mobile #partenariats-title { display: none !important; }
   }
   /* Align title with close button: place close at top-right and reserve space on the right of title */
   .fiche-popup[id^="all-"] .fiche-content { position: relative; }
-  .fiche-popup[id^="all-"] .top-right-close {
-    position: absolute !important;
-    top: 8px; right: 8px;
-    margin: 0 !important;
+  .fiche-popup[id^="all-"] .close-btn,
+  .fiche-popup[id^="all-"] .button.close-btn {
+    top: 8px !important;
+    right: 8px !important;
   }
   .fiche-popup[id^="all-"] .fiche-right > h3 { 
     /* align vertically with close button top */
     margin-top: 8px !important;
-    padding-right: 120px; /* keep text clear from the close button */
+    padding-right: 80px; /* keep text clear from the close button (moins large maintenant) */
   }
 }
 
@@ -3052,8 +3502,11 @@ body.is-mobile #partenariats-title { display: none !important; }
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.drawer .link:hover svg, .button:hover svg {
+.drawer .link:hover svg {
   transform: scale(1.1);
+}
+.button:hover svg {
+  transform: none !important; /* Pas de scale pour éviter le décalage du texte */
 }
 
 /* Effets de fondu et animations modernes */
@@ -3109,45 +3562,8 @@ body.is-mobile #partenariats-title { display: none !important; }
   overflow: hidden;
 }
 
-/* Améliorations des boutons avec effets de brillance */
-.button, .carousel-btn {
-  position: relative;
-  overflow: hidden;
-  background: var(--brand-1);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.button:not(.episode-btn)::before, .carousel-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.3),
-    transparent
-  );
-  transition: left 0.5s ease;
-}
-
-.button:not(.episode-btn):hover::before, .carousel-btn:hover::before {
-  left: 100%;
-}
-
-/* Désactiver les effets animés pour les boutons dans les sections de séries */
-#series .button::before,
-.fiche-popup .button::before {
-  display: none;
-}
-
-#series .button:hover,
-.fiche-popup .button:hover {
-  transform: none;
-  box-shadow: none;
-}
+/* Améliorations des boutons - DÉSACTIVÉ au profit du style carrousel unifié */
+/* Les boutons utilisent maintenant uniquement filter: brightness(1.08) au survol */
 
 /* Éviter que les cartes soient coupées en haut dans les fiches */
 .fiche-popup .rail {
@@ -3187,12 +3603,13 @@ body.is-mobile #partenariats-title { display: none !important; }
   background: rgba(255,255,255,0.45);
 }
 
-.button:hover, .carousel-btn:hover {
+/* Style unifié géré plus haut - ces règles sont désactivées */
+/*.button:hover, .carousel-btn:hover {
   transform: translateY(-2px);
   box-shadow: 
     0 10px 25px rgba(43, 34, 238, 0.4),
     0 0 0 1px rgba(255, 255, 255, 0.2);
-}
+}*/
 
 /* Améliorations des sections avec animations d'apparition */
 .section {
@@ -3425,9 +3842,14 @@ body.fiche-page-view .carousel-genre-tag:hover {
 }
 
 /* Améliorations des focus states */
-.card:focus-visible, .category-card:focus-visible, .button:focus-visible {
+.card:focus-visible, .category-card:focus-visible {
   outline: 3px solid rgba(43, 34, 238, 0.8);
   outline-offset: 2px;
+}
+/* Pas d'outline pour les boutons */
+.button:focus-visible {
+  outline: none !important;
+  outline-offset: 0 !important;
 }
 
 /* Améliorations du contraste pour l'accessibilité */
@@ -3537,4 +3959,110 @@ body.fiche-page-view .carousel-genre-tag:hover {
   position: static !important;
   bottom: auto !important;
   padding-bottom: 0 !important;
+  transform: none !important;
+}
+.fiche-popup .button-group > * {
+  flex-shrink: 0 !important;
+}
+
+/* Stabilité des boutons dans les popups - mêmes règles que page principale */
+.fiche-popup .button {
+  min-height: 48px !important;
+  max-height: 48px !important;
+  height: 48px !important;
+  position: relative !important;
+  top: 0 !important;
+  left: 0 !important;
+  backface-visibility: hidden !important;
+  -webkit-font-smoothing: antialiased !important;
+  text-rendering: geometricPrecision !important;
+  contain: layout style !important;
+  isolation: isolate !important;
+  vertical-align: middle !important;
+  flex-shrink: 0 !important;
+  will-change: filter !important;
+  transform: translateZ(0) !important;
+  line-height: 1 !important;
+}
+.fiche-popup .button:hover,
+.fiche-popup .button:focus,
+.fiche-popup .button:active {
+  height: 48px !important;
+  min-height: 48px !important;
+  max-height: 48px !important;
+  position: relative !important;
+  top: 0 !important;
+  left: 0 !important;
+  transform: translateZ(0) !important;
+  line-height: 1 !important;
+  padding: 14px 32px !important;
+  margin: 0 !important;
+  border: 1px solid #2B22EE !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  letter-spacing: 0.3px !important;
+  gap: 8px !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Stabiliser les enfants des boutons popup */
+.fiche-popup .button > *,
+.fiche-popup .button:hover > *,
+.fiche-popup .button:focus > * {
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  will-change: filter !important;
+  position: relative !important;
+  flex-shrink: 0 !important;
+}
+
+/* Stabiliser le texte et SVG dans les boutons popup */
+.fiche-popup .button span,
+.fiche-popup .button:hover span,
+.fiche-popup .button:focus span,
+.fiche-popup .button:active span {
+  display: inline-block !important;
+  transform: translateZ(0) !important;
+  position: relative !important;
+  top: 0 !important;
+  left: 0 !important;
+  backface-visibility: hidden !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: geometricPrecision !important;
+  font-weight: inherit !important;
+  font-size: inherit !important;
+  letter-spacing: inherit !important;
+  line-height: 1 !important;
+  will-change: filter !important;
+}
+
+.fiche-popup .button svg,
+.fiche-popup .button:hover svg,
+.fiche-popup .button:focus svg,
+.fiche-popup .button:active svg {
+  transform: translateZ(0) !important;
+  width: 1em !important;
+  height: 1em !important;
+  backface-visibility: hidden !important;
+}
+
+/* Pas de pseudo-éléments qui pourraient causer des décalages */
+.fiche-popup .button::before,
+.fiche-popup .button::after,
+.fiche-popup .button:hover::before,
+.fiche-popup .button:hover::after {
+  content: none !important;
+}
+
+/* Bouton favoris dans popup - même stabilité */
+.fiche-popup .button.fav-primary,
+.fiche-popup .button.fav-primary:hover,
+.fiche-popup .button.fav-primary:focus,
+.fiche-popup .button.fav-primary:active {
+  transform: translateZ(0) !important;
+  position: relative !important;
+  top: 0 !important;
+  left: 0 !important;
 }

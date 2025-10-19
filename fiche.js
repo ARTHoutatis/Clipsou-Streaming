@@ -995,11 +995,7 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     if (!hasEpisodes) return;
     try {
       if (window.__wantEpisodes) {
-        showEpisodes();
-        if (scroll) {
-          const el = episodesPanel;
-          if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        showEpisodes(scroll); // Passer le paramètre scroll
         window.__wantEpisodes = false;
       }
     } catch {}
@@ -1300,7 +1296,7 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       episodesRail.appendChild(a);
     });
   }
-  function showEpisodes(){
+  function showEpisodes(shouldScroll){
     if (!hasEpisodes) return;
     populateEpisodes();
     rail.hidden = true; rail.style.display = 'none'; rail.setAttribute('aria-hidden','true');
@@ -1315,24 +1311,26 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     actorsBtn.setAttribute('aria-expanded', 'false');
     episodesBtn.setAttribute('aria-expanded', 'true');
     refreshRails();
-    // Smooth scroll to the episodes section for a clear animation down the page
-    try {
-      setTimeout(() => { if (episodesPanel && episodesPanel.scrollIntoView) episodesPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 0);
-    } catch {}
-    // After scrolling, set the hash without triggering the browser's immediate jump
-    try {
-      setTimeout(() => {
-        if (history && history.replaceState) {
-          history.replaceState(null, '', location.pathname + location.search + '#episodes-section');
-        } else {
-          location.hash = '#episodes-section';
-        }
-      }, 150);
-    } catch {}
+    // Smooth scroll only if requested (from "Voir les épisodes" button, not from section toggle)
+    if (shouldScroll) {
+      try {
+        setTimeout(() => { if (episodesPanel && episodesPanel.scrollIntoView) episodesPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 0);
+      } catch {}
+      // After scrolling, set the hash without triggering the browser's immediate jump
+      try {
+        setTimeout(() => {
+          if (history && history.replaceState) {
+            history.replaceState(null, '', location.pathname + location.search + '#episodes-section');
+          } else {
+            location.hash = '#episodes-section';
+          }
+        }, 150);
+      } catch {}
+    }
   }
   actorsBtn.addEventListener('click', showActors);
   similarBtn.addEventListener('click', showSimilar);
-  if (hasEpisodes) episodesBtn.addEventListener('click', showEpisodes);
+  if (hasEpisodes) episodesBtn.addEventListener('click', () => showEpisodes(false)); // Pas de scroll pour le toggle
     if (mq) {
       if (typeof mq.addEventListener === 'function') {
         mq.addEventListener('change', placeSimilar);
