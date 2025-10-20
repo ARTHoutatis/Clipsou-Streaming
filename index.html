@@ -261,6 +261,13 @@
   }
   .footer .back-to-top-btn svg { width: 18px; height: 18px; }
   .footer .back-to-top-btn:hover { filter: brightness(1.06); }
+  @media (max-width: 768px) {
+    .footer .back-to-top-btn {
+      position: static;
+      margin-top: 16px;
+      align-self: flex-start;
+    }
+  }
   /* Image optimization: prevent layout shift and add smooth loading */
   img {
     display: block;

@@ -385,11 +385,6 @@ body.player-open, html.player-open {
 /* Desktop/tablet: ensure mobile-only overlay stays hidden */
 .fiche-left .fiche-overlay { display: none; }
 
-/* Extra-narrow phones: force-hide Partenariats title */
-@media (max-width: 600px) {
-  #partenariats-title { display: none !important; }
-}
-
 /* Ensure no parent color overrides the gradient fill */
 #film7 .fiche-right #film7-title .urbanos-grad {
     -webkit-background-clip: text !important;
@@ -2432,9 +2427,13 @@ html {
   .fiche-popup .button.close-btn,
   .fiche-content .button.close-btn,
   a.button.close-btn {
-    top: 8px !important;
-    right: 8px !important;
+    position: relative !important;
+    top: 0 !important;
+    right: 0 !important;
     left: auto !important;
+    margin-bottom: 10px !important;
+    align-self: flex-end !important;
+    z-index: 3;
     padding: 6px 12px !important;
     font-size: 13px !important;
   }
@@ -2454,11 +2453,12 @@ html {
   .fiche-popup .button.close-btn:active,
   .fiche-content .button.close-btn:active,
   a.button.close-btn:active {
-    top: 8px !important;
-    right: 8px !important;
+    position: relative !important;
+    top: 0 !important;
+    right: 0 !important;
     left: auto !important;
-    padding: 6px 12px !important;
-    font-size: 13px !important;
+    margin-bottom: 10px !important;
+    align-self: flex-end !important;
   }
     /* Ensure no extra spacing after the last visible block */
     body > :last-child { margin-bottom: 0 !important; padding-bottom: 0 !important; }
@@ -2607,9 +2607,6 @@ html {
         pointer-events: auto; 
     }
     /* Phone/tablet: hide Partenariats title entirely and tighten spacing */
-    #partenariats-title { display: none !important; }
-    #partenariats .fiche-right > h3#partenariats-title { display: none !important; }
-    body.is-mobile #partenariats .fiche-right > h3#partenariats-title { display: none !important; }
     #partenariats .fiche-right > p:first-of-type { margin-top: 0 !important; }
     .carousel-arrow { 
         width: 48px; 
@@ -3572,19 +3569,6 @@ button:focus-visible,
         padding-top: 12px !important; /* room for translateY hover */
       }
     }
-
-/* FINAL OVERRIDE: hide all popup titles on mobile (placed at end to win cascade) */
-@media (max-width: 768px) {
-  .fiche-popup .fiche-content h3,
-  .fiche-popup .fiche-right > h3,
-  .fiche-popup h3 { display: none !important; margin: 0 !important; }
-}
-
-/* JS-driven mobile flag: if body.has('is-mobile'), hide popup titles too */
-body.is-mobile .fiche-popup h3 { display: none !important; margin: 0 !important; }
-body.is-mobile #infos-title,
-body.is-mobile #youtube-title,
-body.is-mobile #partenariats-title { display: none !important; }
 
 /* Mobile override: keep section titles visible inside "Voir tout" popups and shrink if needed */
 @media (max-width: 768px) {
