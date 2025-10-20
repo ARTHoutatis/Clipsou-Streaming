@@ -3142,6 +3142,10 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
     padding: 0 16px;
     scroll-snap-type: none;
   }
+
+  .similar-rail > .card {
+    margin-bottom: 16px;
+  }
 }
 
 /* Mobile paysage : Ratio adapté */
