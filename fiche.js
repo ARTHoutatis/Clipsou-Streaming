@@ -989,7 +989,29 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   
   // Afficher le contenu similaire par défaut
   showSimilar();
-  
+
+  let openEpisodesHandler = null;
+  if (hasEpisodes) {
+    openEpisodesHandler = () => {
+      try { window.__wantEpisodes = false; } catch {}
+      showEpisodes(true);
+    };
+    try { window.addEventListener('open-episodes', openEpisodesHandler); } catch {}
+  }
+
+  if (hasEpisodes) {
+    let shouldOpen = false;
+    try { if (window.__wantEpisodes) shouldOpen = true; } catch {}
+    if (!shouldOpen) {
+      try { if (location && location.hash === '#episodes-section') shouldOpen = true; } catch {}
+    }
+    if (shouldOpen) {
+      setTimeout(() => {
+        if (openEpisodesHandler) openEpisodesHandler();
+      }, 0);
+    }
+  }
+
   // Gestion du bouton Acteurs - fonction populateActors()
   function populateActors() {
     actorsGrid.innerHTML = '';
@@ -1221,7 +1243,8 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
             if (c[vid] && typeof c[vid].duration === 'number') duration = Math.max(0, c[vid].duration);
             else fetchDurationIfMissing(vid);
           }
-          const finished = !!(entry && entry.finished) || (duration > 0 && seconds / duration >= 0.99);
+          const remaining = duration > 0 ? Math.max(0, duration - seconds) : 0;
+          const finished = !!(entry && entry.finished) || (duration > 0 && remaining <= 5) || (duration > 0 && seconds / duration >= 0.99);
           if (finished) {
             suffix = 'déjà vu ✔';
           } else if (duration > 0 && seconds > 0) {
