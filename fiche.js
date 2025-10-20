@@ -774,36 +774,46 @@ function computeSimilar(allItems, current, minOverlap = 2, maxCount = 10) {
   return scored.slice(0, maxCount).map(s => s.item);
 }
 
+// ===== NOUVELLE VERSION PROPRE : Section Contenu similaire UNIQUEMENT =====
 function renderSimilarSection(rootEl, similarItems, currentItem) {
   if (!rootEl) return;
   if (!Array.isArray(similarItems)) similarItems = [];
+  
+  // Créer la section principale
   const section = document.createElement('section');
-  section.className = 'section';
-  // Header avec boutons de bascule (Contenu similaire / Épisodes / Acteurs)
+  section.className = 'section similar-section';
+  section.id = 'similar-section';
+  
+  // Header avec les 3 boutons: Contenu similaire / Épisodes / Acteurs
   const header = document.createElement('div');
   header.className = 'section-header';
+  
+  // Bouton Contenu similaire (actif par défaut)
   const similarBtn = document.createElement('button');
   similarBtn.type = 'button';
-  similarBtn.className = 'button secondary similar-toggle active';
+  similarBtn.className = 'button secondary active';
   similarBtn.textContent = 'Contenu similaire';
-  similarBtn.setAttribute('aria-expanded', 'true');
   header.appendChild(similarBtn);
-  // Episodes toggle (only for series with known episodes)
+  
+  // Bouton Épisodes (seulement pour les séries)
   const titleForMatch = (currentItem && currentItem.title) || '';
   const idForMatch = (currentItem && currentItem.id) || '';
-  const hasEpisodes = !!(currentItem && (currentItem.type === 'série' || /serie/i.test(idForMatch)) && (EPISODES_DB_NORM[normalizeTitleKey(titleForMatch)] || EPISODES_ID_DB[idForMatch]));
+  const hasEpisodes = !!(currentItem && (currentItem.type === 'série' || /serie/i.test(idForMatch)) && 
+    (EPISODES_DB_NORM[normalizeTitleKey(titleForMatch)] || EPISODES_ID_DB[idForMatch]));
+  
   const episodesBtn = document.createElement('button');
   episodesBtn.type = 'button';
-  episodesBtn.className = 'button secondary episodes-toggle';
+  episodesBtn.className = 'button secondary';
   episodesBtn.textContent = 'Épisodes';
-  episodesBtn.setAttribute('aria-expanded', 'false');
   if (hasEpisodes) header.appendChild(episodesBtn);
+  
+  // Bouton Acteurs
   const actorsBtn = document.createElement('button');
   actorsBtn.type = 'button';
-  actorsBtn.className = 'button secondary actors-toggle';
+  actorsBtn.className = 'button secondary';
   actorsBtn.textContent = 'Acteurs & Doubleurs';
-  actorsBtn.setAttribute('aria-expanded', 'false');
   header.appendChild(actorsBtn);
+  
   section.appendChild(header);
 
   // Panneau des acteurs (caché par défaut)
@@ -841,105 +851,71 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   episodesPanel.appendChild(episodesRail);
   if (hasEpisodes) section.appendChild(episodesPanel);
 
+  // Rail pour le contenu similaire (visible par défaut)
   const rail = document.createElement('div');
-  rail.className = 'rail';
-  rail.hidden = false;
-  rail.style.display = '';
-  rail.setAttribute('aria-hidden', 'false');
-  const currentFrom = new URLSearchParams(location.search).get('from');
-  // helper to strip trailing number and force portrait like 'La', 'Ur', 'Ka', 'Law', 'Al'
-  function deriveBase(src) {
-    if (!src) return '';
-    const m = src.match(/^(.*?)(\d+)?\.(webp|jpg|jpeg|png)$/i);
-    return m ? m[1] : src.replace(/\.(webp|jpg|jpeg|png)$/i, '');
-  }
-
+  rail.className = 'rail similar-rail';
+  
+  // Créer les cartes de contenu similaire
   if (similarItems.length === 0) {
     const empty = document.createElement('p');
-    empty.className = 'actors-empty';
+    empty.className = 'empty-message';
     empty.textContent = "Aucun contenu similaire trouvé.";
     rail.appendChild(empty);
   } else {
     similarItems.forEach(it => {
+      // Carte simple et propre
       const card = document.createElement('div');
       card.className = 'card';
+      
       const a = document.createElement('a');
-      const extra = currentFrom ? `&from=${encodeURIComponent(currentFrom)}` : '';
-      a.href = `fiche.html?id=${encodeURIComponent(it.id)}${extra}`;
+      a.href = `fiche.html?id=${encodeURIComponent(it.id)}`;
+      
+      // Media container
       const media = document.createElement('div');
       media.className = 'card-media';
-      // Robust thumbnail loader: portrait -> landscape -> image -> derived exts -> apercu
+      
+      // Image avec priorité portrait (même logique que l'index: data-src + fallback progressif)
       const img = document.createElement('img');
-      let candidates = [];
-      // Helpers (WebP only)
-      function isDerivable(src){ return /\.(webp|jpg|jpeg|png)$/i.test(src || ''); }
-      function derivedList(src){
-        const list = [];
-        const m = (src || '').match(/^(.*?)(\d+)?\.(webp|jpg|jpeg|png)$/i);
-        if (!m) return list;
-        const base = m[1];
-        list.push(base + '.webp');
-        return list;
+      const primaryPortrait = optimizeCloudinaryUrlCard(it.portraitImage || '');
+      let thumbs = [];
+      if (primaryPortrait) {
+        thumbs = [primaryPortrait];
+      } else {
+        // Fallback: dériver des extensions depuis image ou landscapeImage
+        const base = optimizeCloudinaryUrlCard(it.image || it.landscapeImage || '');
+        try { thumbs = deriveExts(base); } catch { thumbs = base ? [base] : []; }
       }
-      function dedupe(arr){
-        const seen = new Set();
-        const out = [];
-        for (const s of arr) { if (s && !seen.has(s)) { seen.add(s); out.push(s); } }
-        return out;
-      }
-      // Build ordered candidates (optimize for small card size):
-      // 1) portraitImage
-      if (it.portraitImage) candidates.push(optimizeCloudinaryUrlCard(it.portraitImage));
-      // 2) derived-from image (to target portrait base like Al.jpg before Al1.jpg)
-      if (it.image && isDerivable(it.image)) candidates.push(...derivedList(optimizeCloudinaryUrlCard(it.image)));
-      // 3) derived-from landscapeImage if provided
-      if (it.landscapeImage && isDerivable(it.landscapeImage)) candidates.push(...derivedList(optimizeCloudinaryUrlCard(it.landscapeImage)));
-      // 4) original image, then landscapeImage
-      if (it.image) candidates.push(optimizeCloudinaryUrlCard(it.image));
-      if (it.landscapeImage) candidates.push(optimizeCloudinaryUrlCard(it.landscapeImage));
-      candidates = dedupe(candidates);
-      // Helper to safely apply src (encode local paths with spaces)
-      function applySrc(c){
-        if (!c) return '';
-        if (/^(data:|https?:)/i.test(c)) return c;
-        try { return encodeURI(c); } catch { return c; }
-      }
-      let cIdx = 0;
-      var first = applySrc(candidates[cIdx]);
-      if (first) img.src = first;
+      let idx = 0;
+      const first = thumbs[0] || '';
+      if (first) img.setAttribute('data-src', first);
       img.onerror = function(){
-        cIdx += 1;
-        if (cIdx < candidates.length) {
-          const next = applySrc(candidates[cIdx]);
-          if (next) this.src = next; else { this.onerror = null; try { this.removeAttribute('src'); } catch {} }
-        } else {
-          this.onerror = null;
-          try { this.removeAttribute('src'); } catch {}
-        }
+        if (idx < thumbs.length - 1) { idx += 1; this.src = thumbs[idx]; }
+        else { this.onerror = null; try { this.removeAttribute('src'); } catch {} }
       };
-      img.alt = 'Affiche de ' + (it.title || '');
+      img.alt = it.title || '';
       img.loading = 'lazy';
       img.decoding = 'async';
-      // onerror handler already set above (multi-candidate)
       
+      // Badge Clipsou Studio
       const badge = document.createElement('div');
       badge.className = 'brand-badge';
       const logo = document.createElement('img');
-      // Use configured studio badge if present, otherwise default to local path
-      try {
-        const src = it.studioBadge || 'images/clipsoustudio.webp';
-        logo.src = src;
-      } catch { logo.src = 'images/clipsoustudio.webp'; }
+      logo.src = it.studioBadge || 'images/clipsoustudio.webp';
       logo.alt = 'Clipsou Studio';
       logo.loading = 'lazy';
-      logo.decoding = 'async';
       badge.appendChild(logo);
+      
       media.appendChild(img);
       media.appendChild(badge);
+      
+      // Info bar
       const info = document.createElement('div');
       info.className = 'card-info';
       info.setAttribute('data-type', it.type || 'film');
-      if (typeof it.rating === 'number') info.setAttribute('data-rating', String(it.rating));
+      if (typeof it.rating === 'number') {
+        info.setAttribute('data-rating', String(it.rating));
+      }
+      
       a.appendChild(media);
       a.appendChild(info);
       card.appendChild(a);
@@ -948,61 +924,73 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   }
 
   section.appendChild(rail);
-
-  // Dynamically place the similar section depending on viewport, like the Watch button
-  const mq = window.matchMedia ? window.matchMedia('(max-width: 768px)') : null;
-  const placeSimilar = () => {
-    try {
-      const wrapEl = rootEl.querySelector('.fiche-content');
-      const buttonGroup = rootEl.querySelector('.button-group');
-      if (mq && mq.matches) {
-        // Mobile: place right after the buttons if present, otherwise after the fiche content
-        if (buttonGroup && buttonGroup.parentElement) {
-          buttonGroup.insertAdjacentElement('afterend', section);
-        } else if (wrapEl && wrapEl.parentElement) {
-          wrapEl.insertAdjacentElement('afterend', section);
-        } else {
-          rootEl.appendChild(section);
-        }
-      } else {
-        // Desktop/tablet: keep as a normal section inside root (after fiche)
-        rootEl.appendChild(section);
-      }
-    } catch (e) {
-      // Fallback: append to root
-      rootEl.appendChild(section);
-    }
-  };
-
-  placeSimilar();
-
-  function refreshRails(){
-    try { if (window.__enhanceFicheRails) window.__enhanceFicheRails(); } catch {}
+  
+  // Ajouter la section au DOM (simplement à la fin du rootEl)
+  rootEl.appendChild(section);
+  try { if (typeof installLazyImageLoader === 'function') installLazyImageLoader(); } catch {}
+  
+  // Fonctions de switching simples et propres
+  function showSimilar() {
+    rail.hidden = false;
+    actorsPanel.hidden = true;
+    if (hasEpisodes) episodesPanel.hidden = true;
+    // Classes compatibles avec le système global
+    section.classList.remove('actors-open');
+    section.classList.remove('episodes-open');
+    
+    similarBtn.classList.add('active');
+    actorsBtn.classList.remove('active');
+    if (hasEpisodes) episodesBtn.classList.remove('active');
   }
-
-  // Default view: show Similar by default; open Episodes only when explicitly requested.
-  // If a leftover hash exists from a previous navigation, clear it to avoid jumping on load.
-  try {
-    if (location.hash === '#episodes-section') {
-      try { history.replaceState(null, '', location.pathname + location.search); }
-      catch { location.hash = ''; }
-    }
-  } catch {}
-  showSimilar();
-  // Initialize arrows after section is in DOM
-  setTimeout(refreshRails, 100);
-  function openEpisodesIfRequested(scroll){
+  
+  function showActors() {
+    populateActors();
+    rail.hidden = true;
+    actorsPanel.hidden = false;
+    if (hasEpisodes) episodesPanel.hidden = true;
+    // Classes compatibles avec le système global
+    section.classList.add('actors-open');
+    section.classList.remove('episodes-open');
+    
+    similarBtn.classList.remove('active');
+    actorsBtn.classList.add('active');
+    if (hasEpisodes) episodesBtn.classList.remove('active');
+  }
+  
+  function showEpisodes(shouldScroll) {
     if (!hasEpisodes) return;
-    try {
-      if (window.__wantEpisodes) {
-        showEpisodes(scroll); // Passer le paramètre scroll
-        window.__wantEpisodes = false;
-      }
-    } catch {}
+    populateEpisodes();
+    rail.hidden = true;
+    actorsPanel.hidden = true;
+    episodesPanel.hidden = false;
+    // Classes compatibles avec le système global
+    section.classList.add('episodes-open');
+    section.classList.remove('actors-open');
+    
+    similarBtn.classList.remove('active');
+    actorsBtn.classList.remove('active');
+    episodesBtn.classList.add('active');
+    
+    if (shouldScroll) {
+      setTimeout(() => {
+        if (episodesPanel.scrollIntoView) {
+          episodesPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 0);
+    }
   }
-  openEpisodesIfRequested(true);
-  try { window.addEventListener('open-episodes', function(){ openEpisodesIfRequested(true); }); } catch {}
-  // Gestion du bouton Acteurs
+  
+  // Event listeners
+  similarBtn.addEventListener('click', showSimilar);
+  actorsBtn.addEventListener('click', showActors);
+  if (hasEpisodes) {
+    episodesBtn.addEventListener('click', () => showEpisodes(false));
+  }
+  
+  // Afficher le contenu similaire par défaut
+  showSimilar();
+  
+  // Gestion du bouton Acteurs - fonction populateActors()
   function populateActors() {
     actorsGrid.innerHTML = '';
     const title = (currentItem && currentItem.title) || '';
@@ -1153,45 +1141,6 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     });
   }
 
-  function showSimilar() {
-    // Afficher uniquement le rail similaire et masquer le panneau des acteurs
-    rail.hidden = false;
-    rail.style.display = '';
-    rail.setAttribute('aria-hidden', 'false');
-    actorsPanel.hidden = true;
-    actorsPanel.style.display = 'none';
-    actorsPanel.setAttribute('aria-hidden', 'true');
-    if (hasEpisodes) { episodesPanel.hidden = true; episodesPanel.style.display = 'none'; episodesPanel.setAttribute('aria-hidden','true'); }
-    section.classList.remove('actors-open');
-    section.classList.remove('episodes-open');
-    similarBtn.classList.add('active');
-    if (hasEpisodes) episodesBtn.classList.remove('active');
-    actorsBtn.classList.remove('active');
-    similarBtn.setAttribute('aria-expanded', 'true');
-    if (hasEpisodes) episodesBtn.setAttribute('aria-expanded', 'false');
-    actorsBtn.setAttribute('aria-expanded', 'false');
-    refreshRails();
-  }
-  function showActors() {
-    populateActors();
-    // Afficher uniquement le panneau acteurs et masquer le rail similaire
-    rail.hidden = true;
-    rail.style.display = 'none';
-    rail.setAttribute('aria-hidden', 'true');
-    actorsPanel.hidden = false;
-    actorsPanel.style.display = '';
-    actorsPanel.setAttribute('aria-hidden', 'false');
-    if (hasEpisodes) { episodesPanel.hidden = true; episodesPanel.style.display = 'none'; episodesPanel.setAttribute('aria-hidden','true'); }
-    section.classList.add('actors-open');
-    section.classList.remove('episodes-open');
-    actorsBtn.classList.add('active');
-    similarBtn.classList.remove('active');
-    if (hasEpisodes) episodesBtn.classList.remove('active');
-    actorsBtn.setAttribute('aria-expanded', 'true');
-    similarBtn.setAttribute('aria-expanded', 'false');
-    if (hasEpisodes) episodesBtn.setAttribute('aria-expanded', 'false');
-    refreshRails();
-  }
   function populateEpisodes(){
     episodesRail.innerHTML = '';
     const title = (currentItem && currentItem.title) || '';
@@ -1296,72 +1245,15 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       episodesRail.appendChild(a);
     });
   }
-  function showEpisodes(shouldScroll){
-    if (!hasEpisodes) return;
-    populateEpisodes();
-    rail.hidden = true; rail.style.display = 'none'; rail.setAttribute('aria-hidden','true');
-    actorsPanel.hidden = true; actorsPanel.style.display = 'none'; actorsPanel.setAttribute('aria-hidden','true');
-    episodesPanel.hidden = false; episodesPanel.style.display = ''; episodesPanel.setAttribute('aria-hidden','false');
-    section.classList.add('episodes-open');
-    section.classList.remove('actors-open');
-    similarBtn.classList.remove('active');
-    actorsBtn.classList.remove('active');
-    episodesBtn.classList.add('active');
-    similarBtn.setAttribute('aria-expanded', 'false');
-    actorsBtn.setAttribute('aria-expanded', 'false');
-    episodesBtn.setAttribute('aria-expanded', 'true');
-    refreshRails();
-    // Smooth scroll only if requested (from "Voir les épisodes" button, not from section toggle)
-    if (shouldScroll) {
-      try {
-        setTimeout(() => { if (episodesPanel && episodesPanel.scrollIntoView) episodesPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 0);
-      } catch {}
-      // After scrolling, set the hash without triggering the browser's immediate jump
-      try {
-        setTimeout(() => {
-          if (history && history.replaceState) {
-            history.replaceState(null, '', location.pathname + location.search + '#episodes-section');
-          } else {
-            location.hash = '#episodes-section';
-          }
-        }, 150);
-      } catch {}
-    }
-  }
-  actorsBtn.addEventListener('click', showActors);
-  similarBtn.addEventListener('click', showSimilar);
-  if (hasEpisodes) episodesBtn.addEventListener('click', () => showEpisodes(false)); // Pas de scroll pour le toggle
-    if (mq) {
-      if (typeof mq.addEventListener === 'function') {
-        mq.addEventListener('change', placeSimilar);
-      } else if (typeof mq.addListener === 'function') {
-        mq.addListener(placeSimilar);
-      }
-    } else {
-      window.addEventListener('resize', placeSimilar);
-      window.addEventListener('orientationchange', placeSimilar);
-    }
-    // Auto-refresh episode statuses when progress updates
-    try {
-      window.addEventListener('clipsou-progress-updated', () => {
-        try {
-          if (section.classList.contains('episodes-open')) {
-            populateEpisodes();
-          }
-        } catch {}
-      });
-    } catch {}
-    // Auto-refresh episode durations when duration cache updates
-    try {
-      window.addEventListener('clipsou-duration-updated', () => {
-        try {
-          if (section.classList.contains('episodes-open')) {
-            populateEpisodes();
-          }
-        } catch {}
-      });
-    } catch {}
-  }
+  
+  // Auto-refresh des épisodes quand le progrès change
+  window.addEventListener('clipsou-progress-updated', () => {
+    if (!episodesPanel.hidden) populateEpisodes();
+  });
+  window.addEventListener('clipsou-duration-updated', () => {
+    if (!episodesPanel.hidden) populateEpisodes();
+  });
+}
 
 function renderList(container, items, titleText) {
   container.innerHTML = '';

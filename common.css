@@ -645,6 +645,21 @@ body.popup-open nav[aria-label="Navigation principale"] {
   }
 }
 
+/* Mobile PAYSAGE : Adapter le ratio des cartes pour exploiter la hauteur disponible */
+@media (max-width: 768px) and (orientation: landscape) {
+  .card .card-media,
+  .similar-section .card .card-media,
+  #fiche .section .card .card-media {
+    aspect-ratio: 3/4 !important; /* ratio plus carré en paysage */
+  }
+  .card .card-media > img,
+  .similar-section .card .card-media > img,
+  #fiche .section .card .card-media > img {
+    object-position: center center !important; /* centrer l'image */
+    object-fit: cover !important;
+  }
+}
+
 /* Correction pour les formats très étroits en hauteur (landscape bas): empêcher le décalage d'image */
 @media (max-width: 768px) and (max-height: 400px) {
   /* Sur la page fiche, ajuster le ratio des cartes pour les formats bas */

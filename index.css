@@ -10,7 +10,7 @@
 .home-hero {
   position: relative;
   margin: 0 0 22px;
-  aspect-ratio: 16 / 8; /* enforce >= 2:1 to reduce vertical crop */
+  aspect-ratio: 16 / 8;
   height: auto;
   min-height: 260px;
   max-height: 460px;
@@ -18,19 +18,25 @@
 }
 .home-hero .hero-bg {
   position: absolute; inset: 0;
-  background-size: cover; background-position: center var(--hero-pos, 22%);
-  filter: brightness(0.88) saturate(1.0);
+  background-size: cover;
+  background-position: center var(--hero-pos, 22%);
+  filter: brightness(0.88);
   transform: scale(1.02);
 }
 .home-hero .hero-overlay {
-  position: absolute; inset: 0;
+  position: absolute;
+  inset: 0;
   background: linear-gradient(180deg, rgba(11,17,23,0.12) 0%, rgba(11,17,23,0.42) 58%, rgba(11,17,23,0.78) 100%),
               linear-gradient(90deg, rgba(11,17,23,0.55) 0%, rgba(11,17,23,0.20) 38%, rgba(11,17,23,0) 60%);
   pointer-events: none;
 }
 .home-hero .hero-content {
-  position: relative; z-index: 1;
-  height: 100%; display: flex; flex-direction: column; justify-content: flex-end;
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   padding: 22px 32px;
 }
 .home-hero .hero-box {
@@ -260,8 +266,6 @@ body.player-open, html.player-open {
   }
 }
 
-/* Overlay covers full viewport (including nav) so nav is dimmed under popup */
-
 /* ===== Desktop-only rail arrows ===== */
 @media (min-width: 769px) {
   .section { position: relative; }
@@ -344,7 +348,6 @@ body.player-open, html.player-open {
   .rail-fade { display: none !important; }
 }
 
-
 /* Partner logos: contain inside their fixed box and support simple position codes */
 .partner-logo {
   display: block;
@@ -372,11 +375,6 @@ body.player-open, html.player-open {
 /* Desktop/tablet: ensure mobile-only overlay stays hidden */
 .fiche-left .fiche-overlay { display: none; }
 
-/* Ultra-small phones: tighten navbar further (moved to common.css) */
-@media (max-width: 360px) {
-  .nav-links .search-link { width: 40px; height: 40px; }
-}
-
 /* Extra-narrow phones: force-hide Partenariats title */
 @media (max-width: 600px) {
   #partenariats-title { display: none !important; }
@@ -389,8 +387,6 @@ body.player-open, html.player-open {
     color: transparent !important;
     -webkit-text-fill-color: transparent !important;
 }
-
-/* box-sizing reset moved to common.css */
 
 body {
     margin: 0;
@@ -432,9 +428,7 @@ body:not(.fiche-page-view) {
 .resume-dialog-actions { display: flex; gap: 10px; justify-content: flex-end; }
 .resume-dialog-actions .button { min-width: 90px; }
 
-/* .sr-only moved to common.css */
-
-/* SOLUTION : Bloquer le scroll quand une popup est active */
+/* Bloquer le scroll quand une popup est active */
 body:has(.fiche-popup:target) {
     overflow: hidden;
     height: 100vh;
@@ -455,12 +449,11 @@ body::before {
     content: '';
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: none; /* inactive by default */
+    background: transparent;
     pointer-events: none;
     z-index: 10990; /* above nav and just below popup (11000) */
 }
 
-/* Navigation (desktop styles are unified in common.css) */
 /* Disable nav interactions while a popup is open */
 body:has(.fiche-popup:target) nav[aria-label="Navigation principale"],
 body.popup-open nav[aria-label="Navigation principale"] {
@@ -469,7 +462,6 @@ body.popup-open nav[aria-label="Navigation principale"] {
   backdrop-filter: none !important;
   box-shadow: none !important;
 }
-
 
 /* ===== Discord banner (global) ===== */
 .section#discord-invite { margin: 8px 0 12px; }
@@ -543,13 +535,11 @@ body.popup-open nav[aria-label="Navigation principale"] {
 @media (max-width: 768px) {
   #continue-watching > h2 {
     margin: 0 12px 8px !important; /* align with mobile gutters */
-    font-size: 18px !important;    /* smaller title on mobile */
+    font-size: 18px !important;
   }
 }
 
-
-/* .logo styles are centralized in common.css to keep title identical across pages */
-
+/* .logo styles are centralized in common.css */
 .nav-links { display: flex; gap: 15px; }
 .nav-links a { padding: 10px 20px; border-radius: 5px; font-weight: 600; color: #fff; text-decoration: none; transition: all .3s ease; white-space: nowrap; }
 
@@ -843,6 +833,14 @@ main > .section { transform: translateX(var(--home-shift)); width: calc(100% - v
 main > .categories-section { transform: translateX(calc(var(--home-shift) + var(--categories-nudge))); width: calc(100% - var(--home-shift) - var(--categories-nudge)); }
 @media (max-width: 768px) {
   :root { --home-shift: 8px; --categories-extra-shift: 6px; --categories-inner-shift: 12px; --categories-nudge: 0px; }
+}
+
+@media (max-width: 768px) {
+  main > .section,
+  main > .categories-section {
+    transform: none;
+    width: 100%;
+  }
 }
 
 .section h2 {
@@ -1431,9 +1429,6 @@ body.fiche-page-view .section-header .button.secondary {
   background: transparent;
   border: none;
 }
-.section.actors-open .rail { display: none !important; }
-.section.actors-open .actors-panel { display: block !important; }
-.section:not(.actors-open) .actors-panel { display: none !important; }
 .actors-panel > h3 {
   display: none !important; /* Cacher le grand titre */
 }
@@ -1449,6 +1444,12 @@ body.fiche-page-view .section-header .button.secondary {
 .episodes-panel > h3 { 
   display: none !important; /* Cacher le grand titre */
 }
+
+/* Compatibilité: classes de toggle pour sections switchables */
+.section.actors-open .rail { display: none !important; }
+.section.actors-open .actors-panel { display: block !important; }
+.section:not(.actors-open) .actors-panel { display: none !important; }
+
 .section.episodes-open .rail { display: none !important; }
 .section.episodes-open .episodes-panel { display: block !important; }
 .section:not(.episodes-open) .episodes-panel { display: none !important; }
@@ -1512,6 +1513,12 @@ body.fiche-page-view .section-header .button.secondary {
     max-width: 680px;           /* but keep a readable line length */
     margin-left: auto;          /* center when narrower than container */
     margin-right: auto;
+    white-space: normal !important; /* permettre le retour à la ligne */
+    height: auto !important;    /* hauteur adaptative */
+    min-height: 48px !important; /* hauteur minimale */
+    max-height: none !important; /* pas de limite de hauteur */
+    line-height: 1.4 !important; /* meilleure lisibilité sur plusieurs lignes */
+    overflow: visible !important; /* permettre au contenu de s'afficher entièrement */
   }
 }
 
@@ -1609,7 +1616,11 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
   border-color: rgba(255,255,255,0.28);
 }
 
-.actors-empty { margin: 8px 0; opacity: 0.85; }
+.actors-empty,
+.empty-message { 
+  margin: 8px 0; 
+  opacity: 0.85; 
+}
 
 /* Grille */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 24px; padding: 0 var(--gutter); }
@@ -2439,26 +2450,21 @@ html {
     padding: 6px 12px !important;
     font-size: 13px !important;
   }
-    /* Kill 100vh on mobile to avoid extra blank space below content */
-    html, body { height: auto !important; }
-    body { min-height: auto !important; }
     /* Ensure no extra spacing after the last visible block */
     body > :last-child { margin-bottom: 0 !important; padding-bottom: 0 !important; }
     main#contenu { margin-bottom: 0 !important; padding-bottom: 0 !important; }
-    #fiche, #fiche .section:last-child, #fiche .section:last-of-type { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+    /* Fiche sections spacing */
+    #fiche, #fiche .section:last-child, #fiche .section:last-of-type,
     #fiche .actors-panel:last-child { margin-bottom: 0 !important; padding-bottom: 0 !important; }
-    /* Fiche page: reduce spacing between sections and remove any trailing gap */
     body.fiche-page-view #fiche .section { margin: 16px 0 !important; padding-bottom: 0 !important; }
+    body.fiche-page-view #fiche,
+    body.fiche-page-view main#contenu,
+    body.fiche-page-view #fiche > :last-child,
+    body.fiche-page-view #fiche .section > :last-child,
     body.fiche-page-view #fiche .section:last-child,
-    body.fiche-page-view #fiche .section:last-of-type { margin-bottom: 0 !important; padding-bottom: 0 !important; }
-    body.fiche-page-view #fiche .actors-panel { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+    body.fiche-page-view #fiche .section:last-of-type,
+    body.fiche-page-view #fiche .actors-panel,
     body.fiche-page-view #fiche .episodes-panel { margin-bottom: 0 !important; padding-bottom: 0 !important; }
-    /* Generic guard: no bottom gap on the last child inside #fiche */
-    body.fiche-page-view #fiche > :last-child { margin-bottom: 0 !important; padding-bottom: 0 !important; }
-    body.fiche-page-view main#contenu { padding-bottom: 0 !important; margin-bottom: 0 !important; }
-    body.fiche-page-view #fiche { padding-bottom: 0 !important; margin-bottom: 0 !important; }
-    body.fiche-page-view #fiche .section > :last-child { margin-bottom: 0 !important; padding-bottom: 0 !important; }
-    body.fiche-page-view #fiche .section-header + .actors-panel:last-child { margin-bottom: 0 !important; padding-bottom: 0 !important; }
     /* Remove sticky watch button gap on mobile */
     .button-group {
         position: static !important;
@@ -2629,10 +2635,7 @@ html {
     /* Safety: keep actor photo visible on mobile with a fixed minimum height */
     .actors-panel .actor-photo { min-height: 0; }
 
-    /* Stop scrolling into empty space after the last section */
-    html, body { height: auto; overflow-x: hidden; overscroll-behavior-y: contain; }
-    #fiche > .section:last-child { margin-bottom: 0 !important; padding-bottom: 0 !important; }
-    main#contenu > .section:last-child { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+    /* Footer spacing */
     .footer { margin-top: 24px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
 
     /* Smaller cards on mobile grids */
@@ -2929,15 +2932,20 @@ html {
     /* Badge sizing/position centralized in common.css */
 }
 
-/* Correction pour formats très bas (landscape): ajuster largeur des cartes dans rail */
+/* Formats très bas (landscape): ajuster largeur des cartes */
 @media (max-width: 768px) and (max-height: 400px) {
     body.fiche-page-view #fiche .section .rail {
-        grid-auto-columns: 135px !important; /* cartes adaptées pour formats bas */
+        grid-auto-columns: clamp(135px, 26vh, 190px) !important; /* vh pour s'adapter à la hauteur */
     }
     body.fiche-page-view #fiche .section .grid {
         grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)) !important;
     }
-
+    /* Ratio adapté pour formats très bas */
+    body.fiche-page-view #fiche .section .card .card-media {
+        aspect-ratio: 3/4 !important;
+    }
+    
+    /* Adapter les boutons pour formats très bas */
     .button { 
         flex: 1 1 auto;
         max-width: 200px;
@@ -3006,9 +3014,6 @@ html {
   .footer { margin-top: 24px; }
   main#contenu { padding-bottom: 48px !important; }
   .section:last-of-type { margin-bottom: 24px !important; }
-  body.fiche-page-view main#contenu { padding-bottom: 0 !important; }
-  body.fiche-page-view #fiche .section:last-of-type,
-  body.fiche-page-view #fiche .section:last-child { margin-bottom: 0 !important; }
 }
 
 /* Header extras (menu, search, avatar) */
@@ -3080,7 +3085,6 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
   .rail {
     padding-left: 16px !important;
     padding-right: 16px !important;
-    margin-right: -16px !important; /* clip right edge */
     scroll-padding-inline-start: 16px !important;
     overflow-x: scroll !important; /* force scroll même si le contenu est plus petit */
     overflow-y: visible !important;
@@ -3091,6 +3095,107 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
   .rail > * {
     scroll-snap-align: start;
     touch-action: manipulation !important; /* permettre toutes les interactions */
+  }
+}
+
+/* ========== SECTION CONTENU SIMILAIRE - VERSION PROPRE ========== */
+
+/* Section similaire - styling de base */
+.similar-section {
+  margin: 20px 0;
+}
+
+/* Rail de contenu similaire */
+.similar-rail {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: clamp(160px, 16vw, 220px);
+  gap: 16px;
+  overflow-x: auto;
+  padding: 0 var(--gutter);
+  scroll-snap-type: x mandatory;
+}
+
+.similar-rail > .card {
+  scroll-snap-align: start;
+}
+
+/* Mobile : Ajustements simples */
+@media (max-width: 768px) {
+  .similar-section {
+    margin: 16px 0;
+  }
+  
+  .similar-rail {
+    grid-auto-columns: 140px;
+    gap: 12px;
+    padding: 0 16px;
+    scroll-snap-type: none;
+  }
+}
+
+/* Mobile paysage : Ratio adapté */
+@media (max-width: 768px) and (orientation: landscape) {
+  .similar-rail {
+    grid-auto-columns: clamp(120px, 24vh, 160px);
+    gap: 12px;
+  }
+  
+  .similar-rail .card-media {
+    aspect-ratio: 3/4 !important;
+  }
+}
+
+/* Mobile – Fiche compacte: réduire l'espace vertical proprement */
+@media (max-width: 768px) {
+  /* Ne pas réserver de hauteur inutile pour le bloc fiche */
+  body.fiche-page-view #fiche .fiche-content {
+    display: contents !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Sections plus serrées mais sans grande marge basse */
+  body.fiche-page-view #fiche .section {
+    margin: 10px 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  /* Lier visuellement la première section à la fiche */
+  #fiche .fiche-content + .section {
+    margin-top: 6px !important;
+  }
+
+  /* Header compact */
+  body.fiche-page-view .section-header {
+    margin: 8px 16px 8px !important;
+  }
+
+  /* Espace minimal entre header et contenu */
+  .section-header + .rail,
+  .section-header + .actors-panel,
+  .section-header + .episodes-panel {
+    margin-top: 8px !important;
+  }
+
+  /* Aucun débord bas inutile sur la dernière section */
+  body.fiche-page-view #fiche .section:last-child {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+}
+
+@media (min-width: 769px) {
+  body.fiche-page-view .fiche-left img.landscape {
+    max-height: none !important;
+    height: auto !important;
+  }
+  /* Ne pas contraindre la hauteur du conteneur fiche sur la page fiche */
+  body.fiche-page-view #fiche .fiche-content {
+    max-height: none !important;
+    overflow-y: visible !important;
   }
 }
 
