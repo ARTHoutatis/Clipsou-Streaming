@@ -641,7 +641,7 @@ body.popup-open nav[aria-label="Navigation principale"] {
   .card .card-media > img,
   .similar-section .card .card-media > img,
   #fiche .section .card .card-media > img {
-    object-position: center top !important;
+    object-position: center center !important;
   }
 }
 
