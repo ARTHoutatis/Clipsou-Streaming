@@ -448,7 +448,17 @@ document.addEventListener('DOMContentLoaded', async function () {
       }
       // Cleanup any fully-watched or invalid entries
       let items = readProgress()
-        .filter(it => it && it.id && typeof it.percent === 'number' && it.percent > 0 && it.percent < 0.99)
+        .filter(it => {
+          if (!it || !it.id) return false;
+          const percent = typeof it.percent === 'number' ? it.percent : 0;
+          const seconds = typeof it.seconds === 'number' ? Math.max(0, it.seconds) : 0;
+          const duration = typeof it.duration === 'number' ? Math.max(0, it.duration) : 0;
+          if (percent <= 0 && seconds <= 0) return false;
+          if (percent >= 0.99) return false;
+          if (duration > 0 && duration - seconds <= 5) return false;
+          if (it.finished) return false;
+          return true;
+        })
         .sort((a,b)=> (b.updatedAt||0) - (a.updatedAt||0));
 
       // Deduplicate by id (keep latest)
