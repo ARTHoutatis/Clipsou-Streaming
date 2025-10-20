@@ -930,6 +930,19 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   try { if (typeof installLazyImageLoader === 'function') installLazyImageLoader(); } catch {}
   
   // Fonctions de switching simples et propres
+  function scheduleEnhance(){
+    try {
+      if (typeof window === 'undefined') return;
+      setTimeout(() => {
+        try {
+          if (window.innerWidth > 768 && typeof window.__enhanceFicheRails === 'function') {
+            window.__enhanceFicheRails();
+          }
+        } catch {}
+      }, 0);
+    } catch {}
+  }
+
   function showSimilar() {
     rail.hidden = false;
     actorsPanel.hidden = true;
@@ -937,10 +950,12 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     // Classes compatibles avec le système global
     section.classList.remove('actors-open');
     section.classList.remove('episodes-open');
-    
+
     similarBtn.classList.add('active');
     actorsBtn.classList.remove('active');
     if (hasEpisodes) episodesBtn.classList.remove('active');
+
+    scheduleEnhance();
   }
   
   function showActors() {
@@ -989,6 +1004,8 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   
   // Afficher le contenu similaire par défaut
   showSimilar();
+
+  scheduleEnhance();
 
   let openEpisodesHandler = null;
   if (hasEpisodes) {

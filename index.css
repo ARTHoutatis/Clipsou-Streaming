@@ -348,6 +348,16 @@ body.player-open, html.player-open {
   .rail-fade { display: none !important; }
 }
 
+@media (min-width: 769px) {
+  body.fiche-page-view #fiche .rail-arrow {
+    background: rgba(21,26,32,0.85);
+    border-color: rgba(255,255,255,0.12);
+  }
+  body.fiche-page-view #fiche .rail-arrow:hover {
+    background: rgba(21,26,32,1);
+  }
+}
+
 /* Partner logos: contain inside their fixed box and support simple position codes */
 .partner-logo {
   display: block;
