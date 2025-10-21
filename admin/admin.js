@@ -32,6 +32,12 @@
     }
   }
 
+  try {
+    window.ensurePublishConfig = ensurePublishConfig;
+    window.getPublishConfig = getPublishConfig;
+    window.setPublishConfig = setPublishConfig;
+  } catch {}
+
   // Hash of "20Blabla30" - regenerate if you change the password
   // Use Fichiers Locaux/generate_hash.html to create a new hash if needed
   const ADMIN_PASSWORD_HASH = 'c4275fccac42bcf7cc99157a1623072d1ae33ade8a44737dab4c941729cafa13';
