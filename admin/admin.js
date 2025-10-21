@@ -1468,8 +1468,10 @@
         const trashed = { ...r, meta: { ...(r.meta||{}), updatedAt: Date.now(), deleted: true, trashedAt: Date.now() } };
         trash.unshift(trashed);
         setTrash(trash);
-        try { publishTrashUpsert(trashed); } catch {}
-        try { publishRequestDelete(r.requestId); } catch {}
+        await publishTrashUpsert(trashed);
+        await publishRequestDelete(r.requestId);
+        
+        await hydrateTrashFromPublic();
         
         try { if ((r && r.data && r.data.id) === getLastEditedId()) clearLastEditedId(); } catch{}
         
@@ -1630,7 +1632,7 @@
         // Remove from trash
         let trashList = getTrash().filter(x => x.requestId !== r.requestId);
         setTrash(trashList);
-        try { publishTrashDelete(r.requestId); } catch {}
+        await publishTrashDelete(r.requestId);
         
         // Add back to requests
         let requestsList = getRequests();
@@ -1638,7 +1640,7 @@
         const restored = { ...r, meta: { ...(r.meta||{}), deleted: false, updatedAt: Date.now() } };
         requestsList.unshift(restored);
         setRequests(requestsList);
-        try { publishRequestUpsert(restored); } catch {}
+        await publishRequestUpsert(restored);
         
         // If it was approved, restore to approved list and republish
         if (r.status === 'approved') {
@@ -1658,17 +1660,19 @@
         
         renderTrash();
         renderTable();
+        try { await hydrateTrashFromPublic(); } catch {}
         alert('Film restauré avec succès.');
       });
       
       // Delete permanently button handler
-      deleteBtn.addEventListener('click', () => {
+      deleteBtn.addEventListener('click', async () => {
         if (!confirm('Supprimer définitivement ce film ? Cette action est irréversible.')) return;
         
         // Remove from trash permanently
         let trashList = getTrash().filter(x => x.requestId !== r.requestId);
         setTrash(trashList);
-        try { publishTrashDelete(r.requestId); } catch {}
+        try { await publishTrashDelete(r.requestId); } catch {}
+        try { await hydrateTrashFromPublic(); } catch {}
         
         renderTrash();
         alert('Film supprimé définitivement.');
@@ -2140,14 +2144,15 @@
     // Wire empty trash button
     const emptyTrashBtn = $('#emptyTrashBtn');
     if (emptyTrashBtn) {
-      emptyTrashBtn.addEventListener('click', () => {
+      emptyTrashBtn.addEventListener('click', async () => {
         const trash = getTrash();
         if (!trash || trash.length === 0) return;
         
         if (!confirm(`Vider la corbeille ? Cela supprimera définitivement ${trash.length} film(s). Cette action est irréversible.`)) return;
         
         setTrash([]);
-        try { publishTrashEmpty(); } catch {}
+        try { await publishTrashEmpty(); } catch {}
+        try { await hydrateTrashFromPublic(); } catch {}
         renderTrash();
         alert('Corbeille vidée.');
       });
@@ -2156,6 +2161,7 @@
     // Initial load: hydrate shared requests and render
     try { await hydrateRequestsFromPublic(); } catch {}
     try { await hydrateRequestsFromPublicApproved(); } catch {}
+    try { await hydrateTrashFromPublic(); } catch {}
     try { renderTable(); } catch {}
     try { renderTrash(); } catch {}
     emptyForm();
