@@ -76,6 +76,26 @@
     return [];
   }
 
+  async function fetchPublicTrashArray(){
+    const cfg = getPublishConfig();
+    const tryUrls = [
+      cfg && cfg.publicTrashUrl ? cfg.publicTrashUrl : null,
+      (function(){ try { return (window.location.origin || '') + '/data/trash.json'; } catch { return null; } })(),
+      '../data/trash.json',
+      'data/trash.json'
+    ].filter(Boolean);
+    for (const u of tryUrls) {
+      try {
+        const res = await fetch(u + '?v=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' });
+        if (!res.ok) continue;
+        const json = await res.json();
+        if (Array.isArray(json)) return json;
+        if (json && typeof json === 'object' && Array.isArray(json.trash)) return json.trash;
+      } catch {}
+    }
+    return [];
+  }
+
   // Fetch public requests.json to hydrate requests list (shared across admins)
   async function fetchPublicRequestsArray(){
     const cfg = getPublishConfig();
@@ -131,6 +151,7 @@
     // Periodic syncs so other admins' actions are reflected automatically
     try { if (!window.__requestsPoller) window.__requestsPoller = setInterval(()=>{ try { hydrateRequestsFromPublic(); } catch {} }, 30000); } catch {}
     try { if (!window.__approvedPoller) window.__approvedPoller = setInterval(()=>{ try { hydrateRequestsFromPublicApproved(); } catch {} }, 30000); } catch {}
+    try { if (!window.__trashPoller) window.__trashPoller = setInterval(()=>{ try { hydrateTrashFromPublic(); } catch {} }, 30000); } catch {}
   }
 
   // Replace local requests with the shared public list when available
@@ -869,7 +890,45 @@
   function setApproved(list){ saveJSON(APP_KEY_APPROVED, list); }
   function getTrash(){ return loadJSON(APP_KEY_TRASH, []); }
   function setTrash(list){ saveJSON(APP_KEY_TRASH, list); }
-  
+
+  async function publishTrashUpsert(item){
+    const cfg = await ensurePublishConfig();
+    if (!cfg || !cfg.url || !cfg.secret) return false;
+    try {
+      const res = await fetch(cfg.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.secret },
+        body: JSON.stringify({ action: 'trash_upsert', item })
+      });
+      return !!res.ok;
+    } catch { return false; }
+  }
+
+  async function publishTrashDelete(id){
+    const cfg = await ensurePublishConfig();
+    if (!cfg || !cfg.url || !cfg.secret) return false;
+    try {
+      const res = await fetch(cfg.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.secret },
+        body: JSON.stringify({ action: 'trash_delete', id })
+      });
+      return !!res.ok;
+    } catch { return false; }
+  }
+
+  async function publishTrashEmpty(){
+    const cfg = await ensurePublishConfig();
+    if (!cfg || !cfg.url || !cfg.secret) return false;
+    try {
+      const res = await fetch(cfg.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.secret },
+        body: JSON.stringify({ action: 'trash_empty' })
+      });
+      return !!res.ok;
+    } catch { return false; }
+  }
 
   function getPublishConfig(){
     try { return JSON.parse(localStorage.getItem(APP_KEY_PUB) || 'null') || {}; } catch { return {}; }
@@ -885,11 +944,13 @@
       try { origin = (window.location.origin || ''); } catch {}
       const publicApprovedUrl = origin ? (origin + '/data/approved.json') : '';
       const publicRequestsUrl = origin ? (origin + '/data/requests.json') : '';
+      const publicTrashUrl = origin ? (origin + '/data/trash.json') : '';
       cfg = {
         url: 'https://clipsou-publish.arthurcapon54.workers.dev/publish-approved',
         secret: 'Ns7kE4pP2Yq9vC1rT5wZ8hJ3uL6mQ0aR',
         publicApprovedUrl,
-        publicRequestsUrl
+        publicRequestsUrl,
+        publicTrashUrl
       };
       setPublishConfig(cfg);
     } else {
@@ -902,6 +963,10 @@
         if (!cfg.publicRequestsUrl) {
           const guessR = (window.location.origin || '') + '/data/requests.json';
           cfg.publicRequestsUrl = guessR;
+        }
+        if (!cfg.publicTrashUrl) {
+          const guessT = (window.location.origin || '') + '/data/trash.json';
+          cfg.publicTrashUrl = guessT;
         }
         setPublishConfig(cfg);
       } catch {}
@@ -1403,6 +1468,8 @@
         const trashed = { ...r, meta: { ...(r.meta||{}), updatedAt: Date.now(), deleted: true, trashedAt: Date.now() } };
         trash.unshift(trashed);
         setTrash(trash);
+        try { publishTrashUpsert(trashed); } catch {}
+        try { publishRequestDelete(r.requestId); } catch {}
         
         try { if ((r && r.data && r.data.id) === getLastEditedId()) clearLastEditedId(); } catch{}
         
@@ -1424,7 +1491,6 @@
         emptyForm();
         
         // Share deletion with other admins (server-side will remove from requests.json)
-        try { publishRequestDelete(r.requestId); } catch {}
       });
       approveBtn.addEventListener('click', async ()=>{
         const list = getRequests();
@@ -1564,6 +1630,7 @@
         // Remove from trash
         let trashList = getTrash().filter(x => x.requestId !== r.requestId);
         setTrash(trashList);
+        try { publishTrashDelete(r.requestId); } catch {}
         
         // Add back to requests
         let requestsList = getRequests();
@@ -1571,6 +1638,7 @@
         const restored = { ...r, meta: { ...(r.meta||{}), deleted: false, updatedAt: Date.now() } };
         requestsList.unshift(restored);
         setRequests(requestsList);
+        try { publishRequestUpsert(restored); } catch {}
         
         // If it was approved, restore to approved list and republish
         if (r.status === 'approved') {
@@ -1588,9 +1656,6 @@
           }
         }
         
-        // Sync with server
-        try { publishRequestUpsert(restored); } catch {}
-        
         renderTrash();
         renderTable();
         alert('Film restauré avec succès.');
@@ -1603,6 +1668,7 @@
         // Remove from trash permanently
         let trashList = getTrash().filter(x => x.requestId !== r.requestId);
         setTrash(trashList);
+        try { publishTrashDelete(r.requestId); } catch {}
         
         renderTrash();
         alert('Film supprimé définitivement.');
@@ -2081,6 +2147,7 @@
         if (!confirm(`Vider la corbeille ? Cela supprimera définitivement ${trash.length} film(s). Cette action est irréversible.`)) return;
         
         setTrash([]);
+        try { publishTrashEmpty(); } catch {}
         renderTrash();
         alert('Corbeille vidée.');
       });
