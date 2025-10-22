@@ -131,6 +131,7 @@
     // Periodic syncs so other admins' actions are reflected automatically
     try { if (!window.__requestsPoller) window.__requestsPoller = setInterval(()=>{ try { hydrateRequestsFromPublic(); } catch {} }, 30000); } catch {}
     try { if (!window.__approvedPoller) window.__approvedPoller = setInterval(()=>{ try { hydrateRequestsFromPublicApproved(); } catch {} }, 30000); } catch {}
+    try { if (!window.__trashPoller) window.__trashPoller = setInterval(()=>{ try { hydrateTrashFromPublic(); } catch {} }, 30000); } catch {}
   }
 
   // Replace local requests with the shared public list when available
@@ -982,6 +983,64 @@
     } catch { return false; }
   }
 
+  // ===== Publish trash (shared across admins) =====
+  async function publishTrashUpsert(trashedItem){
+    const cfg = await ensurePublishConfig();
+    if (!cfg || !cfg.url || !cfg.secret) return false;
+    try {
+      const res = await fetch(cfg.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.secret },
+        body: JSON.stringify({ action: 'trash_upsert', item: trashedItem })
+      });
+      return !!res.ok;
+    } catch { return false; }
+  }
+  async function publishTrashDelete(id){
+    const cfg = await ensurePublishConfig();
+    if (!cfg || !cfg.url || !cfg.secret) return false;
+    try {
+      const res = await fetch(cfg.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.secret },
+        body: JSON.stringify({ action: 'trash_delete', id })
+      });
+      return !!res.ok;
+    } catch { return false; }
+  }
+
+  // Fetch public trash.json to sync trash across admins
+  async function fetchPublicTrashArray(){
+    const cfg = getPublishConfig();
+    const tryUrls = [
+      cfg && cfg.publicTrashUrl ? cfg.publicTrashUrl : null,
+      (function(){ try { return (window.location.origin || '') + '/data/trash.json'; } catch { return null; } })(),
+      '../data/trash.json',
+      'data/trash.json'
+    ].filter(Boolean);
+    for (const u of tryUrls) {
+      try {
+        const res = await fetch(u + '?v=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' });
+        if (!res.ok) continue;
+        const json = await res.json();
+        if (Array.isArray(json)) return json;
+        if (json && typeof json === 'object' && Array.isArray(json.trash)) return json.trash;
+      } catch {}
+    }
+    return [];
+  }
+
+  // Sync local trash with remote shared trash
+  async function hydrateTrashFromPublic(){
+    try {
+      const remote = await fetchPublicTrashArray();
+      if (Array.isArray(remote)) {
+        setTrash(remote);
+        try { renderTrash(); } catch {}
+      }
+    } catch {}
+  }
+
   function renderActors(list){
     const wrap = $('#actorsList');
     wrap.innerHTML = '';
@@ -1425,6 +1484,9 @@
         
         // Share deletion with other admins (server-side will remove from requests.json)
         try { publishRequestDelete(r.requestId); } catch {}
+        
+        // Share trash item with other admins
+        try { await publishTrashUpsert(trashed); } catch {}
       });
       approveBtn.addEventListener('click', async ()=>{
         const list = getRequests();
@@ -1591,18 +1653,24 @@
         // Sync with server
         try { publishRequestUpsert(restored); } catch {}
         
+        // Remove from shared trash
+        try { await publishTrashDelete(r.requestId); } catch {}
+        
         renderTrash();
         renderTable();
         alert('Film restauré avec succès.');
       });
       
       // Delete permanently button handler
-      deleteBtn.addEventListener('click', () => {
+      deleteBtn.addEventListener('click', async () => {
         if (!confirm('Supprimer définitivement ce film ? Cette action est irréversible.')) return;
         
         // Remove from trash permanently
         let trashList = getTrash().filter(x => x.requestId !== r.requestId);
         setTrash(trashList);
+        
+        // Remove from shared trash
+        try { await publishTrashDelete(r.requestId); } catch {}
         
         renderTrash();
         alert('Film supprimé définitivement.');
@@ -2074,11 +2142,16 @@
     // Wire empty trash button
     const emptyTrashBtn = $('#emptyTrashBtn');
     if (emptyTrashBtn) {
-      emptyTrashBtn.addEventListener('click', () => {
+      emptyTrashBtn.addEventListener('click', async () => {
         const trash = getTrash();
         if (!trash || trash.length === 0) return;
         
         if (!confirm(`Vider la corbeille ? Cela supprimera définitivement ${trash.length} film(s). Cette action est irréversible.`)) return;
+        
+        // Delete all items from shared trash
+        for (const item of trash) {
+          try { await publishTrashDelete(item.requestId); } catch {}
+        }
         
         setTrash([]);
         renderTrash();
@@ -2089,6 +2162,7 @@
     // Initial load: hydrate shared requests and render
     try { await hydrateRequestsFromPublic(); } catch {}
     try { await hydrateRequestsFromPublicApproved(); } catch {}
+    try { await hydrateTrashFromPublic(); } catch {}
     try { renderTable(); } catch {}
     try { renderTrash(); } catch {}
     emptyForm();
