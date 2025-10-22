@@ -1,1 +1,35 @@
-[]
+[
+  {
+    "requestId": "pub-custom-test-vgqe",
+    "status": "pending",
+    "data": {
+      "id": "custom-test-vgqe",
+      "title": "test",
+      "type": "film",
+      "rating": 0.5,
+      "genres": [
+        "Comedie",
+        "Fantastique",
+        "Aventure"
+      ],
+      "description": "test",
+      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1760554035/w0tq7xs1qe0pjwqcnzdj.jpg",
+      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1760554038/mupj6kcnuxc2l9ussm8l.jpg",
+      "watchUrl": "https://www.youtube.com/watch?v=ObPQcuBIMYI",
+      "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp",
+      "actors": [
+        {
+          "name": "Arth",
+          "role": "testeur",
+          "photo": "images/arth.webp"
+        }
+      ]
+    },
+    "meta": {
+      "importedFromPublic": true,
+      "updatedAt": 1761146162949,
+      "deleted": false,
+      "trashedAt": 1761063197798
+    }
+  }
+]
