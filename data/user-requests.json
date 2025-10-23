@@ -19,8 +19,9 @@
       }
     ],
     "submittedAt": 1761254487237,
-    "status": "pending",
-    "id": "user_req_1761254487240_ngbvekyb4"
+    "status": "approved",
+    "id": "user_req_1761254487240_ngbvekyb4",
+    "processedAt": 1761254624042
   },
   {
     "title": "test",
