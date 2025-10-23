@@ -599,18 +599,25 @@
   /**
    * Check if user has rate limit or pending request
    */
-  function checkRateLimitAndPendingRequest() {
+  async function checkRateLimitAndPendingRequest() {
     const stepperContainer = document.getElementById('stepperContainer');
     const slidesContainer = document.querySelector('.slides-container');
     
-    // Check for pending request first
+    // Check for pending request first and sync status from GitHub
     const pendingRequest = getPendingRequest();
     if (pendingRequest) {
-      showPendingRequest(pendingRequest);
-      // Hide stepper when there's a pending request
-      if (stepperContainer) stepperContainer.hidden = true;
-      if (slidesContainer) slidesContainer.hidden = true;
-      return;
+      // Try to sync status from GitHub
+      await syncRequestStatusFromGitHub(pendingRequest);
+      
+      // Re-check after sync
+      const updatedRequest = getPendingRequest();
+      if (updatedRequest) {
+        showPendingRequest(updatedRequest);
+        // Hide stepper when there's a pending request
+        if (stepperContainer) stepperContainer.hidden = true;
+        if (slidesContainer) slidesContainer.hidden = true;
+        return;
+      }
     }
 
     // Admins bypass rate limit
@@ -661,19 +668,80 @@
   }
 
   /**
+   * Get status badge HTML
+   */
+  function getStatusBadge(status) {
+    const badges = {
+      pending: '<span style="background:#f59e0b;color:#000;padding:4px 10px;border-radius:12px;font-size:13px;font-weight:700;">⏳ En attente</span>',
+      approved: '<span style="background:#10b981;color:#fff;padding:4px 10px;border-radius:12px;font-size:13px;font-weight:700;">✅ Acceptée</span>',
+      rejected: '<span style="background:#ef4444;color:#fff;padding:4px 10px;border-radius:12px;font-size:13px;font-weight:700;">❌ Refusée</span>'
+    };
+    return badges[status] || badges.pending;
+  }
+
+  /**
+   * Sync request status from GitHub
+   */
+  async function syncRequestStatusFromGitHub(request) {
+    try {
+      const response = await fetch('/data/user-requests.json?v=' + Date.now(), {
+        cache: 'no-store'
+      });
+      
+      if (!response.ok) return;
+      
+      const requests = await response.json();
+      if (!Array.isArray(requests)) return;
+      
+      // Find this request
+      const githubRequest = requests.find(r => r && r.id === request.id);
+      if (githubRequest && githubRequest.status !== request.status) {
+        // Update local status
+        const updated = { ...request, status: githubRequest.status, processedAt: githubRequest.processedAt };
+        savePendingRequest(updated);
+      }
+    } catch (error) {
+      console.debug('Could not sync status from GitHub:', error);
+    }
+  }
+
+  /**
    * Show pending request notice
    */
   function showPendingRequest(request) {
     if (!pendingRequestNotice) return;
 
     const detailsEl = document.getElementById('pendingDetails');
+    const statusBadge = getStatusBadge(request.status);
+    
     if (detailsEl) {
       detailsEl.innerHTML = `
         <p><strong>Titre :</strong> ${escapeHtml(request.title)}</p>
         <p><strong>Type :</strong> ${escapeHtml(request.type)}</p>
         <p><strong>Genres :</strong> ${escapeHtml(request.genres.join(', '))}</p>
         <p><strong>Date de soumission :</strong> ${new Date(request.submittedAt).toLocaleString('fr-FR')}</p>
+        <p><strong>Statut :</strong> ${statusBadge}</p>
       `;
+    }
+    
+    // Change notice style and message based on status
+    const noticeTitle = pendingRequestNotice.querySelector('strong');
+    if (noticeTitle) {
+      if (request.status === 'approved') {
+        noticeTitle.textContent = '✅ Demande acceptée';
+        pendingRequestNotice.className = 'notice notice-success';
+        const message = pendingRequestNotice.querySelector('p');
+        if (message) {
+          message.textContent = 'Votre demande a été acceptée par les administrateurs ! Elle sera publiée prochainement sur le site.';
+        }
+      } else if (request.status === 'rejected') {
+        noticeTitle.textContent = '❌ Demande refusée';
+        pendingRequestNotice.className = 'notice notice-error';
+        const message = pendingRequestNotice.querySelector('p');
+        if (message) {
+          message.textContent = 'Votre demande a été refusée par les administrateurs. Vous pouvez annuler cette demande et en soumettre une nouvelle dans 24 heures.';
+        }
+      }
     }
 
     pendingRequestNotice.hidden = false;
@@ -901,9 +969,21 @@
   /**
    * Handle cancel request
    */
-  function handleCancelRequest() {
+  async function handleCancelRequest() {
     if (!confirm('Êtes-vous sûr de vouloir annuler votre demande en cours ? Cette action est irréversible.')) {
       return;
+    }
+
+    // Get pending request
+    const pendingRequest = getPendingRequest();
+    
+    // Publish deletion to GitHub so admins don't see it anymore
+    if (pendingRequest && pendingRequest.id) {
+      try {
+        await publishUserRequestDeleteToGitHub(pendingRequest.id);
+      } catch (error) {
+        console.warn('Could not delete request from GitHub:', error);
+      }
     }
 
     // Remove pending request from storage
@@ -922,6 +1002,51 @@
 
     // Reload to reset state
     window.location.reload();
+  }
+
+  /**
+   * Publish user request deletion to GitHub (when user cancels)
+   */
+  async function publishUserRequestDeleteToGitHub(requestId) {
+    try {
+      let workerUrl = null;
+      
+      if (window.ClipsouConfig && window.ClipsouConfig.workerUrl) {
+        workerUrl = window.ClipsouConfig.workerUrl;
+      }
+      
+      if (!workerUrl || workerUrl.includes('votre-worker')) {
+        workerUrl = localStorage.getItem('clipsou_worker_url');
+      }
+      
+      if (!workerUrl || workerUrl.includes('votre-worker')) {
+        return false;
+      }
+
+      console.log('🗑️ Deleting request from GitHub...');
+
+      // This needs admin auth, so we'll use a public endpoint
+      const response = await fetch(workerUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'user_request_cancel',
+          id: requestId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      console.log('✅ Request deleted from GitHub successfully');
+      return true;
+    } catch (error) {
+      console.warn('⚠️ Could not delete from GitHub:', error.message);
+      return false;
+    }
   }
 
   /**
