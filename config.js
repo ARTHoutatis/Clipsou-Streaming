@@ -7,6 +7,12 @@ window.ClipsouConfig = {
   // URL du Cloudflare Worker pour les soumissions publiques
   workerUrl: 'https://clipsou-publish.arthurcapon54.workers.dev',
   
+  // URLs des fichiers JSON publics (sur GitHub Pages)
+  publicRequestsUrl: '/data/requests.json',
+  publicApprovedUrl: '/data/approved.json',
+  publicTrashUrl: '/data/trash.json',
+  publicUserRequestsUrl: '/data/user-requests.json',
+  
   // Configuration Cloudinary pour les uploads d'images
   cloudinary: {
     cloudName: 'dlaisw4zm',
