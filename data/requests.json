@@ -1,5 +1,31 @@
 [
   {
+    "requestId": "req_1761255471923_lgk8tt7rq",
+    "status": "pending",
+    "data": {
+      "id": null,
+      "title": "test3",
+      "type": "film",
+      "rating": null,
+      "genres": [
+        "Action",
+        "Thriller",
+        "Comédie"
+      ],
+      "description": "TESTSTS",
+      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761255333/z2wva3jfitatg5qyv2qp.webp",
+      "image": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761255336/x2tnrmwi2ndcyfag2v8g.webp",
+      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761255336/x2tnrmwi2ndcyfag2v8g.webp",
+      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761255342/yiozuhls10gxm2jrcots.webp",
+      "watchUrl": "https://www.youtube.com/watch?v=snro9u1Vsuk",
+      "actors": []
+    },
+    "meta": {
+      "createdAt": 1761255471923,
+      "source": "user_submission"
+    }
+  },
+  {
     "requestId": "pub-custom-test-jxgo",
     "status": "approved",
     "data": {
