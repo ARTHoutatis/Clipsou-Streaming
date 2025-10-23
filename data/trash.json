@@ -1,37 +1,5 @@
 [
   {
-    "requestId": "r_mh3vztgb_ax520e",
-    "status": "pending",
-    "data": {
-      "id": "custom-test-kum8",
-      "requestId": "r_mh3vztgb_ax520e",
-      "title": "test",
-      "type": "film",
-      "rating": 3,
-      "genres": [
-        "Action",
-        "Thriller",
-        "Historique"
-      ],
-      "description": "test",
-      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761251897/lumylabxpsveymsb8uvy.webp",
-      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761251905/muqad3dedob48ykump8d.webp",
-      "watchUrl": "https://www.youtube.com/watch?v=snro9u1Vsuk",
-      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761251916/pbd62zbydyfbvsk64fst.webp",
-      "actors": [
-        {
-          "name": "test",
-          "role": "test"
-        }
-      ]
-    },
-    "meta": {
-      "updatedAt": 1761253162856,
-      "deleted": true,
-      "trashedAt": 1761253162856
-    }
-  },
-  {
     "requestId": "req_1761251995488_rvgqdmrof",
     "status": "pending",
     "data": {
