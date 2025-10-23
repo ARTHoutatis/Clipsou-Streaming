@@ -1621,6 +1621,18 @@
       requests.unshift(newRequest);
       setRequests(requests);
 
+      // Publish new request to GitHub so other admins see it
+      try {
+        const published = await publishRequestUpsert(newRequest);
+        if (published) {
+          console.log(`✓ New request "${newRequest.data.title}" published to GitHub - all admins will see it`);
+        } else {
+          console.warn(`⚠️ Could not publish request to GitHub - other admins may not see it`);
+        }
+      } catch (e) {
+        console.error('Error publishing new request:', e);
+      }
+
       // Mark request as approved (don't delete, so user can see status)
       let userReqs = getUserRequests();
       userReqs = userReqs.map(r => 
