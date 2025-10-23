@@ -1,1 +1,37 @@
-[]
+[
+  {
+    "requestId": "pub-custom-test-jxgo",
+    "status": "approved",
+    "data": {
+      "id": "custom-test-jxgo",
+      "title": "2001 ( Court Metrage Hommage 11 septembre 2001 )",
+      "type": "film",
+      "rating": 3.5,
+      "genres": [
+        "Action",
+        "Drame",
+        "Ambience"
+      ],
+      "description": "Film dédié à la mémoire des victimes du 11 septembre 2001 ainsi qu’aux familles, survivants et secouristes marqués à jamais par cette tragédie.",
+      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757915617/ntrxra7dumwk0jd3gjeh.jpg",
+      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757915221/hvcahdll7eve6zw06v2f.png",
+      "watchUrl": "https://youtu.be/r6TLYhN7WQk?si=FWojvAXeGBm_USR4",
+      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757915610/tn39ga32agrfxtgp5xzy.png",
+      "actors": [
+        {
+          "name": "Liam Roxxor",
+          "role": "Employé",
+          "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1759043312/nwqhac65v9jz2jaitdr9.webp"
+        },
+        {
+          "name": "Nini Brut",
+          "role": "Voix de la mère"
+        }
+      ]
+    },
+    "meta": {
+      "importedFromPublic": true,
+      "updatedAt": 1761253730297
+    }
+  }
+]
