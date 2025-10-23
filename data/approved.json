@@ -287,28 +287,6 @@
     ]
   },
   {
-    "id": "custom-test-kum8",
-    "title": "test",
-    "type": "film",
-    "rating": 3,
-    "genres": [
-      "Action",
-      "Thriller",
-      "Historique"
-    ],
-    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761251897/lumylabxpsveymsb8uvy.webp",
-    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761251905/muqad3dedob48ykump8d.webp",
-    "description": "test",
-    "watchUrl": "https://www.youtube.com/watch?v=snro9u1Vsuk",
-    "actors": [
-      {
-        "name": "test",
-        "role": "test"
-      }
-    ],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761251916/pbd62zbydyfbvsk64fst.webp"
-  },
-  {
     "id": "custom-the-psycho-teacher-q2q6",
     "title": "The Psycho Teacher",
     "type": "film",
