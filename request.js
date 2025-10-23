@@ -606,12 +606,25 @@
     // Check for pending request first and sync status from GitHub
     const pendingRequest = getPendingRequest();
     if (pendingRequest) {
+      console.log('Pending request found:', {
+        title: pendingRequest.title,
+        status: pendingRequest.status || 'pending',
+        id: pendingRequest.id
+      });
+      
       // Try to sync status from GitHub
-      await syncRequestStatusFromGitHub(pendingRequest);
+      const synced = await syncRequestStatusFromGitHub(pendingRequest);
+      console.log('Sync result:', synced ? 'Updated' : 'No change');
       
       // Re-check after sync
       const updatedRequest = getPendingRequest();
       if (updatedRequest) {
+        console.log('Updated request status:', updatedRequest.status || 'pending');
+        // Ensure status is set (default to pending if not present)
+        if (!updatedRequest.status) {
+          updatedRequest.status = 'pending';
+          savePendingRequest(updatedRequest);
+        }
         showPendingRequest(updatedRequest);
         // Hide stepper when there's a pending request
         if (stepperContainer) stepperContainer.hidden = true;
@@ -688,20 +701,37 @@
         cache: 'no-store'
       });
       
-      if (!response.ok) return;
+      if (!response.ok) {
+        console.debug('Could not fetch user-requests.json:', response.status);
+        return false;
+      }
       
       const requests = await response.json();
-      if (!Array.isArray(requests)) return;
+      if (!Array.isArray(requests)) {
+        console.debug('Invalid user-requests.json format');
+        return false;
+      }
       
       // Find this request
       const githubRequest = requests.find(r => r && r.id === request.id);
-      if (githubRequest && githubRequest.status !== request.status) {
-        // Update local status
-        const updated = { ...request, status: githubRequest.status, processedAt: githubRequest.processedAt };
-        savePendingRequest(updated);
+      if (githubRequest) {
+        console.debug(`Found request on GitHub with status: ${githubRequest.status}`);
+        
+        if (githubRequest.status !== request.status) {
+          // Update local status
+          const updated = { ...request, status: githubRequest.status, processedAt: githubRequest.processedAt };
+          savePendingRequest(updated);
+          console.log(`✓ Status updated from '${request.status}' to '${githubRequest.status}'`);
+          return true;
+        }
+      } else {
+        console.debug('Request not found on GitHub (may have been deleted)');
       }
+      
+      return false;
     } catch (error) {
       console.debug('Could not sync status from GitHub:', error);
+      return false;
     }
   }
 
@@ -916,17 +946,22 @@
       return;
     }
 
-    // Save request to localStorage
+    // Generate unique ID for the request
+    const requestId = 'user_req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    
+    // Add ID to form data
+    const requestWithId = {
+      ...formData,
+      id: requestId
+    };
+    
+    // Save request to localStorage (with ID!)
     const now = Date.now();
-    savePendingRequest(formData);
+    savePendingRequest(requestWithId);
     saveLastSubmitTime(now);
     saveSubmitLog(now); // Multi-layer protection
     
     // Add to history
-    const requestWithId = {
-      ...formData,
-      id: 'user_req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
-    };
     addToHistory(requestWithId);
 
     // Publish to GitHub (best effort - doesn't block submission)
