@@ -1610,16 +1610,21 @@
       requests.unshift(newRequest);
       setRequests(requests);
 
-      // Remove from user requests (no longer pending)
+      // Mark request as approved (don't delete, so user can see status)
       let userReqs = getUserRequests();
-      userReqs = userReqs.filter(r => r.id !== req.id);
+      userReqs = userReqs.map(r => 
+        r.id === req.id ? { ...r, status: 'approved', processedAt: Date.now() } : r
+      );
       saveUserRequests(userReqs);
 
-      // Publish deletion to GitHub so other admins see it's processed
+      // Publish updated status to GitHub so other admins see it
       try {
-        await publishUserRequestDelete(req.id);
+        const updatedRequest = userReqs.find(r => r.id === req.id);
+        if (updatedRequest) {
+          await publishUserRequestUpsert(updatedRequest);
+        }
       } catch (e) {
-        console.error('Error publishing user request deletion:', e);
+        console.error('Error publishing user request update:', e);
       }
 
       // Refresh displays
@@ -1637,30 +1642,35 @@
    * Delete/reject user request
    */
   async function deleteUserRequest(req) {
-    if (!confirm(`Rejeter la demande "${req.title}" ?\n\nCette action est irréversible.`)) {
+    if (!confirm(`Rejeter la demande "${req.title}" ?\n\nL'utilisateur sera notifié que sa demande a été refusée.`)) {
       return;
     }
 
     try {
-      // Remove from user requests
+      // Mark request as rejected (don't delete, so user can see status)
       let userReqs = getUserRequests();
-      userReqs = userReqs.filter(r => r.id !== req.id);
+      userReqs = userReqs.map(r => 
+        r.id === req.id ? { ...r, status: 'rejected', processedAt: Date.now() } : r
+      );
       saveUserRequests(userReqs);
 
       // Refresh display
       renderUserRequestsTable();
 
-      // Publish deletion to GitHub
+      // Publish updated status to GitHub
       try {
-        await publishUserRequestDelete(req.id);
+        const updatedRequest = userReqs.find(r => r.id === req.id);
+        if (updatedRequest) {
+          await publishUserRequestUpsert(updatedRequest);
+        }
       } catch (e) {
-        console.error('Error publishing user request deletion:', e);
+        console.error('Error publishing user request update:', e);
       }
 
-      alert('✓ Demande rejetée avec succès.');
+      alert('✓ Demande rejetée avec succès.\n\nL\'utilisateur sera notifié lors de sa prochaine visite.');
     } catch (e) {
-      console.error('Error deleting user request:', e);
-      alert('❌ Erreur lors de la suppression de la demande.');
+      console.error('Error rejecting user request:', e);
+      alert('❌ Erreur lors du rejet de la demande.');
     }
   }
 
