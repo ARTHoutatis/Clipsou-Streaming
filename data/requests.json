@@ -28,37 +28,5 @@
     "meta": {
       "updatedAt": 1761252146598
     }
-  },
-  {
-    "requestId": "req_1761251995488_rvgqdmrof",
-    "status": "pending",
-    "data": {
-      "id": null,
-      "title": "test",
-      "type": "documentaire",
-      "rating": null,
-      "genres": [
-        "Action",
-        "Thriller",
-        "Historique"
-      ],
-      "description": "test",
-      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761251897/lumylabxpsveymsb8uvy.webp",
-      "image": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761251905/muqad3dedob48ykump8d.webp",
-      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761251905/muqad3dedob48ykump8d.webp",
-      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761251916/pbd62zbydyfbvsk64fst.webp",
-      "watchUrl": "https://www.youtube.com/watch?v=snro9u1Vsuk",
-      "actors": [
-        {
-          "name": "test",
-          "role": "test"
-        }
-      ]
-    },
-    "meta": {
-      "createdAt": 1761251995488,
-      "source": "user_submission",
-      "updatedAt": 1761252134979
-    }
   }
 ]
