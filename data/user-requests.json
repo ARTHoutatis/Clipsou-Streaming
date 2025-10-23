@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "title": "test",
+    "type": "documentaire",
+    "genres": [
+      "Action",
+      "Thriller",
+      "Historique"
+    ],
+    "description": "test",
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761251897/lumylabxpsveymsb8uvy.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761251905/muqad3dedob48ykump8d.webp",
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761251916/pbd62zbydyfbvsk64fst.webp",
+    "watchUrl": "https://www.youtube.com/watch?v=snro9u1Vsuk",
+    "actors": [
+      {
+        "name": "test",
+        "role": "test"
+      }
+    ],
+    "submittedAt": 1761251925704,
+    "status": "rejected",
+    "id": "user_req_1761251925705_xl0gxgb7x",
+    "processedAt": 1761252349675
+  }
+]
