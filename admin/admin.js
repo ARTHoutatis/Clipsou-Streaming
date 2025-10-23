@@ -132,6 +132,7 @@
     try { if (!window.__requestsPoller) window.__requestsPoller = setInterval(()=>{ try { hydrateRequestsFromPublic(); } catch {} }, 30000); } catch {}
     try { if (!window.__approvedPoller) window.__approvedPoller = setInterval(()=>{ try { hydrateRequestsFromPublicApproved(); } catch {} }, 30000); } catch {}
     try { if (!window.__trashPoller) window.__trashPoller = setInterval(()=>{ try { hydrateTrashFromPublic(); } catch {} }, 30000); } catch {}
+    try { if (!window.__userRequestsPoller) window.__userRequestsPoller = setInterval(()=>{ try { hydrateUserRequestsFromPublic(); } catch {} }, 30000); } catch {}
   }
 
   // Replace local requests with the shared public list when available
@@ -1041,6 +1042,65 @@
     } catch {}
   }
 
+  // ===== Publish user requests (shared across admins) =====
+  async function publishUserRequestUpsert(request){
+    const cfg = await ensurePublishConfig();
+    if (!cfg || !cfg.url || !cfg.secret) return false;
+    try {
+      const res = await fetch(cfg.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.secret },
+        body: JSON.stringify({ action: 'user_requests_upsert', request: request })
+      });
+      return !!res.ok;
+    } catch { return false; }
+  }
+
+  async function publishUserRequestDelete(id){
+    const cfg = await ensurePublishConfig();
+    if (!cfg || !cfg.url || !cfg.secret) return false;
+    try {
+      const res = await fetch(cfg.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.secret },
+        body: JSON.stringify({ action: 'user_requests_delete', id: id })
+      });
+      return !!res.ok;
+    } catch { return false; }
+  }
+
+  // Fetch public user-requests.json to sync across admins
+  async function fetchPublicUserRequestsArray(){
+    const cfg = getPublishConfig();
+    const tryUrls = [
+      cfg && cfg.publicUserRequestsUrl ? cfg.publicUserRequestsUrl : null,
+      (function(){ try { return (window.location.origin || '') + '/data/user-requests.json'; } catch { return null; } })(),
+      '../data/user-requests.json',
+      'data/user-requests.json'
+    ].filter(Boolean);
+    for (const u of tryUrls) {
+      try {
+        const res = await fetch(u + '?v=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' });
+        if (!res.ok) continue;
+        const json = await res.json();
+        if (Array.isArray(json)) return json;
+        if (json && typeof json === 'object' && Array.isArray(json.requests)) return json.requests;
+      } catch {}
+    }
+    return [];
+  }
+
+  // Sync local user requests with remote shared user requests
+  async function hydrateUserRequestsFromPublic(){
+    try {
+      const remote = await fetchPublicUserRequestsArray();
+      if (Array.isArray(remote) && remote.length) {
+        saveUserRequests(remote);
+        try { renderUserRequestsTable(); } catch {}
+      }
+    } catch {}
+  }
+
   function renderActors(list){
     const wrap = $('#actorsList');
     wrap.innerHTML = '';
@@ -1365,6 +1425,246 @@
       const d = loadJSON(APP_KEY_DRAFT, null);
       if (d && typeof d === 'object') fillForm(d);
     } catch {}
+  }
+
+  /**
+   * Get user requests from localStorage
+   */
+  function getUserRequests() {
+    try {
+      const data = localStorage.getItem('user_requests_history');
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      console.error('Error loading user requests:', e);
+      return [];
+    }
+  }
+
+  /**
+   * Save user requests to localStorage
+   */
+  function saveUserRequests(requests) {
+    try {
+      localStorage.setItem('user_requests_history', JSON.stringify(requests));
+    } catch (e) {
+      console.error('Error saving user requests:', e);
+    }
+  }
+
+  /**
+   * Render user requests table
+   */
+  function renderUserRequestsTable() {
+    const tbody = $('#userRequestsTable tbody');
+    if (!tbody) return;
+
+    const userReqs = getUserRequests().filter(r => r && r.status === 'pending');
+    tbody.innerHTML = '';
+
+    // Update count badge
+    const countBadge = $('#userRequestsCount');
+    if (countBadge) {
+      if (userReqs.length > 0) {
+        countBadge.textContent = userReqs.length;
+        countBadge.style.display = 'inline-block';
+        countBadge.style.background = '#f59e0b';
+        countBadge.style.color = '#000';
+        countBadge.style.padding = '4px 10px';
+        countBadge.style.borderRadius = '12px';
+        countBadge.style.fontSize = '14px';
+        countBadge.style.fontWeight = '700';
+      } else {
+        countBadge.style.display = 'none';
+      }
+    }
+
+    if (userReqs.length === 0) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td colspan="5" class="muted" style="text-align:center;">Aucune demande en attente</td>';
+      tbody.appendChild(tr);
+      return;
+    }
+
+    userReqs.forEach(req => {
+      const tr = document.createElement('tr');
+      const submittedDate = req.submittedAt ? new Date(req.submittedAt).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }) : 'N/A';
+
+      const statusBadge = req.status === 'pending' ? '<span style="color:#f59e0b;">⏳ En attente</span>' : 
+                          req.status === 'approved' ? '<span style="color:#4ade80;">✓ Validé</span>' :
+                          '<span style="color:#ef4444;">✗ Rejeté</span>';
+
+      tr.innerHTML = `
+        <td>${escapeHtml(req.title || '')}</td>
+        <td>${escapeHtml(req.type || '')}</td>
+        <td>${submittedDate}</td>
+        <td>${statusBadge}</td>
+        <td class="row-actions"></td>
+      `;
+
+      const actions = tr.querySelector('.row-actions');
+      
+      // View button
+      const viewBtn = document.createElement('button');
+      viewBtn.className = 'btn secondary';
+      viewBtn.textContent = 'Voir détails';
+      viewBtn.title = 'Voir tous les détails de la demande';
+      viewBtn.addEventListener('click', () => showUserRequestDetails(req));
+      
+      // Validate button
+      const validateBtn = document.createElement('button');
+      validateBtn.className = 'btn';
+      validateBtn.textContent = 'Valider';
+      validateBtn.title = 'Transférer vers Requêtes d\'ajout';
+      validateBtn.addEventListener('click', () => validateUserRequest(req));
+      
+      // Delete button
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'btn secondary';
+      deleteBtn.textContent = 'Rejeter';
+      deleteBtn.title = 'Supprimer cette demande';
+      deleteBtn.addEventListener('click', () => deleteUserRequest(req));
+
+      actions.appendChild(viewBtn);
+      actions.appendChild(validateBtn);
+      actions.appendChild(deleteBtn);
+      tbody.appendChild(tr);
+    });
+  }
+
+  /**
+   * Show user request details in modal/alert
+   */
+  function showUserRequestDetails(req) {
+    const genres = Array.isArray(req.genres) ? req.genres.filter(Boolean).join(', ') : 'Aucun';
+    const actors = Array.isArray(req.actors) ? req.actors.map(a => `${a.name} (${a.role})`).join(', ') : 'Aucun';
+    
+    const details = `
+📋 Détails de la demande
+
+🎬 Titre: ${req.title || 'N/A'}
+📁 Type: ${req.type || 'N/A'}
+⭐ Note: ${req.rating || 'Non spécifiée'}
+🎭 Genres: ${genres}
+👥 Acteurs: ${actors}
+📝 Description: ${req.description || 'Aucune'}
+🔗 Lien YouTube: ${req.watchUrl || 'N/A'}
+🖼️ Affiche Portrait: ${req.portraitImage ? 'Oui' : 'Non'}
+🖼️ Image Fiche: ${req.landscapeImage ? 'Oui' : 'Non'}
+🏷️ Badge Studio: ${req.studioBadge ? 'Oui' : 'Non'}
+📅 Soumis le: ${req.submittedAt ? new Date(req.submittedAt).toLocaleString('fr-FR') : 'N/A'}
+    `.trim();
+
+    alert(details);
+  }
+
+  /**
+   * Validate user request and transfer to requests
+   */
+  async function validateUserRequest(req) {
+    if (!confirm(`Valider la demande "${req.title}" ?\n\nCette demande sera transférée dans "Requêtes d'ajout" où vous pourrez l'approuver et la modifier avant publication.`)) {
+      return;
+    }
+
+    try {
+      // Generate a unique request ID
+      const requestId = 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      
+      // Create request object
+      const newRequest = {
+        requestId: requestId,
+        status: 'pending',
+        data: {
+          id: null, // Will be generated when approved
+          title: req.title,
+          type: req.type,
+          rating: req.rating || null,
+          genres: req.genres || [],
+          description: req.description || '',
+          portraitImage: req.portraitImage || '',
+          image: req.landscapeImage || '',
+          landscapeImage: req.landscapeImage || '',
+          studioBadge: req.studioBadge || '',
+          watchUrl: req.watchUrl || '',
+          actors: req.actors || []
+        },
+        meta: {
+          createdAt: Date.now(),
+          source: 'user_submission'
+        }
+      };
+
+      // Add to requests
+      const requests = getRequests();
+      requests.unshift(newRequest);
+      setRequests(requests);
+
+      // Remove from user requests (no longer pending)
+      let userReqs = getUserRequests();
+      userReqs = userReqs.filter(r => r.id !== req.id);
+      saveUserRequests(userReqs);
+
+      // Publish deletion to GitHub so other admins see it's processed
+      try {
+        await publishUserRequestDelete(req.id);
+      } catch (e) {
+        console.error('Error publishing user request deletion:', e);
+      }
+
+      // Refresh displays
+      renderUserRequestsTable();
+      renderTable();
+
+      alert('✓ Demande validée avec succès !\n\nElle a été transférée dans "Requêtes d\'ajout". Vous pouvez maintenant la modifier et l\'approuver pour publication.');
+    } catch (e) {
+      console.error('Error validating user request:', e);
+      alert('❌ Erreur lors de la validation de la demande.');
+    }
+  }
+
+  /**
+   * Delete/reject user request
+   */
+  async function deleteUserRequest(req) {
+    if (!confirm(`Rejeter la demande "${req.title}" ?\n\nCette action est irréversible.`)) {
+      return;
+    }
+
+    try {
+      // Remove from user requests
+      let userReqs = getUserRequests();
+      userReqs = userReqs.filter(r => r.id !== req.id);
+      saveUserRequests(userReqs);
+
+      // Refresh display
+      renderUserRequestsTable();
+
+      // Publish deletion to GitHub
+      try {
+        await publishUserRequestDelete(req.id);
+      } catch (e) {
+        console.error('Error publishing user request deletion:', e);
+      }
+
+      alert('✓ Demande rejetée avec succès.');
+    } catch (e) {
+      console.error('Error deleting user request:', e);
+      alert('❌ Erreur lors de la suppression de la demande.');
+    }
+  }
+
+  /**
+   * Escape HTML to prevent XSS
+   */
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   function renderTable(){
@@ -2159,15 +2459,36 @@
       });
     }
 
+    // Sync user requests button
+    const syncUserRequestsBtn = $('#syncUserRequestsBtn');
+    if (syncUserRequestsBtn) {
+      syncUserRequestsBtn.addEventListener('click', async () => {
+        try {
+          syncUserRequestsBtn.disabled = true;
+          syncUserRequestsBtn.textContent = '⏳ Synchronisation...';
+          await hydrateUserRequestsFromPublic();
+          alert('✓ Demandes utilisateurs synchronisées avec succès.');
+        } catch (e) {
+          console.error('Error syncing user requests:', e);
+          alert('❌ Erreur lors de la synchronisation des demandes.');
+        } finally {
+          syncUserRequestsBtn.disabled = false;
+          syncUserRequestsBtn.textContent = '🔄 Synchroniser';
+        }
+      });
+    }
+
     // Initial load: hydrate shared requests and render
     try { await hydrateRequestsFromPublic(); } catch {}
     try { await hydrateRequestsFromPublicApproved(); } catch {}
     try { await hydrateTrashFromPublic(); } catch {}
+    try { await hydrateUserRequestsFromPublic(); } catch {}
     try { renderTable(); } catch {}
     try { renderTrash(); } catch {}
     emptyForm();
     renderTable();
     renderTrash();
+    renderUserRequestsTable();
     // Shared requests sync removed
     populateGenresDatalist();
     restoreDraft();

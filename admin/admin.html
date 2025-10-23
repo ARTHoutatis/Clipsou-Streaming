@@ -217,6 +217,27 @@
       </table>
       <p id="requestsHelp" class="muted">Approuvez une requête pour la publier. Vous pouvez modifier ou supprimer à tout moment.</p>
     </section>
+
+    <section class="user-requests">
+      <h2>📬 Demandes utilisateurs <span id="userRequestsCount" class="badge" style="margin-left:8px;"></span></h2>
+      <p class="muted">Les utilisateurs peuvent soumettre leurs films via la page publique. Validez les demandes pour les transférer dans "Requêtes d'ajout" où vous pourrez les approuver.</p>
+      <div class="actions">
+        <button type="button" id="syncUserRequestsBtn" class="btn secondary">🔄 Synchroniser</button>
+      </div>
+      <table class="table" id="userRequestsTable">
+        <thead>
+          <tr>
+            <th>Titre</th>
+            <th>Type</th>
+            <th>Soumis le</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p class="muted small">Note : Les demandes validées sont transférées dans "Requêtes d'ajout" ci-dessus où vous pouvez les modifier avant publication.</p>
+    </section>
   </main>
 
   <div id="login" class="login">

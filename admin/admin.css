@@ -8,6 +8,21 @@ h1, h2, h3 { margin: 12px 0; }
 /* Sections as cards for better separation */
 .form-section { background: #0f172a; border: 1px solid #1f2a3a; border-radius: 12px; padding: 16px; margin: 16px 0; }
 
+/* User requests section - highlighted with gray box */
+.user-requests {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.6), rgba(30, 41, 59, 0.4));
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 24px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.user-requests h2 {
+  color: #f59e0b;
+  margin-top: 0;
+}
+
 /* Unified button styles */
 .btn {
   background: #2563eb;
