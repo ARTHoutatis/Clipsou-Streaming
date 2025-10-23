@@ -16,8 +16,8 @@
 
     <!-- Pending request notification -->
     <div id="pendingRequestNotice" class="notice notice-info" hidden>
-      <strong>📋 Demande en cours</strong>
-      <p>Vous avez une demande en attente de validation par les administrateurs.</p>
+      <strong id="pendingNoticeTitle">📋 Demande en cours</strong>
+      <p id="pendingNoticeMessage">Vous avez une demande en attente de validation par les administrateurs.</p>
       <div class="pending-details" id="pendingDetails"></div>
       <button type="button" id="cancelRequestBtn" class="btn danger">Annuler ma demande</button>
     </div>
@@ -142,8 +142,7 @@
           <label>
             <span>Type <span class="required">*</span></span>
             <select id="type" required disabled>
-              <option value="">Sélectionner...</option>
-              <option value="film">Film</option>
+              <option value="film" selected>Film</option>
             </select>
           </label>
         </div>

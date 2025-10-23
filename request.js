@@ -725,23 +725,28 @@
     }
     
     // Change notice style and message based on status
-    const noticeTitle = pendingRequestNotice.querySelector('strong');
-    if (noticeTitle) {
-      if (request.status === 'approved') {
-        noticeTitle.textContent = '✅ Demande acceptée';
-        pendingRequestNotice.className = 'notice notice-success';
-        const message = pendingRequestNotice.querySelector('p');
-        if (message) {
-          message.textContent = 'Votre demande a été acceptée par les administrateurs ! Elle sera publiée prochainement sur le site.';
-        }
-      } else if (request.status === 'rejected') {
-        noticeTitle.textContent = '❌ Demande refusée';
-        pendingRequestNotice.className = 'notice notice-error';
-        const message = pendingRequestNotice.querySelector('p');
-        if (message) {
-          message.textContent = 'Votre demande a été refusée par les administrateurs. Vous pouvez annuler cette demande et en soumettre une nouvelle dans 24 heures.';
-        }
+    const noticeTitle = document.getElementById('pendingNoticeTitle');
+    const noticeMessage = document.getElementById('pendingNoticeMessage');
+    
+    if (request.status === 'approved') {
+      if (noticeTitle) noticeTitle.textContent = '✅ Demande acceptée';
+      if (noticeMessage) {
+        noticeMessage.textContent = 'Votre demande a été acceptée par les administrateurs ! Elle sera publiée prochainement sur le site.';
       }
+      pendingRequestNotice.className = 'notice notice-success';
+    } else if (request.status === 'rejected') {
+      if (noticeTitle) noticeTitle.textContent = '❌ Demande refusée';
+      if (noticeMessage) {
+        noticeMessage.textContent = 'Votre demande a été refusée par les administrateurs. Vous pouvez annuler cette demande et en soumettre une nouvelle dans 24 heures.';
+      }
+      pendingRequestNotice.className = 'notice notice-error';
+    } else {
+      // pending status
+      if (noticeTitle) noticeTitle.textContent = '📋 Demande en cours';
+      if (noticeMessage) {
+        noticeMessage.textContent = 'Vous avez une demande en attente de validation par les administrateurs.';
+      }
+      pendingRequestNotice.className = 'notice notice-info';
     }
 
     pendingRequestNotice.hidden = false;
