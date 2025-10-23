@@ -1095,11 +1095,14 @@
     try {
       const remote = await fetchPublicUserRequestsArray();
       if (Array.isArray(remote)) {
-        // Always sync, even if empty array
-        if (remote.length > 0) {
-          saveUserRequests(remote);
-        }
+        // Always sync with GitHub (source of truth)
+        // This ensures status changes (approved/rejected) are reflected
+        saveUserRequests(remote);
+        
+        // Always re-render to update the display
         try { renderUserRequestsTable(); } catch {}
+        
+        console.debug(`✓ User requests synced: ${remote.filter(r => r.status === 'pending').length} pending`);
       }
     } catch (e) {
       // Silently fail if file doesn't exist yet - normal for first time
@@ -1621,7 +1624,12 @@
       try {
         const updatedRequest = userReqs.find(r => r.id === req.id);
         if (updatedRequest) {
-          await publishUserRequestUpsert(updatedRequest);
+          const published = await publishUserRequestUpsert(updatedRequest);
+          if (published) {
+            console.log('✓ Status "approved" synchronized to GitHub - all admins will see this change');
+          } else {
+            console.warn('⚠️ Could not sync to GitHub - other admins may not see the change immediately');
+          }
         }
       } catch (e) {
         console.error('Error publishing user request update:', e);
@@ -1631,7 +1639,7 @@
       renderUserRequestsTable();
       renderTable();
 
-      alert('✓ Demande validée avec succès !\n\nElle a été transférée dans "Requêtes d\'ajout". Vous pouvez maintenant la modifier et l\'approuver pour publication.');
+      alert('✓ Demande validée avec succès !\n\nElle a été transférée dans "Requêtes d\'ajout". Vous pouvez maintenant la modifier et l\'approuver pour publication.\n\nLes autres admins verront ce changement lors de leur prochaine synchronisation (max 30s).');
     } catch (e) {
       console.error('Error validating user request:', e);
       alert('❌ Erreur lors de la validation de la demande.');
@@ -1657,17 +1665,22 @@
       // Refresh display
       renderUserRequestsTable();
 
-      // Publish updated status to GitHub
+      // Publish updated status to GitHub so other admins see it
       try {
         const updatedRequest = userReqs.find(r => r.id === req.id);
         if (updatedRequest) {
-          await publishUserRequestUpsert(updatedRequest);
+          const published = await publishUserRequestUpsert(updatedRequest);
+          if (published) {
+            console.log('✓ Status "rejected" synchronized to GitHub - all admins will see this change');
+          } else {
+            console.warn('⚠️ Could not sync to GitHub - other admins may not see the change immediately');
+          }
         }
       } catch (e) {
         console.error('Error publishing user request update:', e);
       }
 
-      alert('✓ Demande rejetée avec succès.\n\nL\'utilisateur sera notifié lors de sa prochaine visite.');
+      alert('✓ Demande rejetée avec succès.\n\nL\'utilisateur sera notifié lors de sa prochaine visite.\n\nLes autres admins verront ce changement lors de leur prochaine synchronisation (max 30s).');
     } catch (e) {
       console.error('Error rejecting user request:', e);
       alert('❌ Erreur lors du rejet de la demande.');
