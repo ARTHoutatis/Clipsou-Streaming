@@ -735,11 +735,25 @@
    */
   async function publishUserRequestToGitHub(request) {
     try {
-      // Try to get worker URL from config (if admin has configured it)
-      const workerUrl = localStorage.getItem('clipsou_worker_url');
-      if (!workerUrl) {
-        throw new Error('Worker URL not configured');
+      // Get worker URL from global config or fallback to localStorage
+      let workerUrl = null;
+      
+      // Try global config first
+      if (window.ClipsouConfig && window.ClipsouConfig.workerUrl) {
+        workerUrl = window.ClipsouConfig.workerUrl;
       }
+      
+      // Fallback to localStorage (for backward compatibility)
+      if (!workerUrl || workerUrl.includes('votre-worker')) {
+        workerUrl = localStorage.getItem('clipsou_worker_url');
+      }
+      
+      if (!workerUrl || workerUrl.includes('votre-worker')) {
+        console.info('ℹ️ Worker URL not configured - request saved locally only');
+        return false;
+      }
+
+      console.log('📤 Publishing request to GitHub via worker...');
 
       const response = await fetch(workerUrl, {
         method: 'POST',
@@ -753,13 +767,14 @@
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        const errorText = await response.text().catch(() => '');
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
-      console.log('✓ Request published to GitHub successfully');
+      console.log('✅ Request published to GitHub successfully');
       return true;
     } catch (error) {
-      console.warn('Could not publish to GitHub (request saved locally):', error);
+      console.warn('⚠️ Could not publish to GitHub (request saved locally):', error.message);
       return false;
     }
   }
