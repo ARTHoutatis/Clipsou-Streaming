@@ -1036,10 +1036,18 @@
     try {
       const remote = await fetchPublicTrashArray();
       if (Array.isArray(remote)) {
+        // Always sync with GitHub (source of truth)
+        // This ensures trash changes are reflected across all admins
         setTrash(remote);
+        
+        // Always re-render to update the display
         try { renderTrash(); } catch {}
+        
+        console.debug(`✓ Trash synced: ${remote.length} items`);
       }
-    } catch {}
+    } catch (e) {
+      console.debug('Trash file not available yet (normal on first setup)');
+    }
   }
 
   // ===== Publish user requests (shared across admins) =====
@@ -1815,7 +1823,16 @@
         try { publishRequestDelete(r.requestId); } catch {}
         
         // Share trash item with other admins
-        try { await publishTrashUpsert(trashed); } catch {}
+        try {
+          const published = await publishTrashUpsert(trashed);
+          if (published) {
+            console.log(`✓ Trash item "${r.data.title}" shared with all admins`);
+          } else {
+            console.warn(`⚠️ Could not share trash item "${r.data.title}" - other admins may not see it immediately`);
+          }
+        } catch (e) {
+          console.error('Error sharing trash item:', e);
+        }
       });
       approveBtn.addEventListener('click', async ()=>{
         const list = getRequests();
@@ -1983,7 +2000,16 @@
         try { publishRequestUpsert(restored); } catch {}
         
         // Remove from shared trash
-        try { await publishTrashDelete(r.requestId); } catch {}
+        try {
+          const deleted = await publishTrashDelete(r.requestId);
+          if (deleted) {
+            console.log(`✓ Trash item "${r.data.title}" removed from GitHub`);
+          } else {
+            console.warn(`⚠️ Could not remove "${r.data.title}" from shared trash`);
+          }
+        } catch (e) {
+          console.error('Error removing from shared trash:', e);
+        }
         
         renderTrash();
         renderTable();
@@ -1999,7 +2025,16 @@
         setTrash(trashList);
         
         // Remove from shared trash
-        try { await publishTrashDelete(r.requestId); } catch {}
+        try {
+          const deleted = await publishTrashDelete(r.requestId);
+          if (deleted) {
+            console.log(`✓ Trash item "${r.data.title}" permanently deleted from GitHub`);
+          } else {
+            console.warn(`⚠️ Could not remove "${r.data.title}" from shared trash`);
+          }
+        } catch (e) {
+          console.error('Error removing from shared trash:', e);
+        }
         
         renderTrash();
         alert('Film supprimé définitivement.');
@@ -2478,13 +2513,31 @@
         if (!confirm(`Vider la corbeille ? Cela supprimera définitivement ${trash.length} film(s). Cette action est irréversible.`)) return;
         
         // Delete all items from shared trash
+        console.log(`🗑️ Emptying trash: ${trash.length} items`);
+        let successCount = 0;
+        let failCount = 0;
+        
         for (const item of trash) {
-          try { await publishTrashDelete(item.requestId); } catch {}
+          try {
+            const deleted = await publishTrashDelete(item.requestId);
+            if (deleted) {
+              successCount++;
+              console.log(`✓ Deleted "${item.data.title}" from shared trash`);
+            } else {
+              failCount++;
+              console.warn(`⚠️ Failed to delete "${item.data.title}" from shared trash`);
+            }
+          } catch (e) {
+            failCount++;
+            console.error(`Error deleting "${item.data.title}":`, e);
+          }
         }
         
         setTrash([]);
         renderTrash();
-        alert('Corbeille vidée.');
+        
+        console.log(`✓ Trash emptied: ${successCount} deleted, ${failCount} failed`);
+        alert(`Corbeille vidée.\n\n${successCount} film(s) supprimé(s) avec succès.${failCount > 0 ? `\n${failCount} échec(s) de synchronisation.` : ''}`);
       });
     }
 
