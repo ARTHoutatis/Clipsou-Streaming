@@ -1094,11 +1094,17 @@
   async function hydrateUserRequestsFromPublic(){
     try {
       const remote = await fetchPublicUserRequestsArray();
-      if (Array.isArray(remote) && remote.length) {
-        saveUserRequests(remote);
+      if (Array.isArray(remote)) {
+        // Always sync, even if empty array
+        if (remote.length > 0) {
+          saveUserRequests(remote);
+        }
         try { renderUserRequestsTable(); } catch {}
       }
-    } catch {}
+    } catch (e) {
+      // Silently fail if file doesn't exist yet - normal for first time
+      console.debug('User requests file not available yet (normal on first setup)');
+    }
   }
 
   function renderActors(list){
