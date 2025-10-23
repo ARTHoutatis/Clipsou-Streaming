@@ -1,1 +1,31 @@
-[]
+[
+  {
+    "requestId": "req_1761250012436_f96pdd9bj",
+    "status": "pending",
+    "data": {
+      "id": null,
+      "title": "test",
+      "type": "film",
+      "rating": null,
+      "genres": [
+        "Action",
+        "Romance",
+        "Horreur"
+      ],
+      "description": "test",
+      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761249459/ue0fciizqoecjkp2p48c.webp",
+      "image": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761249465/ks4lathdgb10bdkbavwj.webp",
+      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761249465/ks4lathdgb10bdkbavwj.webp",
+      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761249491/auesssfw5s7trdrqlqgd.webp",
+      "watchUrl": "https://www.youtube.com/watch?v=OQz5boiZkk8",
+      "actors": []
+    },
+    "meta": {
+      "createdAt": 1761250012436,
+      "source": "user_submission",
+      "updatedAt": 1761250996594,
+      "deleted": true,
+      "trashedAt": 1761250996594
+    }
+  }
+]
