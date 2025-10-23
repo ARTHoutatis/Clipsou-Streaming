@@ -14,8 +14,9 @@
     "watchUrl": "https://www.youtube.com/watch?v=snro9u1Vsuk",
     "actors": [],
     "submittedAt": 1761255346692,
-    "status": "pending",
-    "id": "user_req_1761255346692_glcsrlsfa"
+    "status": "approved",
+    "id": "user_req_1761255346692_glcsrlsfa",
+    "processedAt": 1761255473158
   },
   {
     "title": "teste",
