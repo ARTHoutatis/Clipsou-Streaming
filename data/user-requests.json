@@ -24,8 +24,9 @@
       }
     ],
     "submittedAt": 1761327831033,
-    "status": "pending",
-    "id": "user_req_1761327831033_049csmah1"
+    "status": "approved",
+    "id": "user_req_1761327831033_049csmah1",
+    "processedAt": 1761327943325
   },
   {
     "title": "Clipsou Explorer",
