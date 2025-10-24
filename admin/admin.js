@@ -1675,6 +1675,7 @@
   function showUserRequestDetails(req) {
     const genres = Array.isArray(req.genres) ? req.genres.filter(Boolean).join(', ') : 'Aucun';
     const actors = Array.isArray(req.actors) ? req.actors.map(a => `${a.name} (${a.role})`).join(', ') : 'Aucun';
+    const episodes = Array.isArray(req.episodes) ? req.episodes.map((ep, i) => `  ${i+1}. ${ep.title || 'Sans titre'}`).join('\n') : 'Aucun';
     
     const details = `
 📋 Détails de la demande
@@ -1684,6 +1685,7 @@
 ⭐ Note: ${req.rating || 'Non spécifiée'}
 🎭 Genres: ${genres}
 👥 Acteurs: ${actors}
+📺 Épisodes: ${Array.isArray(req.episodes) && req.episodes.length > 0 ? req.episodes.length + ' épisode(s)' : 'Aucun'}${Array.isArray(req.episodes) && req.episodes.length > 0 ? '\n' + episodes : ''}
 📝 Description: ${req.description || 'Aucune'}
 🔗 Lien YouTube: ${req.watchUrl || 'N/A'}
 🖼️ Affiche Portrait: ${req.portraitImage ? 'Oui' : 'Non'}
@@ -1723,7 +1725,8 @@
           landscapeImage: req.landscapeImage || '',
           studioBadge: req.studioBadge || '',
           watchUrl: req.watchUrl || '',
-          actors: req.actors || []
+          actors: req.actors || [],
+          episodes: req.episodes || []
         },
         meta: {
           createdAt: Date.now(),
