@@ -60,6 +60,49 @@
     "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp"
   },
   {
+    "id": "custom-clipsou-explorer-1-ocfv",
+    "title": "Clipsou Explorer 1",
+    "type": "trailer",
+    "rating": 3.5,
+    "genres": [
+      "Documentaire",
+      "Comédie",
+      "Evenement"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761315993/i9bskpuxt9qhvcsa1ey5.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761316004/qouknmayi9mm7hagjeyz.webp",
+    "description": "5 YouTubeurs indépendants s’affrontent dans une course de F1 explosive, inspirée des vrais Grands Prix.\nPréparez-vous à vivre des dépassements fous, des stratégies risquées et des moments de pur spectacle !",
+    "watchUrl": "https://youtu.be/mae7mgCxulc?si=A4AKXM72HRc_Tbh0",
+    "actors": [
+      {
+        "name": "Liam Roxxor",
+        "role": "Mr Roxxor",
+        "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1759043312/nwqhac65v9jz2jaitdr9.webp"
+      },
+      {
+        "name": "Arth",
+        "role": "ARTH"
+      },
+      {
+        "name": "ESHI",
+        "role": "ESHI"
+      },
+      {
+        "name": "Ferrisbu",
+        "role": "Ferrisbu"
+      },
+      {
+        "name": "Raiback",
+        "role": "Raiback"
+      },
+      {
+        "name": "Clone prod",
+        "role": "Clone prod ( animateur )"
+      }
+    ],
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761316058/isialx8flatqtkkt6muu.webp"
+  },
+  {
     "id": "custom-elden-ring-le-film-le-pire-guerrier-pxql",
     "title": "ELDEN RING Le Film : Le pire guerrier",
     "type": "film",
