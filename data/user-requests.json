@@ -1,5 +1,33 @@
 [
   {
+    "title": "test série",
+    "type": "série",
+    "genres": [
+      "Comédie",
+      "Aventure",
+      "Horreur"
+    ],
+    "description": "test série",
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761327759/ydu6kvcunbadytpcwlrn.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761327770/opcq5yaidy4d5fv2tjah.webp",
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761327787/fbbkicfefml2ag9acz1k.webp",
+    "watchUrl": "",
+    "actors": [],
+    "episodes": [
+      {
+        "title": "test 1",
+        "url": "https://www.youtube.com/watch/-MZ7AI9d8xk"
+      },
+      {
+        "title": "test 2",
+        "url": "https://www.youtube.com/watch/OQz5boiZkk8"
+      }
+    ],
+    "submittedAt": 1761327831033,
+    "status": "pending",
+    "id": "user_req_1761327831033_049csmah1"
+  },
+  {
     "title": "Clipsou Explorer",
     "type": "film",
     "genres": [
