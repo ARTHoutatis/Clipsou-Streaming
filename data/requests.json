@@ -1,5 +1,31 @@
 [
   {
+    "requestId": "r_mh559xr4_e5znk4",
+    "status": "pending",
+    "data": {
+      "id": "custom-test-serie-3b9u",
+      "requestId": "r_mh559xr4_e5znk4",
+      "title": "test série",
+      "type": "série",
+      "rating": 3,
+      "genres": [
+        "Comédie",
+        "Aventure",
+        "Horreur"
+      ],
+      "description": "test série",
+      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761327759/ydu6kvcunbadytpcwlrn.webp",
+      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761327770/opcq5yaidy4d5fv2tjah.webp",
+      "watchUrl": "",
+      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761327787/fbbkicfefml2ag9acz1k.webp",
+      "actors": [],
+      "episodes": []
+    },
+    "meta": {
+      "updatedAt": 1761328102432
+    }
+  },
+  {
     "requestId": "req_1761327941957_upcpwwkyi",
     "status": "pending",
     "data": {
