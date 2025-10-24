@@ -1831,7 +1831,21 @@
     return div.innerHTML;
   }
 
+  // Add render debouncing to prevent visual glitches from concurrent renders
+  let renderTablePending = false;
   function renderTable(){
+    // Skip if already rendering
+    if (renderTablePending) return;
+    renderTablePending = true;
+    
+    // Use microtask to batch multiple render calls
+    Promise.resolve().then(() => {
+      renderTablePending = false;
+      doRenderTable();
+    });
+  }
+  
+  function doRenderTable(){
     const tbody = $('#requestsTable tbody');
     // Exclude requests marked as deleted from the UI
     let reqs = getRequests().filter(r => !(r && r.meta && r.meta.deleted));
@@ -1962,9 +1976,16 @@
         }
       });
       approveBtn.addEventListener('click', async ()=>{
+        // Prevent multiple clicks
+        if (approveBtn.disabled) return;
+        approveBtn.disabled = true;
+        
         const list = getRequests();
         const found = list.find(x=>x.requestId===r.requestId);
-        if (!found) return;
+        if (!found) {
+          approveBtn.disabled = false;
+          return;
+        }
         if (isApprovedShared) {
           // Unapprove
           found.status = 'pending';
@@ -1980,10 +2001,9 @@
           renderTable();
           // Sync removed
           try { publishRequestUpsert(found); } catch {}
+          // Button will be re-created by renderTable()
         } else {
-          // Show publishing indicator and disable button during network call
-          const originalHtml = approveBtn.innerHTML;
-          approveBtn.disabled = true;
+          // Show publishing indicator
           showPublishWaitHint();
 
           // Optimistically set approved locally and update UI immediately
@@ -1994,15 +2014,20 @@
           const key = normalizeTitleKey(found.data && found.data.title);
           // Remove any existing approved with same normalized title or different item with same id
           apr = apr.filter(x => x && x.id !== found.data.id && normalizeTitleKey(x.title) !== key);
-          apr.push(found.data);
+          // Make sure episodes are included
+          const dataToApprove = { ...found.data };
+          if (Array.isArray(dataToApprove.episodes)) {
+            dataToApprove.episodes = dataToApprove.episodes.slice();
+          }
+          apr.push(dataToApprove);
           setApproved(dedupeByIdAndTitle(apr));
 
           // Publish through API for everyone and reflect final status
-          const ok = await publishApproved(found.data);
+          const ok = await publishApproved(dataToApprove);
           if (ok) {
             // Refresh table after successful publish
             renderTable();
-            try { startDeploymentWatch(found.data.id, 'upsert', found.data); } catch {}
+            try { startDeploymentWatch(dataToApprove.id, 'upsert', dataToApprove); } catch {}
           } else {
             // Revert local approval on failure
             found.status = 'pending';
@@ -2011,8 +2036,7 @@
             setApproved(apr2);
             renderTable();
           }
-          // Re-enable only if global 30s lock is not active
-          try { approveBtn.disabled = isPublishLocked(); } catch { approveBtn.disabled = false; }
+          // Button will be re-created by renderTable()
           // Share new status with other admins
           try { publishRequestUpsert(found); } catch {}
         }
@@ -2569,9 +2593,20 @@
         // Persist the requestId in the hidden input to avoid duplicate creation on rapid double-submit
         const reqIdInput = $('#requestId');
         if (reqIdInput) reqIdInput.value = reqId;
-        // Remove other requests with the same normalized title to avoid duplicates
+        
+        // Remove other requests with the same normalized title OR same id to avoid duplicates
         const keyNew = normalizeTitleKey(data.title);
-        list = list.filter(x => x && x.requestId === reqId || normalizeTitleKey(x && x.data && x.data.title) !== keyNew);
+        list = list.filter(x => {
+          if (!x) return false;
+          // Keep the current request we're editing
+          if (x.requestId === reqId) return true;
+          // Remove duplicates by normalized title
+          if (keyNew && normalizeTitleKey(x && x.data && x.data.title) === keyNew) return false;
+          // Remove duplicates by id (when editing approved content)
+          if (data.id && x.data && x.data.id === data.id && x.requestId !== reqId) return false;
+          return true;
+        });
+        
         const existing = list.find(x=>x.requestId===reqId);
         const isEditing = !!existing; // used to alter submit button state
         // Removed: do not show the 30s publish wait hint when saving modifications
@@ -2592,7 +2627,17 @@
           let apr = getApproved();
           const key = normalizeTitleKey(data.title);
           apr = apr.filter(x => x && x.id !== data.id && normalizeTitleKey(x.title) !== key);
-          apr.push(data);
+          
+          // Make sure all data including episodes is properly cloned
+          const dataToPublish = { ...data };
+          if (Array.isArray(data.episodes)) {
+            dataToPublish.episodes = data.episodes.slice();
+          }
+          if (Array.isArray(data.actors)) {
+            dataToPublish.actors = data.actors.slice();
+          }
+          
+          apr.push(dataToPublish);
           setApproved(dedupeByIdAndTitle(apr));
           
           renderTable();
@@ -2600,7 +2645,7 @@
           
           // Republish updated approved item to the site so changes go live
           (async () => {
-            const ok = await publishApproved(data);
+            const ok = await publishApproved(dataToPublish);
             if (ok) {
               // Success: mark as approved and show deployment started
               const found = list.find(x => x.requestId === reqId);
