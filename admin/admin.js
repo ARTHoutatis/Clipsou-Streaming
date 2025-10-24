@@ -2756,8 +2756,8 @@
     try { await hydrateRequestsFromPublicApproved(); } catch {}
     try { await hydrateTrashFromPublic(); } catch {}
     try { await hydrateUserRequestsFromPublic(); } catch {}
-    try { renderTable(); } catch {}
-    try { renderTrash(); } catch {}
+    
+    // Render all tables once after data is loaded
     emptyForm();
     renderTable();
     renderTrash();
