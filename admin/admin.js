@@ -1834,21 +1834,7 @@
     return div.innerHTML;
   }
 
-  // Add render debouncing to prevent visual glitches from concurrent renders
-  let renderTablePending = false;
   function renderTable(){
-    // Skip if already rendering
-    if (renderTablePending) return;
-    renderTablePending = true;
-    
-    // Use microtask to batch multiple render calls
-    Promise.resolve().then(() => {
-      renderTablePending = false;
-      doRenderTable();
-    });
-  }
-  
-  function doRenderTable(){
     const tbody = $('#requestsTable tbody');
     // Exclude requests marked as deleted from the UI
     let reqs = getRequests().filter(r => !(r && r.meta && r.meta.deleted));
