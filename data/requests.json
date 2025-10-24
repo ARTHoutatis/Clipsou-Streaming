@@ -1,7 +1,7 @@
 [
   {
     "requestId": "r_mh559xr4_e5znk4",
-    "status": "pending",
+    "status": "approved",
     "data": {
       "id": "custom-test-serie-7pa6",
       "requestId": "r_mh559xr4_e5znk4",
@@ -31,7 +31,7 @@
       ]
     },
     "meta": {
-      "updatedAt": 1761329556713
+      "updatedAt": 1761329630710
     }
   },
   {
