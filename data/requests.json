@@ -1,7 +1,7 @@
 [
   {
     "requestId": "r_mh4yhhro_mxctju",
-    "status": "pending",
+    "status": "approved",
     "data": {
       "id": "custom-clipsou-explorer-1-ocfv",
       "requestId": "r_mh4yhhro_mxctju",
@@ -46,7 +46,7 @@
       ]
     },
     "meta": {
-      "updatedAt": 1761316697652
+      "updatedAt": 1761316702657
     }
   },
   {
