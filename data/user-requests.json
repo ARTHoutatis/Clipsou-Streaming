@@ -39,8 +39,9 @@
       }
     ],
     "submittedAt": 1761316162516,
-    "status": "pending",
-    "id": "user_req_1761316162516_zemymsjrh"
+    "status": "approved",
+    "id": "user_req_1761316162516_zemymsjrh",
+    "processedAt": 1761316619776
   },
   {
     "title": "test3",
