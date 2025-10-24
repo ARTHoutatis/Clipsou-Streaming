@@ -132,10 +132,6 @@
             <img id="landscapePreview" class="img-preview" alt="Aperçu paysage" hidden>
           </label>
           <label>
-            <span>Lien YouTube</span>
-            <input type="url" id="watchUrl" placeholder="https://www.youtube.com/..." required>
-          </label>
-          <label>
             <span>Étiquette studio (image)</span>
             <input type="hidden" id="studioBadge">
             <div class="actions">
@@ -161,6 +157,24 @@
             </label>
             <img id="actorPhotoPreview" class="img-preview small" alt="Aperçu acteur" hidden>
             <button type="button" id="addActorBtn" class="btn secondary">Ajouter</button>
+          </div>
+        </fieldset>
+
+        <fieldset id="watchUrlFieldset">
+          <legend>Lien de visionnage</legend>
+          <label>
+            <span>Lien YouTube</span>
+            <input type="url" id="watchUrl" placeholder="https://www.youtube.com/...">
+          </label>
+        </fieldset>
+
+        <fieldset id="episodesFieldset" style="display:none;">
+          <legend>Épisodes</legend>
+          <div id="episodesList" class="actors-list"></div>
+          <div class="actor-row">
+            <input type="text" id="episodeTitle" placeholder="Titre de l'épisode" style="flex:2;">
+            <input type="url" id="episodeUrl" placeholder="Lien YouTube de l'épisode" style="flex:2;">
+            <button type="button" id="addEpisodeBtn" class="btn secondary">Ajouter</button>
           </div>
         </fieldset>
 

@@ -327,7 +327,9 @@
     const genres = Array.isArray(data.genres) ? data.genres.filter(Boolean) : [];
     if (genres.length !== 3) errors.push('3 genres sont requis.');
     if (new Set(genres.map(g=>g.toLowerCase())).size !== genres.length) errors.push('Les genres doivent être uniques.');
-    if (!isValidWatchUrl(data.watchUrl)) errors.push('Lien YouTube invalide.');
+    // watchUrl est requis seulement pour les films et trailers, pas pour les séries
+    const isSerie = (data.type === 'série' || data.type === 'serie');
+    if (!isSerie && !isValidWatchUrl(data.watchUrl)) errors.push('Lien YouTube invalide.');
     if (data.portraitImage && !isValidImageLike(data.portraitImage)) errors.push('Image carte (portrait) invalide.');
     if (data.landscapeImage && !isValidImageLike(data.landscapeImage)) errors.push('Image fiche (paysage) invalide.');
     return { ok: errors.length === 0, message: errors.join('\n') };
@@ -1255,6 +1257,102 @@
     });
   }
 
+  function renderEpisodes(list){
+    const wrap = $('#episodesList');
+    wrap.innerHTML = '';
+    let dragSrcIndex = null;
+    let editingIndex = -1;
+    try { const v = parseInt(String(($('#contentForm').dataset.episodeEditIndex)||''), 10); if (!Number.isNaN(v)) editingIndex = v; } catch {}
+    (list||[]).forEach((ep, idx) => {
+      const chip = document.createElement('div');
+      chip.className = 'actor-chip';
+      if (idx === editingIndex) chip.classList.add('editing');
+      chip.setAttribute('draggable', 'true');
+      chip.addEventListener('dragstart', (e) => {
+        dragSrcIndex = idx;
+        try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(idx)); } catch {}
+        chip.classList.add('dragging');
+      });
+      chip.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        try { e.dataTransfer.dropEffect = 'move'; } catch {}
+        chip.classList.add('drop-target');
+      });
+      chip.addEventListener('dragleave', () => {
+        chip.classList.remove('drop-target');
+      });
+      chip.addEventListener('drop', (e) => {
+        e.preventDefault();
+        chip.classList.remove('drop-target');
+        let from = (dragSrcIndex!=null) ? dragSrcIndex : -1;
+        try {
+          if (from < 0) from = parseInt((e.dataTransfer && e.dataTransfer.getData('text/plain'))||'-1', 10);
+        } catch {}
+        const to = idx;
+        if (isNaN(from) || from < 0 || from === to) return;
+        const moved = list.splice(from, 1)[0];
+        list.splice(to, 0, moved);
+        try { $('#contentForm').dataset.episodes = JSON.stringify(list); } catch {}
+        try { saveDraft(); } catch {}
+        try {
+          const btn = document.querySelector('#contentForm .actions .btn[type="submit"], #contentForm .actions button[type="submit"]');
+          if (btn) { btn.disabled = false; btn.removeAttribute('disabled'); btn.style.pointerEvents = ''; }
+        } catch {}
+        renderEpisodes(list);
+      });
+      chip.addEventListener('dragend', () => {
+        chip.classList.remove('dragging');
+        dragSrcIndex = null;
+      });
+      const numSpan = document.createElement('span'); numSpan.className = 'muted small'; numSpan.textContent = `Ép. ${idx + 1}`;
+      const titleSpan = document.createElement('span'); titleSpan.textContent = ep.title || 'Sans titre';
+      const urlSpan = document.createElement('span'); urlSpan.className = 'muted small'; urlSpan.textContent = ep.url ? '🔗 ' + (ep.url.length > 40 ? ep.url.substring(0, 40) + '...' : ep.url) : '';
+      chip.appendChild(numSpan);
+      chip.appendChild(titleSpan);
+      chip.appendChild(urlSpan);
+      const ed = document.createElement('button');
+      ed.className = 'edit';
+      ed.type = 'button';
+      ed.textContent = '✏️';
+      ed.title = 'Modifier cet épisode';
+      ed.addEventListener('pointerdown', (e)=>{ e.stopPropagation(); });
+      ed.addEventListener('click', ()=>{
+        try {
+          const titleInput = $('#episodeTitle');
+          const urlInput = $('#episodeUrl');
+          if (titleInput) titleInput.value = ep.title || '';
+          if (urlInput) urlInput.value = ep.url || '';
+          try { $('#contentForm').dataset.episodeEditIndex = String(idx); } catch {}
+          try { const addBtn = $('#addEpisodeBtn'); if (addBtn) addBtn.textContent = 'Modifier'; } catch {}
+          try { titleInput && titleInput.focus && titleInput.focus(); } catch {}
+          renderEpisodes(list);
+        } catch {}
+      });
+      chip.appendChild(ed);
+      const rm = document.createElement('button');
+      rm.className = 'remove';
+      rm.type = 'button';
+      rm.textContent = '✕';
+      rm.addEventListener('pointerdown', (e)=>{ e.stopPropagation(); });
+      rm.addEventListener('click', () => {
+        list.splice(idx,1);
+        try { $('#contentForm').dataset.episodes = JSON.stringify(list); } catch {}
+        try {
+          const cur = parseInt(String(($('#contentForm').dataset.episodeEditIndex)||''), 10);
+          if (!Number.isNaN(cur)) { delete $('#contentForm').dataset.episodeEditIndex; const addBtn = $('#addEpisodeBtn'); if (addBtn) addBtn.textContent = 'Ajouter'; }
+        } catch {}
+        renderEpisodes(list);
+        try { saveDraft(); } catch {}
+        try {
+          const btn = document.querySelector('#contentForm .actions .btn[type="submit"], #contentForm .actions button[type="submit"]');
+          if (btn) { btn.disabled = false; btn.removeAttribute('disabled'); btn.style.pointerEvents = ''; }
+        } catch {}
+      });
+      chip.appendChild(rm);
+      wrap.appendChild(chip);
+    });
+  }
+
   function ensureAuth(){
     const app = $('#app');
     const login = $('#login');
@@ -1361,6 +1459,21 @@
     const actors = Array.isArray(data.actors) ? data.actors.slice() : [];
     $('#contentForm').dataset.actors = JSON.stringify(actors);
     renderActors(actors);
+    // Episodes
+    const episodes = Array.isArray(data.episodes) ? data.episodes.slice() : [];
+    $('#contentForm').dataset.episodes = JSON.stringify(episodes);
+    renderEpisodes(episodes);
+    // Show/hide episodes fieldset and watchUrl based on type
+    const episodesFieldset = $('#episodesFieldset');
+    const watchUrlFieldset = $('#watchUrlFieldset');
+    const isSerie = (data.type === 'série' || data.type === 'serie');
+    
+    if (episodesFieldset) {
+      episodesFieldset.style.display = isSerie ? 'block' : 'none';
+    }
+    if (watchUrlFieldset) {
+      watchUrlFieldset.style.display = isSerie ? 'none' : 'block';
+    }
     // Previews
     setPreview($('#portraitPreview'), $('#portraitImage').value);
     setPreview($('#landscapePreview'), $('#landscapeImage').value);
@@ -1404,6 +1517,7 @@
 
   function collectForm(){
     const actors = JSON.parse($('#contentForm').dataset.actors || '[]');
+    const episodes = JSON.parse($('#contentForm').dataset.episodes || '[]');
     // Keep order, enforce uniqueness and non-empty for genres
     const seen = new Set();
     const genresRaw = [$('#genre1').value, $('#genre2').value, $('#genre3').value];
@@ -1428,7 +1542,8 @@
       landscapeImage: $('#landscapeImage').value.trim(),
       watchUrl: $('#watchUrl').value.trim(),
       studioBadge,
-      actors
+      actors,
+      episodes
     };
   }
 
@@ -1800,7 +1915,7 @@
       // No status cell anymore
       editBtn.addEventListener('click', ()=>{ fillForm(r.data); try { setLastEditedId(r.data && r.data.id); } catch{} });
       delBtn.addEventListener('click', async ()=>{
-        if (!confirm('Déplacer ce film vers la corbeille ?')) return;
+        if (!confirm('Déplacer ce contenu vers la corbeille ?')) return;
         
         // Move to trash instead of deleting
         let list = getRequests().filter(x=>x.requestId!==r.requestId);
@@ -1850,21 +1965,19 @@
         const list = getRequests();
         const found = list.find(x=>x.requestId===r.requestId);
         if (!found) return;
-        if (found.status==='approved') {
+        if (isApprovedShared) {
           // Unapprove
           found.status = 'pending';
           stampUpdatedAt(found);
           setRequests(list);
           const apr = getApproved().filter(x=>x.id!==found.data.id);
           setApproved(apr);
-          // Instantly reflect locally on this device
-          approveBtn.textContent = 'Approuver';
-          try { renderTable(); } catch {}
           // Remove from shared approved.json; mark in-flight BEFORE network to suppress overlay flicker
           try { startDeploymentWatch(found.data.id, 'delete'); } catch {}
           showPublishWaitHint();
           await deleteApproved(found.data.id);
-          // No status cell to refresh
+          // Refresh table after async operation
+          renderTable();
           // Sync removed
           try { publishRequestUpsert(found); } catch {}
         } else {
@@ -1883,15 +1996,12 @@
           apr = apr.filter(x => x && x.id !== found.data.id && normalizeTitleKey(x.title) !== key);
           apr.push(found.data);
           setApproved(dedupeByIdAndTitle(apr));
-          // Instantly reflect in UI on this device
-          approveBtn.textContent = 'Retirer';
-          try { renderTable(); } catch {}
 
           // Publish through API for everyone and reflect final status
           const ok = await publishApproved(found.data);
           if (ok) {
-            // Keep label as Retirer; schedule a soft refresh
-            setTimeout(()=>{ try { renderTable(); } catch {} }, 300);
+            // Refresh table after successful publish
+            renderTable();
             try { startDeploymentWatch(found.data.id, 'upsert', found.data); } catch {}
           } else {
             // Revert local approval on failure
@@ -1899,16 +2009,13 @@
             setRequests(list);
             const apr2 = getApproved().filter(x=>x.id!==found.data.id);
             setApproved(apr2);
-            approveBtn.textContent = 'Approuver';
-            try { renderTable(); } catch {}
+            renderTable();
           }
           // Re-enable only if global 30s lock is not active
           try { approveBtn.disabled = isPublishLocked(); } catch { approveBtn.disabled = false; }
           // Share new status with other admins
           try { publishRequestUpsert(found); } catch {}
         }
-        // For unapprove, immediate refresh
-        if (found.status==='pending') renderTable();
       });
       tbody.appendChild(tr);
     });
@@ -1979,7 +2086,7 @@
       
       // Restore button handler
       restoreBtn.addEventListener('click', async () => {
-        if (!confirm('Restaurer ce film ?')) return;
+        if (!confirm('Restaurer ce contenu ?')) return;
         
         // Remove from trash
         let trashList = getTrash().filter(x => x.requestId !== r.requestId);
@@ -2025,12 +2132,12 @@
         
         renderTrash();
         renderTable();
-        alert('Film restauré avec succès.');
+        alert('Contenu restauré avec succès.');
       });
       
       // Delete permanently button handler
       deleteBtn.addEventListener('click', async () => {
-        if (!confirm('Supprimer définitivement ce film ? Cette action est irréversible.')) return;
+        if (!confirm('Supprimer définitivement ce contenu ? Cette action est irréversible.')) return;
         
         // Remove from trash permanently
         let trashList = getTrash().filter(x => x.requestId !== r.requestId);
@@ -2185,6 +2292,44 @@
       const preview = $('#actorPhotoPreview'); if (preview) { preview.hidden = true; preview.removeAttribute('src'); }
       renderActors(actors);
     });
+
+    $('#addEpisodeBtn').addEventListener('click', ()=>{
+      const title = $('#episodeTitle').value.trim();
+      const url = $('#episodeUrl').value.trim();
+      if (!title || !url) return;
+      const episodes = JSON.parse($('#contentForm').dataset.episodes || '[]');
+      const editIdxRaw = ($('#contentForm').dataset.episodeEditIndex)||'';
+      const editIdx = parseInt(String(editIdxRaw), 10);
+      if (!Number.isNaN(editIdx)) {
+        // Edit mode
+        episodes[editIdx] = { title, url };
+        try { delete $('#contentForm').dataset.episodeEditIndex; } catch {}
+        try { const addBtn = $('#addEpisodeBtn'); if (addBtn) addBtn.textContent = 'Ajouter'; } catch {}
+      } else {
+        // Add mode
+        episodes.push({ title, url });
+      }
+      $('#contentForm').dataset.episodes = JSON.stringify(episodes);
+      $('#episodeTitle').value=''; $('#episodeUrl').value='';
+      renderEpisodes(episodes);
+    });
+
+    // Show/hide episodes fieldset and watchUrl based on type selection
+    const typeSelect = $('#type');
+    if (typeSelect) {
+      typeSelect.addEventListener('change', ()=>{
+        const episodesFieldset = $('#episodesFieldset');
+        const watchUrlFieldset = $('#watchUrlFieldset');
+        const isSerie = (typeSelect.value === 'série' || typeSelect.value === 'serie');
+        
+        if (episodesFieldset) {
+          episodesFieldset.style.display = isSerie ? 'block' : 'none';
+        }
+        if (watchUrlFieldset) {
+          watchUrlFieldset.style.display = isSerie ? 'none' : 'block';
+        }
+      });
+    }
 
     $('#resetBtn').addEventListener('click', ()=>{ emptyForm(); clearDraft(); });
 
