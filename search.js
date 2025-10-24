@@ -169,7 +169,7 @@ function displayResults(results) {
         let typeAttr = 'film';
         if (item.type) {
             const t = item.type.toLowerCase();
-            if (t.startsWith('s')) typeAttr = 'série';
+            if (t === 'série' || t === 'serie' || t.startsWith('s')) typeAttr = 'série';
             else if (t === 'trailer') typeAttr = 'trailer';
         }
         const ratingAttr = (typeof item.rating !== 'undefined' && item.rating !== null) ? ` data-rating="${item.rating}"` : '';

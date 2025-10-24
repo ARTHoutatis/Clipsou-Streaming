@@ -56,7 +56,7 @@
           </li>
           <li>
             <strong>⚖️ Responsabilité légale</strong>
-            <p><strong style="color: #ef4444;">IMPORTANT :</strong> En l'absence de système de vérification automatique, vous êtes SEUL RESPONSABLE en cas de publication du film d'un autre YouTubeur sans autorisation. Si le créateur original porte plainte, la responsabilité légale vous incombe entièrement. Clipsou Streaming décline toute responsabilité en cas de litige.</p>
+            <p><strong style="color: #ef4444;">IMPORTANT :</strong> En l'absence de système de vérification automatique, vous êtes SEUL RESPONSABLE en cas de publication du contenu d'un autre YouTubeur sans autorisation. Si le créateur original porte plainte, la responsabilité légale vous incombe entièrement. Clipsou Streaming décline toute responsabilité en cas de litige.</p>
           </li>
           <li>
             <strong>✅ Remplissez tous les champs</strong>
@@ -104,7 +104,7 @@
             </div>
           </div>
           <div class="tutorial-card-content">
-            <div class="tutorial-rating">Note du film</div>
+            <div class="tutorial-rating">Note du contenu</div>
           </div>
         </div>
         <div class="tutorial-fiche">
@@ -112,14 +112,14 @@
             <div class="tutorial-overlay">Image Fiche</div>
             <div class="tutorial-label landscape">Format 16:9 (paysage)</div>
           </div>
-          <p class="tutorial-note">Cette image s'affiche sur la page détaillée du film</p>
+          <p class="tutorial-note">Cette image s'affiche sur la page détaillée du contenu</p>
         </div>
       </div>
       <div class="tutorial-tips">
         <h3>💡 Conseils pour vos images</h3>
         <ul>
           <li><strong>Affiche Portrait (9:12)</strong> - Utilisée sur les cartes de la page d'accueil. Taille recommandée : 540x720px minimum</li>
-          <li><strong>Image Fiche (16:9)</strong> - Affichée sur la page de détail du film. Taille recommandée : 1920x1080px</li>
+          <li><strong>Image Fiche (16:9)</strong> - Affichée sur la page de détail du contenu. Taille recommandée : 1920x1080px</li>
           <li><strong>Badge Studio</strong> - Logo de votre chaîne/studio pour différencier les créateurs. Fond transparent recommandé (.png). Taille : 200x80px</li>
           <li>Formats acceptés : JPG, PNG, WebP. Poids max : 10MB par image</li>
         </ul>
@@ -132,17 +132,19 @@
 
       <!-- Slide 3: Request Form -->
       <section class="form-section slide" id="requestFormSection" data-slide="3">
-        <h2>🎬 Informations du film</h2>
+        <h2>🎬 Informations du contenu</h2>
       <form id="requestForm">
         <div class="grid">
           <label>
-            <span>Titre du film <span class="required">*</span></span>
+            <span>Titre <span class="required">*</span></span>
             <input type="text" id="title" required disabled>
           </label>
           <label>
             <span>Type <span class="required">*</span></span>
             <select id="type" required disabled>
               <option value="film" selected>Film</option>
+              <option value="série">Série</option>
+              <option value="trailer">Trailer</option>
             </select>
           </label>
         </div>
@@ -164,7 +166,7 @@
 
         <label>
           <span>Description <span class="required">*</span></span>
-          <textarea id="description" rows="5" required disabled placeholder="Décrivez votre film..."></textarea>
+          <textarea id="description" rows="5" required disabled placeholder="Décrivez le contenu..."></textarea>
         </label>
 
         <div class="grid">
@@ -193,10 +195,6 @@
             <img id="landscapePreview" class="img-preview" alt="Aperçu paysage" hidden>
           </label>
           <label>
-            <span>Lien YouTube <span class="required">*</span></span>
-            <input type="url" id="watchUrl" placeholder="https://www.youtube.com/..." required disabled>
-          </label>
-          <label>
             <span>Badge studio (image)</span>
             <input type="hidden" id="studioBadge">
             <div class="actions">
@@ -215,8 +213,26 @@
           <div id="actorsList" class="actors-list"></div>
           <div class="actor-row">
             <input type="text" id="actorName" placeholder="Nom de l'acteur">
-            <input type="text" id="actorRole" placeholder="Rôle dans le film">
+            <input type="text" id="actorRole" placeholder="Rôle">
             <button type="button" id="addActorBtn" class="btn secondary">Ajouter</button>
+          </div>
+        </fieldset>
+
+        <fieldset disabled id="watchUrlFieldset">
+          <legend>Lien de visionnage</legend>
+          <label>
+            <span>Lien YouTube <span class="required">*</span></span>
+            <input type="url" id="watchUrl" placeholder="https://www.youtube.com/...">
+          </label>
+        </fieldset>
+
+        <fieldset disabled id="episodesFieldset" style="display:none;">
+          <legend>Épisodes</legend>
+          <div id="episodesList" class="actors-list"></div>
+          <div class="actor-row">
+            <input type="text" id="episodeTitle" placeholder="Titre de l'épisode" style="flex:2;">
+            <input type="url" id="episodeUrl" placeholder="Lien YouTube de l'épisode" style="flex:2;">
+            <button type="button" id="addEpisodeBtn" class="btn secondary">Ajouter</button>
           </div>
         </fieldset>
 

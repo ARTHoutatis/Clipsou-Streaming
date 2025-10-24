@@ -391,8 +391,9 @@ async function buildItemsFromIndex() {
               const description = c.description || '';
               const watchUrl = c.watchUrl || '';
               const actors = Array.isArray(c.actors) ? c.actors.filter(a=>a && a.name) : [];
+              const episodes = Array.isArray(c.episodes) ? c.episodes.slice() : [];
               const studioBadge = optimizeCloudinaryUrl(c.studioBadge || '');
-              items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '', studioBadge });
+              items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, episodes, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '', studioBadge });
             });
           }
         }
@@ -416,8 +417,9 @@ async function buildItemsFromIndex() {
             const description = c.description || '';
             const watchUrl = c.watchUrl || '';
             const actors = Array.isArray(c.actors) ? c.actors.filter(a=>a && a.name) : [];
+            const episodes = Array.isArray(c.episodes) ? c.episodes.slice() : [];
             const studioBadge = c.studioBadge || '';
-            items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '', studioBadge });
+            items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, episodes, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '', studioBadge });
           });
         }
       }
@@ -617,17 +619,21 @@ function renderFiche(container, item) {
       const episodesChip = document.createElement('div');
       episodesChip.className = 'episodes-chip';
       episodesChip.setAttribute('aria-label', "Nombre d'épisodes");
-      // Rechercher la liste des épisodes par titre normalisé, sinon par id fiche
+      // Rechercher la liste des épisodes: 1) item.episodes, 2) titre normalisé, 3) id fiche
       let eps = [];
-      try {
-        const byTitle = EPISODES_DB_NORM[normalizeTitleKey(item.title || '')];
-        if (Array.isArray(byTitle)) eps = byTitle;
-      } catch {}
-      if (!Array.isArray(eps) || eps.length === 0) {
+      if (Array.isArray(item.episodes) && item.episodes.length) {
+        eps = item.episodes;
+      } else {
         try {
-          const byId = EPISODES_ID_DB[item.id];
-          if (Array.isArray(byId)) eps = byId;
+          const byTitle = EPISODES_DB_NORM[normalizeTitleKey(item.title || '')];
+          if (Array.isArray(byTitle)) eps = byTitle;
         } catch {}
+        if (!Array.isArray(eps) || eps.length === 0) {
+          try {
+            const byId = EPISODES_ID_DB[item.id];
+            if (Array.isArray(byId)) eps = byId;
+          } catch {}
+        }
       }
       const count = Array.isArray(eps) ? eps.length : 0;
       if (count > 0) {
@@ -661,25 +667,33 @@ function renderFiche(container, item) {
 
   const buttons = document.createElement('div');
   buttons.className = 'button-group';
-  if (item.watchUrl) {
+  
+  // Check if it's a series
+  const isSerie = (item.type === 'série') || /^serie/i.test(item.id || '');
+  const hasEpisodesData = Array.isArray(item.episodes) && item.episodes.length > 0;
+  
+  // For series with episodes, show "Voir les épisodes" button
+  if (isSerie && hasEpisodesData) {
     const a = document.createElement('a');
     a.className = 'button';
-    // If this fiche is a series, route to episodes section instead of external watch
-    if ((item.type === 'série') || /^serie/i.test(item.id || '')) {
-      a.href = '#episodes-section';
-      a.textContent = 'Voir les épisodes';
-      a.addEventListener('click', function(e){
-        // Open the episodes panel immediately
-        try { e.preventDefault(); } catch {}
-        try { window.__wantEpisodes = true; } catch {}
-        try { window.dispatchEvent(new CustomEvent('open-episodes')); } catch { try { window.dispatchEvent(new Event('open-episodes')); } catch {} }
-      });
-    } else {
-      try { a.href = item.watchUrl; } catch { a.href = item.watchUrl || ''; }
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      a.textContent = '▶ Regarder';
-    }
+    a.href = '#episodes-section';
+    a.textContent = 'Voir les épisodes';
+    a.addEventListener('click', function(e){
+      // Open the episodes panel immediately
+      try { e.preventDefault(); } catch {}
+      try { window.__wantEpisodes = true; } catch {}
+      try { window.dispatchEvent(new CustomEvent('open-episodes')); } catch { try { window.dispatchEvent(new Event('open-episodes')); } catch {} }
+    });
+    buttons.appendChild(a);
+  }
+  // For non-series or series with watchUrl, show regular watch button
+  else if (item.watchUrl) {
+    const a = document.createElement('a');
+    a.className = 'button';
+    try { a.href = item.watchUrl; } catch { a.href = item.watchUrl || ''; }
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = '▶ Regarder';
     buttons.appendChild(a);
   }
 
@@ -799,7 +813,7 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   const titleForMatch = (currentItem && currentItem.title) || '';
   const idForMatch = (currentItem && currentItem.id) || '';
   const hasEpisodes = !!(currentItem && (currentItem.type === 'série' || /serie/i.test(idForMatch)) && 
-    (EPISODES_DB_NORM[normalizeTitleKey(titleForMatch)] || EPISODES_ID_DB[idForMatch]));
+    ((Array.isArray(currentItem.episodes) && currentItem.episodes.length) || EPISODES_DB_NORM[normalizeTitleKey(titleForMatch)] || EPISODES_ID_DB[idForMatch]));
   
   const episodesBtn = document.createElement('button');
   episodesBtn.type = 'button';
@@ -1184,8 +1198,14 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     episodesRail.innerHTML = '';
     const title = (currentItem && currentItem.title) || '';
     const idForMatch = (currentItem && currentItem.id) || '';
-    let list = EPISODES_DB_NORM[normalizeTitleKey(title)] || [];
-    if (!list.length) list = EPISODES_ID_DB[idForMatch] || [];
+    // Priority: 1) episodes from currentItem data, 2) EPISODES_DB_NORM, 3) EPISODES_ID_DB
+    let list = [];
+    if (currentItem && Array.isArray(currentItem.episodes) && currentItem.episodes.length) {
+      list = currentItem.episodes;
+    } else {
+      list = EPISODES_DB_NORM[normalizeTitleKey(title)] || [];
+      if (!list.length) list = EPISODES_ID_DB[idForMatch] || [];
+    }
     if (!list.length) {
       const empty = document.createElement('p');
       empty.className = 'actors-empty';
@@ -1237,11 +1257,14 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       });
     }
     const progressList = readProgressList();
-    list.forEach(ep => {
+    list.forEach((ep, idx) => {
       const a = document.createElement('a');
-      a.href = ep.url;
+      // Redirect to watch.html for autoplay functionality
+      a.href = `watch.html?series=${encodeURIComponent(idForMatch)}&episode=${idx}`;
       a.className = 'button';
-      const baseLabel = ep && ep.title ? `Épisode ${ep.n} — ${ep.title}` : `Épisode ${ep.n}`;
+      // Support both formats: old format with ep.n, new format without (use index)
+      const epNum = (typeof ep.n === 'number') ? ep.n : (idx + 1);
+      const baseLabel = ep && ep.title ? `Épisode ${epNum} — ${ep.title}` : `Épisode ${epNum}`;
       // Compute suffix from saved progress for this specific episode (per video id)
       let suffix = '';
       try {
@@ -1391,6 +1414,7 @@ const container = document.getElementById('fiche-container');
       if (!chosen.description) chosen.description = other.description || '';
       if (!chosen.watchUrl) chosen.watchUrl = other.watchUrl || '';
       if ((!chosen.actors || !chosen.actors.length) && Array.isArray(other.actors) && other.actors.length) chosen.actors = other.actors.slice();
+      if ((!chosen.episodes || !chosen.episodes.length) && Array.isArray(other.episodes) && other.episodes.length) chosen.episodes = other.episodes.slice();
       if (typeof chosen.rating !== 'number' && typeof other.rating === 'number') chosen.rating = other.rating;
       if ((!chosen.genres || !chosen.genres.length) && Array.isArray(other.genres) && other.genres.length) chosen.genres = other.genres.slice();
       return chosen;
@@ -1420,7 +1444,8 @@ const container = document.getElementById('fiche-container');
             const description = alt.description || '';
             const watchUrl = alt.watchUrl || '';
             const actors = Array.isArray(alt.actors) ? alt.actors.filter(a=>a && a.name) : [];
-            const altItem = { id: alt.id, title: alt.title, type, rating, genres, image, description, watchUrl, actors };
+            const episodes = Array.isArray(alt.episodes) ? alt.episodes.slice() : [];
+            const altItem = { id: alt.id, title: alt.title, type, rating, genres, image, description, watchUrl, actors, episodes };
             updateHeadSEO(altItem);
             renderFiche(container, altItem);
             try {

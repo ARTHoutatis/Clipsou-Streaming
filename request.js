@@ -28,6 +28,7 @@
   let rateLimitNotice, pendingRequestNotice, successMessage;
   let cancelRequestBtn;
   let actors = [];
+  let episodes = [];
   
   // Stepper state
   let currentSlide = 1;
@@ -276,6 +277,29 @@
     const addActorBtn = document.getElementById('addActorBtn');
     if (addActorBtn) {
       addActorBtn.addEventListener('click', addActor);
+    }
+
+    // Episode management
+    const addEpisodeBtn = document.getElementById('addEpisodeBtn');
+    if (addEpisodeBtn) {
+      addEpisodeBtn.addEventListener('click', addEpisode);
+    }
+
+    // Show/hide episodes fieldset and watchUrl based on type
+    const typeSelect = document.getElementById('type');
+    if (typeSelect) {
+      typeSelect.addEventListener('change', () => {
+        const episodesFieldset = document.getElementById('episodesFieldset');
+        const watchUrlFieldset = document.getElementById('watchUrlFieldset');
+        const isSerie = (typeSelect.value === 'série');
+        
+        if (episodesFieldset) {
+          episodesFieldset.style.display = isSerie ? 'block' : 'none';
+        }
+        if (watchUrlFieldset) {
+          watchUrlFieldset.style.display = isSerie ? 'none' : 'block';
+        }
+      });
     }
 
     // Setup image uploads
@@ -924,13 +948,21 @@
       studioBadge: document.getElementById('studioBadge').value.trim() || null,
       watchUrl: document.getElementById('watchUrl').value.trim(),
       actors: actors.slice(), // Copy actors array
+      episodes: episodes.slice(), // Copy episodes array
       submittedAt: Date.now(),
       status: 'pending'
     };
 
     // Validate required fields
-    if (!formData.title || !formData.type || formData.genres.length < 3 || !formData.description || !formData.watchUrl) {
+    const isSerie = (formData.type === 'série');
+    if (!formData.title || !formData.type || formData.genres.length < 3 || !formData.description) {
       alert('Veuillez remplir tous les champs obligatoires (marqués d\'une étoile *).');
+      return;
+    }
+    
+    // watchUrl est requis seulement pour les films et trailers, pas pour les séries
+    if (!isSerie && !formData.watchUrl) {
+      alert('Veuillez remplir le lien YouTube pour les films et trailers.');
       return;
     }
 
@@ -940,8 +972,8 @@
       return;
     }
 
-    // Validate YouTube URL
-    if (!isValidYouTubeUrl(formData.watchUrl)) {
+    // Validate YouTube URL (only for non-series)
+    if (!isSerie && !isValidYouTubeUrl(formData.watchUrl)) {
       alert('Veuillez entrer un lien YouTube valide.');
       return;
     }
@@ -986,7 +1018,9 @@
     if (confirm('Êtes-vous sûr de vouloir réinitialiser le formulaire ?')) {
       requestForm.reset();
       actors = [];
+      episodes = [];
       renderActorsList();
+      renderEpisodesList();
       
       // Clear images
       ['portraitImage', 'landscapeImage', 'studioBadge'].forEach(id => {
@@ -1140,8 +1174,67 @@
     `).join('');
   }
 
+  /**
+   * Add episode to the list
+   */
+  function addEpisode() {
+    const titleInput = document.getElementById('episodeTitle');
+    const urlInput = document.getElementById('episodeUrl');
+
+    if (!titleInput || !urlInput) return;
+
+    const title = titleInput.value.trim();
+    const url = urlInput.value.trim();
+
+    if (!title) {
+      alert('Veuillez entrer le titre de l\'épisode.');
+      return;
+    }
+
+    if (!url) {
+      alert('Veuillez entrer le lien YouTube de l\'épisode.');
+      return;
+    }
+
+    episodes.push({ title, url });
+    renderEpisodesList();
+
+    // Clear inputs
+    titleInput.value = '';
+    urlInput.value = '';
+  }
+
+  /**
+   * Remove episode from list
+   */
+  function removeEpisode(index) {
+    episodes.splice(index, 1);
+    renderEpisodesList();
+  }
+
+  /**
+   * Render episodes list
+   */
+  function renderEpisodesList() {
+    const episodesList = document.getElementById('episodesList');
+    if (!episodesList) return;
+
+    if (episodes.length === 0) {
+      episodesList.innerHTML = '<p style="color: #94a3b8; font-size: 14px;">Aucun épisode ajouté</p>';
+      return;
+    }
+
+    episodesList.innerHTML = episodes.map((episode, index) => `
+      <div class="actor-chip">
+        <span>Ép. ${index + 1}: ${escapeHtml(episode.title)}</span>
+        <button type="button" class="remove" onclick="window.__removeEpisode(${index})" title="Retirer">×</button>
+      </div>
+    `).join('');
+  }
+
   // Expose removeActor globally for onclick handlers
   window.__removeActor = removeActor;
+  window.__removeEpisode = removeEpisode;
 
   /**
    * Show success message

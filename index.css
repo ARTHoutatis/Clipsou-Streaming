@@ -3421,7 +3421,8 @@ button:focus-visible,
     /* Category label via data-type attribute for new genre sections */
     .card .card-info::before { margin-right: 8px; }
     .card .card-info[data-type="film"]::before { content: "Film"; }
-    .card .card-info[data-type="serie"]::before { content: "Série"; }
+    .card .card-info[data-type="serie"]::before,
+    .card .card-info[data-type="série"]::before { content: "Série"; }
     .card .card-info[data-type="trailer"]::before { content: "Trailer"; }
 
     /* Improve legibility for 'Trailer' in film5 title: keep lowercase and use a font with distinct 'i' dot */
