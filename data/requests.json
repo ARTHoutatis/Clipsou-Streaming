@@ -1,7 +1,7 @@
 [
   {
     "requestId": "r_mh4yhhro_mxctju",
-    "status": "approved",
+    "status": "pending",
     "data": {
       "id": "custom-clipsou-explorer-1-ocfv",
       "requestId": "r_mh4yhhro_mxctju",
@@ -17,7 +17,7 @@
       "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761315993/i9bskpuxt9qhvcsa1ey5.webp",
       "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761316004/qouknmayi9mm7hagjeyz.webp",
       "watchUrl": "https://youtu.be/mae7mgCxulc?si=A4AKXM72HRc_Tbh0",
-      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761316058/isialx8flatqtkkt6muu.webp",
+      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761316978/wkcmjnqubfmqg8mfkmfn.webp",
       "actors": [
         {
           "name": "Liam Roxxor",
@@ -46,7 +46,7 @@
       ]
     },
     "meta": {
-      "updatedAt": 1761316702657
+      "updatedAt": 1761316980933
     }
   },
   {
