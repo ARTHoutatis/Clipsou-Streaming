@@ -1988,7 +1988,7 @@
           await deleteApproved(found.data.id);
           // Refresh table after async operation
           renderTable();
-          // Sync removed
+          // Share status update with other admins
           try { publishRequestUpsert(found); } catch {}
           // Button will be re-created by renderTable()
         } else {
@@ -2653,7 +2653,6 @@
           alert('Requête enregistrée.');
           if (isEditing) setSubmitSavedUI(true);
         }
-        // Sync removed
       });
       // Mark as wired to prevent duplicate event listeners
       form.dataset.submitWired = '1';
@@ -2762,7 +2761,6 @@
     renderTable();
     renderTrash();
     renderUserRequestsTable();
-    // Shared requests sync removed
     populateGenresDatalist();
     restoreDraft();
     populateActorNamesDatalist();
