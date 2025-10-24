@@ -19,10 +19,19 @@
       "watchUrl": "",
       "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761327787/fbbkicfefml2ag9acz1k.webp",
       "actors": [],
-      "episodes": []
+      "episodes": [
+        {
+          "title": "test1",
+          "url": "https://www.youtube.com/watch?v=OQz5boiZkk8"
+        },
+        {
+          "title": "test2",
+          "url": "https://www.youtube.com/watch?v=OQz5boiZkk8"
+        }
+      ]
     },
     "meta": {
-      "updatedAt": 1761329180402
+      "updatedAt": 1761329556713
     }
   },
   {
