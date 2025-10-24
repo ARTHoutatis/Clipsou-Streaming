@@ -330,6 +330,23 @@
     ]
   },
   {
+    "id": "custom-test-serie-7pa6",
+    "title": "test série",
+    "type": "série",
+    "rating": 3,
+    "genres": [
+      "Comédie",
+      "Aventure",
+      "Horreur"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761327759/ydu6kvcunbadytpcwlrn.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761327770/opcq5yaidy4d5fv2tjah.webp",
+    "description": "test série",
+    "watchUrl": "",
+    "actors": [],
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761327787/fbbkicfefml2ag9acz1k.webp"
+  },
+  {
     "id": "custom-the-psycho-teacher-q2q6",
     "title": "The Psycho Teacher",
     "type": "film",
