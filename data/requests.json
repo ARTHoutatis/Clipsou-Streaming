@@ -15,7 +15,7 @@
       ],
       "description": "5 YouTubeurs indépendants s’affrontent dans une course de F1 explosive, inspirée des vrais Grands Prix.\nPréparez-vous à vivre des dépassements fous, des stratégies risquées et des moments de pur spectacle !",
       "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761315993/i9bskpuxt9qhvcsa1ey5.webp",
-      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761316004/qouknmayi9mm7hagjeyz.webp",
+      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761344523/seqen4b9cl7zlbsdljhf.jpg",
       "watchUrl": "https://youtu.be/mae7mgCxulc?si=A4AKXM72HRc_Tbh0",
       "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761316978/wkcmjnqubfmqg8mfkmfn.webp",
       "actors": [
@@ -43,10 +43,11 @@
           "name": "Clone prod",
           "role": "Clone prod ( animateur )"
         }
-      ]
+      ],
+      "episodes": []
     },
     "meta": {
-      "updatedAt": 1761316980933
+      "updatedAt": 1761344526881
     }
   },
   {
