@@ -1,5 +1,80 @@
 [
   {
+    "requestId": "req_1761346338098_l5tbnvyw7",
+    "status": "pending",
+    "data": {
+      "id": null,
+      "title": "Le Connard Au Fond Bleu",
+      "type": "série",
+      "rating": null,
+      "genres": [
+        "Emission",
+        "Comédie",
+        "Animation"
+      ],
+      "description": "Un Connard De Dépressive parle devant une camera , et derrière y'a un connard de fond bleu , et c'est tout ...",
+      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761345953/snfugu8ztrnnxrfp4krl.webp",
+      "image": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761345958/pgngxqoxcpp9bu6xbnft.webp",
+      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761345958/pgngxqoxcpp9bu6xbnft.webp",
+      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761345961/hfjaeiqcxeyfqz5gosqr.webp",
+      "watchUrl": "",
+      "actors": [],
+      "episodes": [
+        {
+          "title": "Le Zèbre'ifique se réveille.",
+          "url": "https://youtu.be/V-j2_nAgecM?si=xGR7EB3EDiC3ogS7"
+        },
+        {
+          "title": "Joe",
+          "url": "https://youtu.be/Fm2k9KKy-R0?si=60Od-LoR1ou5_aGw"
+        },
+        {
+          "title": "Imitation de Rocky Balboa",
+          "url": "https://youtu.be/G9OfMB93l8s?si=YGDRovgCH--Ya_05"
+        },
+        {
+          "title": "Le Dépressif, Joe, Rocky, La Caissière et Pascal Labian.",
+          "url": "https://youtu.be/K37-sW-9E7A?si=sbIpFGfxdytlp6Nq"
+        },
+        {
+          "title": "Pascal De Latourtrielle et L'effaceur",
+          "url": "https://youtu.be/HKCgxQpEQmU?si=x7Q2loZrY7zI3jMT"
+        },
+        {
+          "title": "Pour mes détracteurs.",
+          "url": "https://youtu.be/1V6cb0GBSQ8?si=FdWvQgv40c1D3YGk"
+        },
+        {
+          "title": "La Mort et Le Zèbre'ifique",
+          "url": "https://youtu.be/QCPS-weKxWM?si=2Qf9pQmuYtBEtfuS"
+        },
+        {
+          "title": "70 abonné.... Merci à tous",
+          "url": "https://youtu.be/ugfRZrynCD4?si=ZtAJwPKaLJDpSMw4"
+        },
+        {
+          "title": "Le Zèbre'ifique et le corona.",
+          "url": "https://youtu.be/6ls02h--FKA?si=lrGsD36sHcjKfpo-"
+        },
+        {
+          "title": "Foutage de gueule du Zèbre'ifique.",
+          "url": "https://youtu.be/KEkwliqpZAs?si=udio6_sERjrXyanW"
+        },
+        {
+          "title": "Le remplacement du Zèbre'ifique",
+          "url": "https://youtu.be/ZGqHl2awm1I?si=DnZilGTXU34xwXE6"
+        }
+      ]
+    },
+    "meta": {
+      "createdAt": 1761346338098,
+      "source": "user_submission",
+      "updatedAt": 1761390135586,
+      "deleted": true,
+      "trashedAt": 1761390135586
+    }
+  },
+  {
     "requestId": "req_1761346348112_p83lh305j",
     "status": "pending",
     "data": {
