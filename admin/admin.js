@@ -1304,12 +1304,16 @@
         chip.classList.remove('dragging');
         dragSrcIndex = null;
       });
-      const numSpan = document.createElement('span'); numSpan.className = 'muted small'; numSpan.textContent = `Ép. ${idx + 1}`;
-      const titleSpan = document.createElement('span'); titleSpan.textContent = ep.title || 'Sans titre';
-      const urlSpan = document.createElement('span'); urlSpan.className = 'muted small'; urlSpan.textContent = ep.url ? '🔗 ' + (ep.url.length > 40 ? ep.url.substring(0, 40) + '...' : ep.url) : '';
-      chip.appendChild(numSpan);
-      chip.appendChild(titleSpan);
-      chip.appendChild(urlSpan);
+      chip.classList.add('episode-chip');
+      const contentWrapper = document.createElement('div');
+      contentWrapper.className = 'episode-content';
+      const numSpan = document.createElement('span'); numSpan.className = 'episode-num'; numSpan.textContent = `Ép. ${idx + 1}`;
+      const titleSpan = document.createElement('span'); titleSpan.className = 'episode-title'; titleSpan.textContent = ep.title || 'Sans titre';
+      const urlSpan = document.createElement('span'); urlSpan.className = 'episode-url'; urlSpan.textContent = ep.url ? '🔗 ' + (ep.url.length > 40 ? ep.url.substring(0, 40) + '...' : ep.url) : '';
+      contentWrapper.appendChild(numSpan);
+      contentWrapper.appendChild(titleSpan);
+      contentWrapper.appendChild(urlSpan);
+      chip.appendChild(contentWrapper);
       const ed = document.createElement('button');
       ed.className = 'edit';
       ed.type = 'button';
@@ -1972,9 +1976,18 @@
         const list = getRequests();
         const found = list.find(x=>x.requestId===r.requestId);
         if (!found) {
-          approveBtn.disabled = false;
           return;
         }
+        
+        // Check if already being processed
+        if (found.meta && found.meta.processing) {
+          return;
+        }
+        
+        // Mark as processing to prevent duplicate operations
+        if (!found.meta) found.meta = {};
+        found.meta.processing = true;
+        setRequests(list);
         if (isApprovedShared) {
           // Unapprove
           found.status = 'pending';
@@ -1982,15 +1995,25 @@
           setRequests(list);
           const apr = getApproved().filter(x=>x.id!==found.data.id);
           setApproved(apr);
+          
+          // UPDATE UI INSTANTLY
+          renderTable();
+          
           // Remove from shared approved.json; mark in-flight BEFORE network to suppress overlay flicker
           try { startDeploymentWatch(found.data.id, 'delete'); } catch {}
           showPublishWaitHint();
           await deleteApproved(found.data.id);
-          // Refresh table after async operation
-          renderTable();
+          
+          // Clear processing flag
+          const updatedList = getRequests();
+          const updatedFound = updatedList.find(x=>x.requestId===r.requestId);
+          if (updatedFound && updatedFound.meta) {
+            delete updatedFound.meta.processing;
+            setRequests(updatedList);
+          }
+          
           // Share status update with other admins
-          try { publishRequestUpsert(found); } catch {}
-          // Button will be re-created by renderTable()
+          try { publishRequestUpsert(updatedFound || found); } catch {}
         } else {
           // Show publishing indicator
           showPublishWaitHint();
@@ -2008,26 +2031,45 @@
           if (Array.isArray(dataToApprove.episodes)) {
             dataToApprove.episodes = dataToApprove.episodes.slice();
           }
+          if (Array.isArray(dataToApprove.actors)) {
+            dataToApprove.actors = dataToApprove.actors.slice();
+          }
           apr.push(dataToApprove);
           setApproved(dedupeByIdAndTitle(apr));
+          
+          // UPDATE UI INSTANTLY before network call
+          renderTable();
 
           // Publish through API for everyone and reflect final status
           const ok = await publishApproved(dataToApprove);
+          
+          // Clear processing flag
+          const updatedList = getRequests();
+          const updatedFound = updatedList.find(x=>x.requestId===r.requestId);
+          if (updatedFound && updatedFound.meta) {
+            delete updatedFound.meta.processing;
+            setRequests(updatedList);
+          }
+          
           if (ok) {
-            // Refresh table after successful publish
-            renderTable();
+            // Success - just start deployment watch (UI already updated)
             try { startDeploymentWatch(dataToApprove.id, 'upsert', dataToApprove); } catch {}
           } else {
             // Revert local approval on failure
-            found.status = 'pending';
-            setRequests(list);
-            const apr2 = getApproved().filter(x=>x.id!==found.data.id);
+            const revertList = getRequests();
+            const toRevert = revertList.find(x=>x.requestId===r.requestId);
+            if (toRevert) {
+              toRevert.status = 'pending';
+              if (toRevert.meta) delete toRevert.meta.processing;
+              setRequests(revertList);
+            }
+            const apr2 = getApproved().filter(x=>x.id!==dataToApprove.id);
             setApproved(apr2);
             renderTable();
+            alert('❌ Échec de la publication. Veuillez réessayer.');
           }
-          // Button will be re-created by renderTable()
           // Share new status with other admins
-          try { publishRequestUpsert(found); } catch {}
+          try { publishRequestUpsert(updatedFound || found); } catch {}
         }
       });
       tbody.appendChild(tr);
