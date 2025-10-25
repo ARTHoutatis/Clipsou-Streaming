@@ -678,8 +678,13 @@ function renderFiche(container, item) {
   const isSerie = (item.type === 'série') || /^serie/i.test(item.id || '');
   const hasEpisodesData = Array.isArray(item.episodes) && item.episodes.length > 0;
   
-  // For series with episodes, show "Voir les épisodes" button
-  if (isSerie && hasEpisodesData) {
+  // Check if there are episodes in fallback databases for old series
+  const titleForCheck = item.title || '';
+  const idForCheck = item.id || '';
+  const hasEpisodesFallback = !!(EPISODES_DB_NORM[normalizeTitleKey(titleForCheck)] || EPISODES_ID_DB[idForCheck]);
+  
+  // For series with episodes (from data or fallback), show "Voir les épisodes" button
+  if (isSerie && (hasEpisodesData || hasEpisodesFallback)) {
     const a = document.createElement('a');
     a.className = 'button';
     a.href = '#episodes-section';
@@ -1226,109 +1231,22 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       episodesRail.appendChild(empty);
       return;
     }
-    // Helpers to read progress and extract YouTube video id
-    function readProgressList(){
-      try { const raw = localStorage.getItem('clipsou_watch_progress_v1'); const arr = raw ? JSON.parse(raw) : []; return Array.isArray(arr) ? arr : []; } catch { return []; }
-    }
-    function extractVideoId(href){
-      try {
-        const s = String(href || '');
-        const m = s.match(/[?&]v=([\w-]{6,})/i) || s.match(/embed\/([\w-]{6,})/i) || s.match(/youtu\.be\/([\w-]{6,})/i);
-        return m ? m[1] : '';
-      } catch { return ''; }
-    }
-    function formatRemaining(sec){
-      const total = Math.max(0, Math.floor(sec||0));
-      const m = Math.floor(total / 60);
-      const s = String(total % 60).padStart(2, '0');
-      return `${m}:${s}`;
-    }
-    // Duration cache helpers (shared with fiche film chip logic)
-    function readDurCache(){
-      try { const raw = localStorage.getItem('clipsou_video_duration_v1'); const obj = raw ? JSON.parse(raw) : {}; return (obj && typeof obj === 'object') ? obj : {}; } catch { return {}; }
-    }
-    function writeDurCache(obj){
-      try { localStorage.setItem('clipsou_video_duration_v1', JSON.stringify(obj||{})); } catch {}
-    }
-    function ensureYT(){ return new Promise((resolve)=>{ try { if (window.YT && window.YT.Player) { resolve(); return; } const prev = document.querySelector('script[src*="youtube.com/iframe_api"]'); if (!prev) { const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s); } const check = ()=>{ if (window.YT && window.YT.Player) resolve(); else setTimeout(check, 100); }; check(); } catch { resolve(); } }); }
-    function fetchDurationIfMissing(vid){
-      if (!vid) return;
-      const cache = readDurCache();
-      if (cache[vid] && typeof cache[vid].duration === 'number' && cache[vid].duration > 0) return; // already cached
-      ensureYT().then(()=>{
-        try {
-          const container = document.createElement('div');
-          const pid = 'yt_tmp_ep_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
-          container.id = pid;
-          Object.assign(container.style, { width:'0', height:'0', overflow:'hidden', position:'absolute', left:'-9999px', top:'-9999px' });
-          document.body.appendChild(container);
-          let player = null;
-          const cleanup = ()=>{ try { if (player && player.destroy) player.destroy(); } catch {} try { container.remove(); } catch {} };
-          player = new window.YT.Player(pid, { videoId: vid, events: { onReady: function(){ try { const d = player && player.getDuration ? Number(player.getDuration()) : 0; if (d>0){ const c = readDurCache(); c[vid] = { duration: d, updatedAt: Date.now() }; writeDurCache(c); try { window.dispatchEvent(new Event('clipsou-duration-updated')); } catch {} } } catch {} cleanup(); }, onError: function(){ cleanup(); } } });
-          setTimeout(()=>{ cleanup(); }, 5000);
-        } catch {}
-      });
-    }
-    const progressList = readProgressList();
+    
+    // Create episode buttons
     list.forEach((ep, idx) => {
       const a = document.createElement('a');
-      // Redirect to watch.html for autoplay functionality
-      a.href = `watch.html?series=${encodeURIComponent(idForMatch)}&episode=${idx}`;
+      // Open YouTube directly (same as films)
+      a.href = ep.url || '';
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
       a.className = 'button';
       // Support both formats: old format with ep.n, new format without (use index)
       const epNum = (typeof ep.n === 'number') ? ep.n : (idx + 1);
-      const baseLabel = ep && ep.title ? `Épisode ${epNum} — ${ep.title}` : `Épisode ${epNum}`;
-      // Compute suffix from saved progress for this specific episode (per video id)
-      let suffix = '';
-      try {
-        const vid = extractVideoId(ep && ep.url);
-        if (vid) {
-          const keyId = idForMatch + '::' + vid;
-          let entry = progressList.find(x => x && x.id === keyId);
-          // Fallback: match by video id only if fiche id differs (e.g., admin variants)
-          if (!entry) {
-            entry = progressList.find(x => x && typeof x.id === 'string' && x.id.endsWith('::' + vid));
-          }
-          const seconds = entry && typeof entry.seconds === 'number' ? Math.max(0, entry.seconds) : 0;
-          let duration = entry && typeof entry.duration === 'number' ? Math.max(0, entry.duration) : 0;
-          if (!duration) {
-            const c = readDurCache();
-            if (c[vid] && typeof c[vid].duration === 'number') duration = Math.max(0, c[vid].duration);
-            else fetchDurationIfMissing(vid);
-          }
-          const remaining = duration > 0 ? Math.max(0, duration - seconds) : 0;
-          const finished = !!(entry && entry.finished) || (duration > 0 && remaining <= 5) || (duration > 0 && seconds / duration >= 0.99);
-          if (finished) {
-            suffix = 'déjà vu ✔';
-          } else if (duration > 0 && seconds > 0) {
-            suffix = `⌛ ${formatRemaining(seconds)} / ${formatRemaining(duration)} min`;
-          } else if (duration > 0 && seconds === 0) {
-            // Never watched: show total time
-            suffix = `${formatRemaining(duration)} min`;
-          }
-        }
-      } catch {}
-      // Set base label, then append greyed status as a separate span for styling
-      a.textContent = baseLabel;
-      if (suffix) {
-        const st = document.createElement('span');
-        st.className = 'episode-status';
-        st.textContent = suffix;
-        a.appendChild(st);
-      }
-      a.setAttribute('data-title', `${title} – Épisode ${ep.n}` + (ep && ep.title ? ` — ${ep.title}` : ''));
-      a.style.display = 'block';
+      const label = ep && ep.title ? `▶ Épisode ${epNum} — ${ep.title}` : `▶ Épisode ${epNum}`;
+      a.textContent = label;
       episodesRail.appendChild(a);
     });
   }
-  
-  // Auto-refresh des épisodes quand le progrès change
-  window.addEventListener('clipsou-progress-updated', () => {
-    if (!episodesPanel.hidden) populateEpisodes();
-  });
-  window.addEventListener('clipsou-duration-updated', () => {
-    if (!episodesPanel.hidden) populateEpisodes();
-  });
 }
 
 function renderList(container, items, titleText) {

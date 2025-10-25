@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0b1117">
+  <!-- Maintenance mode check -->
+  <script src="maintenance-check.js"></script>
   <title>Lecture - Clipsou Streaming</title>
   <link rel="icon" type="image/x-icon" href="images/clipsouhead.webp">
   <style>
@@ -29,16 +31,21 @@
       max-width: 100%;
       max-height: 100%;
     }
-    #info-overlay {
+    #top-bar {
       position: absolute;
-      top: 20px;
-      left: 20px;
-      background: rgba(15, 23, 42, 0.9);
+      top: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(180deg, rgba(11, 17, 23, 0.95) 0%, rgba(11, 17, 23, 0.7) 80%, transparent 100%);
       padding: 15px 20px;
-      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       backdrop-filter: blur(10px);
       z-index: 10;
-      max-width: calc(100% - 40px);
+    }
+    #info-overlay {
+      flex: 1;
     }
     #info-overlay h1 {
       font-size: 18px;
@@ -99,49 +106,49 @@
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
     }
-    #back-btn {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      padding: 10px 20px;
+    #close-btn {
+      width: 40px;
+      height: 40px;
       background: rgba(71, 85, 105, 0.5);
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 50%;
       cursor: pointer;
-      font-size: 14px;
-      z-index: 10;
+      font-size: 24px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: all 0.2s;
+      flex-shrink: 0;
     }
-    #back-btn:hover {
-      background: rgba(71, 85, 105, 0.8);
-      transform: translateY(-2px);
+    #close-btn:hover {
+      background: rgba(220, 38, 38, 0.8);
+      transform: scale(1.1);
     }
     @media (max-width: 768px) {
-      #info-overlay {
-        top: 10px;
-        left: 10px;
-        right: 10px;
+      #top-bar {
         padding: 10px 15px;
       }
       #info-overlay h1 { font-size: 16px; }
       #info-overlay p { font-size: 12px; }
-      #back-btn {
-        top: 10px;
-        right: 10px;
-        padding: 8px 15px;
-        font-size: 12px;
+      #close-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 20px;
       }
     }
   </style>
 </head>
 <body>
   <div id="player-container">
-    <div id="info-overlay">
-      <h1 id="episode-title">Chargement...</h1>
-      <p id="series-title"></p>
+    <div id="top-bar">
+      <div id="info-overlay">
+        <h1 id="episode-title">Chargement...</h1>
+        <p id="series-title"></p>
+      </div>
+      <button id="close-btn" onclick="goBack()" aria-label="Fermer">×</button>
     </div>
-    <button id="back-btn" onclick="goBack()">← Retour</button>
     <div id="player"></div>
     <div id="autoplay-notification">
       <p>Épisode suivant dans <span id="countdown">5</span>s...</p>
@@ -164,19 +171,72 @@
     let autoplayTimer = null;
     let countdownInterval = null;
 
+    // Hardcoded episodes database (fallback for old series)
+    const EPISODES_DB = {
+      'Alex': [
+        { n: 1, url: 'https://www.youtube.com/watch?v=Uynd10bGS6I&list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf&index=1', title: 'SAUVER Zigzag !' },
+        { n: 2, url: 'https://www.youtube.com/watch?v=QfTsODE-HIU&list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf&index=2', title: 'EXPLOSION' },
+        { n: 3, url: 'https://www.youtube.com/watch?v=up7Q2jBlSOo&list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf&index=3', title: 'LA PLANTE' },
+        { n: 4, url: 'https://www.youtube.com/watch?v=DmUG8oVmzMk&list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf&index=4', title: 'Un petit feux de camp' },
+        { n: 5, url: 'https://www.youtube.com/watch?v=JzPlADBeDto&list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf&index=5', title: 'Une Banane' },
+        { n: 6, url: 'https://www.youtube.com/watch?v=Jm-Mwy6733Y&list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf&index=6', title: 'BOOM (8x8x8 X challenge)' },
+        { n: 7, url: 'https://www.youtube.com/watch?v=RYM7vH96y1I&list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf&index=7', title: 'Alex contre LA MAIN' },
+        { n: 8, url: 'https://www.youtube.com/watch?v=yMYoD9I1xs0&list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf&index=8', title: 'Casser une vitre animation' },
+        { n: 9, url: 'https://www.youtube.com/watch?v=IQXjgoYKyYU&list=PLljfI9MJr5K3O2tycHZBTUd125kT7Radf&index=9', title: 'Deadpool lego combat stop motion' }
+      ],
+      'Lawless Legend': [
+        { n: 1, url: 'https://www.youtube.com/watch?v=I21K4Ksf_4A&list=PLljfI9MJr5K2Li687G4dOxjfyDQkIfJn3&index=1', title: "De l'argent voler pour de l'argent gagné" },
+        { n: 2, url: 'https://www.youtube.com/watch?v=jfbOQ7kWKw0&list=PLljfI9MJr5K2Li687G4dOxjfyDQkIfJn3&index=2', title: 'Les voleurs ennemis' },
+        { n: 3, url: 'https://www.youtube.com/watch?v=JCW8qyJCqbA&list=PLljfI9MJr5K2Li687G4dOxjfyDQkIfJn3&index=3', title: 'Une mauvaise nouvelle' }
+      ],
+      'Les Aventures de Jean‑Michel Content': [
+        { n: 1, url: 'https://www.youtube.com/watch?v=OgLRqt_iRkI&list=PLljfI9MJr5K17MmHDsdU6QqSFwZJ_Tn-5&index=1', title: 'Jean-Michel Content à la plage' },
+        { n: 2, url: 'https://www.youtube.com/watch?v=Sa_3VceEqaI&list=PLljfI9MJr5K17MmHDsdU6QqSFwZJ_Tn-5&index=2', title: 'Jean-Michel Content fête son anniversaire' }
+      ]
+    };
+
+    const EPISODES_ID_DB = {
+      'serie1': EPISODES_DB['Alex'],
+      'serie2': EPISODES_DB['Lawless Legend'],
+      'serie3': EPISODES_DB['Les Aventures de Jean‑Michel Content']
+    };
+
+    function normalizeTitleKey(s) {
+      try {
+        return String(s || '')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '')
+          .trim();
+      } catch (_) {
+        return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '').trim();
+      }
+    }
+
+    const EPISODES_DB_NORM = {};
+    Object.keys(EPISODES_DB).forEach(k => {
+      EPISODES_DB_NORM[normalizeTitleKey(k)] = EPISODES_DB[k];
+    });
+
     // Load series data
     async function loadSeriesData() {
+      let seriesTitle = '';
+      
       try {
         // Try localStorage first
         const raw = localStorage.getItem('clipsou_items_approved_v1');
         if (raw) {
           const approved = JSON.parse(raw);
           const series = approved.find(item => item.id === seriesId);
-          if (series && Array.isArray(series.episodes)) {
+          if (series && Array.isArray(series.episodes) && series.episodes.length) {
             episodes = series.episodes;
-            document.getElementById('series-title').textContent = series.title || '';
+            seriesTitle = series.title || '';
+            document.getElementById('series-title').textContent = seriesTitle;
             return true;
           }
+          // Keep title for fallback
+          if (series) seriesTitle = series.title || '';
         }
 
         // Try approved.json
@@ -184,15 +244,50 @@
         if (res.ok) {
           const approved = await res.json();
           const series = approved.find(item => item.id === seriesId);
-          if (series && Array.isArray(series.episodes)) {
+          if (series && Array.isArray(series.episodes) && series.episodes.length) {
             episodes = series.episodes;
-            document.getElementById('series-title').textContent = series.title || '';
+            seriesTitle = series.title || '';
+            document.getElementById('series-title').textContent = seriesTitle;
             return true;
           }
+          // Keep title for fallback
+          if (series) seriesTitle = series.title || '';
         }
       } catch (e) {
         console.error('Error loading series:', e);
       }
+
+      // Fallback: try hardcoded EPISODES_DB
+      console.log('⚠️ No episodes in approved.json, trying EPISODES_DB fallback...');
+      
+      // Try by ID first
+      if (EPISODES_ID_DB[seriesId]) {
+        episodes = EPISODES_ID_DB[seriesId];
+        console.log('✅ Found episodes by ID in EPISODES_ID_DB');
+        document.getElementById('series-title').textContent = seriesTitle || seriesId;
+        return true;
+      }
+
+      // Try by normalized title
+      if (seriesTitle) {
+        const normalized = normalizeTitleKey(seriesTitle);
+        if (EPISODES_DB_NORM[normalized]) {
+          episodes = EPISODES_DB_NORM[normalized];
+          console.log('✅ Found episodes by title in EPISODES_DB_NORM');
+          document.getElementById('series-title').textContent = seriesTitle;
+          return true;
+        }
+      }
+
+      // Try by exact title match
+      if (EPISODES_DB[seriesTitle]) {
+        episodes = EPISODES_DB[seriesTitle];
+        console.log('✅ Found episodes by exact title in EPISODES_DB');
+        document.getElementById('series-title').textContent = seriesTitle;
+        return true;
+      }
+
+      console.error('❌ No episodes found for series:', seriesId, seriesTitle);
       return false;
     }
 
