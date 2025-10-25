@@ -1246,57 +1246,63 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     console.log('📊 Progress entries:', progressList.length);
     console.log('📊 Duration cache entries:', Object.keys(durCache).length);
     
-    // Auto-fetch missing durations
-    function ensureYT(){ 
-      return new Promise((resolve)=>{ 
-        try { 
-          if (window.YT && window.YT.Player) { resolve(); return; } 
-          const prev = document.querySelector('script[src*="youtube.com/iframe_api"]'); 
-          if (!prev) { 
-            const s = document.createElement('script'); 
-            s.src = 'https://www.youtube.com/iframe_api'; 
-            document.head.appendChild(s); 
-          } 
-          const check = ()=>{ if (window.YT && window.YT.Player) resolve(); else setTimeout(check, 100); }; 
-          check(); 
-        } catch { resolve(); } 
-      }); 
-    }
+    // Reliable duration fetching using YouTube IFrame API (slower but works!)
     function writeDurCache(obj){
       try { localStorage.setItem('clipsou_video_duration_v1', JSON.stringify(obj||{})); } catch {}
     }
+    
+    function ensureYT(){
+      return new Promise((resolve)=>{
+        if (window.YT && window.YT.Player) { resolve(); return; }
+        if (document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+          const check = ()=>{ if (window.YT && window.YT.Player) resolve(); else setTimeout(check, 50); };
+          check();
+          return;
+        }
+        const s = document.createElement('script');
+        s.src = 'https://www.youtube.com/iframe_api';
+        s.onload = ()=>{ const check = ()=>{ if (window.YT && window.YT.Player) resolve(); else setTimeout(check, 50); }; check(); };
+        document.head.appendChild(s);
+      });
+    }
+    
     function fetchDurationIfMissing(vid){
       if (!vid) return;
       if (durCache[vid] && typeof durCache[vid].duration === 'number' && durCache[vid].duration > 0) return;
+      
       ensureYT().then(()=>{
-        try {
-          const container = document.createElement('div');
-          const pid = 'yt_tmp_ep_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
-          container.id = pid;
-          Object.assign(container.style, { width:'0', height:'0', overflow:'hidden', position:'absolute', left:'-9999px', top:'-9999px' });
-          document.body.appendChild(container);
-          let player = null;
-          const cleanup = ()=>{ try { if (player && player.destroy) player.destroy(); } catch {} try { container.remove(); } catch {} };
-          player = new window.YT.Player(pid, { videoId: vid, events: { 
-            onReady: function(){ 
-              try { 
-                const d = player && player.getDuration ? Number(player.getDuration()) : 0; 
-                if (d>0){ 
-                  const c = readDurCache(); 
-                  c[vid] = { duration: d, updatedAt: Date.now() }; 
+        const container = document.createElement('div');
+        container.id = 'yt-temp-' + vid;
+        container.style.cssText = 'position:absolute;left:-9999px;width:1px;height:1px;opacity:0';
+        document.body.appendChild(container);
+        
+        const player = new window.YT.Player(container.id, {
+          height: '1',
+          width: '1',
+          videoId: vid,
+          playerVars: { autoplay: 0, controls: 0 },
+          events: {
+            onReady: function(e){
+              try {
+                const d = e.target.getDuration();
+                if (d > 0) {
+                  const c = readDurCache();
+                  c[vid] = { duration: d, updatedAt: Date.now() };
                   writeDurCache(c);
-                  console.log(`✅ Fetched duration for ${vid}: ${d}s`);
-                  // Refresh episodes display
-                  try { window.dispatchEvent(new CustomEvent('clipsou-duration-updated', { detail: { vid, duration: d } })); } catch {}
-                  setTimeout(()=> populateEpisodes(), 50);
-                } 
-              } catch {} 
-              cleanup(); 
-            }, 
-            onError: function(){ cleanup(); } 
-          } });
-          setTimeout(()=>{ cleanup(); }, 3000);
-        } catch {}
+                  console.log(`✅ Duration for ${vid}: ${d}s`);
+                  setTimeout(()=> populateEpisodes(), 10);
+                }
+              } catch(err) { console.error('Duration error:', err); }
+              try { e.target.destroy(); } catch {}
+              try { container.remove(); } catch {}
+            },
+            onError: function(){
+              try { container.remove(); } catch {}
+            }
+          }
+        });
+        
+        setTimeout(()=>{ try { player.destroy(); container.remove(); } catch {} }, 8000);
       });
     }
     
@@ -1308,11 +1314,14 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
         return m ? m[1] : '';
       } catch { return ''; }
     };
+    // Load episodes in small batches to avoid overwhelming the browser
+    const batchSize = 2; // 2 at a time
     list.forEach((ep, i) => {
       const vid = extractVidSimple(ep.url);
       if (vid) {
-        // Stagger requests slightly to avoid rate limits
-        setTimeout(() => fetchDurationIfMissing(vid), i * 100);
+        // Load 2 episodes at a time with 300ms between batches
+        const batchIndex = Math.floor(i / batchSize);
+        setTimeout(() => fetchDurationIfMissing(vid), batchIndex * 300);
       }
     });
 
@@ -1366,8 +1375,8 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
           } else if (duration > 0 && seconds === 0) {
             statusText = `${ensureFormat(duration)}`;
           } else {
-            // No duration yet - show loading
-            statusText = '⏳';
+            // No duration yet - show skeleton loader
+            statusText = 'SKELETON_LOADER';
           }
           console.log(`   ✨ statusText="${statusText}"`);
         }
@@ -1380,8 +1389,14 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
         const st = document.createElement('span');
         st.className = 'episode-status';
         
-        // Separate hourglass from text for animation
-        if (statusText.includes('⏳')) {
+        // Show skeleton loader while duration is loading
+        if (statusText === 'SKELETON_LOADER') {
+          const skeleton = document.createElement('span');
+          skeleton.className = 'skeleton-loader';
+          st.appendChild(skeleton);
+        }
+        // Separate hourglass from text for animation (in-progress episodes)
+        else if (statusText.includes('⏳')) {
           const textPart = statusText.replace('⏳', '').trim();
           if (textPart) {
             st.textContent = ` ${textPart} `;
@@ -1409,7 +1424,7 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     if (refreshTimeout) clearTimeout(refreshTimeout);
     refreshTimeout = setTimeout(()=> {
       if (!episodesPanel.hidden) populateEpisodes();
-    }, 100);
+    }, 30);
   }
   
   // Listen for progress updates (when user watches episodes)

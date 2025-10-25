@@ -1506,7 +1506,34 @@ body.fiche-page-view .section-header .button.secondary {
   white-space: nowrap;
 }
 
-/* Animated hourglass for loading durations */
+/* Skeleton loader for episode durations (GitHub-style) */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.episodes-panel .episodes-rail .button .skeleton-loader {
+  display: inline-block;
+  width: 50px;
+  height: 14px;
+  margin-left: 8px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  background-size: 200px 100%;
+  border-radius: 3px;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  vertical-align: middle;
+}
+
+/* Animated hourglass for in-progress episodes */
 @keyframes hourglass-spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
