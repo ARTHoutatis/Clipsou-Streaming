@@ -30,7 +30,7 @@
     "id": "custom-cassette-n-13-sh76",
     "title": "Cassette N°13",
     "type": "film",
-    "rating": 3.5,
+    "rating": 4,
     "genres": [
       "Horreur",
       "Mystère",
@@ -57,6 +57,7 @@
         "photo": "beat-vortex.webp"
       }
     ],
+    "episodes": [],
     "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp"
   },
   {
