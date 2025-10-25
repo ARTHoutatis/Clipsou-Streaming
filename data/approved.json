@@ -400,6 +400,24 @@
     ]
   },
   {
+    "id": "custom-test3-j2nz",
+    "title": "test3",
+    "type": "film",
+    "rating": 3,
+    "genres": [
+      "Action",
+      "Thriller",
+      "Comédie"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761255333/z2wva3jfitatg5qyv2qp.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761255336/x2tnrmwi2ndcyfag2v8g.webp",
+    "description": "TESTSTS",
+    "watchUrl": "https://www.youtube.com/watch?v=snro9u1Vsuk",
+    "actors": [],
+    "episodes": [],
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761255342/yiozuhls10gxm2jrcots.webp"
+  },
+  {
     "id": "custom-the-psycho-teacher-q2q6",
     "title": "The Psycho Teacher",
     "type": "film",
