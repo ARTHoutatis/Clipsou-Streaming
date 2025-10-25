@@ -21,26 +21,29 @@
   
   // Check if user is admin (has active admin session)
   function isAdmin() {
-    // Admin dashboard stores session flag in sessionStorage (per tab)
     try {
+      // Session stored in sessionStorage during current browser tab
       if (window.sessionStorage && sessionStorage.getItem(ADMIN_SESSION_KEY) === '1') {
         return true;
       }
-    } catch {}
 
-    // Broadcast flags stored in localStorage (shared across tabs/origin)
-    try {
+      // Persistent flag when "remember" is enabled
       if (window.localStorage) {
         if (localStorage.getItem(ADMIN_LOGGED_KEY) === '1') {
           return true;
         }
+
         if (localStorage.getItem(ADMIN_REMEMBER_KEY) === '1') {
+          // Ensure the public site also recognises the admin state immediately
+          try { localStorage.setItem(ADMIN_LOGGED_KEY, '1'); } catch {}
           return true;
         }
       }
-    } catch {}
 
-    return false;
+      return false;
+    } catch (e) {
+      return false;
+    }
   }
   
   // Redirect to maintenance page if not admin
