@@ -341,19 +341,27 @@
   function dedupeByIdAndTitle(items) {
     const byTitle = new Map();
     const byId = new Map();
+    const byRequestId = new Map();
     (items||[]).forEach(it => {
       if (!it) return;
       const key = normalizeTitleKey(it.title || '');
       const id = it.id || '';
+      const requestId = it.requestId || '';
       // Prefer last occurrence (most recently edited)
       if (key) byTitle.set(key, it);
       if (id) byId.set(id, it);
+      if (requestId) byRequestId.set(requestId, it);
     });
     // Merge preference: ensure uniqueness by title primarily
     const out = new Map();
     byTitle.forEach((it, key) => { out.set(key, it); });
     // Ensure any items with unique ids but missing/duplicate titles are included only once
     byId.forEach(it => {
+      const key = normalizeTitleKey(it.title || '');
+      if (!out.has(key)) out.set(key, it);
+    });
+    // Ensure any items with unique requestIds are included only once
+    byRequestId.forEach(it => {
       const key = normalizeTitleKey(it.title || '');
       if (!out.has(key)) out.set(key, it);
     });
@@ -2064,12 +2072,23 @@
           console.log(`📊 Approved list BEFORE: ${apr.length} items`);
           
           const key = normalizeTitleKey(found.data && found.data.title);
-          // Remove any existing approved with same normalized title or same id
+          const requestId = found.requestId;
+          
+          // Remove any existing approved with same normalized title, same id, or same requestId
           const beforeFilter = apr.length;
-          apr = apr.filter(x => x && x.id !== found.data.id && normalizeTitleKey(x.title) !== key);
+          apr = apr.filter(x => {
+            if (!x) return false;
+            // Remove by ID match
+            if (x.id === found.data.id) return false;
+            // Remove by normalized title match
+            if (normalizeTitleKey(x.title) === key) return false;
+            // Remove by requestId match (if the item has a requestId)
+            if (x.requestId && x.requestId === requestId) return false;
+            return true;
+          });
           
           if (beforeFilter !== apr.length) {
-            console.log(`🗑️ Removed ${beforeFilter - apr.length} existing item(s) with same ID/title`);
+            console.log(`🗑️ Removed ${beforeFilter - apr.length} existing item(s) with same ID/title/requestId`);
           }
           
           // Make sure episodes are included
@@ -2081,10 +2100,13 @@
             dataToApprove.actors = dataToApprove.actors.slice();
           }
           
+          // Add requestId to the approved item to track its origin
+          dataToApprove.requestId = found.requestId;
+          
           // Add the new item
           apr.push(dataToApprove);
           
-          // Final deduplication
+          // Final deduplication with enhanced logic
           apr = dedupeByIdAndTitle(apr);
           
           console.log(`📊 Approved list AFTER: ${apr.length} items`);
