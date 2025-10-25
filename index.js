@@ -626,7 +626,10 @@ document.addEventListener('DOMContentLoaded', async function () {
           const n = parseInt(epRaw, 10);
           if (!Number.isNaN(n)) epNum = n;
         }
-        title.textContent = epNum != null ? `${t} - ep${epNum}` : t;
+        const formattedTitle = epNum != null ? `Ep ${epNum} - ${t}` : t;
+        title.textContent = formattedTitle;
+        // Store formatted title in link for player popup
+        a.setAttribute('data-title', formattedTitle);
         wrapper.appendChild(title);
 
         return wrapper;
@@ -1875,7 +1878,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             // Add main title with icon
             const h2 = document.createElement('h2');
             h2.classList.add('genre-hero-title');
-            h2.textContent = 'Séries Clipsou';
+            h2.textContent = 'Séries amateures';
             const rail = document.createElement('div'); rail.className = 'rail';
             section.appendChild(h2); section.appendChild(rail);
             insertSection(section);
@@ -1892,7 +1895,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             const h2 = section.querySelector(':scope > h2');
             if (h2) {
               h2.classList.add('genre-hero-title');
-              h2.textContent = 'Séries Clipsou';
+              h2.textContent = 'Séries amateures';
             }
           }
           const rail = section.querySelector('.rail');

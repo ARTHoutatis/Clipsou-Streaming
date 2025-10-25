@@ -2315,7 +2315,25 @@ const container = document.getElementById('fiche-container');
           if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || (e.button && e.button !== 0)) return;
           e.preventDefault();
           try { e.stopPropagation(); e.stopImmediatePropagation(); } catch {}
-          const title = (a.closest('.fiche-right')?.querySelector('h3')?.textContent || a.getAttribute('data-title') || '').trim();
+          // Get title: for episodes use button text, otherwise use series title
+          let title = '';
+          try {
+            // Check if this is an episode button
+            if (a.classList.contains('button') && a.closest('.episodes-rail')) {
+              // Get the base label from the button's first text node (before status span)
+              const baseText = Array.from(a.childNodes)
+                .filter(n => n.nodeType === Node.TEXT_NODE)
+                .map(n => n.textContent)
+                .join('');
+              // Convert "Épisode 3 — EXPLOSION" to "Ep 3 - EXPLOSION"
+              title = baseText.trim().replace(/^Épisode\s+(\d+)\s*—\s*/, 'Ep $1 - ');
+            } else {
+              // Use series title or data-title attribute
+              title = (a.closest('.fiche-right')?.querySelector('h3')?.textContent || a.getAttribute('data-title') || '').trim();
+            }
+          } catch {
+            title = (a.closest('.fiche-right')?.querySelector('h3')?.textContent || a.getAttribute('data-title') || '').trim();
+          }
           // Check saved progress and ask before starting
           try {
             const ficheId = new URLSearchParams(location.search).get('id') || '';

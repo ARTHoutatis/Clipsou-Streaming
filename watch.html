@@ -309,8 +309,9 @@
         currentEpisode = episodes[episodeIndex];
         const videoId = extractVideoId(currentEpisode.url);
         
-        document.getElementById('episode-title').textContent = 
-          `Épisode ${episodeIndex + 1}${currentEpisode.title ? ' — ' + currentEpisode.title : ''}`;
+        const episodeTitle = `Ep ${episodeIndex + 1}${currentEpisode.title ? ' - ' + currentEpisode.title : ''}`;
+        document.getElementById('episode-title').textContent = episodeTitle;
+        document.title = `${episodeTitle} - Clipsou Streaming`;
 
         player = new YT.Player('player', {
           videoId: videoId,
