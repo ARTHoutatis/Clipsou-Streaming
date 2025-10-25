@@ -1232,21 +1232,212 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       return;
     }
     
-    // Create episode buttons
+    function readProgressList(){
+      try { const raw = localStorage.getItem('clipsou_watch_progress_v1'); const arr = raw ? JSON.parse(raw) : []; return Array.isArray(arr) ? arr : []; } catch { return []; }
+    }
+    function readDurCache(){
+      try { const raw = localStorage.getItem('clipsou_video_duration_v1'); const obj = raw ? JSON.parse(raw) : {}; return (obj && typeof obj === 'object') ? obj : {}; } catch { return {}; }
+    }
+
+    const progressList = readProgressList();
+    const durCache = readDurCache();
+    
+    // DEBUG: Log what we have
+    console.log('📊 Progress entries:', progressList.length);
+    console.log('📊 Duration cache entries:', Object.keys(durCache).length);
+    
+    // Auto-fetch missing durations
+    function ensureYT(){ 
+      return new Promise((resolve)=>{ 
+        try { 
+          if (window.YT && window.YT.Player) { resolve(); return; } 
+          const prev = document.querySelector('script[src*="youtube.com/iframe_api"]'); 
+          if (!prev) { 
+            const s = document.createElement('script'); 
+            s.src = 'https://www.youtube.com/iframe_api'; 
+            document.head.appendChild(s); 
+          } 
+          const check = ()=>{ if (window.YT && window.YT.Player) resolve(); else setTimeout(check, 100); }; 
+          check(); 
+        } catch { resolve(); } 
+      }); 
+    }
+    function writeDurCache(obj){
+      try { localStorage.setItem('clipsou_video_duration_v1', JSON.stringify(obj||{})); } catch {}
+    }
+    function fetchDurationIfMissing(vid){
+      if (!vid) return;
+      if (durCache[vid] && typeof durCache[vid].duration === 'number' && durCache[vid].duration > 0) return;
+      ensureYT().then(()=>{
+        try {
+          const container = document.createElement('div');
+          const pid = 'yt_tmp_ep_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
+          container.id = pid;
+          Object.assign(container.style, { width:'0', height:'0', overflow:'hidden', position:'absolute', left:'-9999px', top:'-9999px' });
+          document.body.appendChild(container);
+          let player = null;
+          const cleanup = ()=>{ try { if (player && player.destroy) player.destroy(); } catch {} try { container.remove(); } catch {} };
+          player = new window.YT.Player(pid, { videoId: vid, events: { 
+            onReady: function(){ 
+              try { 
+                const d = player && player.getDuration ? Number(player.getDuration()) : 0; 
+                if (d>0){ 
+                  const c = readDurCache(); 
+                  c[vid] = { duration: d, updatedAt: Date.now() }; 
+                  writeDurCache(c);
+                  console.log(`✅ Fetched duration for ${vid}: ${d}s`);
+                  // Refresh episodes display
+                  try { window.dispatchEvent(new CustomEvent('clipsou-duration-updated', { detail: { vid, duration: d } })); } catch {}
+                  setTimeout(()=> populateEpisodes(), 50);
+                } 
+              } catch {} 
+              cleanup(); 
+            }, 
+            onError: function(){ cleanup(); } 
+          } });
+          setTimeout(()=>{ cleanup(); }, 3000);
+        } catch {}
+      });
+    }
+    
+    // Fetch durations for all episodes that don't have them yet (in parallel with small delay)
+    const extractVidSimple = (url)=>{
+      try {
+        const s = String(url || '');
+        const m = s.match(/[?&]v=([\w-]{6,})/i) || s.match(/embed\/([\w-]{6,})/i) || s.match(/youtu\.be\/([\w-]{6,})/i);
+        return m ? m[1] : '';
+      } catch { return ''; }
+    };
+    list.forEach((ep, i) => {
+      const vid = extractVidSimple(ep.url);
+      if (vid) {
+        // Stagger requests slightly to avoid rate limits
+        setTimeout(() => fetchDurationIfMissing(vid), i * 100);
+      }
+    });
+
     list.forEach((ep, idx) => {
       const a = document.createElement('a');
-      // Open YouTube directly (same as films)
       a.href = ep.url || '';
       a.target = '_blank';
       a.rel = 'noopener noreferrer';
       a.className = 'button';
-      // Support both formats: old format with ep.n, new format without (use index)
       const epNum = (typeof ep.n === 'number') ? ep.n : (idx + 1);
-      const label = ep && ep.title ? `▶ Épisode ${epNum} — ${ep.title}` : `▶ Épisode ${epNum}`;
-      a.textContent = label;
+      const baseLabel = ep && ep.title ? `Épisode ${epNum} — ${ep.title}` : `Épisode ${epNum}`;
+
+      let statusText = '';
+      const ensureFormat = (sec)=>{
+        try {
+          if (typeof formatMMSS === 'function') return formatMMSS(sec);
+        } catch {}
+        const total = Math.max(0, Math.floor(Number(sec)||0));
+        const m = Math.floor(total / 60);
+        const s = String(total % 60).padStart(2, '0');
+        return `${m}:${s}`;
+      };
+      const extractVid = (url)=>{
+        try {
+          const s = String(url || '');
+          const m = s.match(/[?&]v=([\w-]{6,})/i) || s.match(/embed\/([\w-]{6,})/i) || s.match(/youtu\.be\/([\w-]{6,})/i);
+          return m ? m[1] : '';
+        } catch { return ''; }
+      };
+      try {
+        const vid = extractVid(ep && ep.url);
+        console.log(`🔍 Episode ${epNum}: vid="${vid}", url="${ep.url}"`);
+        if (vid) {
+          const keyId = idForMatch + '::' + vid;
+          let entry = progressList.find(x => x && x.id === keyId);
+          if (!entry) {
+            entry = progressList.find(x => x && typeof x.id === 'string' && x.id.endsWith('::' + vid));
+          }
+          const seconds = entry && typeof entry.seconds === 'number' ? Math.max(0, entry.seconds) : 0;
+          let duration = entry && typeof entry.duration === 'number' ? Math.max(0, entry.duration) : 0;
+          if (!duration && durCache[vid] && typeof durCache[vid].duration === 'number') {
+            duration = Math.max(0, durCache[vid].duration);
+          }
+          console.log(`   ⏱️ seconds=${seconds}, duration=${duration}, entry=${!!entry}, cached=${!!(durCache[vid])}`);
+          const remaining = duration > 0 ? Math.max(0, duration - seconds) : 0;
+          const finished = !!(entry && entry.finished) || (duration > 0 && remaining <= 5) || (duration > 0 && seconds / duration >= 0.99);
+          if (finished) {
+            statusText = 'déjà vu ✔';
+          } else if (duration > 0 && seconds > 0) {
+            statusText = `${ensureFormat(seconds)} / ${ensureFormat(duration)} ⏳`;
+          } else if (duration > 0 && seconds === 0) {
+            statusText = `${ensureFormat(duration)}`;
+          } else {
+            // No duration yet - show loading
+            statusText = '⏳';
+          }
+          console.log(`   ✨ statusText="${statusText}"`);
+        }
+      } catch (e) {
+        console.error('❌ Error processing episode:', e);
+      }
+
+      a.textContent = baseLabel;
+      if (statusText) {
+        const st = document.createElement('span');
+        st.className = 'episode-status';
+        
+        // Separate hourglass from text for animation
+        if (statusText.includes('⏳')) {
+          const textPart = statusText.replace('⏳', '').trim();
+          if (textPart) {
+            st.textContent = ` ${textPart} `;
+          } else {
+            st.textContent = ' ';
+          }
+          
+          const hourglass = document.createElement('span');
+          hourglass.className = 'hourglass-icon';
+          hourglass.textContent = '⏳';
+          st.appendChild(hourglass);
+        } else {
+          st.textContent = ` ${statusText}`;
+        }
+        
+        a.appendChild(st);
+      }
       episodesRail.appendChild(a);
     });
   }
+  
+  // Auto-refresh when progress or durations are updated
+  let refreshTimeout = null;
+  function scheduleRefresh(){
+    if (refreshTimeout) clearTimeout(refreshTimeout);
+    refreshTimeout = setTimeout(()=> {
+      if (!episodesPanel.hidden) populateEpisodes();
+    }, 100);
+  }
+  
+  // Listen for progress updates (when user watches episodes)
+  try { 
+    window.addEventListener('clipsou-progress-updated', scheduleRefresh); 
+  } catch {}
+  
+  // Listen for duration updates (when durations are fetched)
+  try { 
+    window.addEventListener('clipsou-duration-updated', scheduleRefresh); 
+  } catch {}
+  
+  // Listen for storage changes from other tabs
+  try { 
+    window.addEventListener('storage', (e)=> {
+      if (e && (e.key === 'clipsou_watch_progress_v1' || e.key === 'clipsou_video_duration_v1')) {
+        scheduleRefresh();
+      }
+    }); 
+  } catch {}
+  
+  // Refresh when user comes back to the page
+  try { 
+    window.addEventListener('pageshow', scheduleRefresh); 
+    document.addEventListener('visibilitychange', ()=> {
+      if (!document.hidden) scheduleRefresh();
+    }); 
+  } catch {}
 }
 
 function renderList(container, items, titleText) {

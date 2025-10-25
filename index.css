@@ -1506,6 +1506,18 @@ body.fiche-page-view .section-header .button.secondary {
   white-space: nowrap;
 }
 
+/* Animated hourglass for loading durations */
+@keyframes hourglass-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.episodes-panel .episodes-rail .button .hourglass-icon {
+  display: inline-block;
+  animation: hourglass-spin 2s linear infinite;
+  transform-origin: center;
+}
+
 /* Mobile: widen and center episodes buttons */
 @media (max-width: 768px) {
   .episodes-panel { margin: 0 16px 20px; }
