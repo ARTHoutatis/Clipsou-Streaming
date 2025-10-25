@@ -873,7 +873,14 @@
   function getRequests(){ return loadJSON(APP_KEY_REQ, []); }
   function setRequests(list){ saveJSON(APP_KEY_REQ, list); }
   function getApproved(){ return loadJSON(APP_KEY_APPROVED, []); }
-  function setApproved(list){ saveJSON(APP_KEY_APPROVED, list); }
+  function setApproved(list){ 
+    // Always dedupe before saving to prevent duplicates from accumulating
+    const deduped = dedupeByIdAndTitle(list);
+    if (deduped.length !== list.length) {
+      console.warn(`⚠️ Removed ${list.length - deduped.length} duplicate(s) from approved list`);
+    }
+    saveJSON(APP_KEY_APPROVED, deduped); 
+  }
   function getTrash(){ return loadJSON(APP_KEY_TRASH, []); }
   function setTrash(list){ saveJSON(APP_KEY_TRASH, list); }
   
@@ -1920,6 +1927,13 @@
         }
       } catch {}
       approveBtn.textContent = isApprovedShared ? 'Retirer' : 'Approuver';
+      
+      // Disable button if operation is in progress
+      if (operationLocks.has(r.requestId) || (r.meta && r.meta.processing)) {
+        approveBtn.disabled = true;
+        approveBtn.style.opacity = '0.5';
+      }
+      
       actions.appendChild(editBtn); actions.appendChild(delBtn); actions.appendChild(approveBtn);
 
       // No status cell anymore
@@ -1972,27 +1986,34 @@
         }
       });
       approveBtn.addEventListener('click', async ()=>{
-        // Prevent multiple clicks with global lock
+        // CRITICAL: Check and set lock SYNCHRONOUSLY before any async code
         if (operationLocks.has(r.requestId)) {
-          console.log('⚠️ Operation already in progress for this request');
+          console.warn('⚠️ BLOCKED: Operation already in progress for this request');
           return;
         }
+        
+        // Set lock IMMEDIATELY to block concurrent clicks
+        operationLocks.set(r.requestId, true);
+        approveBtn.disabled = true;
+        approveBtn.style.opacity = '0.5';
         
         const list = getRequests();
         const found = list.find(x=>x.requestId===r.requestId);
         if (!found) {
+          operationLocks.delete(r.requestId);
+          approveBtn.disabled = false;
+          approveBtn.style.opacity = '1';
           return;
         }
         
-        // Check if already being processed (localStorage flag)
+        // Double-check if already being processed (localStorage flag)
         if (found.meta && found.meta.processing) {
-          console.log('⚠️ Already processing this request (meta flag)');
+          console.warn('⚠️ BLOCKED: Already processing (meta flag)');
+          operationLocks.delete(r.requestId);
+          approveBtn.disabled = false;
+          approveBtn.style.opacity = '1';
           return;
         }
-        
-        // Disable button and set global lock
-        approveBtn.disabled = true;
-        operationLocks.set(r.requestId, true);
         
         // Mark as processing to prevent duplicate operations
         if (!found.meta) found.meta = {};
@@ -2022,9 +2043,8 @@
             setRequests(updatedList);
           }
           
-          // Clear global lock and re-enable button
+          // Clear global lock - renderTable() will recreate buttons in correct state
           operationLocks.delete(r.requestId);
-          approveBtn.disabled = false;
           
           // Share status update with other admins
           try { publishRequestUpsert(updatedFound || found); } catch {}
@@ -2036,10 +2056,22 @@
           found.status = 'approved';
           stampUpdatedAt(found);
           setRequests(list);
-          let apr = getApproved();
+          
+          // Dedupe approved list first to avoid accumulating duplicates
+          let apr = dedupeByIdAndTitle(getApproved());
+          
+          console.log(`📋 Approving: ${found.data.title} (ID: ${found.data.id})`);
+          console.log(`📊 Approved list BEFORE: ${apr.length} items`);
+          
           const key = normalizeTitleKey(found.data && found.data.title);
-          // Remove any existing approved with same normalized title or different item with same id
+          // Remove any existing approved with same normalized title or same id
+          const beforeFilter = apr.length;
           apr = apr.filter(x => x && x.id !== found.data.id && normalizeTitleKey(x.title) !== key);
+          
+          if (beforeFilter !== apr.length) {
+            console.log(`🗑️ Removed ${beforeFilter - apr.length} existing item(s) with same ID/title`);
+          }
+          
           // Make sure episodes are included
           const dataToApprove = { ...found.data };
           if (Array.isArray(dataToApprove.episodes)) {
@@ -2048,8 +2080,16 @@
           if (Array.isArray(dataToApprove.actors)) {
             dataToApprove.actors = dataToApprove.actors.slice();
           }
+          
+          // Add the new item
           apr.push(dataToApprove);
-          setApproved(dedupeByIdAndTitle(apr));
+          
+          // Final deduplication
+          apr = dedupeByIdAndTitle(apr);
+          
+          console.log(`📊 Approved list AFTER: ${apr.length} items`);
+          
+          setApproved(apr);
           
           // UPDATE UI INSTANTLY before network call
           renderTable();
@@ -2083,9 +2123,11 @@
             alert('❌ Échec de la publication. Veuillez réessayer.');
           }
           
-          // Clear global lock and re-enable button
+          // Clear global lock - renderTable() will recreate buttons in correct state
           operationLocks.delete(r.requestId);
-          approveBtn.disabled = false;
+          
+          // Final UI refresh to show correct button states
+          renderTable();
           
           // Share new status with other admins
           try { publishRequestUpsert(updatedFound || found); } catch {}
