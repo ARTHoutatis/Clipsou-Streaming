@@ -392,6 +392,12 @@ async function buildItemsFromIndex() {
               const watchUrl = c.watchUrl || '';
               const actors = Array.isArray(c.actors) ? c.actors.filter(a=>a && a.name) : [];
               const episodes = Array.isArray(c.episodes) ? c.episodes.slice() : [];
+              
+              // DEBUG: Log episodes for series
+              if (type === 'série' || type === 'serie') {
+                console.log(`📺 Loading series "${c.title}" (ID: ${c.id}) - Episodes in approved.json:`, c.episodes ? c.episodes.length : 0);
+              }
+              
               const studioBadge = optimizeCloudinaryUrl(c.studioBadge || '');
               items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, episodes, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '', studioBadge });
             });
@@ -1198,13 +1204,20 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     episodesRail.innerHTML = '';
     const title = (currentItem && currentItem.title) || '';
     const idForMatch = (currentItem && currentItem.id) || '';
+    
+    // DEBUG: Log currentItem to see if episodes are present
+    console.log('📺 PopulateEpisodes called for:', title, '(ID:', idForMatch, ')');
+    console.log('📺 currentItem.episodes:', currentItem && currentItem.episodes);
+    
     // Priority: 1) episodes from currentItem data, 2) EPISODES_DB_NORM, 3) EPISODES_ID_DB
     let list = [];
     if (currentItem && Array.isArray(currentItem.episodes) && currentItem.episodes.length) {
       list = currentItem.episodes;
+      console.log('✅ Using episodes from currentItem.episodes:', list.length, 'episodes');
     } else {
       list = EPISODES_DB_NORM[normalizeTitleKey(title)] || [];
       if (!list.length) list = EPISODES_ID_DB[idForMatch] || [];
+      console.log('⚠️ Using fallback episodes database:', list.length, 'episodes');
     }
     if (!list.length) {
       const empty = document.createElement('p');
