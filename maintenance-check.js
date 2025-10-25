@@ -5,6 +5,8 @@
   // Configuration
   const MAINTENANCE_ENABLED = true; // Set to false to disable maintenance mode
   const ADMIN_SESSION_KEY = 'clipsou_admin_session_v1';
+  const ADMIN_REMEMBER_KEY = 'clipsou_admin_remember_v1';
+  const ADMIN_LOGGED_KEY = 'clipsou_admin_logged_in_v1';
   
   // Don't redirect if we're already on maintenance page or admin page
   const currentPage = window.location.pathname;
@@ -19,27 +21,26 @@
   
   // Check if user is admin (has active admin session)
   function isAdmin() {
+    // Admin dashboard stores session flag in sessionStorage (per tab)
     try {
-      const sessionData = localStorage.getItem(ADMIN_SESSION_KEY);
-      if (!sessionData) return false;
-      
-      const session = JSON.parse(sessionData);
-      if (!session || !session.loggedIn) return false;
-      
-      // Check if session is still valid (24 hours)
-      const sessionTime = session.timestamp || 0;
-      const now = Date.now();
-      const maxAge = 24 * 60 * 60 * 1000; // 24 hours
-      
-      if (now - sessionTime > maxAge) {
-        // Session expired
-        return false;
+      if (window.sessionStorage && sessionStorage.getItem(ADMIN_SESSION_KEY) === '1') {
+        return true;
       }
-      
-      return true;
-    } catch (e) {
-      return false;
-    }
+    } catch {}
+
+    // Broadcast flags stored in localStorage (shared across tabs/origin)
+    try {
+      if (window.localStorage) {
+        if (localStorage.getItem(ADMIN_LOGGED_KEY) === '1') {
+          return true;
+        }
+        if (localStorage.getItem(ADMIN_REMEMBER_KEY) === '1') {
+          return true;
+        }
+      }
+    } catch {}
+
+    return false;
   }
   
   // Redirect to maintenance page if not admin
