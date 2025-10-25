@@ -1856,6 +1856,19 @@
     return div.innerHTML;
   }
 
+  // Utility function to automatically clear search filter
+  function clearSearchFilterAutomatically(reason = 'action') {
+    try {
+      const searchInput = $('#requestsSearch');
+      if (searchInput && searchInput.value.trim()) {
+        searchInput.value = '';
+        console.log(`🔍 Search cleared automatically after ${reason}`);
+      }
+    } catch (e) {
+      console.warn('Failed to clear search filter:', e);
+    }
+  }
+
   function renderTable(){
     const tbody = $('#requestsTable tbody');
     // Exclude requests marked as deleted from the UI
@@ -1882,7 +1895,11 @@
         };
         reqs = reqs.filter(matches);
       }
-    } catch {}
+    } catch (e) {
+      console.warn('Search filter error:', e);
+      // If search fails, show all items to avoid hiding everything
+      reqs = getRequests().filter(r => !(r && r.meta && r.meta.deleted));
+    }
     tbody.innerHTML = '';
     // Determine shared-approved state from the current approved list
     const aprList = getApproved();
@@ -2054,6 +2071,9 @@
           // Clear global lock - renderTable() will recreate buttons in correct state
           operationLocks.delete(r.requestId);
           
+          // Clear search filter automatically to show all films after unapproval
+          clearSearchFilterAutomatically('unapproval');
+          
           // Share status update with other admins
           try { publishRequestUpsert(updatedFound || found); } catch {}
         } else {
@@ -2147,6 +2167,9 @@
           
           // Clear global lock - renderTable() will recreate buttons in correct state
           operationLocks.delete(r.requestId);
+          
+          // Clear search filter automatically to show all films after approval
+          clearSearchFilterAutomatically('approval');
           
           // Final UI refresh to show correct button states
           renderTable();
@@ -2270,6 +2293,10 @@
         
         renderTrash();
         renderTable();
+        
+        // Clear search filter automatically after restoration
+        clearSearchFilterAutomatically('restoration');
+        
         alert('Contenu restauré avec succès.');
       });
       
@@ -2772,6 +2799,9 @@
             }
           })();
         } else {
+          // Clear search filter automatically to show all films after saving
+          clearSearchFilterAutomatically('saving');
+          
           renderTable();
           populateGenresDatalist();
           clearDraft();
@@ -2813,6 +2843,10 @@
         if (Array.isArray(json.requests)) setRequests(json.requests);
         if (Array.isArray(json.approved)) setApproved(json.approved);
         renderTable();
+        
+        // Clear search filter automatically after import
+        clearSearchFilterAutomatically('import');
+        
         alert('Import terminé.');
       } catch(err){ alert('Import invalide.'); }
       e.target.value = '';
@@ -2880,6 +2914,9 @@
     try { await hydrateRequestsFromPublicApproved(); } catch {}
     try { await hydrateTrashFromPublic(); } catch {}
     try { await hydrateUserRequestsFromPublic(); } catch {}
+    
+    // Clear search filter on initial load to ensure all films are visible
+    clearSearchFilterAutomatically('initial load');
     
     // Render all tables once after data is loaded
     emptyForm();
