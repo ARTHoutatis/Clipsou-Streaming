@@ -16,6 +16,9 @@
   const APP_KEY_TRASH = 'clipsou_admin_trash_v1';
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  
+  // Global lock to prevent concurrent approve/unapprove operations
+  const operationLocks = new Map();
 
   // ===== Security: Password hashing with SHA-256 =====
   async function hashPassword(password) {
@@ -1969,9 +1972,11 @@
         }
       });
       approveBtn.addEventListener('click', async ()=>{
-        // Prevent multiple clicks
-        if (approveBtn.disabled) return;
-        approveBtn.disabled = true;
+        // Prevent multiple clicks with global lock
+        if (operationLocks.has(r.requestId)) {
+          console.log('⚠️ Operation already in progress for this request');
+          return;
+        }
         
         const list = getRequests();
         const found = list.find(x=>x.requestId===r.requestId);
@@ -1979,10 +1984,15 @@
           return;
         }
         
-        // Check if already being processed
+        // Check if already being processed (localStorage flag)
         if (found.meta && found.meta.processing) {
+          console.log('⚠️ Already processing this request (meta flag)');
           return;
         }
+        
+        // Disable button and set global lock
+        approveBtn.disabled = true;
+        operationLocks.set(r.requestId, true);
         
         // Mark as processing to prevent duplicate operations
         if (!found.meta) found.meta = {};
@@ -2011,6 +2021,10 @@
             delete updatedFound.meta.processing;
             setRequests(updatedList);
           }
+          
+          // Clear global lock and re-enable button
+          operationLocks.delete(r.requestId);
+          approveBtn.disabled = false;
           
           // Share status update with other admins
           try { publishRequestUpsert(updatedFound || found); } catch {}
@@ -2068,6 +2082,11 @@
             renderTable();
             alert('❌ Échec de la publication. Veuillez réessayer.');
           }
+          
+          // Clear global lock and re-enable button
+          operationLocks.delete(r.requestId);
+          approveBtn.disabled = false;
+          
           // Share new status with other admins
           try { publishRequestUpsert(updatedFound || found); } catch {}
         }
