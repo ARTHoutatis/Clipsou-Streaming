@@ -3,7 +3,7 @@
     "requestId": "r_mh8ccp2o_uriu4l",
     "status": "pending",
     "data": {
-      "id": "custom-south-park-the-fan-made-bu9z",
+      "id": "custom-south-park-the-fan-made-xvl2",
       "requestId": "r_mh8ccp2o_uriu4l",
       "title": "South Park / The Fan Made",
       "type": "série",
@@ -26,19 +26,58 @@
         },
         {
           "name": "Ytstraille",
-          "role": "Mr Roxxor",
+          "role": "Stan",
           "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761521320/qay0cforvxatdv5xa4zt.jpg"
         },
         {
           "name": "Ytstraille",
           "role": "Kenny",
           "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761521320/qay0cforvxatdv5xa4zt.jpg"
+        },
+        {
+          "name": "Ytstraille",
+          "role": "Timmy",
+          "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761521320/qay0cforvxatdv5xa4zt.jpg"
+        },
+        {
+          "name": "Ytstraille",
+          "role": "Daft Punk",
+          "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761521320/qay0cforvxatdv5xa4zt.jpg"
+        },
+        {
+          "name": "Ytstraille",
+          "role": "Tim Burton ( parodie )",
+          "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761521320/qay0cforvxatdv5xa4zt.jpg"
+        },
+        {
+          "name": "Ytstraille",
+          "role": "Garrison",
+          "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761521320/qay0cforvxatdv5xa4zt.jpg"
+        },
+        {
+          "name": "Ytstraille",
+          "role": "Visitors",
+          "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761521320/qay0cforvxatdv5xa4zt.jpg"
+        },
+        {
+          "name": "Ytstraille",
+          "role": "Randy",
+          "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761521320/qay0cforvxatdv5xa4zt.jpg"
         }
       ],
-      "episodes": []
+      "episodes": [
+        {
+          "title": "Tentative d'Homicide Métallique",
+          "url": "https://youtu.be/eordXRUxreY?si=iLLeiT9_G1Qs6Alp"
+        },
+        {
+          "title": "Cowboyita Le Super Heros",
+          "url": "https://youtu.be/J7o8YeWzMFQ?si=dS1ySrxTLiWcCOAm"
+        }
+      ]
     },
     "meta": {
-      "updatedAt": 1761521403376
+      "updatedAt": 1761521582630
     }
   },
   {
