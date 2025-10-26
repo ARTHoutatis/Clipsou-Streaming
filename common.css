@@ -516,6 +516,33 @@ body.popup-open nav[aria-label="Navigation principale"] {
   white-space: nowrap;
 }
 
+.nav-links .admin-link {
+  position: relative;
+}
+
+.nav-links .admin-link .admin-badge {
+  position: absolute;
+  top: 4px;
+  right: -6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 2px rgba(11, 17, 23, 0.9);
+}
+
+.nav-links .admin-link .admin-badge[hidden] {
+  display: none !important;
+}
+
 /* Ensure the Recherche button is visible on all pages (desktop/tablet) */
 .nav-links .search-link { display: inline-flex; align-items: center; gap: 8px; position: relative; }
 .nav-links .search-link::before {
@@ -549,6 +576,10 @@ body.popup-open nav[aria-label="Navigation principale"] {
     padding: 10px 20px !important;
     position: relative !important;
     visibility: visible !important;
+  }
+  .nav-links .admin-link .admin-badge {
+    top: 2px;
+    right: -8px;
   }
   .nav-links .admin-link span { display: inline !important; }
   .nav-links .admin-link svg { width: 18px; height: 18px; }
@@ -936,6 +967,10 @@ html { scrollbar-color: #615d5d #0a0a0a; scrollbar-width: thin; }
     display: inline-flex;
     align-items: center;
     justify-content: center;
+  }
+  .nav-links .admin-link .admin-badge {
+    top: 4px;
+    right: 2px;
   }
   .nav-links .admin-link svg {
     position: absolute;

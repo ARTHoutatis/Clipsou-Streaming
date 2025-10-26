@@ -188,6 +188,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   // Admin shortcut watcher: show only if currently logged-in (broadcast), but keep it across viewport changes.
   (function watchAdminShortcut(){
+    const ADMIN_REQ_COUNT_KEY = 'clipsou_admin_user_request_count_v1';
+
     function buildAdminAnchor(){
       const a = document.createElement('a');
       a.href = 'admin/admin.html';
@@ -208,8 +210,53 @@ document.addEventListener('DOMContentLoaded', async function () {
         </svg>\
         <span>Admin</span>'
       );
+      const badge = document.createElement('span');
+      badge.className = 'admin-badge';
+      badge.id = 'navAdminBadge';
+      badge.hidden = true;
+      a.appendChild(badge);
       return a;
     }
+
+    function ensureBadgeElement(anchor){
+      if (!anchor) return;
+      if (!anchor.querySelector('.admin-badge')) {
+        const badge = document.createElement('span');
+        badge.className = 'admin-badge';
+        badge.id = 'navAdminBadge';
+        badge.hidden = true;
+        anchor.appendChild(badge);
+      }
+    }
+
+    function getPendingUserRequestsCount(){
+      try {
+        const raw = localStorage.getItem(ADMIN_REQ_COUNT_KEY);
+        if (raw === undefined || raw === null || raw === '') return 0;
+        const n = Number(raw);
+        return Number.isFinite(n) && n > 0 ? n : 0;
+      } catch {
+        return 0;
+      }
+    }
+
+    function applyBadge(count){
+      try {
+        const anchor = document.querySelector('nav[aria-label="Navigation principale"] .nav-links .admin-link');
+        if (!anchor) return;
+        ensureBadgeElement(anchor);
+        const badge = anchor.querySelector('.admin-badge');
+        if (!badge) return;
+        if (!count || count <= 0) {
+          badge.hidden = true;
+          badge.textContent = '';
+        } else {
+          badge.hidden = false;
+          badge.textContent = count > 99 ? '99+' : String(count);
+        }
+      } catch {}
+    }
+
     function ensure(show){
       try {
         // Navbar (all viewports; CSS handles mobile icon-only)
@@ -222,12 +269,15 @@ document.addEventListener('DOMContentLoaded', async function () {
             existingNav = buildAdminAnchor();
             navLinks.appendChild(existingNav);
           } else {
-            // If an older text-only link exists, upgrade it to include the SVG
+            // If an older text-only link exists, upgrade it to include the SVG/badge
             if (!existingNav.querySelector('svg')) {
               const fresh = buildAdminAnchor();
               existingNav.innerHTML = fresh.innerHTML;
+              ensureBadgeElement(existingNav);
               existingNav.setAttribute('aria-label', fresh.getAttribute('aria-label'));
               existingNav.setAttribute('title', fresh.getAttribute('title'));
+            } else {
+              ensureBadgeElement(existingNav);
             }
           }
         }
@@ -241,14 +291,44 @@ document.addEventListener('DOMContentLoaded', async function () {
           const a = document.createElement('a'); a.className = 'link'; a.href = 'admin/admin.html'; a.textContent = '⚙️ Admin';
           li.appendChild(a); list.insertBefore(li, list.firstChild);
         }
+
+        if (show) {
+          applyBadge(getPendingUserRequestsCount());
+        }
       } catch {}
     }
-    function isLoggedIn(){ try { return localStorage.getItem('clipsou_admin_logged_in_v1') === '1'; } catch { return false; } }
-    function update(){ ensure(isLoggedIn()); }
+
+    function isLoggedIn(){
+      try { return localStorage.getItem('clipsou_admin_logged_in_v1') === '1'; }
+      catch { return false; }
+    }
+
+    function update(){
+      const loggedIn = isLoggedIn();
+      ensure(loggedIn);
+      if (!loggedIn) {
+        applyBadge(0);
+      } else {
+        applyBadge(getPendingUserRequestsCount());
+      }
+    }
+
     // Initial draw
     update();
-    // React to cross-tab login/logout broadcasts
-    try { window.addEventListener('storage', (e)=>{ if (!e) return; if (e.key === 'clipsou_admin_logged_in_v1' || e.key === 'clipsou_admin_session_broadcast') update(); }); } catch {}
+
+    // React to cross-tab login/logout broadcasts & badge updates
+    try {
+      window.addEventListener('storage', (e)=>{
+        if (!e) return;
+        const key = e.key || '';
+        if (key === 'clipsou_admin_logged_in_v1' || key === 'clipsou_admin_session_broadcast') {
+          update();
+        } else if (key === ADMIN_REQ_COUNT_KEY) {
+          if (isLoggedIn()) applyBadge(getPendingUserRequestsCount());
+        }
+      });
+    } catch {}
+
     // React to viewport changes (rebuild if needed)
     try { window.addEventListener('resize', update); } catch {}
   })();

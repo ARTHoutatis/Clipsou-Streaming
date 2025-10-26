@@ -10,6 +10,7 @@
   const STORAGE_KEY_REQUEST = 'user_pending_request';
   const STORAGE_KEY_LAST_SUBMIT = 'user_last_submit_time';
   const STORAGE_KEY_HISTORY = 'user_requests_history';
+  const STORAGE_KEY_HISTORY_MAP = 'user_requests_history_map_v1';
   const STORAGE_KEY_TERMS_ACCEPTED = 'user_terms_accepted';
   const STORAGE_KEY_FINGERPRINT = 'user_browser_fp';
   const STORAGE_KEY_SUBMIT_LOG = 'user_submit_log_v1';
@@ -1357,25 +1358,49 @@
   /**
    * Get request history from localStorage
    */
-  function getRequestHistory() {
+  function getFingerprint(){
+    return getBrowserFingerprint();
+  }
+
+  function getHistoryMap() {
     try {
-      const history = localStorage.getItem(STORAGE_KEY_HISTORY);
-      return history ? JSON.parse(history) : [];
+      const raw = localStorage.getItem(STORAGE_KEY_HISTORY_MAP);
+      const parsed = raw ? JSON.parse(raw) : null;
+      return (parsed && typeof parsed === 'object') ? parsed : {};
     } catch (e) {
-      console.error('Error reading history:', e);
-      return [];
+      console.error('Error reading history map:', e);
+      return {};
     }
   }
 
-  /**
-   * Save request history to localStorage
-   */
-  function saveRequestHistory(history) {
+  function saveHistoryMap(map) {
     try {
-      localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(history));
+      localStorage.setItem(STORAGE_KEY_HISTORY_MAP, JSON.stringify(map));
     } catch (e) {
-      console.error('Error saving history:', e);
+      console.error('Error saving history map:', e);
     }
+  }
+
+  function getRequestHistory() {
+    const map = getHistoryMap();
+    const fp = getFingerprint();
+    const legacy = (() => {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_HISTORY);
+        return raw ? JSON.parse(raw) : [];
+      } catch { return []; }
+    })();
+    const list = Array.isArray(map[fp]) ? map[fp] : [];
+    return list.length ? list : legacy;
+  }
+
+  function saveRequestHistory(history) {
+    const map = getHistoryMap();
+    const fp = getFingerprint();
+    map[fp] = history;
+    saveHistoryMap(map);
+    // Also populate legacy key (back-compat)
+    try { localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(history)); } catch {}
   }
 
   /**
@@ -1399,8 +1424,7 @@
     if (!confirm('Voulez-vous vraiment supprimer cette demande de l\'historique ?')) {
       return;
     }
-    let history = getRequestHistory();
-    history = history.filter(item => item.id !== id);
+    const history = getRequestHistory().filter(item => item.id !== id);
     saveRequestHistory(history);
     renderHistory();
   }
