@@ -1,5 +1,42 @@
 [
   {
+    "requestId": "r_mh8ccp2o_uriu4l",
+    "status": "pending",
+    "data": {
+      "id": "custom-south-park-the-fan-made-anbd",
+      "requestId": "r_mh8ccp2o_uriu4l",
+      "title": "South Park / The Fan Made",
+      "type": "série",
+      "rating": 0.5,
+      "genres": [
+        "Comédie",
+        "mini serie",
+        "Enfants"
+      ],
+      "description": "un fan made de south park, en série abandonnée de 2 épisode",
+      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761521255/ltvv5zn417wxbp6hc0j3.webp",
+      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761521235/ytcztnas1cjh09vampr3.jpg",
+      "watchUrl": "",
+      "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp",
+      "actors": [
+        {
+          "name": "Ytstraille",
+          "role": "Cartman",
+          "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761521320/qay0cforvxatdv5xa4zt.jpg"
+        },
+        {
+          "name": "Ytstraille",
+          "role": "Mr Roxxor",
+          "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761521320/qay0cforvxatdv5xa4zt.jpg"
+        }
+      ],
+      "episodes": []
+    },
+    "meta": {
+      "updatedAt": 1761521386992
+    }
+  },
+  {
     "requestId": "r_mh8bf6l8_gyv7wb",
     "status": "pending",
     "data": {
