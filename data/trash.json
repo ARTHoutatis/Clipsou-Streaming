@@ -1,1 +1,32 @@
-[]
+[
+  {
+    "requestId": "req_1761487413135_2axahhpzj",
+    "status": "pending",
+    "data": {
+      "id": null,
+      "title": "Fggggf",
+      "type": "film",
+      "rating": null,
+      "genres": [
+        "Gghhhgh",
+        "Ttygt",
+        "Tgggg"
+      ],
+      "description": "Vccxcxxfffxxc",
+      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761487265/oozs9z7nwf8id9qkqqhz.webp",
+      "image": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761487278/nz7hvotk5ny0mb65phn0.webp",
+      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761487278/nz7hvotk5ny0mb65phn0.webp",
+      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761487301/b3w9w1zmdyewh1brir1t.webp",
+      "watchUrl": "https://youtu.be/dQw4w9WgXcQ?si=ic0R2RYhT0kp2M_F",
+      "actors": [],
+      "episodes": []
+    },
+    "meta": {
+      "createdAt": 1761487413135,
+      "source": "user_submission",
+      "updatedAt": 1761487591664,
+      "deleted": true,
+      "trashedAt": 1761487591664
+    }
+  }
+]
