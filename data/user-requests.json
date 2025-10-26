@@ -15,8 +15,9 @@
     "actors": [],
     "episodes": [],
     "submittedAt": 1761487314924,
-    "status": "pending",
-    "id": "user_req_1761487314925_jaoy3sl8b"
+    "status": "approved",
+    "id": "user_req_1761487314925_jaoy3sl8b",
+    "processedAt": 1761487414652
   },
   {
     "title": "test série",
