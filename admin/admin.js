@@ -139,13 +139,98 @@
   }
 
   // Replace local requests with the shared public list when available
+  // BUT preserve local actions that haven't been published yet (within 2min window)
   async function hydrateRequestsFromPublic(){
     try {
-      const arr = await fetchPublicRequestsArray();
-      if (Array.isArray(arr) && arr.length) {
-        setRequests(arr);
-        try { renderTable(); } catch {}
+      const remote = await fetchPublicRequestsArray();
+      if (!Array.isArray(remote)) return;
+      
+      const local = getRequests();
+      const track = getDeployTrack();
+      const trash = getTrash();
+      const now = Date.now();
+      const windowMs = 120000; // 2-minute protection window for local actions
+      
+      // Collect local actions within the protection window
+      const recentDeletes = new Set();
+      const recentUpserts = new Map();
+      const recentTrash = new Set();
+      
+      // Track recent trash operations (items moved to trash locally)
+      (trash || []).forEach(t => {
+        if (t && t.meta && t.meta.trashedAt && (now - t.meta.trashedAt) < windowMs) {
+          if (t.requestId) recentTrash.add(t.requestId);
+          if (t.data && t.data.id) recentTrash.add(t.data.id);
+        }
+      });
+      
+      // Track recent deploy actions
+      if (track && typeof track === 'object') {
+        Object.keys(track).forEach(id => {
+          const t = track[id];
+          if (!t || !t.action || !t.startedAt || t.confirmedAt) return;
+          if ((now - t.startedAt) > windowMs) return;
+          
+          if (t.action === 'delete') recentDeletes.add(id);
+          else if (t.action === 'upsert') {
+            // Find the local version
+            const localItem = local.find(r => r && r.data && r.data.id === id);
+            if (localItem) recentUpserts.set(id, localItem);
+          }
+        });
       }
+      
+      // Start with remote as base
+      let merged = remote.slice();
+      
+      // Apply local recent actions overlay
+      // 1. Remove items that were deleted or trashed locally
+      const norm = (s) => {
+        try { return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); }
+        catch { return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim(); }
+      };
+      
+      merged = merged.filter(r => {
+        if (!r) return false;
+        const id = r.requestId || (r.data && r.data.id) || '';
+        const dataId = (r.data && r.data.id) || '';
+        
+        // Exclude if in recent trash
+        if (recentTrash.has(id) || recentTrash.has(dataId)) return false;
+        
+        // Exclude if in recent deletes
+        if (recentDeletes.has(id) || recentDeletes.has(dataId)) return false;
+        
+        return true;
+      });
+      
+      // 2. Overlay local upserts (keep local version if more recent)
+      recentUpserts.forEach((localItem, id) => {
+        const idx = merged.findIndex(r => r && r.data && r.data.id === id);
+        if (idx >= 0) {
+          // Replace with local version
+          merged[idx] = localItem;
+        } else {
+          // Add if not present
+          merged.unshift(localItem);
+        }
+      });
+      
+      // 3. Preserve any local-only items that are very recent (not yet synced)
+      local.forEach(localItem => {
+        if (!localItem || !localItem.meta) return;
+        const isRecent = localItem.meta.updatedAt && (now - localItem.meta.updatedAt) < windowMs;
+        if (!isRecent) return;
+        
+        const id = (localItem.data && localItem.data.id) || '';
+        const hasInMerged = merged.some(r => r && r.data && r.data.id === id);
+        if (!hasInMerged && id) {
+          merged.unshift(localItem);
+        }
+      });
+      
+      setRequests(merged);
+      try { renderTable(); } catch {}
     } catch {}
   }
 
@@ -257,11 +342,33 @@
       });
       let changed = false;
       // Reconcile local statuses with remote approved
+      // BUT respect recent local approve/unapprove actions that haven't been confirmed yet
       (list||[]).forEach(r => {
         try {
           const id = String((r && r.data && r.data.id) || '');
           const nt = norm(r && r.data && r.data.title || '');
           const isRemoteApproved = (id && remoteIds.has(id)) || (nt && remoteTitles.has(nt));
+          
+          // Check if this item has a recent local action that hasn't been confirmed
+          let hasRecentLocalAction = false;
+          if (r.meta) {
+            // Check for recent processing flag (action in progress)
+            if (r.meta.processing) {
+              hasRecentLocalAction = true;
+            }
+            // Check for very recent status change (within 30 seconds)
+            if (r.meta.updatedAt && (now - r.meta.updatedAt) < 30000) {
+              hasRecentLocalAction = true;
+            }
+          }
+          
+          // Don't override local status if there's a recent local action
+          if (hasRecentLocalAction) {
+            // Keep local status as-is during the action window
+            return;
+          }
+          
+          // Otherwise, sync with remote
           if (isRemoteApproved && r.status !== 'approved') { r.status = 'approved'; changed = true; }
           if (!isRemoteApproved && r.status === 'approved') { r.status = 'pending'; changed = true; }
         } catch {}
@@ -1052,19 +1159,54 @@
   }
 
   // Sync local trash with remote shared trash
+  // BUT preserve local trash items that are very recent (within 2min window)
   async function hydrateTrashFromPublic(){
     try {
       const remote = await fetchPublicTrashArray();
-      if (Array.isArray(remote)) {
-        // Always sync with GitHub (source of truth)
-        // This ensures trash changes are reflected across all admins
-        setTrash(remote);
+      if (!Array.isArray(remote)) return;
+      
+      const local = getTrash();
+      const now = Date.now();
+      const windowMs = 120000; // 2-minute protection window
+      
+      // Find very recent local trash items (just moved to trash)
+      const recentLocal = (local || []).filter(t => {
+        return t && t.meta && t.meta.trashedAt && (now - t.meta.trashedAt) < windowMs;
+      });
+      
+      // Create a map of remote items by requestId and data.id
+      const remoteMap = new Map();
+      remote.forEach(r => {
+        if (r) {
+          if (r.requestId) remoteMap.set('rid:' + r.requestId, r);
+          if (r.data && r.data.id) remoteMap.set('id:' + r.data.id, r);
+        }
+      });
+      
+      // Start with remote as base
+      let merged = remote.slice();
+      
+      // Add recent local items that aren't in remote yet
+      recentLocal.forEach(localItem => {
+        const rid = localItem.requestId;
+        const did = localItem.data && localItem.data.id;
         
-        // Always re-render to update the display
-        try { renderTrash(); } catch {}
+        const inRemote = 
+          (rid && remoteMap.has('rid:' + rid)) ||
+          (did && remoteMap.has('id:' + did));
         
-        console.debug(`✓ Trash synced: ${remote.length} items`);
-      }
+        if (!inRemote) {
+          // This is a very recent local trash item not yet synced to GitHub
+          merged.unshift(localItem);
+        }
+      });
+      
+      setTrash(merged);
+      
+      // Always re-render to update the display
+      try { renderTrash(); } catch {}
+      
+      console.debug(`✓ Trash synced: ${merged.length} items (${recentLocal.length} recent local)`);
     } catch (e) {
       console.debug('Trash file not available yet (normal on first setup)');
     }
@@ -1654,10 +1796,10 @@
                           '<span style="color:#ef4444;">✗ Rejeté</span>';
 
       tr.innerHTML = `
-        <td>${escapeHtml(req.title || '')}</td>
-        <td>${escapeHtml(req.type || '')}</td>
-        <td>${submittedDate}</td>
-        <td>${statusBadge}</td>
+        <td data-label="Titre">${escapeHtml(req.title || '')}</td>
+        <td data-label="Type">${escapeHtml(req.type || '')}</td>
+        <td data-label="Soumis le">${submittedDate}</td>
+        <td data-label="Statut">${statusBadge}</td>
         <td class="row-actions"></td>
       `;
 
@@ -1897,10 +2039,10 @@
       const tr = document.createElement('tr');
       const g3 = (r.data.genres||[]).slice(0,3).filter(Boolean).map(g=>String(g));
       tr.innerHTML = `
-        <td>${r.data.title||''}</td>
-        <td>${r.data.type||''}</td>
-        <td class="genres-cell"></td>
-        <td>${(typeof r.data.rating==='number')?r.data.rating:''}</td>
+        <td data-label="Titre">${r.data.title||''}</td>
+        <td data-label="Type">${r.data.type||''}</td>
+        <td data-label="Genres" class="genres-cell"></td>
+        <td data-label="Note">${(typeof r.data.rating==='number')?r.data.rating:''}</td>
         <td class="row-actions"></td>
       `;
       // Fill genres as span elements for responsive layout
@@ -1973,6 +2115,18 @@
           const apr = getApproved().filter(x=>x.id!==r.data.id);
           setApproved(apr);
           
+          // Mark deletion in track IMMEDIATELY (before API call)
+          // This ensures hydrateRequestsFromPublic respects this deletion
+          try {
+            const track = getDeployTrack();
+            track[r.data.id] = {
+              action: 'delete',
+              startedAt: Date.now(),
+              confirmedAt: undefined
+            };
+            setDeployTrack(track);
+          } catch {}
+          
           // Send unpublish request (delete action)
           showPublishWaitHint();
           try { 
@@ -2041,6 +2195,18 @@
           setRequests(list);
           const apr = getApproved().filter(x=>x.id!==found.data.id);
           setApproved(apr);
+          
+          // Mark deletion in track IMMEDIATELY (before API call)
+          // This ensures hydrateRequestsFromPublic and hydrateRequestsFromPublicApproved respect this unapproval
+          try {
+            const track = getDeployTrack();
+            track[found.data.id] = {
+              action: 'delete',
+              startedAt: Date.now(),
+              confirmedAt: undefined
+            };
+            setDeployTrack(track);
+          } catch {}
           
           // UPDATE UI INSTANTLY
           renderTable();
@@ -2128,6 +2294,18 @@
           
           setApproved(apr);
           
+          // Mark upsert in track IMMEDIATELY (before API call)
+          // This ensures hydrateRequestsFromPublic and hydrateRequestsFromPublicApproved respect this approval
+          try {
+            const track = getDeployTrack();
+            track[dataToApprove.id] = {
+              action: 'upsert',
+              startedAt: Date.now(),
+              confirmedAt: undefined
+            };
+            setDeployTrack(track);
+          } catch {}
+          
           // UPDATE UI INSTANTLY before network call
           renderTable();
 
@@ -2213,9 +2391,9 @@
       const tr = document.createElement('tr');
       const g3 = (r.data.genres||[]).slice(0,3).filter(Boolean).map(g=>String(g));
       tr.innerHTML = `
-        <td>${r.data.title||''}</td>
-        <td>${r.data.type||''}</td>
-        <td class="genres-cell"></td>
+        <td data-label="Titre">${r.data.title||''}</td>
+        <td data-label="Type">${r.data.type||''}</td>
+        <td data-label="Genres" class="genres-cell"></td>
         <td class="row-actions"></td>
       `;
       
@@ -2267,6 +2445,17 @@
           apr = apr.filter(x => x && x.id !== r.data.id && normalizeTitleKey(x.title) !== key);
           apr.push(r.data);
           setApproved(dedupeByIdAndTitle(apr));
+          
+          // Mark upsert in track IMMEDIATELY (before API call)
+          try {
+            const track = getDeployTrack();
+            track[r.data.id] = {
+              action: 'upsert',
+              startedAt: Date.now(),
+              confirmedAt: undefined
+            };
+            setDeployTrack(track);
+          } catch {}
           
           // Republish to go live again
           showPublishWaitHint();
@@ -2793,6 +2982,17 @@
           
           apr.push(dataToPublish);
           setApproved(dedupeByIdAndTitle(apr));
+          
+          // Mark upsert in track IMMEDIATELY (before API call)
+          try {
+            const track = getDeployTrack();
+            track[dataToPublish.id] = {
+              action: 'upsert',
+              startedAt: Date.now(),
+              confirmedAt: undefined
+            };
+            setDeployTrack(track);
+          } catch {}
           
           renderTable();
           showPublishWaitHint();
