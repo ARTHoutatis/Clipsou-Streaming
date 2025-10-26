@@ -1,31 +1,5 @@
 [
   {
-    "requestId": "r_mh6oe9wl_o7yvup",
-    "status": "pending",
-    "data": {
-      "id": "custom-test3-j2nz",
-      "requestId": "r_mh6oe9wl_o7yvup",
-      "title": "test3",
-      "type": "film",
-      "rating": 3,
-      "genres": [
-        "Action",
-        "Thriller",
-        "Comédie"
-      ],
-      "description": "TESTSTS",
-      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761255333/z2wva3jfitatg5qyv2qp.webp",
-      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761255336/x2tnrmwi2ndcyfag2v8g.webp",
-      "watchUrl": "https://www.youtube.com/watch?v=snro9u1Vsuk",
-      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761255342/yiozuhls10gxm2jrcots.webp",
-      "actors": [],
-      "episodes": []
-    },
-    "meta": {
-      "updatedAt": 1761427276243
-    }
-  },
-  {
     "requestId": "pub-custom-cassette-n-13-sh76",
     "status": "pending",
     "data": {
