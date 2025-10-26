@@ -3,7 +3,7 @@
     "requestId": "r_mh8ccp2o_uriu4l",
     "status": "pending",
     "data": {
-      "id": "custom-south-park-the-fan-made-anbd",
+      "id": "custom-south-park-the-fan-made-bu9z",
       "requestId": "r_mh8ccp2o_uriu4l",
       "title": "South Park / The Fan Made",
       "type": "série",
@@ -28,12 +28,17 @@
           "name": "Ytstraille",
           "role": "Mr Roxxor",
           "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761521320/qay0cforvxatdv5xa4zt.jpg"
+        },
+        {
+          "name": "Ytstraille",
+          "role": "Kenny",
+          "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761521320/qay0cforvxatdv5xa4zt.jpg"
         }
       ],
       "episodes": []
     },
     "meta": {
-      "updatedAt": 1761521386992
+      "updatedAt": 1761521403376
     }
   },
   {
