@@ -134,10 +134,10 @@ html, body {
   opacity: 0;
   visibility: hidden;
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  transition: opacity 0.25s ease, visibility 0s 0.25s;
+  inset: 0;
+  height: 0;
+  overflow: hidden;
+  transition: opacity 0.25s ease, visibility 0s 0.25s, height 0.25s ease;
   pointer-events: none;
 }
 
@@ -145,6 +145,8 @@ html, body {
   opacity: 1;
   visibility: visible;
   position: relative;
+  height: auto;
+  overflow: visible;
   transition: opacity 0.25s ease, visibility 0s 0s;
   pointer-events: auto;
 }
@@ -164,6 +166,18 @@ html, body {
   margin-top: 32px;
   padding-top: 24px;
   border-top: 1px solid #334155;
+}
+
+@media (max-width: 640px) {
+  .form-section {
+    margin: 12px 0;
+    padding: 20px;
+  }
+
+  .slide-nav {
+    margin-top: 24px;
+    padding-top: 16px;
+  }
 }
 
 .slide-nav .btn {
@@ -309,8 +323,8 @@ h2 {
 }
 
 .terms-accept {
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(34, 197, 94, 0.16);
+  border: 1px solid rgba(22, 163, 74, 0.45);
   border-radius: 12px;
   padding: 20px;
   margin-top: 20px;
@@ -559,6 +573,10 @@ fieldset:disabled {
   align-items: center;
 }
 
+.form-section form > .actions {
+  width: 100%;
+}
+
 label .actions {
   margin: 6px 0;
 }
@@ -567,6 +585,34 @@ label .actions {
 .actions .file-label {
   flex: 1;
   min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-section form > .actions .btn,
+  .form-section form > .actions .file-label {
+    flex: none;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  label .actions {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  label .actions .btn,
+  label .actions .file-label {
+    width: auto;
+    flex: 1;
+  }
 }
 
 /* Grid labels with upload buttons */
