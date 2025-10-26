@@ -1,7 +1,7 @@
 [
   {
     "requestId": "r_mh8bf6l8_gyv7wb",
-    "status": "pending",
+    "status": "approved",
     "data": {
       "id": "custom-arth-animations-qx4c",
       "requestId": "r_mh8bf6l8_gyv7wb",
@@ -52,7 +52,7 @@
       ]
     },
     "meta": {
-      "updatedAt": 1761519823389
+      "updatedAt": 1761519831899
     }
   },
   {
