@@ -112,7 +112,7 @@
     "id": "custom-clipsou-explorer-1-ocfv",
     "title": "Clipsou Explorer 1",
     "type": "trailer",
-    "rating": 3.5,
+    "rating": 3,
     "genres": [
       "Documentaire",
       "Comédie",
@@ -149,6 +149,7 @@
         "role": "Clone prod ( animateur )"
       }
     ],
+    "episodes": [],
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761316978/wkcmjnqubfmqg8mfkmfn.webp"
   },
   {
