@@ -417,6 +417,38 @@
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761345961/hfjaeiqcxeyfqz5gosqr.webp"
   },
   {
+    "id": "custom-ose-ouvrir-8vaq",
+    "title": "Ose Ouvrir",
+    "type": "film",
+    "rating": 3,
+    "genres": [
+      "Comédie",
+      "Action",
+      "Familial"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761523943/ftinn9d7zq7wvmjf7uf9.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761523945/r3jozto0u2wmtibkfylk.jpg",
+    "description": "Un criminel en fuite rencontre le fils du policier qui le traque, un voleur hautement récompensé. Malgré leurs tensions, ils unissent leurs forces pour préparer un audacieux plan visant à dérober le coffre-fort caché au cœur du grand champ.",
+    "watchUrl": "https://youtu.be/OJN9nVvr7-w?si=IyRxSVYImYdKRYe0",
+    "actors": [
+      {
+        "name": "Liam Roxxor",
+        "role": "Le Voleur",
+        "photo": "liam-roxxor.webp"
+      },
+      {
+        "name": "Ath78",
+        "role": "Le Policier"
+      },
+      {
+        "name": "Ath78",
+        "role": "Le Voleur 2 ( fils du policier )"
+      }
+    ],
+    "episodes": [],
+    "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp"
+  },
+  {
     "id": "custom-ou-est-partie-ma-mamie-bxxd",
     "requestId": "r_mfh3ldja_7e2nvj",
     "title": "Ou Est Partie Ma Mamie ?",
