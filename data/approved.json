@@ -27,6 +27,44 @@
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757915610/tn39ga32agrfxtgp5xzy.png"
   },
   {
+    "id": "custom-alien-evasion-7z2l",
+    "title": "Alien Evasion",
+    "type": "film",
+    "rating": 1.5,
+    "genres": [
+      "Action",
+      "Brickfilm",
+      "Horreur"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761568854/krjftuhja5eydvqybsjc.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761568832/g7ncifayinumla3cwcfs.jpg",
+    "description": "alors que des astronaute voyage dans l'espace, une étrange créature va les attaqué un par un, Le Xenomorphe !, qui sera le dernier survivant au monstre ?!",
+    "watchUrl": "https://youtu.be/-Zcd8-uiFS4?si=PLD2N0tVW7y8paX6",
+    "actors": [
+      {
+        "name": "Lesaim_animation",
+        "role": "Maya"
+      },
+      {
+        "name": "Arth",
+        "role": "Alex",
+        "photo": "arth.webp"
+      },
+      {
+        "name": "Liam Roxxor",
+        "role": "Kate",
+        "photo": "liam-roxxor.webp"
+      },
+      {
+        "name": "Ferrisbu",
+        "role": "Ryan",
+        "photo": "ferrisbu.webp"
+      }
+    ],
+    "episodes": [],
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761569109/tcjurhwu7aegoegysea7.webp"
+  },
+  {
     "id": "custom-cassette-n-13-sh76",
     "title": "Cassette N°13",
     "type": "film",
@@ -82,7 +120,8 @@
       },
       {
         "name": "Arth",
-        "role": "ARTH"
+        "role": "ARTH",
+        "photo": "arth.webp"
       },
       {
         "name": "ESHI",
@@ -90,7 +129,8 @@
       },
       {
         "name": "Ferrisbu",
-        "role": "Ferrisbu"
+        "role": "Ferrisbu",
+        "photo": "ferrisbu.webp"
       },
       {
         "name": "Raiback",
@@ -308,7 +348,8 @@
       },
       {
         "name": "Ferrisbu",
-        "role": "Guts"
+        "role": "Guts",
+        "photo": "ferrisbu.webp"
       },
       {
         "name": "Liam Roxxor",
