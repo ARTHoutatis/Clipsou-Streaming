@@ -150,7 +150,7 @@
     "id": "custom-couloirs-thi4",
     "title": "Couloirs",
     "type": "film",
-    "rating": 3.5,
+    "rating": 4,
     "genres": [
       "Horreur psychologique",
       "Action",
@@ -177,7 +177,7 @@
     ],
     "episodes": [],
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761567137/pjl8vzifnmggpz6okhji.png",
-    "ratingCount": 2
+    "ratingCount": 3
   },
   {
     "id": "custom-elden-ring-le-film-le-pire-guerrier-pxql",
