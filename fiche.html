@@ -31,6 +31,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="common.css?v=20250929-1">
   <link rel="stylesheet" href="index.css?v=20250929-1">
+  <link rel="stylesheet" href="rating-modal.css">
   <script src="utilities.js?v=20250929-1"></script>
   <style>
     /* Prevent card clipping on fiche page */
@@ -119,6 +120,76 @@
     </div>
   </main>
 
+  <!-- Popup de notation -->
+  <div id="ratingModal" class="rating-modal" style="display: none;">
+    <div class="rating-modal-content">
+      <div class="rating-card">
+        <!-- Image du contenu -->
+        <div class="rating-image-container">
+          <img id="ratingContentImage" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1f2e' width='320' height='180'/%3E%3C/svg%3E" alt="Contenu" class="rating-image">
+          <div class="rating-badge">contenu terminé</div>
+        </div>
+
+        <!-- Conteneur de contenu -->
+        <div class="rating-content">
+          <!-- Titre principal -->
+          <h2 class="rating-title">Comment Avez-Vous Trouvé Ce Contenu ?</h2>
+          
+          <!-- Sous-titre -->
+          <p class="rating-subtitle">La note que vous mettrez aura un impact sur la note générale du film</p>
+
+          <!-- Système d'étoiles -->
+          <div class="rating-stars" id="starRating">
+            <button type="button" class="star" data-rating="1" aria-label="1 étoile">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button type="button" class="star" data-rating="2" aria-label="2 étoiles">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button type="button" class="star" data-rating="3" aria-label="3 étoiles">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button type="button" class="star" data-rating="4" aria-label="4 étoiles">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button type="button" class="star" data-rating="5" aria-label="5 étoiles">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Conteneur des boutons d'action -->
+        <div class="rating-actions">
+          <!-- Bouton Soumettre -->
+          <button type="button" id="submitRatingBtn" class="rating-submit-btn" disabled>
+            Soumettre
+          </button>
+
+          <!-- Bouton Mettre en favoris -->
+          <button type="button" id="addToFavoritesBtn" class="rating-favorite-btn">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="heart-icon">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Mettre en favoris
+          </button>
+        </div>
+
+        <!-- Message de statut -->
+        <div id="ratingStatusMessage" class="rating-status-message" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Local dev helper: make Accueil links point to index.html when served as file:// or localhost
     (function(){
@@ -137,6 +208,8 @@
       }
     })();
   </script>
+  <script src="config.js"></script>
+  <script src="rating-modal.js"></script>
   <script src="fiche.js?v=20250916-1" defer></script>
 </body>
 </html>

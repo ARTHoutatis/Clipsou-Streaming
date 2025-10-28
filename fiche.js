@@ -502,6 +502,34 @@ function renderFiche(container, item) {
   });
   rg.appendChild(genresDiv);
 
+  // ----- Affichage de la moyenne des notes (lecture seule) -----
+  try {
+    const loadUserRatings = async () => {
+      try {
+        const response = await fetch('data/ratings.json', { cache: 'no-store' });
+        if (response.ok) {
+          const ratingsData = await response.json();
+          const itemRatings = ratingsData.find(r => r.id === item.id);
+          
+          if (itemRatings && itemRatings.ratings && itemRatings.ratings.length > 0) {
+            const total = itemRatings.ratings.reduce((sum, r) => sum + r, 0);
+            const average = total / itemRatings.ratings.length;
+            const count = itemRatings.ratings.length;
+            
+            const avgDisplay = document.createElement('div');
+            avgDisplay.className = 'user-rating-average';
+            avgDisplay.style.cssText = 'font-size: 0.9em; color: #ffa500; margin-top: 12px; font-weight: 600;';
+            avgDisplay.textContent = `⭐ ${average.toFixed(1)}/5 (${count} ${count === 1 ? 'vote' : 'votes'})`;
+            rg.appendChild(avgDisplay);
+          }
+        }
+      } catch (e) {
+        console.log('Ratings not available yet');
+      }
+    };
+    loadUserRatings();
+  } catch {}
+
   // ----- Durée du film (en minutes), à droite -----
   const durationChip = document.createElement('div');
   durationChip.className = 'duration-chip';
@@ -705,6 +733,29 @@ function renderFiche(container, item) {
     a.target = '_blank';
     a.rel = 'noopener noreferrer';
     a.textContent = '▶ Regarder';
+    
+    console.log('🔧 [Debug] Creating watch button for item:', item.id);
+    
+    // Marquer le clic sur Regarder avec timestamp
+    a.addEventListener('click', function(e) {
+      console.log('🎯 [Click] Watch button clicked for item:', item.id);
+      try {
+        const watchData = {
+          itemId: item.id,
+          timestamp: Date.now()
+        };
+        localStorage.setItem('clipsou_watching', JSON.stringify(watchData));
+        console.log('✅ [Click] Saved watching data to localStorage:', watchData);
+        
+        // Vérifier immédiatement
+        const verify = localStorage.getItem('clipsou_watching');
+        console.log('✅ [Click] Verification - read back from localStorage:', verify);
+      } catch (e) {
+        console.error('❌ [Click] Error saving watching data:', e);
+      }
+    });
+    
+    console.log('🔧 [Debug] Event listener attached to watch button');
     buttons.appendChild(a);
   }
 
@@ -1912,6 +1963,26 @@ const container = document.getElementById('fiche-container');
             }
             delete overlay.__skipIntro;
           } catch {}
+          
+          // Afficher la popup de notation
+          try {
+            const ficheId = new URLSearchParams(location.search).get('id') || '';
+            if (ficheId) {
+              // Vérifier si l'utilisateur a déjà noté ce contenu
+              const userRatings = JSON.parse(localStorage.getItem('clipsou_user_ratings') || '{}');
+              if (!userRatings[ficheId]) {
+                // Afficher la popup de notation
+                setTimeout(() => {
+                  if (typeof window.showRatingModal === 'function') {
+                    window.showRatingModal(ficheId);
+                  }
+                }, 500);
+                return;
+              }
+            }
+          } catch (e) {
+            console.error('Erreur affichage popup notation:', e);
+          }
         };
         closeBtn.addEventListener('click', close);
         overlay.addEventListener('click', (e)=>{ if (e.target === overlay) close(); });
@@ -2573,3 +2644,363 @@ const container = document.getElementById('fiche-container');
   });
 
 });
+
+// ===== POPUP DE NOTATION POST-VISIONNAGE =====
+// Exécuté en dehors du DOMContentLoaded pour fonctionner avec le cache
+(function initRatingPopup() {
+  // Attendre que le DOM soit prêt
+  function init() {
+    try {
+      // Récupérer l'ID du film actuel depuis l'URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentItemId = urlParams.get('id');
+      
+      console.log('🎬 [Rating Popup] Current item ID:', currentItemId);
+      
+      if (!currentItemId) {
+        console.log('❌ [Rating Popup] No item ID in URL');
+        return;
+      }
+      
+      // Vérifier si l'utilisateur vient de regarder un film (depuis watch.html)
+      let watchedItemId = sessionStorage.getItem('clipsou_just_watched');
+      console.log('🎬 [Rating Popup] Just watched (from watch.html):', watchedItemId);
+      
+      if (!watchedItemId) {
+        // Vérifier si l'utilisateur a cliqué sur "Regarder" pour CE film
+        try {
+          const watchingData = localStorage.getItem('clipsou_watching');
+          console.log('🎬 [Rating Popup] Watching data:', watchingData);
+          
+          if (watchingData) {
+            const parsed = JSON.parse(watchingData);
+            console.log('🎬 [Rating Popup] Parsed watching data:', parsed);
+            console.log('🎬 [Rating Popup] Comparing:', parsed.itemId, '===', currentItemId);
+            
+            // Si c'est le même film, afficher instantanément
+            if (parsed.itemId === currentItemId) {
+              console.log('✅ [Rating Popup] MATCH! Will show popup');
+              watchedItemId = parsed.itemId;
+              localStorage.removeItem('clipsou_watching');
+            } else {
+              console.log('⚠️ [Rating Popup] No match, different item');
+            }
+          }
+        } catch (e) {
+          console.error('❌ [Rating Popup] Error parsing watching data:', e);
+        }
+      } else {
+        console.log('✅ [Rating Popup] Got just_watched flag');
+        // Nettoyer le flag
+        sessionStorage.removeItem('clipsou_just_watched');
+      }
+      
+      // Vérifier que c'est bien pour le film actuel
+      if (!watchedItemId || watchedItemId !== currentItemId) {
+        console.log('❌ [Rating Popup] Not showing popup:', watchedItemId, '!==', currentItemId);
+        return;
+      }
+      
+      console.log('🚀 [Rating Popup] Proceeding to show popup...');
+      
+      // Vérifier les états dans localStorage
+      const getRatingStates = () => {
+        try {
+          const raw = localStorage.getItem('clipsou_rating_states_v1');
+          return raw ? JSON.parse(raw) : {};
+        } catch {
+          return {};
+        }
+      };
+      
+      const saveRatingState = (itemId, state) => {
+        try {
+          const states = getRatingStates();
+          states[itemId] = { state, timestamp: Date.now() };
+          localStorage.setItem('clipsou_rating_states_v1', JSON.stringify(states));
+        } catch {}
+      };
+      
+      const states = getRatingStates();
+      const itemState = states[watchedItemId];
+      
+      // Si déjà noté ou ignoré, ne pas afficher
+      if (itemState && (itemState.state === 'rated' || itemState.state === 'ignored')) {
+        return;
+      }
+      
+      // Créer la popup
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: fadeIn 0.3s ease;
+      `;
+      
+      const popup = document.createElement('div');
+      popup.style.cssText = `
+        background: linear-gradient(135deg, #1a1f2e 0%, #0d1117 100%);
+        border-radius: 16px;
+        padding: 32px;
+        max-width: 450px;
+        width: 100%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        animation: slideUp 0.4s ease;
+      `;
+      
+      // Titre
+      const title = document.createElement('h2');
+      title.style.cssText = `
+        margin: 0 0 12px 0;
+        font-size: 1.6em;
+        color: #fff;
+        text-align: center;
+      `;
+      title.textContent = 'Avez-vous aimé ce contenu ?';
+      
+      // Sous-titre
+      const subtitle = document.createElement('p');
+      subtitle.style.cssText = `
+        margin: 0 0 24px 0;
+        font-size: 0.95em;
+        color: rgba(255, 255, 255, 0.7);
+        text-align: center;
+      `;
+      subtitle.textContent = 'Votre avis compte ! Notez ce contenu pour aider les autres.';
+      
+      // Container des étoiles
+      const starsContainer = document.createElement('div');
+      starsContainer.style.cssText = `
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 28px;
+        cursor: pointer;
+      `;
+      
+      let selectedRating = 0;
+      
+      // Créer 5 étoiles
+      for (let i = 1; i <= 5; i++) {
+        const star = document.createElement('span');
+        star.className = 'popup-rating-star';
+        star.dataset.value = i;
+        star.textContent = '★';
+        star.style.cssText = `
+          font-size: 42px;
+          color: rgba(255, 255, 255, 0.2);
+          transition: all 0.2s ease;
+          cursor: pointer;
+        `;
+        
+        star.addEventListener('mouseenter', function() {
+          const value = parseInt(this.dataset.value);
+          starsContainer.querySelectorAll('.popup-rating-star').forEach((s, idx) => {
+            if (idx + 1 <= value) {
+              s.style.color = '#ffa500';
+              s.style.transform = 'scale(1.15)';
+            } else {
+              s.style.color = 'rgba(255, 255, 255, 0.2)';
+              s.style.transform = 'scale(1)';
+            }
+          });
+        });
+        
+        star.addEventListener('click', async function() {
+          const value = parseInt(this.dataset.value);
+          selectedRating = value;
+          
+          // Désactiver les étoiles pendant l'envoi
+          starsContainer.style.pointerEvents = 'none';
+          starsContainer.style.opacity = '0.5';
+          
+          // Envoyer au serveur
+          try {
+            const workerUrl = (window.ClipsouConfig && window.ClipsouConfig.workerUrl) || 'https://clipsou-publish.arthurcapon54.workers.dev';
+            const response = await fetch(workerUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'rate_item',
+                itemId: watchedItemId,
+                rating: value
+              })
+            });
+            
+            if (response.ok) {
+              // Marquer comme noté
+              saveRatingState(watchedItemId, 'rated');
+              
+              // Afficher feedback de succès
+              popup.innerHTML = `
+                <div style="text-align: center;">
+                  <div style="font-size: 64px; margin-bottom: 16px;">✓</div>
+                  <h2 style="color: #4ade80; margin: 0 0 12px 0;">Merci !</h2>
+                  <p style="color: rgba(255, 255, 255, 0.7); margin: 0;">Votre note a été enregistrée avec succès.</p>
+                </div>
+              `;
+              
+              setTimeout(() => {
+                overlay.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => overlay.remove(), 300);
+              }, 2000);
+            } else {
+              throw new Error('Server error');
+            }
+          } catch (e) {
+            console.error('Error saving rating:', e);
+            starsContainer.style.pointerEvents = '';
+            starsContainer.style.opacity = '1';
+            
+            // Afficher message d'erreur
+            const errorMsg = document.createElement('div');
+            errorMsg.style.cssText = 'color: #f87171; text-align: center; margin-top: 12px; font-size: 0.9em;';
+            errorMsg.textContent = '✗ Erreur lors de l\'enregistrement. Veuillez réessayer.';
+            popup.insertBefore(errorMsg, buttonsContainer);
+            setTimeout(() => errorMsg.remove(), 3000);
+          }
+        });
+        
+        starsContainer.appendChild(star);
+      }
+      
+      starsContainer.addEventListener('mouseleave', function() {
+        starsContainer.querySelectorAll('.popup-rating-star').forEach((s, idx) => {
+          if (idx + 1 <= selectedRating) {
+            s.style.color = '#ffa500';
+          } else {
+            s.style.color = 'rgba(255, 255, 255, 0.2)';
+          }
+          s.style.transform = 'scale(1)';
+        });
+      });
+      
+      // Boutons d'action
+      const buttonsContainer = document.createElement('div');
+      buttonsContainer.style.cssText = `
+        display: flex;
+        gap: 12px;
+        flex-direction: column;
+      `;
+      
+      // Bouton "Plus tard"
+      const laterBtn = document.createElement('button');
+      laterBtn.style.cssText = `
+        padding: 14px 24px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        color: #fff;
+        font-size: 1em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      `;
+      laterBtn.textContent = '🕒 Plus tard';
+      laterBtn.addEventListener('mouseenter', () => {
+        laterBtn.style.background = 'rgba(255, 255, 255, 0.15)';
+        laterBtn.style.transform = 'translateY(-2px)';
+      });
+      laterBtn.addEventListener('mouseleave', () => {
+        laterBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+        laterBtn.style.transform = 'translateY(0)';
+      });
+      laterBtn.addEventListener('click', () => {
+        // Ne rien sauvegarder, la popup pourra réapparaître
+        overlay.style.animation = 'fadeOut 0.3s ease';
+        setTimeout(() => overlay.remove(), 300);
+      });
+      
+      // Bouton "Ne plus demander"
+      const ignoreBtn = document.createElement('button');
+      ignoreBtn.style.cssText = `
+        padding: 14px 24px;
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.9em;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      `;
+      ignoreBtn.textContent = 'Ne plus demander pour ce contenu';
+      ignoreBtn.addEventListener('mouseenter', () => {
+        ignoreBtn.style.color = 'rgba(255, 255, 255, 0.8)';
+      });
+      ignoreBtn.addEventListener('mouseleave', () => {
+        ignoreBtn.style.color = 'rgba(255, 255, 255, 0.5)';
+      });
+      ignoreBtn.addEventListener('click', () => {
+        saveRatingState(watchedItemId, 'ignored');
+        overlay.style.animation = 'fadeOut 0.3s ease';
+        setTimeout(() => overlay.remove(), 300);
+      });
+      
+      buttonsContainer.appendChild(laterBtn);
+      buttonsContainer.appendChild(ignoreBtn);
+      
+      // Assembler la popup
+      popup.appendChild(title);
+      popup.appendChild(subtitle);
+      popup.appendChild(starsContainer);
+      popup.appendChild(buttonsContainer);
+      overlay.appendChild(popup);
+      
+      // Ajouter les animations CSS
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes fadeOut {
+          from { opacity: 1; }
+          to { opacity: 0; }
+        }
+        @keyframes slideUp {
+          from { 
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to { 
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `;
+      document.head.appendChild(style);
+      
+      // Ajouter au DOM avec un petit délai pour l'effet
+      setTimeout(() => {
+        document.body.appendChild(overlay);
+      }, 500);
+      
+      // Fermer en cliquant sur l'overlay (comme "Plus tard")
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          overlay.style.animation = 'fadeOut 0.3s ease';
+          setTimeout(() => overlay.remove(), 300);
+        }
+      });
+      
+    } catch (e) {
+      console.error('Error initializing rating popup:', e);
+    }
+  }
+  
+  // Appeler init immédiatement si le DOM est prêt, sinon attendre
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();

@@ -1,0 +1,293 @@
+/* Popup de notation - Modal */
+:root {
+    --bg-1: #0b1117;
+    --bg-2: #0e141b;
+}
+
+/* Modal overlay et container - inspiré de index.css */
+.rating-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 11500;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.rating-modal[style*="display: flex"] {
+    display: flex;
+}
+
+.rating-modal-overlay {
+    display: none;
+}
+
+.rating-modal-content {
+    position: relative;
+    width: min(92vw, 480px);
+    max-height: min(92vh, 650px);
+    z-index: 1;
+}
+
+/* Card */
+.rating-card {
+    background: #1a2332;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 20px 18px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+/* Image */
+.rating-image-container {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    height: 180px;
+    margin: 0 auto 12px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #1a1f2e 0%, #2a2f3e 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rating-image-container::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    z-index: 0;
+}
+
+.rating-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(135deg, #1a1f2e 0%, #2a2f3e 100%);
+}
+
+.rating-badge {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: lowercase;
+    z-index: 10;
+}
+
+/* Content */
+.rating-content {
+    margin-bottom: 12px;
+}
+
+.rating-title {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    line-height: 1.2;
+}
+
+.rating-subtitle {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 11px;
+    margin: 0 0 12px 0;
+    line-height: 1.3;
+}
+
+/* Stars */
+.rating-stars {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.star {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: 42px;
+    height: 42px;
+    transition: transform 0.2s ease;
+}
+
+.star svg {
+    width: 100%;
+    height: 100%;
+    color: #4a4f5e;
+    fill: none;
+    transition: all 0.3s ease;
+}
+
+.star:hover svg,
+.star.hover svg,
+.star.active svg {
+    color: #ffd700;
+    fill: #ffd700;
+}
+
+.star:active {
+    transform: scale(0.95);
+}
+
+/* Actions */
+.rating-actions {
+    margin-top: 8px;
+}
+
+.rating-submit-btn,
+.rating-favorite-btn {
+    width: 100%;
+    max-width: 100%;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    display: block;
+    margin: 0 auto 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.rating-submit-btn {
+    background: #ffffff;
+    color: #0a0e1a;
+    border: none;
+}
+
+.rating-submit-btn:hover:not(:disabled) {
+    background: #f0f0f0;
+    transform: translateY(-2px);
+}
+
+.rating-submit-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.rating-favorite-btn {
+    background: transparent;
+    color: #ff1f5a;
+    border: 2px solid #ff1f5a;
+    font-size: 13px;
+    padding: 9px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.rating-favorite-btn:hover {
+    background: rgba(255, 31, 90, 0.1);
+    transform: translateY(-2px);
+}
+
+.rating-favorite-btn.favorited {
+    background: #ff1f5a;
+    color: #ffffff;
+}
+
+.heart-icon {
+    width: 18px;
+    height: 18px;
+}
+
+.rating-favorite-btn.favorited .heart-icon {
+    fill: currentColor;
+}
+
+/* Status message */
+.rating-status-message {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 13px;
+    z-index: 10000;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.rating-status-message.success {
+    background: rgba(46, 213, 115, 0.2);
+    color: #2ed573;
+    border: 1px solid #2ed573;
+}
+
+.rating-status-message.error {
+    background: rgba(255, 71, 87, 0.2);
+    color: #ff4757;
+    border: 1px solid #ff4757;
+}
+
+/* Lock body scroll when modal is open */
+body:has(.rating-modal[style*="display: flex"]) {
+    overflow: hidden !important;
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+    .rating-modal-content {
+        width: min(95vw, 400px);
+        max-height: min(95vh, 600px);
+    }
+
+    .rating-card {
+        padding: 16px 14px;
+    }
+
+    .rating-image-container {
+        max-width: 280px;
+        height: 158px;
+    }
+
+    .rating-title {
+        font-size: 16px;
+    }
+
+    .rating-subtitle {
+        font-size: 10px;
+    }
+
+    .star {
+        width: 38px;
+        height: 38px;
+    }
+
+    .rating-submit-btn,
+    .rating-favorite-btn {
+        font-size: 13px;
+        padding: 9px 18px;
+    }
+}

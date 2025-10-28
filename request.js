@@ -703,6 +703,51 @@
     rateLimitNotice.hidden = false;
     formSection.style.opacity = '0.5';
     formSection.style.pointerEvents = 'none';
+
+    // Démarrer le countdown et débloquer automatiquement quand c'est fini
+    startRateLimitCountdown(nextAllowedTime);
+  }
+
+  /**
+   * Start countdown and auto-unlock form when rate limit expires
+   */
+  function startRateLimitCountdown(nextAllowedTime) {
+    // Clear any existing interval
+    if (window.rateLimitInterval) {
+      clearInterval(window.rateLimitInterval);
+    }
+
+    window.rateLimitInterval = setInterval(() => {
+      const timeLeft = nextAllowedTime.getTime() - Date.now();
+      
+      // Si le délai est terminé, débloquer le formulaire
+      if (timeLeft <= 0) {
+        clearInterval(window.rateLimitInterval);
+        console.log('✓ Rate limit expiré - Débloquage du formulaire');
+        
+        // Cacher le notice
+        if (rateLimitNotice) {
+          rateLimitNotice.hidden = true;
+        }
+        
+        // Débloquer le formulaire
+        enableForm();
+        if (stepperContainer) stepperContainer.hidden = false;
+        if (slidesContainer) slidesContainer.hidden = false;
+        
+        // Afficher un message de confirmation
+        alert('✓ Vous pouvez maintenant soumettre une nouvelle demande !');
+        
+        return;
+      }
+
+      // Mettre à jour le countdown
+      const timeRemaining = calculateTimeRemaining(nextAllowedTime);
+      const nextRequestTimeEl = document.getElementById('nextRequestTime');
+      if (nextRequestTimeEl) {
+        nextRequestTimeEl.textContent = `Prochaine demande possible : ${nextAllowedTime.toLocaleString('fr-FR')} (${timeRemaining})`;
+      }
+    }, 1000); // Mise à jour toutes les secondes
   }
 
   /**
