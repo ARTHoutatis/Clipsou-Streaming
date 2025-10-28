@@ -30,7 +30,7 @@
     "id": "custom-alien-evasion-7z2l",
     "title": "Alien Evasion",
     "type": "film",
-    "rating": 1.5,
+    "rating": 4,
     "genres": [
       "Action",
       "Brickfilm",
@@ -62,7 +62,8 @@
       }
     ],
     "episodes": [],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761569109/tcjurhwu7aegoegysea7.webp"
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761569109/tcjurhwu7aegoegysea7.webp",
+    "ratingCount": 1
   },
   {
     "id": "custom-cassette-n-13-sh76",
