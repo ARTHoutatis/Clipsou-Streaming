@@ -181,10 +181,12 @@ function displayResults(results) {
             // If full URL or no extension, use as-is; otherwise nothing
             initialSrc = item.image || '';
         }
+        const isLocalFilm = LOCAL_FALLBACK_DB.some(local => local.id === item.id);
         const hasCustomBadge = Boolean(item.studioBadge && String(item.studioBadge).trim());
-        const badgeHtml = hasCustomBadge ? `
+        const shouldShowBadge = isLocalFilm || hasCustomBadge;
+        const badgeHtml = shouldShowBadge ? `
                     <div class="brand-badge">
-                        <img src="${item.studioBadge}" alt="Studio" loading="lazy" decoding="async">
+                        <img src="${hasCustomBadge ? item.studioBadge : 'images/clipsoustudio.webp'}" alt="Studio" loading="lazy" decoding="async">
                     </div>` : '';
         return `
         <div class="card">

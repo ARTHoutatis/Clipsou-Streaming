@@ -1005,14 +1005,17 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       img.loading = 'lazy';
       img.decoding = 'async';
       
-      // Badge studio (seulement si défini)
+      // Badge studio (clipsoustudio pour films locaux, ou badge personnalisé)
+      const isLocalFilm = LOCAL_FALLBACK_DB.some(local => local.id === it.id);
       const hasCustomBadge = Boolean(it.studioBadge && it.studioBadge.trim());
-      if (hasCustomBadge) {
+      const shouldShowBadge = isLocalFilm || hasCustomBadge;
+      
+      if (shouldShowBadge) {
         const badge = document.createElement('div');
         badge.className = 'brand-badge';
         const logo = document.createElement('img');
-        logo.src = it.studioBadge;
-        logo.alt = 'Logo du studio';
+        logo.src = hasCustomBadge ? it.studioBadge : 'images/clipsoustudio.webp';
+        logo.alt = hasCustomBadge ? 'Logo du studio' : 'Clipsou Studio';
         logo.loading = 'lazy';
         badge.appendChild(logo);
         media.appendChild(badge);
@@ -1566,14 +1569,17 @@ function renderList(container, items, titleText) {
     img.loading = 'lazy';
     img.decoding = 'async';
     
-    // Badge studio (seulement si défini)
+    // Badge studio (clipsoustudio pour films locaux, ou badge personnalisé)
+    const isLocalFilm = LOCAL_FALLBACK_DB.some(local => local.id === it.id);
     const hasCustomBadge = Boolean(it.studioBadge && it.studioBadge.trim());
-    if (hasCustomBadge) {
+    const shouldShowBadge = isLocalFilm || hasCustomBadge;
+    
+    if (shouldShowBadge) {
       const badge = document.createElement('div');
       badge.className = 'brand-badge';
       const logo = document.createElement('img');
-      logo.src = it.studioBadge;
-      logo.alt = 'Logo du studio';
+      logo.src = hasCustomBadge ? it.studioBadge : 'images/clipsoustudio.webp';
+      logo.alt = hasCustomBadge ? 'Logo du studio' : 'Clipsou Studio';
       logo.loading = 'lazy';
       logo.decoding = 'async';
       badge.appendChild(logo);

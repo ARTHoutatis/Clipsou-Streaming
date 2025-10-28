@@ -1747,13 +1747,17 @@ document.addEventListener('DOMContentLoaded', async function () {
       img.setAttribute('loading', 'lazy'); img.setAttribute('decoding', 'async');
       const info = document.createElement('div'); info.className = 'card-info'; info.setAttribute('data-type', item.type || 'film'); if (typeof item.rating !== 'undefined') info.setAttribute('data-rating', String(item.rating)); if (item.studioBadge) info.setAttribute('data-studio-badge', String(item.studioBadge));
       const media = document.createElement('div'); media.className = 'card-media';
-      // Badge studio (seulement si défini)
+      // Badge studio (clipsoustudio pour films locaux, ou badge personnalisé)
+      const localFilmIds = ['film1', 'film2', 'film3', 'film4', 'film5', 'film6', 'film7', 'serie1', 'serie2', 'serie3'];
+      const isLocalFilm = localFilmIds.includes(item.id);
       const hasCustomBadge = Boolean(item.studioBadge && String(item.studioBadge).trim());
-      if (hasCustomBadge) {
+      const shouldShowBadge = isLocalFilm || hasCustomBadge;
+      
+      if (shouldShowBadge) {
         const badge = document.createElement('div'); badge.className = 'brand-badge'; 
         const logo = document.createElement('img'); 
-        logo.src = item.studioBadge; 
-        logo.alt = 'Studio'; 
+        logo.src = hasCustomBadge ? item.studioBadge : 'images/clipsoustudio.webp'; 
+        logo.alt = hasCustomBadge ? 'Studio' : 'Clipsou Studio'; 
         logo.setAttribute('loading', 'lazy'); 
         logo.setAttribute('decoding', 'async'); 
         badge.appendChild(logo);
@@ -2546,11 +2550,19 @@ document.addEventListener('DOMContentLoaded', async function () {
         desired = (info && info.getAttribute('data-studio-badge')) || '';
       } catch {}
       
-      // Badge studio (seulement si défini)
+      // Identifier le film par son ID depuis le lien
+      const linkHref = a.getAttribute('href') || '';
+      const idMatch = linkHref.match(/id=([^&]+)/);
+      const itemId = idMatch ? decodeURIComponent(idMatch[1]) : '';
+      const localFilmIds = ['film1', 'film2', 'film3', 'film4', 'film5', 'film6', 'film7', 'serie1', 'serie2', 'serie3'];
+      const isLocalFilm = localFilmIds.includes(itemId);
+      
+      // Badge studio (clipsoustudio pour films locaux, ou badge personnalisé)
       const hasCustomBadge = Boolean(desired && desired.trim());
+      const shouldShowBadge = isLocalFilm || hasCustomBadge;
       let badge = media.querySelector('.brand-badge');
       
-      if (hasCustomBadge) {
+      if (shouldShowBadge) {
         // Créer ou mettre à jour le badge
         if (!badge) { 
           badge = document.createElement('div'); 
@@ -2564,9 +2576,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
         const logo = badge.querySelector('img');
         try { if (logo) logo.fetchPriority = 'low'; } catch {}
-        if (logo && logo.src !== desired) { 
-          logo.src = desired; 
-          logo.alt = 'Studio'; 
+        const badgeSrc = hasCustomBadge ? desired : 'images/clipsoustudio.webp';
+        if (logo && logo.src !== badgeSrc) { 
+          logo.src = badgeSrc; 
+          logo.alt = hasCustomBadge ? 'Studio' : 'Clipsou Studio'; 
         }
       } else {
         // Supprimer le badge s'il existe

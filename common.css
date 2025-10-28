@@ -744,7 +744,7 @@ body.popup-open nav[aria-label="Navigation principale"] {
 
 /* Fine-tune badge position for similar-section cards (fiche page) */
 .similar-section .card .card-media .brand-badge {
-  bottom: 16px; /* raised more to align with other cards */
+  bottom: 8px; /* align with other cards */
 }
 
 /* Mobile tweak for similar-section cards */
@@ -765,7 +765,7 @@ body.popup-open nav[aria-label="Navigation principale"] {
   }
   /* For drawer, JS applies position:fixed with top offset to fully lock scroll */
   .similar-section .card .card-media .brand-badge {
-    bottom: 12px; /* adjust for mobile consistently */
+    bottom: 8px; /* align with other cards on mobile */
   }
 }
 
@@ -857,7 +857,7 @@ html { scrollbar-color: #615d5d #0a0a0a; scrollbar-width: thin; }
     padding: 4px; /* was 7px */
     border-radius: 4px; /* slightly tighter */
   }
-  .similar-section .card .card-media .brand-badge { bottom: 10px; }
+  .similar-section .card .card-media .brand-badge { bottom: 8px; }
   .card .card-media .brand-badge img {
     width: auto !important;
     height: 8px !important; /* was 10px */
