@@ -1,5 +1,55 @@
 [
   {
+    "requestId": "r_mhazsyuh_ysppgj",
+    "status": "pending",
+    "data": {
+      "id": "custom-astron-resistance-2gvw",
+      "requestId": "r_mhazsyuh_ysppgj",
+      "title": "Astron - Résistance",
+      "type": "film",
+      "genres": [
+        "Science-Fiction",
+        "Aventure",
+        "Animation"
+      ],
+      "description": "Dans une galaxie peuplée d'une multitude de créatures, règne le tyrannique Roi Eursa. Mais le général Eridix fonde la Guilde Xérion pour résister face à cette tyrannie. Einex, Zweila, Dreyord et Vierxy sont 4 jeunes recrues de la guilde et vont former la cellule Astron. Ces 4 héros unissent leurs forces pour vaincre le Roi Eursa.",
+      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761679974/trjdh0lxisxvmxajobz2.webp",
+      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761680329/w319uq2yvcml6lwt2a3e.webp",
+      "watchUrl": "https://www.youtube.com/watch?v=LBT5_j37KB8&list=PL4yc55JnxvBljBISsSIQbD4pd7CR0Z1ed",
+      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761679859/dfcmcwrwp0nxz8bzvc0x.webp",
+      "actors": [
+        {
+          "name": "Corentin Dubarry",
+          "role": "Einex"
+        },
+        {
+          "name": "Abby Duplessis",
+          "role": "Zweila"
+        },
+        {
+          "name": "Corentin Le Gat",
+          "role": "Dreyord"
+        },
+        {
+          "name": "Baptiste Pomme",
+          "role": "Vierxy"
+        },
+        {
+          "name": "Manuel Dolores",
+          "role": "Roi Eursa"
+        },
+        {
+          "name": "Mathieu Desroses",
+          "role": "Général Eridix"
+        }
+      ],
+      "episodes": []
+    },
+    "meta": {
+      "updatedAt": 1761681709673
+    }
+  },
+  {
     "requestId": "req_1761681675255_b8hbzdhth",
     "status": "pending",
     "data": {
