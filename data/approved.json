@@ -145,16 +145,15 @@
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761316978/wkcmjnqubfmqg8mfkmfn.webp"
   },
   {
-    "id": "custom-couloirs-thi4",
+    "id": "custom-couloirs-lar3",
     "title": "Couloirs",
     "type": "film",
-    "rating": 4,
     "genres": [
-      "Horreur psychologique",
+      "Psychologique",
       "Action",
       "Horreur"
     ],
-    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761564802/kdkwg37u89kovqysx4pv.png",
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761612774/rhullklh68hnlij3b6lg.jpg",
     "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761564874/buaizz1z3c5p1klxnqlz.png",
     "description": "Dispute entre étudiants de l’école LES GOBELINS.",
     "watchUrl": "https://youtu.be/wB5v2-8GIuk?si=c0c9azcDION9fTao",
@@ -165,8 +164,7 @@
       },
       {
         "name": "Tom Elurse",
-        "role": "La victime",
-        "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761588233/i2mb33io86bdijsw0agl.jpg"
+        "role": "La victime"
       },
       {
         "name": "Sacha Franc—Gony",
@@ -174,7 +172,7 @@
       }
     ],
     "episodes": [],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761567137/pjl8vzifnmggpz6okhji.png"
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761564882/g3rmzpjc4ombgva9evfj.png"
   },
   {
     "id": "custom-elden-ring-le-film-le-pire-guerrier-pxql",
