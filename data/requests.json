@@ -1,7 +1,7 @@
 [
   {
     "requestId": "r_mhazsyuh_ysppgj",
-    "status": "pending",
+    "status": "approved",
     "data": {
       "id": "custom-astron-resistance-2gvw",
       "requestId": "r_mhazsyuh_ysppgj",
@@ -46,7 +46,7 @@
       "episodes": []
     },
     "meta": {
-      "updatedAt": 1761681709673
+      "updatedAt": 1761681716275
     }
   },
   {
