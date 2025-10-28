@@ -512,22 +512,38 @@ function renderFiche(container, item) {
           const ratingsData = await response.json();
           const itemRatings = ratingsData.find(r => r.id === item.id);
           
-          if (itemRatings && itemRatings.ratings && itemRatings.ratings.length > 0) {
-            const total = itemRatings.ratings.reduce((sum, r) => sum + r, 0);
-            const average = total / itemRatings.ratings.length;
-            const count = itemRatings.ratings.length;
-            
-            const rounded = Math.round(average * 10) / 10;
-            let txt = rounded.toFixed(1);
-            if (txt.endsWith('.0')) txt = String(Math.round(rounded));
+          if (itemRatings && Array.isArray(itemRatings.ratings)) {
+            const userRatings = itemRatings.ratings;
+            let total = userRatings.reduce((sum, r) => sum + r, 0);
+            let count = userRatings.length;
 
-            if (!stars) {
-              stars = document.createElement('div');
-              stars.className = 'stars';
-              rg.insertBefore(stars, genresDiv);
+            const baseFromRatings = (typeof itemRatings.baseRating === 'number' && !Number.isNaN(itemRatings.baseRating))
+              ? itemRatings.baseRating
+              : null;
+            const baseFromItem = (typeof item.rating === 'number' && !Number.isNaN(item.rating))
+              ? item.rating
+              : null;
+
+            const effectiveBase = baseFromRatings !== null ? baseFromRatings : baseFromItem;
+            if (effectiveBase !== null) {
+              total += effectiveBase;
+              count += 1;
             }
 
-            stars.textContent = '★' + txt + '/5';
+            if (count > 0) {
+              const average = total / count;
+              const rounded = Math.round(average * 10) / 10;
+              let txt = rounded.toFixed(1);
+              if (txt.endsWith('.0')) txt = String(Math.round(rounded));
+
+              if (!stars) {
+                stars = document.createElement('div');
+                stars.className = 'stars';
+                rg.insertBefore(stars, genresDiv);
+              }
+
+              stars.textContent = '★' + txt + '/5';
+            }
           }
         }
       } catch (e) {

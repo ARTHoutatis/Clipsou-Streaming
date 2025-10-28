@@ -10,6 +10,8 @@
     inset: 0;
     z-index: 11500;
     background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     display: none;
     align-items: center;
     justify-content: center;
@@ -152,18 +154,23 @@
 /* Actions */
 .rating-actions {
     margin-top: 8px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
 }
 
 .rating-submit-btn,
 .rating-favorite-btn {
-    width: 100%;
-    max-width: 100%;
-    padding: 10px 20px;
+    flex: 1;
+    min-width: 0;
+    padding: 12px 18px;
     border-radius: 10px;
     font-weight: 700;
     cursor: pointer;
-    display: block;
-    margin: 0 auto 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
     font-size: 14px;
     transition: all 0.3s ease;
 }
@@ -189,10 +196,6 @@
     color: #ff1f5a;
     border: 2px solid #ff1f5a;
     font-size: 13px;
-    padding: 9px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     gap: 8px;
 }
 
@@ -285,9 +288,14 @@ body:has(.rating-modal[style*="display: flex"]) {
         height: 38px;
     }
 
+    .rating-actions {
+        flex-direction: column;
+    }
+
     .rating-submit-btn,
     .rating-favorite-btn {
+        width: 100%;
         font-size: 13px;
-        padding: 9px 18px;
+        padding: 11px 18px;
     }
 }

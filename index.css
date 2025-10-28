@@ -430,8 +430,28 @@ body:not(.fiche-page-view) {
 }
 .resume-dialog-box h4 { margin: 0 0 8px 0; font-size: 18px; }
 .resume-dialog-box p { margin: 0 0 14px 0; font-size: 14px; color: rgba(255,255,255,0.9); }
-.resume-dialog-actions { display: flex; gap: 10px; justify-content: flex-end; }
-.resume-dialog-actions .button { min-width: 90px; }
+.resume-dialog-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: stretch;
+  align-items: center;
+}
+.resume-dialog-actions .button {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 18px;
+  text-align: center;
+}
+
+@media (max-width: 540px) {
+  .resume-dialog-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .resume-dialog-actions .button {
+    width: 100%;
+  }
+}
 
 /* Bloquer le scroll quand une popup est active */
 body:has(.fiche-popup:target) {

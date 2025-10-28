@@ -248,6 +248,10 @@ async function submitRating() {
     localStorage.setItem('clipsou_user_ratings', JSON.stringify(userRatings));
     console.log('✓ Note sauvegardée localement pour:', currentItemId, '=', currentRating);
 
+    const baseRating = (currentItemData && typeof currentItemData.rating === 'number')
+        ? currentItemData.rating
+        : null;
+
     try {
         const response = await fetch(RATING_WORKER_URL, {
             method: 'POST',
@@ -257,7 +261,8 @@ async function submitRating() {
             body: JSON.stringify({
                 action: 'rate_item',
                 itemId: currentItemId,
-                rating: currentRating
+                rating: currentRating,
+                baseRating
             })
         });
 
