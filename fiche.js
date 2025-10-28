@@ -1627,8 +1627,17 @@ const container = document.getElementById('fiche-container');
     // Reduce to best and merge critical fields so nothing is lost
     const best = cands.reduce((acc, cur) => {
       if (!acc) return { ...cur };
-      const chosen = score(cur) >= score(acc) ? { ...cur } : { ...acc };
-      const other  = chosen === cur ? acc : cur;
+      const curScore = score(cur);
+      const accScore = score(acc);
+      let chosen;
+      let other;
+      if (curScore >= accScore) {
+        chosen = { ...cur };
+        other = acc;
+      } else {
+        chosen = { ...acc };
+        other = cur;
+      }
       // Preserve studioBadge if present on either
       if (!chosen.studioBadge && other && other.studioBadge) chosen.studioBadge = other.studioBadge;
       // Prefer explicit portrait/landscape images; keep a generic image as fallback
