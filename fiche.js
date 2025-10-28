@@ -1005,19 +1005,20 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       img.loading = 'lazy';
       img.decoding = 'async';
       
-      // Badge Clipsou Studio
-      const badge = document.createElement('div');
-      badge.className = 'brand-badge';
-      const logo = document.createElement('img');
-      const fallbackBadge = 'images/clipsoustudio.webp';
-      const hasCustomBadge = Boolean(it.studioBadge);
-      logo.src = hasCustomBadge ? it.studioBadge : fallbackBadge;
-      logo.alt = hasCustomBadge ? 'Logo du studio' : 'Clipsou Studio';
-      logo.loading = 'lazy';
-      badge.appendChild(logo);
+      // Badge studio (seulement si défini)
+      const hasCustomBadge = Boolean(it.studioBadge && it.studioBadge.trim());
+      if (hasCustomBadge) {
+        const badge = document.createElement('div');
+        badge.className = 'brand-badge';
+        const logo = document.createElement('img');
+        logo.src = it.studioBadge;
+        logo.alt = 'Logo du studio';
+        logo.loading = 'lazy';
+        badge.appendChild(logo);
+        media.appendChild(badge);
+      }
       
       media.appendChild(img);
-      media.appendChild(badge);
       
       // Info bar
       const info = document.createElement('div');
@@ -1564,18 +1565,22 @@ function renderList(container, items, titleText) {
     img.alt = 'Affiche de ' + (it.title || '');
     img.loading = 'lazy';
     img.decoding = 'async';
-    const badge = document.createElement('div');
-    badge.className = 'brand-badge';
-    const logo = document.createElement('img');
-    const fallbackBadge = 'images/clipsoustudio.webp';
-    const hasCustomBadge = Boolean(it.studioBadge);
-    logo.src = hasCustomBadge ? it.studioBadge : fallbackBadge;
-    logo.alt = hasCustomBadge ? 'Logo du studio' : 'Clipsou Studio';
-    logo.loading = 'lazy';
-    logo.decoding = 'async';
-    badge.appendChild(logo);
+    
+    // Badge studio (seulement si défini)
+    const hasCustomBadge = Boolean(it.studioBadge && it.studioBadge.trim());
+    if (hasCustomBadge) {
+      const badge = document.createElement('div');
+      badge.className = 'brand-badge';
+      const logo = document.createElement('img');
+      logo.src = it.studioBadge;
+      logo.alt = 'Logo du studio';
+      logo.loading = 'lazy';
+      logo.decoding = 'async';
+      badge.appendChild(logo);
+      media.appendChild(badge);
+    }
+    
     media.appendChild(img);
-    media.appendChild(badge);
     const info = document.createElement('div');
     info.className = 'card-info';
     info.setAttribute('data-type', it.type || 'film');

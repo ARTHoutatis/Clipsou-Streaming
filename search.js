@@ -181,15 +181,17 @@ function displayResults(results) {
             // If full URL or no extension, use as-is; otherwise nothing
             initialSrc = item.image || '';
         }
-        const badgeSrc = (item.studioBadge && String(item.studioBadge).trim()) || 'images/clipsoustudio.webp';
+        const hasCustomBadge = Boolean(item.studioBadge && String(item.studioBadge).trim());
+        const badgeHtml = hasCustomBadge ? `
+                    <div class="brand-badge">
+                        <img src="${item.studioBadge}" alt="Studio" loading="lazy" decoding="async">
+                    </div>` : '';
         return `
         <div class="card">
             <a href="fiche.html?id=${encodeURIComponent(item.id)}&from=search">
                 <div class="card-media">
                     <img data-src="${initialSrc}" data-base="${base}" alt="Affiche de ${item.title}" loading="lazy" decoding="async" onerror="(function(img){var b=img.getAttribute('data-base'); var tried=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=tried; if(b && tried===1){ img.src=b+'.webp'; } else { img.onerror=null; img.removeAttribute('src'); }})(this)">
-                    <div class="brand-badge">
-                        <img src="${badgeSrc}" alt="Studio" loading="lazy" decoding="async">
-                    </div>
+                    ${badgeHtml}
                 </div>
                 <div class="card-info" data-type="${typeAttr}"${ratingAttr}${item.studioBadge ? ` data-studio-badge="${String(item.studioBadge).replace(/"/g,'&quot;')}"` : ''}></div>
             </a>

@@ -1747,8 +1747,19 @@ document.addEventListener('DOMContentLoaded', async function () {
       img.setAttribute('loading', 'lazy'); img.setAttribute('decoding', 'async');
       const info = document.createElement('div'); info.className = 'card-info'; info.setAttribute('data-type', item.type || 'film'); if (typeof item.rating !== 'undefined') info.setAttribute('data-rating', String(item.rating)); if (item.studioBadge) info.setAttribute('data-studio-badge', String(item.studioBadge));
       const media = document.createElement('div'); media.className = 'card-media';
-      const badge = document.createElement('div'); badge.className = 'brand-badge'; const logo = document.createElement('img'); logo.src = (item.studioBadge && String(item.studioBadge).trim()) || 'images/clipsoustudio.webp'; logo.alt = 'Studio'; logo.setAttribute('loading', 'lazy'); logo.setAttribute('decoding', 'async'); badge.appendChild(logo);
-      media.appendChild(img); media.appendChild(badge); a.appendChild(media); a.appendChild(info); card.appendChild(a);
+      // Badge studio (seulement si défini)
+      const hasCustomBadge = Boolean(item.studioBadge && String(item.studioBadge).trim());
+      if (hasCustomBadge) {
+        const badge = document.createElement('div'); badge.className = 'brand-badge'; 
+        const logo = document.createElement('img'); 
+        logo.src = item.studioBadge; 
+        logo.alt = 'Studio'; 
+        logo.setAttribute('loading', 'lazy'); 
+        logo.setAttribute('decoding', 'async'); 
+        badge.appendChild(logo);
+        media.appendChild(badge);
+      }
+      media.appendChild(img); a.appendChild(media); a.appendChild(info); card.appendChild(a);
       // Favorite heart button inside info line to align with type/rating
       try { info.appendChild(makeFavButton(item)); } catch {}
       return card;
@@ -2528,19 +2539,41 @@ document.addEventListener('DOMContentLoaded', async function () {
       }
       if (!media) return;
 
-      // Add badge if missing
-      let badge = media.querySelector('.brand-badge');
-      if (!badge) { badge = document.createElement('div'); badge.className = 'brand-badge'; const logo = document.createElement('img'); logo.setAttribute('loading', 'lazy'); logo.setAttribute('decoding', 'async'); try { logo.fetchPriority = 'low'; } catch {} badge.appendChild(logo); media.appendChild(badge); }
-      const logo = badge.querySelector('img');
-      try { if (logo) logo.fetchPriority = 'low'; } catch {}
       // Determine preferred badge URL from data-studio-badge if present
       let desired = '';
       try {
         const info = a.querySelector('.card-info');
         desired = (info && info.getAttribute('data-studio-badge')) || '';
       } catch {}
-      if (!desired) desired = 'images/clipsoustudio.webp';
-      if (logo && logo.src !== desired) { logo.src = desired; logo.alt = 'Studio'; }
+      
+      // Badge studio (seulement si défini)
+      const hasCustomBadge = Boolean(desired && desired.trim());
+      let badge = media.querySelector('.brand-badge');
+      
+      if (hasCustomBadge) {
+        // Créer ou mettre à jour le badge
+        if (!badge) { 
+          badge = document.createElement('div'); 
+          badge.className = 'brand-badge'; 
+          const logo = document.createElement('img'); 
+          logo.setAttribute('loading', 'lazy'); 
+          logo.setAttribute('decoding', 'async'); 
+          try { logo.fetchPriority = 'low'; } catch {} 
+          badge.appendChild(logo); 
+          media.appendChild(badge); 
+        }
+        const logo = badge.querySelector('img');
+        try { if (logo) logo.fetchPriority = 'low'; } catch {}
+        if (logo && logo.src !== desired) { 
+          logo.src = desired; 
+          logo.alt = 'Studio'; 
+        }
+      } else {
+        // Supprimer le badge s'il existe
+        if (badge) {
+          badge.remove();
+        }
+      }
     });
   })();
 
