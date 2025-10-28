@@ -999,8 +999,10 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       const badge = document.createElement('div');
       badge.className = 'brand-badge';
       const logo = document.createElement('img');
-      logo.src = it.studioBadge || 'images/clipsoustudio.webp';
-      logo.alt = 'Clipsou Studio';
+      const fallbackBadge = 'images/clipsoustudio.webp';
+      const hasCustomBadge = Boolean(it.studioBadge);
+      logo.src = hasCustomBadge ? it.studioBadge : fallbackBadge;
+      logo.alt = hasCustomBadge ? 'Logo du studio' : 'Clipsou Studio';
       logo.loading = 'lazy';
       badge.appendChild(logo);
       
