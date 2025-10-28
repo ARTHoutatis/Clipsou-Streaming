@@ -183,7 +183,7 @@
     "id": "custom-elden-ring-le-film-le-pire-guerrier-pxql",
     "title": "ELDEN RING Le Film : Le pire guerrier",
     "type": "film",
-    "rating": 4,
+    "rating": 5,
     "genres": [
       "Action",
       "Live Action",
@@ -222,8 +222,8 @@
         "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757797432/quisf4bojwbzzznyv0el.jpg"
       }
     ],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757789704/cn7mkfzppoy9e2vnja9w.png",
-    "ratingCount": 2
+    "episodes": [],
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757789704/cn7mkfzppoy9e2vnja9w.png"
   },
   {
     "id": "custom-fallout-pour-de-vrai-4mti",
