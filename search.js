@@ -63,7 +63,16 @@ async function buildDatabaseFromIndex() {
             let isFile = false;
             try { isFile = (location && location.protocol === 'file:'); } catch {}
             if (!isFile) {
-                const res = await fetch('data/approved.json', { credentials: 'same-origin', cache: 'no-store' });
+                let approvedUrl = 'data/approved.json';
+                try {
+                    const cfgUrl = window?.ClipsouConfig?.publicApprovedUrl;
+                    if (cfgUrl) approvedUrl = cfgUrl;
+                } catch {}
+                try {
+                    approvedUrl = new URL(approvedUrl, location.href).toString();
+                } catch {}
+
+                const res = await fetch(approvedUrl, { cache: 'no-store', credentials: 'omit' });
                 if (res && res.ok) {
                     const approved = await res.json();
                     if (Array.isArray(approved)) {

@@ -344,6 +344,7 @@ async function buildItemsFromIndex() {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
     const items = [];
+    const studioBadgeById = Object.create(null);
     doc.querySelectorAll('.fiche-popup[id]').forEach(popup => {
       const id = popup.getAttribute('id');
       if (!/^(film\d+|serie\d+)/i.test(id)) return;
@@ -408,6 +409,7 @@ async function buildItemsFromIndex() {
               }
               
               const studioBadge = optimizeCloudinaryUrl(c.studioBadge || '');
+              if (studioBadge) studioBadgeById[c.id] = studioBadge;
               items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, episodes, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '', studioBadge });
             });
           }
@@ -434,13 +436,22 @@ async function buildItemsFromIndex() {
             const actors = Array.isArray(c.actors) ? c.actors.filter(a=>a && a.name) : [];
             const episodes = Array.isArray(c.episodes) ? c.episodes.slice() : [];
             const studioBadge = c.studioBadge || '';
+            if (studioBadge) studioBadgeById[c.id] = studioBadge;
             items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, episodes, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '', studioBadge });
           });
         }
       }
     } catch {}
 
-    return items.length > 0 ? items : LOCAL_FALLBACK_DB;
+    const enriched = items.length > 0 ? items : LOCAL_FALLBACK_DB.map(it => ({ ...it }));
+    if (Object.keys(studioBadgeById).length) {
+      enriched.forEach(it => {
+        if (it && !it.studioBadge && studioBadgeById[it.id]) {
+          it.studioBadge = studioBadgeById[it.id];
+        }
+      });
+    }
+    return enriched;
   } catch (e) {
     // Fallback silencieux en cas d'erreur de construction
     return LOCAL_FALLBACK_DB;
