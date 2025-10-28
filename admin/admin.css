@@ -487,15 +487,31 @@ fieldset { border: 1px solid #334155; border-radius: 12px; padding: 12px; margin
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #f59e0b;
-    color: #000;
     font-weight: 700;
     font-size: 13px;
     min-width: 24px;
     height: 24px;
     padding: 0 8px;
     border-radius: 999px;
+    background: rgba(148, 163, 184, 0.25);
+    color: #e5e7eb;
     margin-left: 0 !important;
+    line-height: 1;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+
+  .badge[hidden] {
+    display: none !important;
+  }
+
+  .notif-badge {
+    background: #ef4444;
+    color: #fff;
+    box-shadow: 0 0 0 2px rgba(11, 17, 23, 0.9);
+  }
+
+  .notif-badge.pulse {
+    transform: scale(1.05);
   }
   
   .user-requests .actions {

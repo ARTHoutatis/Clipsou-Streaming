@@ -13,12 +13,19 @@
   const APP_KEY_DEPLOY_TRACK = 'clipsou_admin_deploy_track_v1';
   const APP_KEY_LAST_EDIT = 'clipsou_admin_last_edit_v1';
   const APP_KEY_ACTOR_PHOTOS = 'clipsou_admin_actor_photos_v1';
+  const APP_KEY_USER_REQ_COUNT = 'clipsou_admin_user_request_count_v1';
   const APP_KEY_TRASH = 'clipsou_admin_trash_v1';
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
   
   // Global lock to prevent concurrent approve/unapprove operations
   const operationLocks = new Map();
+
+  function numberOrNull(value) {
+    if (value === undefined || value === null || value === '') return null;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
 
   // ===== Security: Password hashing with SHA-256 =====
   async function hashPassword(password) {
@@ -1750,6 +1757,11 @@
   /**
    * Render user requests table
    */
+  let lastUserRequestsCount = (function(){
+    try { const stored = numberOrNull(localStorage.getItem(APP_KEY_USER_REQ_COUNT)); return stored === null ? null : stored; }
+    catch { return null; }
+  })();
+
   function renderUserRequestsTable() {
     const tbody = $('#userRequestsTable tbody');
     if (!tbody) return;
@@ -1759,22 +1771,29 @@
 
     // Update count badge
     const countBadge = $('#userRequestsCount');
+    const prevCount = numberOrNull(countBadge && countBadge.dataset ? countBadge.dataset.count : null);
+    const pendingCount = userReqs.length;
+    const displayValue = pendingCount > 99 ? '99+' : String(pendingCount);
     if (countBadge) {
-      if (userReqs.length > 0) {
-        countBadge.textContent = userReqs.length;
-        countBadge.style.display = 'inline-block';
-        countBadge.style.background = '#f59e0b';
-        countBadge.style.color = '#000';
-        countBadge.style.padding = '4px 10px';
-        countBadge.style.borderRadius = '12px';
-        countBadge.style.fontSize = '14px';
-        countBadge.style.fontWeight = '700';
+      if (pendingCount > 0) {
+        countBadge.textContent = displayValue;
+        countBadge.hidden = false;
+        countBadge.dataset.count = String(pendingCount);
+        if (prevCount !== null && pendingCount > prevCount) {
+          countBadge.classList.add('pulse');
+          setTimeout(() => { try { countBadge.classList.remove('pulse'); } catch {} }, 400);
+        }
       } else {
-        countBadge.style.display = 'none';
+        countBadge.hidden = true;
+        delete countBadge.dataset.count;
+        countBadge.classList.remove('pulse');
       }
     }
 
-    if (userReqs.length === 0) {
+    lastUserRequestsCount = pendingCount;
+    try { localStorage.setItem(APP_KEY_USER_REQ_COUNT, String(pendingCount)); } catch {}
+
+    if (pendingCount === 0) {
       const tr = document.createElement('tr');
       tr.innerHTML = '<td colspan="5" class="muted" style="text-align:center;">Aucune demande en attente</td>';
       tbody.appendChild(tr);
