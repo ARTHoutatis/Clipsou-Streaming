@@ -344,7 +344,6 @@ async function buildItemsFromIndex() {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
     const items = [];
-    const studioBadgeById = Object.create(null);
     doc.querySelectorAll('.fiche-popup[id]').forEach(popup => {
       const id = popup.getAttribute('id');
       if (!/^(film\d+|serie\d+)/i.test(id)) return;
@@ -408,8 +407,8 @@ async function buildItemsFromIndex() {
                 console.log(`📺 Loading series "${c.title}" (ID: ${c.id}) - Episodes in approved.json:`, c.episodes ? c.episodes.length : 0);
               }
               
-              const studioBadge = optimizeCloudinaryUrl(c.studioBadge || '');
-              if (studioBadge) studioBadgeById[c.id] = studioBadge;
+              const studioBadgeRaw = (c.studioBadge || '').trim();
+              const studioBadge = optimizeCloudinaryUrl(studioBadgeRaw);
               items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, episodes, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '', studioBadge });
             });
           }
@@ -435,23 +434,14 @@ async function buildItemsFromIndex() {
             const watchUrl = c.watchUrl || '';
             const actors = Array.isArray(c.actors) ? c.actors.filter(a=>a && a.name) : [];
             const episodes = Array.isArray(c.episodes) ? c.episodes.slice() : [];
-            const studioBadge = c.studioBadge || '';
-            if (studioBadge) studioBadgeById[c.id] = studioBadge;
+            const studioBadge = (c.studioBadge || '').trim();
             items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, episodes, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '', studioBadge });
           });
         }
       }
     } catch {}
 
-    const enriched = items.length > 0 ? items : LOCAL_FALLBACK_DB.map(it => ({ ...it }));
-    if (Object.keys(studioBadgeById).length) {
-      enriched.forEach(it => {
-        if (it && !it.studioBadge && studioBadgeById[it.id]) {
-          it.studioBadge = studioBadgeById[it.id];
-        }
-      });
-    }
-    return enriched;
+    return items.length > 0 ? items : LOCAL_FALLBACK_DB;
   } catch (e) {
     // Fallback silencieux en cas d'erreur de construction
     return LOCAL_FALLBACK_DB;
