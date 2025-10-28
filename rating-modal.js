@@ -84,30 +84,6 @@ function displayItemDataInModal() {
     console.log('=== DEBUG IMAGE POPUP ===');
     console.log('currentItemData:', currentItemData);
     
-    // Adapter le texte en fonction du type de contenu
-    if (currentItemData && currentItemData.type) {
-        const subtitleEl = document.querySelector('#ratingModal .rating-subtitle');
-        if (subtitleEl) {
-            const type = currentItemData.type.toLowerCase();
-            let typeText = 'du film';
-            
-            if (type === 'série' || type === 'serie') {
-                typeText = 'de la série';
-            } else if (type === 'trailer' || type === 'bande-annonce') {
-                typeText = 'de la bande-annonce';
-            } else if (type === 'documentaire') {
-                typeText = 'du documentaire';
-            } else if (type === 'court-métrage') {
-                typeText = 'du court-métrage';
-            } else if (type === 'animation') {
-                typeText = 'de l\'animation';
-            }
-            
-            subtitleEl.textContent = `La note que vous mettrez aura un impact sur la note générale ${typeText}`;
-            console.log('✓ Texte adapté pour le type:', type);
-        }
-    }
-    
     let imageSrc = null;
     
     // STRATÉGIE 1: Récupérer l'image depuis le DOM de la fiche (la plus fiable)
