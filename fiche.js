@@ -483,8 +483,9 @@ function renderFiche(container, item) {
 
   const rg = document.createElement('div');
   rg.className = 'rating-genres';
+  let stars = null;
   if (typeof item.rating === 'number' && !Number.isNaN(item.rating)) {
-    const stars = document.createElement('div');
+    stars = document.createElement('div');
     const rounded = Math.round(item.rating * 10) / 10;
     let txt = rounded.toFixed(1);
     if (txt.endsWith('.0')) txt = String(Math.round(rounded));
@@ -516,11 +517,17 @@ function renderFiche(container, item) {
             const average = total / itemRatings.ratings.length;
             const count = itemRatings.ratings.length;
             
-            const avgDisplay = document.createElement('div');
-            avgDisplay.className = 'user-rating-average';
-            avgDisplay.style.cssText = 'font-size: 0.9em; color: #ffa500; margin-top: 12px; font-weight: 600;';
-            avgDisplay.textContent = `⭐ ${average.toFixed(1)}/5 (${count} ${count === 1 ? 'vote' : 'votes'})`;
-            rg.appendChild(avgDisplay);
+            const rounded = Math.round(average * 10) / 10;
+            let txt = rounded.toFixed(1);
+            if (txt.endsWith('.0')) txt = String(Math.round(rounded));
+
+            if (!stars) {
+              stars = document.createElement('div');
+              stars.className = 'stars';
+              rg.insertBefore(stars, genresDiv);
+            }
+
+            stars.textContent = '★' + txt + '/5';
           }
         }
       } catch (e) {
