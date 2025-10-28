@@ -28,8 +28,9 @@
     ],
     "episodes": [],
     "submittedAt": 1761664755330,
-    "status": "pending",
-    "id": "user_req_1761664755330_19gqzoco0"
+    "status": "approved",
+    "id": "user_req_1761664755330_19gqzoco0",
+    "processedAt": 1761668630692
   },
   {
     "title": "Couloirs",
