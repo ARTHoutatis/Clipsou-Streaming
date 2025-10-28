@@ -273,7 +273,7 @@
     "id": "custom-gta-irl-quand-tu-essayes-de-devenir-une-racaille-xv2g",
     "title": "GTA IRL : Quand tu essayes de devenir une racaille",
     "type": "film",
-    "rating": 4.5,
+    "rating": 2,
     "genres": [
       "Comédie",
       "Action",
@@ -317,7 +317,8 @@
         "role": "Civile"
       }
     ],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757790111/epmm5uvpnyers3wcnzwo.png"
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757790111/epmm5uvpnyers3wcnzwo.png",
+    "ratingCount": 1
   },
   {
     "id": "custom-le-cafe-des-heros-k4a8",
