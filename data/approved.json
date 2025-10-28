@@ -106,7 +106,9 @@
       }
     ],
     "episodes": [],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761679859/dfcmcwrwp0nxz8bzvc0x.webp"
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761679859/dfcmcwrwp0nxz8bzvc0x.webp",
+    "rating": 4,
+    "ratingCount": 1
   },
   {
     "id": "custom-cassette-n-13-sh76",
