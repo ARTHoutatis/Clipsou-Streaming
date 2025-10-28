@@ -376,7 +376,16 @@ async function buildItemsFromIndex() {
       let isFile = false;
       try { isFile = (location && location.protocol === 'file:'); } catch {}
       if (!isFile) {
-        const res = await fetch('data/approved.json', { credentials: 'same-origin', cache: 'no-store' });
+        let approvedUrl = 'data/approved.json';
+        try {
+          const cfgUrl = window?.ClipsouConfig?.publicApprovedUrl;
+          if (cfgUrl) approvedUrl = cfgUrl;
+        } catch {}
+        try {
+          approvedUrl = new URL(approvedUrl, location.href).toString();
+        } catch {}
+
+        const res = await fetch(approvedUrl, { cache: 'no-store', credentials: 'omit' });
         if (res && res.ok) {
           const approved = await res.json();
           if (Array.isArray(approved)) {
@@ -1557,8 +1566,10 @@ function renderList(container, items, titleText) {
     const badge = document.createElement('div');
     badge.className = 'brand-badge';
     const logo = document.createElement('img');
-    logo.src = 'images/clipsoustudio.webp';
-    logo.alt = 'Clipsou Studio';
+    const fallbackBadge = 'images/clipsoustudio.webp';
+    const hasCustomBadge = Boolean(it.studioBadge);
+    logo.src = hasCustomBadge ? it.studioBadge : fallbackBadge;
+    logo.alt = hasCustomBadge ? 'Logo du studio' : 'Clipsou Studio';
     logo.loading = 'lazy';
     logo.decoding = 'async';
     badge.appendChild(logo);
