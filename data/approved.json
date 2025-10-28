@@ -67,6 +67,48 @@
     "ratingCount": 4
   },
   {
+    "id": "custom-astron-resistance-2gvw",
+    "title": "Astron - Résistance",
+    "type": "film",
+    "genres": [
+      "Science-Fiction",
+      "Aventure",
+      "Animation"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761679974/trjdh0lxisxvmxajobz2.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761680329/w319uq2yvcml6lwt2a3e.webp",
+    "description": "Dans une galaxie peuplée d'une multitude de créatures, règne le tyrannique Roi Eursa. Mais le général Eridix fonde la Guilde Xérion pour résister face à cette tyrannie. Einex, Zweila, Dreyord et Vierxy sont 4 jeunes recrues de la guilde et vont former la cellule Astron. Ces 4 héros unissent leurs forces pour vaincre le Roi Eursa.",
+    "watchUrl": "https://www.youtube.com/watch?v=LBT5_j37KB8&list=PL4yc55JnxvBljBISsSIQbD4pd7CR0Z1ed",
+    "actors": [
+      {
+        "name": "Corentin Dubarry",
+        "role": "Einex"
+      },
+      {
+        "name": "Abby Duplessis",
+        "role": "Zweila"
+      },
+      {
+        "name": "Corentin Le Gat",
+        "role": "Dreyord"
+      },
+      {
+        "name": "Baptiste Pomme",
+        "role": "Vierxy"
+      },
+      {
+        "name": "Manuel Dolores",
+        "role": "Roi Eursa"
+      },
+      {
+        "name": "Mathieu Desroses",
+        "role": "Général Eridix"
+      }
+    ],
+    "episodes": [],
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761679859/dfcmcwrwp0nxz8bzvc0x.webp"
+  },
+  {
     "id": "custom-cassette-n-13-sh76",
     "title": "Cassette N°13",
     "type": "film",
