@@ -378,7 +378,7 @@
     "id": "custom-le-connard-au-fond-bleu-gtkf",
     "title": "Le Connard Au Fond Bleu",
     "type": "série",
-    "rating": 1.5,
+    "rating": 1,
     "genres": [
       "Emission",
       "Comédie",
@@ -441,7 +441,8 @@
         "url": "https://youtu.be/ZGqHl2awm1I?si=DnZilGTXU34xwXE6"
       }
     ],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761345961/hfjaeiqcxeyfqz5gosqr.webp"
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761345961/hfjaeiqcxeyfqz5gosqr.webp",
+    "ratingCount": 1
   },
   {
     "id": "custom-ose-ouvrir-8vaq",
