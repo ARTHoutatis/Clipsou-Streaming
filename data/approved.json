@@ -146,38 +146,6 @@
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761316978/wkcmjnqubfmqg8mfkmfn.webp"
   },
   {
-    "id": "custom-couloirs-lar3",
-    "title": "Couloirs",
-    "type": "film",
-    "genres": [
-      "Psychologique",
-      "Action",
-      "Horreur"
-    ],
-    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761612774/rhullklh68hnlij3b6lg.jpg",
-    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761564874/buaizz1z3c5p1klxnqlz.png",
-    "description": "Dispute entre étudiants de l’école LES GOBELINS.",
-    "watchUrl": "https://youtu.be/wB5v2-8GIuk?si=c0c9azcDION9fTao",
-    "actors": [
-      {
-        "name": "Lucio Main de Vecchi",
-        "role": "Le meurtrier"
-      },
-      {
-        "name": "Tom Elurse",
-        "role": "La victime"
-      },
-      {
-        "name": "Sacha Franc—Gony",
-        "role": "L’homme des WC"
-      }
-    ],
-    "episodes": [],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761564882/g3rmzpjc4ombgva9evfj.png",
-    "rating": 4,
-    "ratingCount": 1
-  },
-  {
     "id": "custom-elden-ring-le-film-le-pire-guerrier-pxql",
     "title": "ELDEN RING Le Film : Le pire guerrier",
     "type": "film",
