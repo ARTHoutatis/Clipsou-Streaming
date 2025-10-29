@@ -3263,6 +3263,100 @@
 (function(){
   const $ = (sel, root=document) => root.querySelector(sel);
 
+  const CANONICAL_GENRES = [
+    'Action',
+    'Ambience',
+    'Animation',
+    'Aventure',
+    'Biopic',
+    'Brickfilm',
+    'Comédie',
+    'Documentaire',
+    'Drame',
+    'Émission',
+    'Enfants',
+    'Événement',
+    'Familial',
+    'Fantastique',
+    'Faux film pour enfants',
+    'Found Footage',
+    'Guerre',
+    'Historique',
+    'Horreur',
+    'Horreur psychologique',
+    'Live Action',
+    'Mini-série',
+    'Musical',
+    'Mystère',
+    'Policier',
+    'Psychologique',
+    'Romance',
+    'Science-Fiction',
+    'Sitcom',
+    'Super-héros',
+    'Thriller',
+    'Western'
+  ];
+
+  const normalizeGenreToken = (str)=>String(str||'')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[^a-z0-9]+/g,'');
+
+  const GENRE_CANONICAL = (()=>{
+    const map = new Map();
+    const defs = [
+      ['Action', []],
+      ['Ambience', ['Ambiance']],
+      ['Animation', []],
+      ['Aventure', []],
+      ['Biopic', []],
+      ['Brickfilm', []],
+      ['Comédie', ['Comedie', 'Comedy']],
+      ['Documentaire', []],
+      ['Drame', []],
+      ['Émission', ['Emission']],
+      ['Enfants', []],
+      ['Événement', ['Evenement']],
+      ['Familial', []],
+      ['Fantastique', []],
+      ['Faux film pour enfants', ['Faux-film-pour-enfants']],
+      ['Found Footage', ['Found-footage']],
+      ['Guerre', []],
+      ['Historique', []],
+      ['Horreur', []],
+      ['Horreur psychologique', []],
+      ['Live Action', ['Live-Action']],
+      ['Mini-série', ['Mini serie', 'Mini série', 'Mini-series', 'mini serie']],
+      ['Musical', []],
+      ['Mystère', ['Mystere']],
+      ['Policier', []],
+      ['Psychologique', []],
+      ['Romance', []],
+      ['Science-Fiction', ['Science fiction']],
+      ['Sitcom', []],
+      ['Super-héros', ['Super heros', 'Super-heros']],
+      ['Thriller', []],
+      ['Western', []]
+    ];
+    defs.forEach(([name, aliases])=>{
+      const baseKey = normalizeGenreToken(name);
+      if (!map.has(baseKey)) map.set(baseKey, name);
+      (aliases||[]).forEach(alias=>{
+        const aliasKey = normalizeGenreToken(alias);
+        if (!map.has(aliasKey)) map.set(aliasKey, name);
+      });
+    });
+    return map;
+  })();
+
+  const canonicalizeGenre = (value)=>{
+    const key = normalizeGenreToken(value);
+    if (!key) return null;
+    return GENRE_CANONICAL.get(key) || null;
+  };
+
   async function collectGenresFromIndex(){
     try {
       const res = await fetch('../index.html', { credentials: 'same-origin', cache: 'no-store' });
@@ -3272,7 +3366,8 @@
       const doc = parser.parseFromString(html, 'text/html');
       const set = new Set();
       doc.querySelectorAll('.fiche-popup .rating-genres .genres .genre-tag').forEach(el => {
-        const g = (el.textContent || '').trim(); if (g) set.add(g);
+        const g = canonicalizeGenre(el.textContent);
+        if (g) set.add(g);
       });
       return Array.from(set);
     } catch { return []; }
@@ -3282,9 +3377,15 @@
     try {
       const set = new Set();
       const reqs = JSON.parse(localStorage.getItem('clipsou_requests_v1')||'[]') || [];
-      reqs.forEach(r => (r && r.data && Array.isArray(r.data.genres)) && r.data.genres.forEach(g=>g&&set.add(g)));
+      reqs.forEach(r => (r && r.data && Array.isArray(r.data.genres)) && r.data.genres.forEach(g=>{
+        const can = canonicalizeGenre(g);
+        if (can) set.add(can);
+      }));
       const apr = JSON.parse(localStorage.getItem('clipsou_items_approved_v1')||'[]') || [];
-      apr.forEach(r => (r && Array.isArray(r.genres)) && r.genres.forEach(g=>g&&set.add(g)));
+      apr.forEach(r => (r && Array.isArray(r.genres)) && r.genres.forEach(g=>{
+        const can = canonicalizeGenre(g);
+        if (can) set.add(can);
+      }));
       return Array.from(set);
     } catch { return []; }
   }
@@ -3296,8 +3397,14 @@
       collectGenresFromIndex(),
       Promise.resolve(collectGenresFromStorage())
     ]);
-    const set = new Set([ ...fromIndex, ...fromStore, 'Action','Comédie','Drame','Horreur','Aventure','Fantastique','Familial','Thriller','Psychologique','Western','Mystère','Ambience','Enfants','Super-héros' ]);
-    el.innerHTML = Array.from(set).sort((a,b)=>String(a).localeCompare(String(b),'fr')).map(g=>`<option value="${g}"></option>`).join('');
+    const set = new Set(CANONICAL_GENRES);
+    [...fromIndex, ...fromStore].forEach(g => {
+      const can = canonicalizeGenre(g);
+      if (can) set.add(can);
+    });
+    const options = Array.from(set).sort((a,b)=>String(a).localeCompare(String(b),'fr', { sensitivity: 'base' }))
+      .map(g=>`<option value="${g}"></option>`).join('');
+    el.innerHTML = options;
   };
 
   // No image import: fields accept file names or URLs only
