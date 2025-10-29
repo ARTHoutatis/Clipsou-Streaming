@@ -135,7 +135,7 @@
       <!-- Slide 3: Request Form -->
       <section class="form-section slide" id="requestFormSection" data-slide="3">
         <h2>🎬 Informations du contenu</h2>
-      <form id="requestForm">
+      <form id="requestForm" autocomplete="off">
         <div class="grid">
           <label>
             <span>Titre <span class="required">*</span></span>
@@ -154,15 +154,15 @@
         <div class="grid">
           <label>
             <span>Genre 1 <span class="required">*</span></span>
-            <input type="text" id="genre1" list="genresDatalist" required disabled placeholder="ex: Action">
+            <input type="text" id="genre1" list="genresDatalist" required disabled placeholder="ex: Action" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
           </label>
           <label>
             <span>Genre 2 <span class="required">*</span></span>
-            <input type="text" id="genre2" list="genresDatalist" required disabled placeholder="ex: Aventure">
+            <input type="text" id="genre2" list="genresDatalist" required disabled placeholder="ex: Aventure" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
           </label>
           <label>
             <span>Genre 3 <span class="required">*</span></span>
-            <input type="text" id="genre3" list="genresDatalist" required disabled placeholder="ex: Comédie">
+            <input type="text" id="genre3" list="genresDatalist" required disabled placeholder="ex: Comédie" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
           </label>
         </div>
 
@@ -250,20 +250,23 @@
         <option value="Action">
         <option value="Aventure">
         <option value="Animation">
+        <option value="Brickfilm">
         <option value="Comédie">
+        <option value="Documentaire">
         <option value="Drame">
+        <option value="Familial">
         <option value="Fantastique">
-        <option value="Horreur">
-        <option value="Science-Fiction">
-        <option value="Thriller">
-        <option value="Romance">
-        <option value="Mystère">
-        <option value="Historique">
-        <option value="Western">
         <option value="Guerre">
+        <option value="Historique">
+        <option value="Horreur">
         <option value="Musical">
+        <option value="Mystère">
         <option value="Policier">
+        <option value="Romance">
+        <option value="Science-Fiction">
         <option value="Super-héros">
+        <option value="Thriller">
+        <option value="Western">
       </datalist>
       <div class="slide-nav">
         <button type="button" class="btn secondary" id="prevStep3">← Précédent</button>

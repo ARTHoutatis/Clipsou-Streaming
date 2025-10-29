@@ -1413,7 +1413,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       const emojiMenu = (n) => {
         const key = normalizeGenreMenu(n);
         if (key === 'comedie') return '😂';
-        if (key === 'familial') return '👨‍👩‍🧒';
+        if (key === 'familial') return '👥';
         if (key === 'aventure') return '🗺️';
         if (key === 'action') return '💥';
         if (key === 'horreur') return '👻';
@@ -2354,7 +2354,7 @@ document.addEventListener('DOMContentLoaded', async function () {
           if (id.startsWith('genre-')) {
             const g = id.replace(/^genre-/, '');
             if (/comedie/.test(g)) return '😂';
-            if (/familial/.test(g)) return '👨‍👩‍🧒';
+            if (/familial/.test(g)) return '👥';
             if (/aventure/.test(g)) return '🗺️';
             if (/action/.test(g)) return '💥';
             if (/horreur/.test(g)) return '👻';

@@ -6,6 +6,76 @@
 (function() {
   'use strict';
 
+  // Allowed genres with canonical names and aliases
+  const GENRE_DEFINITIONS = [
+    { name: 'Action', aliases: [] },
+    { name: 'Ambience', aliases: ['Ambiance'] },
+    { name: 'Animation', aliases: [] },
+    { name: 'Aventure', aliases: [] },
+    { name: 'Biopic', aliases: [] },
+    { name: 'Brickfilm', aliases: [] },
+    { name: 'Comédie', aliases: ['Comedie', 'Comedy'] },
+    { name: 'Documentaire', aliases: [] },
+    { name: 'Drame', aliases: [] },
+    { name: 'Émission', aliases: ['Emission'] },
+    { name: 'Enfants', aliases: [] },
+    { name: 'Événement', aliases: ['Evenement'] },
+    { name: 'Familial', aliases: [] },
+    { name: 'Fantastique', aliases: [] },
+    { name: 'Faux film pour enfants', aliases: ['Faux-film-pour-enfants'] },
+    { name: 'Found Footage', aliases: ['Found-footage'] },
+    { name: 'Guerre', aliases: [] },
+    { name: 'Historique', aliases: [] },
+    { name: 'Horreur', aliases: [] },
+    { name: 'Horreur psychologique', aliases: [] },
+    { name: 'Live Action', aliases: ['Live-Action'] },
+    { name: 'Mini-série', aliases: ['Mini serie', 'Mini série', 'Mini-series', 'mini serie'] },
+    { name: 'Musical', aliases: [] },
+    { name: 'Mystère', aliases: ['Mystere'] },
+    { name: 'Policier', aliases: [] },
+    { name: 'Psychologique', aliases: [] },
+    { name: 'Romance', aliases: [] },
+    { name: 'Science-Fiction', aliases: ['Science fiction'] },
+    { name: 'Sitcom', aliases: [] },
+    { name: 'Super-héros', aliases: ['Super heros', 'Super-heros'] },
+    { name: 'Thriller', aliases: [] },
+    { name: 'Western', aliases: [] }
+  ];
+
+  function normalizeGenreToken(str) {
+    return String(str || '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[^a-z0-9]+/g, '');
+  }
+
+  const GENRE_CANONICAL_MAP = new Map();
+  GENRE_DEFINITIONS.forEach(({ name, aliases = [] }) => {
+    const baseKey = normalizeGenreToken(name);
+    if (!GENRE_CANONICAL_MAP.has(baseKey)) {
+      GENRE_CANONICAL_MAP.set(baseKey, name);
+    }
+    aliases.forEach(alias => {
+      const aliasKey = normalizeGenreToken(alias);
+      if (!GENRE_CANONICAL_MAP.has(aliasKey)) {
+        GENRE_CANONICAL_MAP.set(aliasKey, name);
+      }
+    });
+  });
+
+  const ALLOWED_GENRES_SET = new Set(GENRE_CANONICAL_MAP.keys());
+  const ALLOWED_GENRES = Array.from(
+    new Set(GENRE_DEFINITIONS.map(def => GENRE_CANONICAL_MAP.get(normalizeGenreToken(def.name)) || def.name))
+  ).sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
+
+  function canonicalizeGenre(value) {
+    if (!value) return null;
+    const key = normalizeGenreToken(value);
+    if (!key) return null;
+    return GENRE_CANONICAL_MAP.get(key) || null;
+  }
+
   // Storage keys
   const STORAGE_KEY_REQUEST = 'user_pending_request';
   const STORAGE_KEY_LAST_SUBMIT = 'user_last_submit_time';
@@ -71,6 +141,68 @@
       xhr.onerror = () => reject(new Error('Erreur réseau lors de l\'upload'));
       xhr.send(fd);
     });
+  }
+
+  function populateGenreDatalist() {
+    const datalist = document.getElementById('genresDatalist');
+    if (!datalist) return;
+    datalist.innerHTML = '';
+    ALLOWED_GENRES.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      datalist.appendChild(opt);
+    });
+  }
+
+  function setupGenreValidation() {
+    populateGenreDatalist();
+    const genreInputs = ['genre1','genre2','genre3'].map(id => document.getElementById(id)).filter(Boolean);
+    const errorEl = ensureGenreErrorNode();
+
+    const validate = () => {
+      let hasInvalid = false;
+      genreInputs.forEach(input => {
+        const raw = (input.value || '').trim();
+        if (!raw) {
+          input.setCustomValidity('');
+          return;
+        }
+        const canonical = canonicalizeGenre(raw);
+        if (!canonical) {
+          input.setCustomValidity('Genre non supporté.');
+          hasInvalid = true;
+        } else {
+          if (canonical !== raw) {
+            input.value = canonical;
+          }
+          input.setCustomValidity('');
+        }
+      });
+      errorEl.hidden = !hasInvalid;
+    };
+
+    genreInputs.forEach(input => {
+      input.addEventListener('input', validate);
+      input.addEventListener('change', validate);
+      input.addEventListener('blur', validate);
+    });
+
+    validate();
+  }
+
+  function ensureGenreErrorNode() {
+    let err = document.getElementById('genresError');
+    if (err) return err;
+    err = document.createElement('div');
+    err.id = 'genresError';
+    err.className = 'error-message';
+    err.hidden = true;
+    err.textContent = 'Veuillez choisir les genres uniquement dans la liste proposée ou saisir un nom existant.';
+    const genreGrid = document.getElementById('genre1')?.closest('.grid');
+    if (genreGrid && genreGrid.parentElement) {
+      genreGrid.parentElement.insertBefore(err, genreGrid.nextSibling);
+    }
+    return err;
   }
 
   /**
@@ -350,13 +482,16 @@
 
     // Setup image uploads
     setupImageUploads();
-    
+
     // Prefill studio badge from history
     prefillStudioBadge();
-    
+
     // Render history
     renderHistory();
-    
+
+    // Genres validation setup
+    setupGenreValidation();
+
     // Log protection status (dev only)
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
       const fp = getBrowserFingerprint();
@@ -1028,14 +1163,25 @@
     }
 
     // Gather form data
+    const rawGenres = [
+      document.getElementById('genre1').value.trim(),
+      document.getElementById('genre2').value.trim(),
+      document.getElementById('genre3').value.trim()
+    ].filter(str => str && str.trim().length > 0);
+    const canonicalResults = rawGenres.map(g => canonicalizeGenre(g));
+    const invalidEntries = [];
+    const canonGenres = canonicalResults.map((val, idx) => {
+      if (!val) {
+        invalidEntries.push(rawGenres[idx]);
+        return null;
+      }
+      return val;
+    }).filter(Boolean);
+
     const formData = {
       title: document.getElementById('title').value.trim(),
       type: document.getElementById('type').value,
-      genres: [
-        document.getElementById('genre1').value.trim(),
-        document.getElementById('genre2').value.trim(),
-        document.getElementById('genre3').value.trim()
-      ].filter(g => g),
+      genres: canonGenres,
       description: document.getElementById('description').value.trim(),
       portraitImage: document.getElementById('portraitImage').value.trim(),
       landscapeImage: document.getElementById('landscapeImage').value.trim(),
@@ -1046,6 +1192,11 @@
       submittedAt: Date.now(),
       status: 'pending'
     };
+
+    if (invalidEntries.length > 0) {
+      alert('Les genres doivent être sélectionnés parmi la liste proposée. Genres invalides : ' + invalidEntries.join(', '));
+      return;
+    }
 
     // Validate required fields
     const isSerie = (formData.type === 'série');
