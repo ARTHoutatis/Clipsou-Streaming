@@ -49,54 +49,6 @@
     }
   },
   {
-    "requestId": "req_1761762575251_igr8fg4b5",
-    "status": "pending",
-    "data": {
-      "id": null,
-      "title": "Les Aventures de Kiki",
-      "type": "film",
-      "rating": null,
-      "genres": [
-        "Found Footage",
-        "Horreur psychologique",
-        "Faux film pour enfants"
-      ],
-      "description": "Kiki se trouve un nouvel ami.",
-      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761323/ew5kv3icr3nbq7yw2kp2.png",
-      "image": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761332/hpdupbmcqfbwgn6h91ry.png",
-      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761332/hpdupbmcqfbwgn6h91ry.png",
-      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761337/m84st4ucoorhtfmmqnsn.png",
-      "watchUrl": "https://youtu.be/Nc9Orp2cxuw?si=fBV7NPq7Lr3vM4v7",
-      "actors": [
-        {
-          "name": "Quentin Joary",
-          "role": "Kiki"
-        },
-        {
-          "name": "Maxime Destur",
-          "role": "Tim"
-        },
-        {
-          "name": "Quentin Joary",
-          "role": "Lily"
-        },
-        {
-          "name": "Réalisateur (dans le film)",
-          "role": "Quentin Joary"
-        },
-        {
-          "name": "Assistant real (dans le film)",
-          "role": "Raphaël Bouet Remy"
-        }
-      ],
-      "episodes": []
-    },
-    "meta": {
-      "createdAt": 1761762575251,
-      "source": "user_submission"
-    }
-  },
-  {
     "requestId": "r_mhazsyuh_ysppgj",
     "status": "pending",
     "data": {
