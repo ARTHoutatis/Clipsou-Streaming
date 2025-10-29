@@ -223,17 +223,35 @@
         }
       });
       
-      // 3. Preserve any local-only items that are very recent (not yet synced)
+      // 3. Merge local copies so their metadata (timestamps, ratings) wins if newer
+      const byId = new Map();
+      merged.forEach((item, idx) => {
+        const id = item && item.data && item.data.id;
+        if (!id) return;
+        if (!byId.has(id)) byId.set(id, idx);
+      });
       local.forEach(localItem => {
-        if (!localItem || !localItem.meta) return;
-        const isRecent = localItem.meta.updatedAt && (now - localItem.meta.updatedAt) < windowMs;
-        if (!isRecent) return;
-        
-        const id = (localItem.data && localItem.data.id) || '';
-        const hasInMerged = merged.some(r => r && r.data && r.data.id === id);
-        if (!hasInMerged && id) {
-          merged.unshift(localItem);
+        if (!localItem) return;
+        const id = localItem.data && localItem.data.id;
+        if (!id) return;
+        const existingIndex = byId.get(id);
+        if (typeof existingIndex === 'number') {
+          const existing = merged[existingIndex];
+          if (existing) {
+            const preferred = choosePreferred(existing, localItem);
+            if (preferred === localItem) {
+              // Mark processing and set statusChangedAt
+              localItem.meta = mergeMeta(localItem.meta || {}, { processing: { state: 'pending' }, statusChangedAt: now });
+              merged[existingIndex] = localItem;
+            } else {
+              merged[existingIndex].meta = mergeMeta(existing.meta || {}, localItem.meta || {}, getInteractionTimestamp(preferred));
+            }
+            return;
+          }
         }
+        // Add local item if missing entirely
+        merged.unshift(localItem);
+        byId.set(id, 0);
       });
       
       setRequests(merged);
@@ -359,25 +377,31 @@
           // Check if this item has a recent local action that hasn't been confirmed
           let hasRecentLocalAction = false;
           if (r.meta) {
-            // Check for recent processing flag (action in progress)
-            if (r.meta.processing) {
+            const proc = r.meta.processing;
+            if (proc && proc.state === 'pending') {
               hasRecentLocalAction = true;
             }
             // Check for very recent status change (within 30 seconds)
-            if (r.meta.updatedAt && (now - r.meta.updatedAt) < 30000) {
+            const lastLocal = Math.max(r.meta.lastInteractionAt || 0, r.meta.statusChangedAt || 0);
+            if (lastLocal && (now - lastLocal) < 30000) {
               hasRecentLocalAction = true;
             }
           }
           
           // Don't override local status if there's a recent local action
-          if (hasRecentLocalAction) {
-            // Keep local status as-is during the action window
-            return;
-          }
-          
+          if (hasRecentLocalAction) return;
+
           // Otherwise, sync with remote
-          if (isRemoteApproved && r.status !== 'approved') { r.status = 'approved'; changed = true; }
-          if (!isRemoteApproved && r.status === 'approved') { r.status = 'pending'; changed = true; }
+          if (isRemoteApproved && r.status !== 'approved') {
+            r.status = 'approved';
+            r.meta = mergeMeta(r.meta || {}, { statusChangedAt: now });
+            changed = true;
+          }
+          if (!isRemoteApproved && r.status === 'approved') {
+            r.status = 'pending';
+            r.meta = mergeMeta(r.meta || {}, { statusChangedAt: now });
+            changed = true;
+          }
         } catch {}
       });
       for (const it of remote) {
@@ -999,6 +1023,7 @@
       m.updatedAt || 0,
       m.statusChangedAt || 0,
       m.reviewedAt || 0,
+      m.lastSyncAt || 0,
       m.createdAt || 0
     );
   }
@@ -1024,15 +1049,25 @@
     if (!incoming) return existing;
     const existingHasRating = typeof existing?.data?.rating === 'number';
     const incomingHasRating = typeof incoming?.data?.rating === 'number';
+    const existingProcessing = !!existing?.meta?.processing;
+    const incomingProcessing = !!incoming?.meta?.processing;
     const existingTime = getInteractionTimestamp(existing);
     const incomingTime = getInteractionTimestamp(incoming);
 
     let chosen;
-    if (incomingHasRating && !existingHasRating) {
-      chosen = incoming;
-    } else if (!incomingHasRating && existingHasRating) {
+    if (existingProcessing && !incomingProcessing) {
       chosen = existing;
-    } else {
+    }
+    else if (incomingProcessing && !existingProcessing) {
+      chosen = incoming;
+    }
+    else if (incomingHasRating && !existingHasRating) {
+      chosen = incoming;
+    }
+    else if (!incomingHasRating && existingHasRating) {
+      chosen = existing;
+    }
+    else {
       chosen = incomingTime >= existingTime ? incoming : existing;
     }
 
@@ -2385,8 +2420,8 @@
           // Clear processing flag
           const updatedList = getRequests();
           const updatedFound = updatedList.find(x=>x.requestId===r.requestId);
-          if (updatedFound && updatedFound.meta) {
-            delete updatedFound.meta.processing;
+          if (updatedFound) {
+            stampUpdatedAt(updatedFound, { processing: null });
             setRequests(updatedList);
           }
           
@@ -2409,7 +2444,7 @@
 
           // Optimistically set approved locally and update UI immediately
           found.status = 'approved';
-          stampUpdatedAt(found);
+          stampUpdatedAt(found, { statusChangedAt: Date.now(), processing: { state: 'pending', startedAt: Date.now() } });
           setRequests(list);
           
           // Dedupe approved list first to avoid accumulating duplicates
@@ -3132,9 +3167,9 @@
         const wasApproved = !!(existing && existing.status === 'approved') || existsInApproved;
         if (existing) {
           existing.data = data;
-          // IMPORTANT: switch to 'pending' during publication to reflect real-time GitHub propagation
           if (wasApproved) existing.status = 'pending';
-          stampUpdatedAt(existing);
+          stampUpdatedAt(existing, { statusChangedAt: wasApproved ? Date.now() : existing?.meta?.statusChangedAt });
+          markInteraction(existing, { processing: { state: 'pending', startedAt: Date.now() } });
         }
         else { list.unshift(stampUpdatedAt({ requestId: reqId, status: 'pending', data })); }
         setRequests(list);
@@ -3179,7 +3214,10 @@
             if (ok) {
               // Success: mark as approved and show deployment started
               const found = list.find(x => x.requestId === reqId);
-              if (found) found.status = 'approved';
+              if (found) {
+                found.status = 'approved';
+                stampUpdatedAt(found, { statusChangedAt: Date.now(), processing: null });
+              }
               setRequests(list);
               renderTable();
               // Clear any stale draft so removed actors don't reappear on reload
