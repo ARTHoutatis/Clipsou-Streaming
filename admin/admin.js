@@ -223,30 +223,17 @@
         }
       });
       
-      // 3. Merge local copies so their metadata (timestamps, ratings) wins if newer
-      const byId = new Map();
-      merged.forEach((item, idx) => {
-        const id = item && item.data && item.data.id;
-        if (!id) return;
-        if (!byId.has(id)) byId.set(id, idx);
-      });
+      // 3. Preserve any local-only items that are very recent (not yet synced)
       local.forEach(localItem => {
-        if (!localItem) return;
-        const id = localItem.data && localItem.data.id;
-        if (!id) return;
-        const existingIndex = byId.get(id);
-        if (typeof existingIndex === 'number') {
-          const existing = merged[existingIndex];
-          if (existing) {
-            const preferred = choosePreferred(existing, localItem);
-            merged[existingIndex] = preferred;
-            merged[existingIndex].meta = mergeMeta(existing.meta || {}, localItem.meta || {}, getInteractionTimestamp(preferred));
-            return;
-          }
+        if (!localItem || !localItem.meta) return;
+        const isRecent = localItem.meta.updatedAt && (now - localItem.meta.updatedAt) < windowMs;
+        if (!isRecent) return;
+        
+        const id = (localItem.data && localItem.data.id) || '';
+        const hasInMerged = merged.some(r => r && r.data && r.data.id === id);
+        if (!hasInMerged && id) {
+          merged.unshift(localItem);
         }
-        // Add local item if missing entirely
-        merged.unshift(localItem);
-        byId.set(id, 0);
       });
       
       setRequests(merged);
@@ -372,28 +359,25 @@
           // Check if this item has a recent local action that hasn't been confirmed
           let hasRecentLocalAction = false;
           if (r.meta) {
+            // Check for recent processing flag (action in progress)
             if (r.meta.processing) {
               hasRecentLocalAction = true;
             }
+            // Check for very recent status change (within 30 seconds)
             if (r.meta.updatedAt && (now - r.meta.updatedAt) < 30000) {
               hasRecentLocalAction = true;
             }
           }
-          if (hasRecentLocalAction) return;
-
-          let entryChanged = false;
-          if (isRemoteApproved && r.status !== 'approved') {
-            r.status = 'approved';
-            entryChanged = true;
-          } else if (!isRemoteApproved && r.status === 'approved') {
-            r.status = 'pending';
-            entryChanged = true;
+          
+          // Don't override local status if there's a recent local action
+          if (hasRecentLocalAction) {
+            // Keep local status as-is during the action window
+            return;
           }
-
-          if (entryChanged) {
-            stampUpdatedAt(r, { reviewedAt: now, statusChangedAt: now });
-            changed = true;
-          }
+          
+          // Otherwise, sync with remote
+          if (isRemoteApproved && r.status !== 'approved') { r.status = 'approved'; changed = true; }
+          if (!isRemoteApproved && r.status === 'approved') { r.status = 'pending'; changed = true; }
         } catch {}
       });
       for (const it of remote) {
@@ -417,8 +401,7 @@
             studioBadge: String(it.studioBadge||''),
             actors: Array.isArray(it.actors) ? it.actors : []
           };
-          const meta = { importedFromPublic: true, reviewedAt: now, statusChangedAt: now };
-          list.unshift(markInteraction({ requestId: rid, status: 'approved', data, meta }, meta, now));
+          list.unshift({ requestId: rid, status: 'approved', data, meta: { importedFromPublic: true, updatedAt: Date.now() } });
           changed = true;
         }
       }
@@ -1022,18 +1005,11 @@
 
   function mergeMeta(baseMeta = {}, extraMeta = {}, timestamp) {
     const merged = { ...baseMeta, ...extraMeta };
-    const ts = timestamp ?? Date.now();
-    merged.updatedAt = ts;
-    const prevLast = merged.lastInteractionAt || 0;
-    merged.lastInteractionAt = Math.max(prevLast, ts);
+    if (timestamp) {
+      merged.lastInteractionAt = Math.max(merged.lastInteractionAt || 0, timestamp);
+      if (!merged.updatedAt) merged.updatedAt = merged.lastInteractionAt;
+    }
     return merged;
-  }
-
-  function markInteraction(entry, extraMeta = {}, timestamp = Date.now()) {
-    if (!entry || typeof entry !== 'object') return entry;
-    entry.meta = mergeMeta(entry.meta || {}, extraMeta, timestamp);
-    if (!entry.meta.createdAt) entry.meta.createdAt = timestamp;
-    return entry;
   }
 
   function choosePreferred(existing, incoming) {
@@ -1119,7 +1095,14 @@
     }
   }
   function setRequests(list){
-    const deduped = dedupeByRequest(list||[]);
+    const now = Date.now();
+    const stamped = (list||[]).map(item => {
+      if (!item) return item;
+      if (!item.meta) item.meta = {};
+      item.meta.lastInteractionAt = now;
+      return item;
+    });
+    const deduped = dedupeByRequest(stamped);
     saveJSON(APP_KEY_REQ, deduped);
   }
   function getApproved(){
@@ -1136,7 +1119,14 @@
     }
   }
   function setApproved(list){ 
-    const deduped = dedupeByRequest(list||[]);
+    const now = Date.now();
+    const stamped = (list||[]).map(item => {
+      if (!item) return item;
+      if (!item.meta) item.meta = {};
+      item.meta.lastInteractionAt = now;
+      return item;
+    });
+    const deduped = dedupeByRequest(stamped);
     if (deduped.length !== (list||[]).length) {
       console.warn(`⚠️ Removed ${(list||[]).length - deduped.length} duplicate(s) from approved list`);
     }
@@ -1185,9 +1175,17 @@
   }
 
   // ===== Helpers =====
-  function stampUpdatedAt(req, extraMeta) {
+  function stampUpdatedAt(req) {
     try {
-      return markInteraction(req, extraMeta, Date.now());
+      const now = Date.now();
+      if (req && typeof req === 'object') {
+        if (!req.meta) req.meta = {};
+        // Add createdAt if it doesn't exist (first creation)
+        if (!req.meta.createdAt) req.meta.createdAt = now;
+        // Always update updatedAt
+        req.meta.updatedAt = now;
+      }
+      return req;
     } catch {}
     return req;
   }
@@ -2185,35 +2183,7 @@
       }
     } catch {}
     
-    // Apply sorting
-    try {
-      const sortSelect = $('#requestsSort');
-      const sortMode = sortSelect ? sortSelect.value : 'recent';
-      if (sortMode === 'recent') {
-        reqs.sort((a, b) => {
-          const timeA = getInteractionTimestamp(a);
-          const timeB = getInteractionTimestamp(b);
-          return timeB - timeA;
-        });
-      } else if (sortMode === 'alpha') {
-        reqs.sort((a, b) => {
-          const titleA = String((a.data && a.data.title) || '').toLowerCase();
-          const titleB = String((b.data && b.data.title) || '').toLowerCase();
-          return titleA.localeCompare(titleB, 'fr');
-        });
-      } else if (sortMode === 'type') {
-        // Sort by type (film, série, trailer), then alphabetically
-        reqs.sort((a, b) => {
-          const typeA = String((a.data && a.data.type) || '').toLowerCase();
-          const typeB = String((b.data && b.data.type) || '').toLowerCase();
-          if (typeA !== typeB) return typeA.localeCompare(typeB, 'fr');
-          // Same type: sort alphabetically by title
-          const titleA = String((a.data && a.data.title) || '').toLowerCase();
-          const titleB = String((b.data && b.data.title) || '').toLowerCase();
-          return titleA.localeCompare(titleB, 'fr');
-        });
-      }
-    } catch {}
+    // Sorting removed: keep natural order (most recent interactions already first)
     
     tbody.innerHTML = '';
     // Determine shared-approved state from the current approved list
