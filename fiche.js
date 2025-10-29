@@ -1752,7 +1752,8 @@ const container = document.getElementById('fiche-container');
                 genres: Array.isArray(x.it.genres)?x.it.genres:[],
                 image: x.it.landscapeImage || x.it.image || x.it.portraitImage || '',
                 portraitImage: x.it.portraitImage || '',
-                landscapeImage: x.it.landscapeImage || ''
+                landscapeImage: x.it.landscapeImage || '',
+                studioBadge: (x.it.studioBadge || '').trim()
               },
               overlap: Array.from(x.gset).reduce((n,g)=>n + (cur.has(g)?1:0), 0)
             }))
