@@ -152,7 +152,7 @@
     "genres": [
       "Documentaire",
       "Comédie",
-      "Evenement"
+      "Événement"
     ],
     "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761315993/i9bskpuxt9qhvcsa1ey5.webp",
     "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761344523/seqen4b9cl7zlbsdljhf.jpg",
@@ -184,8 +184,7 @@
       },
       {
         "name": "Clone prod",
-        "role": "Clone prod ( animateur )",
-        "photo": "clone-prod.webp"
+        "role": "Clone prod ( animateur )"
       }
     ],
     "episodes": [],
@@ -231,7 +230,7 @@
     "genres": [
       "Action",
       "Live Action",
-      "Comedie"
+      "Comédie"
     ],
     "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757789650/zeyax1bmrxuocpyvszqm.jpg",
     "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757789687/ucrvx2w7a2v0bw7xw1as.png",
@@ -403,7 +402,7 @@
     "type": "film",
     "rating": 4,
     "genres": [
-      "Comedie",
+      "Comédie",
       "Familial",
       "Sitcom"
     ],
@@ -460,7 +459,7 @@
     "type": "série",
     "rating": 1,
     "genres": [
-      "Emission",
+      "Émission",
       "Comédie",
       "Animation"
     ],
@@ -532,7 +531,7 @@
     "genres": [
       "Found Footage",
       "Horreur psychologique",
-      "Comedie"
+      "Comédie"
     ],
     "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761762773/mzumtlnwwqtfzwqsggbu.jpg",
     "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761332/hpdupbmcqfbwgn6h91ry.png",
@@ -635,7 +634,7 @@
     "rating": 0.5,
     "genres": [
       "Comédie",
-      "mini serie",
+      "Mini-série",
       "Enfants"
     ],
     "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761521255/ltvv5zn417wxbp6hc0j3.webp",
@@ -754,38 +753,5 @@
       }
     ],
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757793270/rm1rhimueqsrbwdbxqzd.png"
-  },
-  {
-    "id": "custom-the-rise-of-brickbeard-2x2f",
-    "title": "The Rise of Brickbeard",
-    "type": "film",
-    "rating": 3,
-    "genres": [
-      "Action",
-      "Aventure",
-      "Brickfilm"
-    ],
-    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761771001/ffspqfrykhow9vjspnj3.webp",
-    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761770074/p0daa3lmlifxepjr7mlh.png",
-    "description": "Découvrez les débuts du légendaire capitaine pirate Brickbeard, la rencontre avec son équipage et comment il a eu son navire.",
-    "watchUrl": "https://youtu.be/hklPdjFbZfc?si=qXaKmFnG2q6IeA_R",
-    "actors": [
-      {
-        "name": "super ramtin",
-        "role": "gamin"
-      },
-      {
-        "name": "Clone prod",
-        "role": "( voix random )",
-        "photo": "clone-prod.webp"
-      },
-      {
-        "name": "towring tail",
-        "role": "soldat anglais"
-      }
-    ],
-    "episodes": [],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761771028/e7mgqkubdfhll6mnqdgb.webp",
-    "ratingCount": 1
   }
 ]

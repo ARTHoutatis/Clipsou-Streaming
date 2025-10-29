@@ -1,47 +1,5 @@
 [
   {
-    "requestId": "req_1761770155751_p7gco0n1n",
-    "status": "approved",
-    "data": {
-      "id": "custom-the-rise-of-brickbeard-2x2f",
-      "requestId": "req_1761770155751_p7gco0n1n",
-      "title": "The Rise of Brickbeard",
-      "type": "film",
-      "rating": 4.5,
-      "genres": [
-        "Action",
-        "Aventure",
-        "Brickfilm"
-      ],
-      "description": "Découvrez les débuts du légendaire capitaine pirate Brickbeard, la rencontre avec son équipage et comment il a eu son navire.",
-      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761771001/ffspqfrykhow9vjspnj3.webp",
-      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761770074/p0daa3lmlifxepjr7mlh.png",
-      "watchUrl": "https://youtu.be/hklPdjFbZfc?si=qXaKmFnG2q6IeA_R",
-      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761771028/e7mgqkubdfhll6mnqdgb.webp",
-      "actors": [
-        {
-          "name": "super ramtin",
-          "role": "gamin"
-        },
-        {
-          "name": "Clone prod",
-          "role": "( voix random )",
-          "photo": "clone-prod.webp"
-        },
-        {
-          "name": "towring tail",
-          "role": "soldat anglais"
-        }
-      ],
-      "episodes": []
-    },
-    "meta": {
-      "createdAt": 1761770155751,
-      "source": "user_submission",
-      "updatedAt": 1761771162015
-    }
-  },
-  {
     "requestId": "req_1761762603344_kc0wu71le",
     "status": "approved",
     "data": {
@@ -53,7 +11,7 @@
       "genres": [
         "Found Footage",
         "Horreur psychologique",
-        "Comedie"
+        "Comédie"
       ],
       "description": "Kiki se trouve un nouvel ami.",
       "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761762773/mzumtlnwwqtfzwqsggbu.jpg",
@@ -376,7 +334,7 @@
       "genres": [
         "Action",
         "Live Action",
-        "Comedie"
+        "Comédie"
       ],
       "description": "Un chevalier se lance dans un combat acharné contre un gigantesque Boss. Mais chaque tentative se solde par sa mort, l’obligeant à tout recommencer depuis le début. Prisonnier d’une boucle sans fin, il devra redoubler d’efforts et de courage pour espérer triompher.",
       "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757789650/zeyax1bmrxuocpyvszqm.jpg",
@@ -588,7 +546,7 @@
       "genres": [
         "Documentaire",
         "Comédie",
-        "Evenement"
+        "Événement"
       ],
       "description": "5 YouTubeurs indépendants s’affrontent dans une course de F1 explosive, inspirée des vrais Grands Prix.\nPréparez-vous à vivre des dépassements fous, des stratégies risquées et des moments de pur spectacle !",
       "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761315993/i9bskpuxt9qhvcsa1ey5.webp",
