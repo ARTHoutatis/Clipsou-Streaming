@@ -1005,11 +1005,18 @@
 
   function mergeMeta(baseMeta = {}, extraMeta = {}, timestamp) {
     const merged = { ...baseMeta, ...extraMeta };
-    if (timestamp) {
-      merged.lastInteractionAt = Math.max(merged.lastInteractionAt || 0, timestamp);
-      if (!merged.updatedAt) merged.updatedAt = merged.lastInteractionAt;
-    }
+    const ts = timestamp ?? Date.now();
+    merged.updatedAt = ts;
+    const prevLast = merged.lastInteractionAt || 0;
+    merged.lastInteractionAt = Math.max(prevLast, ts);
     return merged;
+  }
+
+  function markInteraction(entry, extraMeta = {}, timestamp = Date.now()) {
+    if (!entry || typeof entry !== 'object') return entry;
+    entry.meta = mergeMeta(entry.meta || {}, extraMeta, timestamp);
+    if (!entry.meta.createdAt) entry.meta.createdAt = timestamp;
+    return entry;
   }
 
   function choosePreferred(existing, incoming) {
@@ -1095,14 +1102,7 @@
     }
   }
   function setRequests(list){
-    const now = Date.now();
-    const stamped = (list||[]).map(item => {
-      if (!item) return item;
-      if (!item.meta) item.meta = {};
-      item.meta.lastInteractionAt = now;
-      return item;
-    });
-    const deduped = dedupeByRequest(stamped);
+    const deduped = dedupeByRequest(list||[]);
     saveJSON(APP_KEY_REQ, deduped);
   }
   function getApproved(){
@@ -1119,14 +1119,7 @@
     }
   }
   function setApproved(list){ 
-    const now = Date.now();
-    const stamped = (list||[]).map(item => {
-      if (!item) return item;
-      if (!item.meta) item.meta = {};
-      item.meta.lastInteractionAt = now;
-      return item;
-    });
-    const deduped = dedupeByRequest(stamped);
+    const deduped = dedupeByRequest(list||[]);
     if (deduped.length !== (list||[]).length) {
       console.warn(`⚠️ Removed ${(list||[]).length - deduped.length} duplicate(s) from approved list`);
     }
@@ -1175,17 +1168,9 @@
   }
 
   // ===== Helpers =====
-  function stampUpdatedAt(req) {
+  function stampUpdatedAt(req, extraMeta) {
     try {
-      const now = Date.now();
-      if (req && typeof req === 'object') {
-        if (!req.meta) req.meta = {};
-        // Add createdAt if it doesn't exist (first creation)
-        if (!req.meta.createdAt) req.meta.createdAt = now;
-        // Always update updatedAt
-        req.meta.updatedAt = now;
-      }
-      return req;
+      return markInteraction(req, extraMeta, Date.now());
     } catch {}
     return req;
   }
@@ -1867,8 +1852,7 @@
    */
   function getUserRequests() {
     try {
-      const data = localStorage.getItem('user_requests_history');
-      return data ? JSON.parse(data) : [];
+      return [];
     } catch (e) {
       console.error('Error loading user requests:', e);
       return [];
@@ -1880,7 +1864,7 @@
    */
   function saveUserRequests(requests) {
     try {
-      localStorage.setItem('user_requests_history', JSON.stringify(requests));
+      // No-op: history is now stored per-user in request.js via fingerprint map
     } catch (e) {
       console.error('Error saving user requests:', e);
     }
