@@ -433,7 +433,6 @@
   function validateData(data) {
     const errors = [];
     const title = String(data.title || '').trim();
-    if (title.length < 2) errors.push('Titre trop court.');
     const typeOk = ['film', 'série', 'trailer'].includes(String(data.type||'').trim());
     if (!typeOk) errors.push('Type invalide.');
     if (typeof data.rating !== 'undefined') {
@@ -882,6 +881,25 @@
   }
   function clearLastEditedId(){
     try { localStorage.removeItem(APP_KEY_LAST_EDIT); } catch {}
+  }
+
+  function highlightSelectedRow(requestId, dataId){
+    try {
+      const rows = Array.from(document.querySelectorAll('#requestsTable tbody tr'));
+      rows.forEach(tr => tr.classList.remove('selected'));
+      let target = rows.find(tr => {
+        const rId = tr.dataset.requestId || '';
+        const dId = tr.dataset.dataId || '';
+        return (requestId && rId === requestId) || (dataId && dId === dataId);
+      });
+      if (!target) {
+        const fallbackId = dataId || (!requestId ? getLastEditedId() : '');
+        if (fallbackId) {
+          target = rows.find(tr => (tr.dataset.dataId || '') === fallbackId);
+        }
+      }
+      if (target) target.classList.add('selected');
+    } catch {}
   }
 
   function getActorPhotoMap(){
@@ -1654,12 +1672,9 @@
       const submitBtn = document.querySelector('#contentForm .actions .btn[type="submit"], #contentForm .actions button[type="submit"]');
       if (submitBtn) {
         let isApproved = false;
-        let isEditing = false;
         
         // Check if editing an existing item
         if (data && (data.requestId || data.id)) {
-          isEditing = true;
-          
           // Check if this item is currently approved by requestId in requests
           if (data.requestId) {
             const requests = getRequests();
@@ -1673,7 +1688,7 @@
             isApproved = approved.some(x => x && x.id === data.id);
           }
           
-          submitBtn.textContent = isApproved ? 'Modifier et publier' : 'Enregistrer la modification';
+          submitBtn.textContent = isApproved ? 'Modifier et publier' : 'Modifier et enregistrer';
         } else {
           submitBtn.textContent = 'Enregistrer la requête';
         }
@@ -2054,6 +2069,7 @@
     tbody.innerHTML = '';
     // Determine shared-approved state from the current approved list
     const aprList = getApproved();
+    const selectedId = getLastEditedId();
     reqs.forEach(r => {
       const tr = document.createElement('tr');
       const g3 = (r.data.genres||[]).slice(0,3).filter(Boolean).map(g=>String(g));
@@ -2064,6 +2080,8 @@
         <td data-label="Note">${(typeof r.data.rating==='number')?r.data.rating:''}</td>
         <td class="row-actions"></td>
       `;
+      tr.dataset.requestId = r.requestId || '';
+      tr.dataset.dataId = (r.data && r.data.id) || '';
       // Fill genres as span elements for responsive layout
       try {
         const tdGenres = tr.querySelector('.genres-cell');
@@ -2077,6 +2095,11 @@
           });
         }
       } catch {}
+
+      if (selectedId && ((r.data && r.data.id === selectedId) || (r.requestId && r.requestId === selectedId))) {
+        tr.classList.add('selected');
+      }
+
       const actions = tr.querySelector('.row-actions');
       const editBtn = document.createElement('button'); editBtn.className='btn secondary'; editBtn.textContent='Modifier';
       const delBtn = document.createElement('button'); delBtn.className='btn secondary'; delBtn.textContent='Supprimer';
@@ -2113,7 +2136,13 @@
       actions.appendChild(editBtn); actions.appendChild(delBtn); actions.appendChild(approveBtn);
 
       // No status cell anymore
-      editBtn.addEventListener('click', ()=>{ fillForm(r.data); try { setLastEditedId(r.data && r.data.id); } catch{} });
+      editBtn.addEventListener('click', ()=>{
+        fillForm(r.data);
+        try {
+          setLastEditedId(r.data && r.data.id);
+          highlightSelectedRow(r.requestId, r.data && r.data.id);
+        } catch{}
+      });
       delBtn.addEventListener('click', async ()=>{
         if (!confirm('Déplacer ce contenu vers la corbeille ?')) return;
         
@@ -2128,6 +2157,8 @@
         setTrash(trash);
         
         try { if ((r && r.data && r.data.id) === getLastEditedId()) clearLastEditedId(); } catch{}
+
+        try { highlightSelectedRow('', ''); } catch{}
         
         // If it was approved, send unpublish request
         if (r.status==='approved') {
@@ -2377,6 +2408,7 @@
       });
       tbody.appendChild(tr);
     });
+    highlightSelectedRow('', selectedId);
     populateActorNamesDatalist();
     // Apply global 30s lock state to any newly rendered buttons
     try { applyPublishLockUI(); } catch {}
@@ -2921,7 +2953,7 @@
               isApproved = approved.some(x => x && x.id === filmId);
             }
             
-            btn.textContent = isApproved ? 'Modifier et publier' : 'Enregistrer la modification';
+            btn.textContent = isApproved ? 'Modifier et publier' : 'Modifier et enregistrer';
           } else {
             btn.textContent = 'Enregistrer la requête';
           }
@@ -3034,7 +3066,7 @@
           renderTable();
           populateGenresDatalist();
           clearDraft();
-          alert('Requête enregistrée.');
+          alert(isEditing ? 'Modification enregistrée.' : 'Requête enregistrée.');
           if (isEditing) setSubmitSavedUI(true);
         }
       });
