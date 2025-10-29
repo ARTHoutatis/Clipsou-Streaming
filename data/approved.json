@@ -524,6 +524,45 @@
     "ratingCount": 1
   },
   {
+    "id": "custom-les-aventures-de-kiki-vwu6",
+    "title": "Les Aventures de Kiki",
+    "type": "film",
+    "rating": 3,
+    "genres": [
+      "Found Footage",
+      "Horreur psychologique",
+      "Comedie"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761762773/mzumtlnwwqtfzwqsggbu.jpg",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761332/hpdupbmcqfbwgn6h91ry.png",
+    "description": "Kiki se trouve un nouvel ami.",
+    "watchUrl": "https://youtu.be/Nc9Orp2cxuw?si=fBV7NPq7Lr3vM4v7",
+    "actors": [
+      {
+        "name": "Quentin Joary",
+        "role": "Kiki"
+      },
+      {
+        "name": "Maxime Destur",
+        "role": "Tim"
+      },
+      {
+        "name": "Quentin Joary",
+        "role": "Lily"
+      },
+      {
+        "name": "Réalisateur (dans le film)",
+        "role": "Quentin Joary"
+      },
+      {
+        "name": "Assistant real (dans le film)",
+        "role": "Raphaël Bouet Remy"
+      }
+    ],
+    "episodes": [],
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761337/m84st4ucoorhtfmmqnsn.png"
+  },
+  {
     "id": "custom-ose-ouvrir-8vaq",
     "title": "Ose Ouvrir",
     "type": "film",
