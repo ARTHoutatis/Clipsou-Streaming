@@ -1,1 +1,62 @@
-[]
+[
+  {
+    "requestId": "req_1761519760186_qp2jvtsjx",
+    "status": "pending",
+    "data": {
+      "id": null,
+      "title": "ARTH animations",
+      "type": "série",
+      "rating": null,
+      "genres": [
+        "Animation",
+        "Comédie",
+        "Action"
+      ],
+      "description": "Suivez les aventures déjantées de Noob et Steve de Minecraft, plongés dans des situations totalement aléatoires ! Entre moments épiques, scènes ultra-cringe et édits phonk stylés, cette série mélange humour, chaos et adrénaline.",
+      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761519254/txs7lb8deuui2heh1aql.webp",
+      "image": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761519262/r4ssx57mxlhtisjurznv.webp",
+      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761519262/r4ssx57mxlhtisjurznv.webp",
+      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761519281/aers8hydd1a3bjiocj0k.webp",
+      "watchUrl": "",
+      "actors": [
+        {
+          "name": "Arth",
+          "role": "Noob & Steve"
+        }
+      ],
+      "episodes": [
+        {
+          "title": "Si Steve rencontre Herobrine...",
+          "url": "https://www.youtube.com/watch?v=mnWox-Iu-4Q"
+        },
+        {
+          "title": "La mauvaise maison | partie 1",
+          "url": "https://www.youtube.com/watch?v=v8O-_YuEi58"
+        },
+        {
+          "title": "La mauvaise maison | partie 2",
+          "url": "https://www.youtube.com/watch?v=O3TGNc30sx4"
+        },
+        {
+          "title": "Steve retrouve son chien !",
+          "url": "https://www.youtube.com/watch?v=CZkyvk2Ss4Q"
+        },
+        {
+          "title": "Noob contre Enderman",
+          "url": "https://www.youtube.com/watch?v=TxWSmRX9IuM"
+        },
+        {
+          "title": "Inoobstag",
+          "url": "https://www.youtube.com/watch?v=-MZ7AI9d8xk"
+        }
+      ]
+    },
+    "meta": {
+      "createdAt": 1761519760186,
+      "source": "user_submission",
+      "updatedAt": 1761774451784,
+      "deleted": true,
+      "trashedAt": 1761774451784
+    }
+  }
+]
