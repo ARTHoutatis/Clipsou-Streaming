@@ -1,5 +1,24 @@
 [
   {
+    "title": "The Rise of Brickbeard",
+    "type": "film",
+    "genres": [
+      "Action",
+      "Aventure",
+      "Pirate"
+    ],
+    "description": "Découvrez les débuts du légendaire capitaine pirate Brickbeard, la rencontre avec son équipage et comment il a eu son navire.",
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761770009/pkhfj9xqlkngype3q7kk.png",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761770074/p0daa3lmlifxepjr7mlh.png",
+    "studioBadge": null,
+    "watchUrl": "https://youtu.be/hklPdjFbZfc?si=qXaKmFnG2q6IeA_R",
+    "actors": [],
+    "episodes": [],
+    "submittedAt": 1761770100602,
+    "status": "pending",
+    "id": "user_req_1761770100602_rdh2cgno1"
+  },
+  {
     "title": "Les Aventures de Kiki",
     "type": "film",
     "genres": [
