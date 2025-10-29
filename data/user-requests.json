@@ -15,8 +15,9 @@
     "actors": [],
     "episodes": [],
     "submittedAt": 1761770100602,
-    "status": "pending",
-    "id": "user_req_1761770100602_rdh2cgno1"
+    "status": "approved",
+    "id": "user_req_1761770100602_rdh2cgno1",
+    "processedAt": 1761770157343
   },
   {
     "title": "Les Aventures de Kiki",
