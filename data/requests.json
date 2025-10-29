@@ -7,7 +7,7 @@
       "requestId": "r_mh8bf6l8_gyv7wb",
       "title": "ARTH animations",
       "type": "série",
-      "rating": 2,
+      "rating": 2.5,
       "genres": [
         "Animation",
         "Comédie",
@@ -52,9 +52,13 @@
       ]
     },
     "meta": {
-      "updatedAt": 1761778044346,
-      "lastInteractionAt": 1761778044346,
-      "createdAt": 1761777762627
+      "updatedAt": 1761779370204,
+      "lastInteractionAt": 1761779370204,
+      "createdAt": 1761750108153,
+      "processing": {
+        "state": "pending",
+        "startedAt": 1761779370204
+      }
     }
   },
   {
