@@ -36,8 +36,9 @@
     ],
     "episodes": [],
     "submittedAt": 1761761410852,
-    "status": "pending",
-    "id": "user_req_1761761410852_o2iptryq6"
+    "status": "approved",
+    "id": "user_req_1761761410852_o2iptryq6",
+    "processedAt": 1761762576800
   },
   {
     "title": "Astron - Résistance",
