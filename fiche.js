@@ -496,7 +496,7 @@ function renderFiche(container, item) {
   let stars = null;
   if (typeof item.rating === 'number' && !Number.isNaN(item.rating)) {
     stars = document.createElement('div');
-    const rounded = Math.round(item.rating * 10) / 10;
+    const rounded = Math.round(item.rating * 2) / 2;
     let txt = rounded.toFixed(1);
     if (txt.endsWith('.0')) txt = String(Math.round(rounded));
     stars.className = 'stars';
@@ -542,7 +542,7 @@ function renderFiche(container, item) {
 
             if (count > 0) {
               const average = total / count;
-              const rounded = Math.round(average * 10) / 10;
+              const rounded = Math.round(average * 2) / 2;
               let txt = rounded.toFixed(1);
               if (txt.endsWith('.0')) txt = String(Math.round(rounded));
 
@@ -883,6 +883,17 @@ function computeSimilar(allItems, current, minOverlap = 2, maxCount = 10) {
   return scored.slice(0, maxCount).map(s => s.item);
 }
 
+// Helper function to detect local assets (Clipsou Studio content)
+function isLocalAsset(value) {
+  if (!value || typeof value !== 'string') return false;
+  return !/^(?:https?:|\/\/|data:|blob:)/i.test(value);
+}
+
+function isClipsouOwnedItem(item) {
+  if (!item) return false;
+  return isLocalAsset(item.portraitImage) || isLocalAsset(item.landscapeImage) || isLocalAsset(item.image);
+}
+
 // ===== NOUVELLE VERSION PROPRE : Section Contenu similaire UNIQUEMENT =====
 function renderSimilarSection(rootEl, similarItems, currentItem) {
   if (!rootEl) return;
@@ -1005,18 +1016,19 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       img.loading = 'lazy';
       img.decoding = 'async';
       
-      // Badge studio (clipsoustudio pour films locaux, ou badge personnalisé)
-      const isLocalFilm = LOCAL_FALLBACK_DB.some(local => local.id === it.id);
-      const hasCustomBadge = Boolean(it.studioBadge && it.studioBadge.trim());
-      const shouldShowBadge = isLocalFilm || hasCustomBadge;
+      // Badge studio (badge personnalisé ou clipsoustudio pour films locaux)
+      const hasCustomBadge = Boolean(it.studioBadge && String(it.studioBadge).trim());
+      const isClipsouOwned = isClipsouOwnedItem(it) || LOCAL_FALLBACK_DB.some(local => local.id === it.id);
+      const badgeSrc = hasCustomBadge ? String(it.studioBadge).trim() : (isClipsouOwned ? 'images/clipsoustudio.webp' : '');
       
-      if (shouldShowBadge) {
+      if (badgeSrc) {
         const badge = document.createElement('div');
         badge.className = 'brand-badge';
         const logo = document.createElement('img');
-        logo.src = hasCustomBadge ? it.studioBadge : 'images/clipsoustudio.webp';
+        logo.src = badgeSrc;
         logo.alt = hasCustomBadge ? 'Logo du studio' : 'Clipsou Studio';
         logo.loading = 'lazy';
+        logo.decoding = 'async';
         badge.appendChild(logo);
         media.appendChild(badge);
       }

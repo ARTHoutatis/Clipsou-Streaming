@@ -223,6 +223,51 @@
     }
   }
 
+  /**
+   * Prefill studio badge from user's history
+   * Finds the last request with a studio badge and reuses it
+   */
+  function prefillStudioBadge() {
+    try {
+      const history = getRequestHistory();
+      
+      // Find the most recent request that has a studio badge
+      const lastRequestWithBadge = history.find(req => 
+        req && req.studioBadge && req.studioBadge.trim() !== ''
+      );
+      
+      if (lastRequestWithBadge && lastRequestWithBadge.studioBadge) {
+        const hiddenInput = document.getElementById('studioBadge');
+        const preview = document.getElementById('studioBadgePreview');
+        const clearBtn = document.getElementById('studioBadgeClearBtn');
+        const fileInput = document.getElementById('studioBadgeFileInput');
+        
+        if (hiddenInput && preview) {
+          // Set the hidden input value
+          hiddenInput.value = lastRequestWithBadge.studioBadge;
+          
+          // Show the preview
+          preview.src = lastRequestWithBadge.studioBadge;
+          preview.hidden = false;
+          
+          // Enable the clear button
+          if (clearBtn) {
+            clearBtn.disabled = false;
+          }
+          
+          // Keep file input disabled (it's already uploaded)
+          if (fileInput) {
+            fileInput.disabled = false;
+          }
+          
+          console.log('✓ Badge studio pré-rempli depuis l\'historique');
+        }
+      }
+    } catch (e) {
+      console.error('Error prefilling studio badge:', e);
+    }
+  }
+
   // Initialize when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
@@ -305,6 +350,9 @@
 
     // Setup image uploads
     setupImageUploads();
+    
+    // Prefill studio badge from history
+    prefillStudioBadge();
     
     // Render history
     renderHistory();
@@ -1068,16 +1116,28 @@
       renderActorsList();
       renderEpisodesList();
       
-      // Clear images
-      ['portraitImage', 'landscapeImage', 'studioBadge'].forEach(id => {
+      // Clear images (except studio badge which will be prefilled)
+      ['portraitImage', 'landscapeImage'].forEach(id => {
         const hiddenInput = document.getElementById(id);
-        const preview = document.getElementById(id.replace('Image', 'Preview').replace('Badge', 'BadgePreview'));
+        const preview = document.getElementById(id.replace('Image', 'Preview'));
         if (hiddenInput) hiddenInput.value = '';
         if (preview) {
           preview.src = '';
           preview.hidden = true;
         }
       });
+      
+      // Clear studio badge first, then prefill from history
+      const studioBadgeInput = document.getElementById('studioBadge');
+      const studioBadgePreview = document.getElementById('studioBadgePreview');
+      if (studioBadgeInput) studioBadgeInput.value = '';
+      if (studioBadgePreview) {
+        studioBadgePreview.src = '';
+        studioBadgePreview.hidden = true;
+      }
+      
+      // Prefill studio badge from history
+      prefillStudioBadge();
       
       // Keep terms checkbox checked if it was
       if (termsCheckbox.checked) {
