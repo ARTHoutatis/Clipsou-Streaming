@@ -184,7 +184,8 @@
       },
       {
         "name": "Clone prod",
-        "role": "Clone prod ( animateur )"
+        "role": "Clone prod ( animateur )",
+        "photo": "clone-prod.webp"
       }
     ],
     "episodes": [],
@@ -753,5 +754,37 @@
       }
     ],
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757793270/rm1rhimueqsrbwdbxqzd.png"
+  },
+  {
+    "id": "custom-the-rise-of-brickbeard-2x2f",
+    "title": "The Rise of Brickbeard",
+    "type": "film",
+    "rating": 4.5,
+    "genres": [
+      "Action",
+      "Aventure",
+      "Brickfilm"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761771001/ffspqfrykhow9vjspnj3.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761770074/p0daa3lmlifxepjr7mlh.png",
+    "description": "Découvrez les débuts du légendaire capitaine pirate Brickbeard, la rencontre avec son équipage et comment il a eu son navire.",
+    "watchUrl": "https://youtu.be/hklPdjFbZfc?si=qXaKmFnG2q6IeA_R",
+    "actors": [
+      {
+        "name": "super ramtin",
+        "role": "gamin"
+      },
+      {
+        "name": "Clone prod",
+        "role": "( voix random )",
+        "photo": "clone-prod.webp"
+      },
+      {
+        "name": "towring tail",
+        "role": "soldat anglais"
+      }
+    ],
+    "episodes": [],
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761771028/e7mgqkubdfhll6mnqdgb.webp"
   }
 ]
