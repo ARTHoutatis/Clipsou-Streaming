@@ -1581,16 +1581,16 @@ function renderList(container, items, titleText) {
     img.loading = 'lazy';
     img.decoding = 'async';
     
-    // Badge studio (clipsoustudio pour films locaux, ou badge personnalisé)
-    const isLocalFilm = LOCAL_FALLBACK_DB.some(local => local.id === it.id);
-    const hasCustomBadge = Boolean(it.studioBadge && it.studioBadge.trim());
-    const shouldShowBadge = isLocalFilm || hasCustomBadge;
+    // Badge studio (badge personnalisé ou clipsoustudio pour films locaux)
+    const hasCustomBadge = Boolean(it.studioBadge && String(it.studioBadge).trim());
+    const isClipsouOwned = isClipsouOwnedItem(it) || LOCAL_FALLBACK_DB.some(local => local.id === it.id);
+    const badgeSrc = hasCustomBadge ? String(it.studioBadge).trim() : (isClipsouOwned ? 'images/clipsoustudio.webp' : '');
     
-    if (shouldShowBadge) {
+    if (badgeSrc) {
       const badge = document.createElement('div');
       badge.className = 'brand-badge';
       const logo = document.createElement('img');
-      logo.src = hasCustomBadge ? it.studioBadge : 'images/clipsoustudio.webp';
+      logo.src = badgeSrc;
       logo.alt = hasCustomBadge ? 'Logo du studio' : 'Clipsou Studio';
       logo.loading = 'lazy';
       logo.decoding = 'async';
