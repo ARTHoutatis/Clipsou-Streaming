@@ -291,46 +291,6 @@
     }
   },
   {
-    "requestId": "req_1761668629383_pxxys9ogj",
-    "status": "pending",
-    "data": {
-      "id": null,
-      "title": "i",
-      "type": "film",
-      "rating": null,
-      "genres": [
-        "Biopic",
-        "Comédie",
-        "Drame"
-      ],
-      "description": "Steve Jobs créer le premier smartphone.",
-      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761664614/g3st8xgq13d9zfojgcio.png",
-      "image": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761664650/iffobjik5hplt4s0cnkx.png",
-      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761664650/iffobjik5hplt4s0cnkx.png",
-      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761664663/wy34wwiticrwzxfgl1aa.png",
-      "watchUrl": "https://youtu.be/7X8O0PHcizs?si=fgO7hfLrrRukFnV9",
-      "actors": [
-        {
-          "name": "Vincent Destur",
-          "role": "Steve Jobs"
-        },
-        {
-          "name": "Joss Aran",
-          "role": "Steve Jobs V.O"
-        },
-        {
-          "name": "Interviewer",
-          "role": "Maxime Destur"
-        }
-      ],
-      "episodes": []
-    },
-    "meta": {
-      "createdAt": 1761668629383,
-      "source": "user_submission"
-    }
-  },
-  {
     "requestId": "r_mh92nu59_okqy9n",
     "status": "approved",
     "data": {
