@@ -1,5 +1,32 @@
 [
   {
+    "requestId": "req_1761770155751_p7gco0n1n",
+    "status": "pending",
+    "data": {
+      "id": null,
+      "title": "The Rise of Brickbeard",
+      "type": "film",
+      "rating": null,
+      "genres": [
+        "Action",
+        "Aventure",
+        "Pirate"
+      ],
+      "description": "Découvrez les débuts du légendaire capitaine pirate Brickbeard, la rencontre avec son équipage et comment il a eu son navire.",
+      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761770009/pkhfj9xqlkngype3q7kk.png",
+      "image": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761770074/p0daa3lmlifxepjr7mlh.png",
+      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761770074/p0daa3lmlifxepjr7mlh.png",
+      "studioBadge": "",
+      "watchUrl": "https://youtu.be/hklPdjFbZfc?si=qXaKmFnG2q6IeA_R",
+      "actors": [],
+      "episodes": []
+    },
+    "meta": {
+      "createdAt": 1761770155751,
+      "source": "user_submission"
+    }
+  },
+  {
     "requestId": "req_1761762603344_kc0wu71le",
     "status": "approved",
     "data": {
