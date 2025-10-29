@@ -991,34 +991,56 @@
     return 'custom-' + base + '-' + Math.random().toString(36).slice(2,6);
   }
 
+  function choosePreferred(existing, incoming) {
+    if (!existing) return incoming;
+    if (!incoming) return existing;
+    const existingHasRating = typeof existing?.data?.rating === 'number';
+    const incomingHasRating = typeof incoming?.data?.rating === 'number';
+    if (incomingHasRating && !existingHasRating) return incoming;
+    if (!incomingHasRating && existingHasRating) return existing;
+    const existingUpdated = existing?.meta?.updatedAt || 0;
+    const incomingUpdated = incoming?.meta?.updatedAt || 0;
+    return incomingUpdated >= existingUpdated ? incoming : existing;
+  }
+
   function dedupeByRequest(items){
     const byRequestId = new Map();
     const byContentId = new Map();
+    const byTitle = new Map();
     const result = [];
-    for (const item of (items||[])) {
+
+    for (const item of (items || [])) {
       if (!item || typeof item !== 'object') continue;
       const reqId = item.requestId || item.id;
       const contentId = item.data && item.data.id;
       const titleKey = normalizeTitleKey(item.data && item.data.title);
 
-      if (reqId) {
-        if (byRequestId.has(reqId)) continue;
-        byRequestId.set(reqId, true);
-      }
-      if (contentId) {
-        if (byContentId.has(contentId)) continue;
-        byContentId.set(contentId, true);
-      }
-      if (contentId || titleKey) {
-        const key = contentId || titleKey;
-        if (!byContentId.has(key)) {
-          byContentId.set(key, true);
-        } else if (!reqId) {
-          continue;
+      const register = (map, key) => {
+        if (!key) return false;
+        const prevIndex = map.get(key);
+        if (typeof prevIndex === 'number') {
+          const preferred = choosePreferred(result[prevIndex], item);
+          result[prevIndex] = preferred;
+          map.set(key, prevIndex);
+          return true;
         }
+        map.set(key, result.length);
+        return false;
+      };
+
+      let merged = false;
+      if (register(byRequestId, reqId)) merged = true;
+      if (register(byContentId, contentId)) merged = true;
+      if (register(byTitle, titleKey)) merged = true;
+
+      if (!merged) {
+        result.push(item);
+        if (reqId) byRequestId.set(reqId, result.length - 1);
+        if (contentId) byContentId.set(contentId, result.length - 1);
+        if (titleKey) byTitle.set(titleKey, result.length - 1);
       }
-      result.push(item);
     }
+
     return result;
   }
 
