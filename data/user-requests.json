@@ -45,39 +45,6 @@
     "processedAt": 1761681677053
   },
   {
-    "title": "i",
-    "type": "film",
-    "genres": [
-      "Biopic",
-      "Comédie",
-      "Drame"
-    ],
-    "description": "Steve Jobs créer le premier smartphone.",
-    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761664614/g3st8xgq13d9zfojgcio.png",
-    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761664650/iffobjik5hplt4s0cnkx.png",
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761664663/wy34wwiticrwzxfgl1aa.png",
-    "watchUrl": "https://youtu.be/7X8O0PHcizs?si=fgO7hfLrrRukFnV9",
-    "actors": [
-      {
-        "name": "Vincent Destur",
-        "role": "Steve Jobs"
-      },
-      {
-        "name": "Joss Aran",
-        "role": "Steve Jobs V.O"
-      },
-      {
-        "name": "Interviewer",
-        "role": "Maxime Destur"
-      }
-    ],
-    "episodes": [],
-    "submittedAt": 1761664755330,
-    "status": "approved",
-    "id": "user_req_1761664755330_19gqzoco0",
-    "processedAt": 1761668630692
-  },
-  {
     "title": "Couloirs",
     "type": "film",
     "genres": [
