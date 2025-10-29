@@ -991,53 +991,16 @@
     return 'custom-' + base + '-' + Math.random().toString(36).slice(2,6);
   }
 
-  function getInteractionTimestamp(entry) {
-    if (!entry || !entry.meta) return entry?.data?._lastInteractionAt || 0;
-    const m = entry.meta;
-    return Math.max(
-      m.lastInteractionAt || 0,
-      m.updatedAt || 0,
-      m.statusChangedAt || 0,
-      m.reviewedAt || 0,
-      m.createdAt || 0
-    );
-  }
-
-  function mergeMeta(baseMeta = {}, extraMeta = {}, timestamp) {
-    const merged = { ...baseMeta, ...extraMeta };
-    if (timestamp) {
-      merged.lastInteractionAt = Math.max(merged.lastInteractionAt || 0, timestamp);
-      if (!merged.updatedAt) merged.updatedAt = merged.lastInteractionAt;
-    }
-    return merged;
-  }
-
   function choosePreferred(existing, incoming) {
     if (!existing) return incoming;
     if (!incoming) return existing;
     const existingHasRating = typeof existing?.data?.rating === 'number';
     const incomingHasRating = typeof incoming?.data?.rating === 'number';
-    const existingTime = getInteractionTimestamp(existing);
-    const incomingTime = getInteractionTimestamp(incoming);
-
-    let chosen;
-    if (incomingHasRating && !existingHasRating) {
-      chosen = incoming;
-    } else if (!incomingHasRating && existingHasRating) {
-      chosen = existing;
-    } else {
-      chosen = incomingTime >= existingTime ? incoming : existing;
-    }
-
-    if (chosen === incoming && existing && existing.meta) {
-      const ts = Math.max(existingTime, incomingTime);
-      incoming.meta = mergeMeta(existing.meta, incoming.meta, ts);
-    } else if (chosen === existing && incoming && incoming.meta) {
-      const ts = Math.max(existingTime, incomingTime);
-      existing.meta = mergeMeta(existing.meta, incoming.meta, ts);
-    }
-
-    return chosen;
+    if (incomingHasRating && !existingHasRating) return incoming;
+    if (!incomingHasRating && existingHasRating) return existing;
+    const existingUpdated = existing?.meta?.updatedAt || 0;
+    const incomingUpdated = incoming?.meta?.updatedAt || 0;
+    return incomingUpdated >= existingUpdated ? incoming : existing;
   }
 
   function dedupeByRequest(items){
@@ -1095,14 +1058,7 @@
     }
   }
   function setRequests(list){
-    const now = Date.now();
-    const stamped = (list||[]).map(item => {
-      if (!item) return item;
-      if (!item.meta) item.meta = {};
-      item.meta.lastInteractionAt = now;
-      return item;
-    });
-    const deduped = dedupeByRequest(stamped);
+    const deduped = dedupeByRequest(list);
     saveJSON(APP_KEY_REQ, deduped);
   }
   function getApproved(){
@@ -1119,14 +1075,7 @@
     }
   }
   function setApproved(list){ 
-    const now = Date.now();
-    const stamped = (list||[]).map(item => {
-      if (!item) return item;
-      if (!item.meta) item.meta = {};
-      item.meta.lastInteractionAt = now;
-      return item;
-    });
-    const deduped = dedupeByRequest(stamped);
+    const deduped = dedupeByRequest(list);
     if (deduped.length !== (list||[]).length) {
       console.warn(`⚠️ Removed ${(list||[]).length - deduped.length} duplicate(s) from approved list`);
     }
@@ -1867,7 +1816,8 @@
    */
   function getUserRequests() {
     try {
-      return [];
+      const data = localStorage.getItem('user_requests_history');
+      return data ? JSON.parse(data) : [];
     } catch (e) {
       console.error('Error loading user requests:', e);
       return [];
@@ -1879,7 +1829,7 @@
    */
   function saveUserRequests(requests) {
     try {
-      // No-op: history is now stored per-user in request.js via fingerprint map
+      localStorage.setItem('user_requests_history', JSON.stringify(requests));
     } catch (e) {
       console.error('Error saving user requests:', e);
     }
@@ -2183,7 +2133,38 @@
       }
     } catch {}
     
-    // Sorting removed: keep natural order (most recent interactions already first)
+    // Apply sorting
+    try {
+      const sortSelect = $('#requestsSort');
+      const sortMode = sortSelect ? sortSelect.value : 'recent';
+      
+      if (sortMode === 'recent') {
+        // Sort by most recently modified (updatedAt or createdAt)
+        reqs.sort((a, b) => {
+          const timeA = (a.meta && a.meta.updatedAt) || (a.meta && a.meta.createdAt) || 0;
+          const timeB = (b.meta && b.meta.updatedAt) || (b.meta && b.meta.createdAt) || 0;
+          return timeB - timeA; // Most recent first
+        });
+      } else if (sortMode === 'alpha') {
+        // Sort alphabetically by title
+        reqs.sort((a, b) => {
+          const titleA = String((a.data && a.data.title) || '').toLowerCase();
+          const titleB = String((b.data && b.data.title) || '').toLowerCase();
+          return titleA.localeCompare(titleB, 'fr');
+        });
+      } else if (sortMode === 'type') {
+        // Sort by type (film, série, trailer), then alphabetically
+        reqs.sort((a, b) => {
+          const typeA = String((a.data && a.data.type) || '').toLowerCase();
+          const typeB = String((b.data && b.data.type) || '').toLowerCase();
+          if (typeA !== typeB) return typeA.localeCompare(typeB, 'fr');
+          // Same type: sort alphabetically by title
+          const titleA = String((a.data && a.data.title) || '').toLowerCase();
+          const titleB = String((b.data && b.data.title) || '').toLowerCase();
+          return titleA.localeCompare(titleB, 'fr');
+        });
+      }
+    } catch {}
     
     tbody.innerHTML = '';
     // Determine shared-approved state from the current approved list
