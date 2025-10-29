@@ -759,7 +759,7 @@
     "id": "custom-the-rise-of-brickbeard-2x2f",
     "title": "The Rise of Brickbeard",
     "type": "film",
-    "rating": 4.5,
+    "rating": 3,
     "genres": [
       "Action",
       "Aventure",
@@ -785,6 +785,7 @@
       }
     ],
     "episodes": [],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761771028/e7mgqkubdfhll6mnqdgb.webp"
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761771028/e7mgqkubdfhll6mnqdgb.webp",
+    "ratingCount": 1
   }
 ]
