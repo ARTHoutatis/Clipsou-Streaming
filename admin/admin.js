@@ -991,14 +991,71 @@
     return 'custom-' + base + '-' + Math.random().toString(36).slice(2,6);
   }
 
-  function getRequests(){ return loadJSON(APP_KEY_REQ, []); }
-  function setRequests(list){ saveJSON(APP_KEY_REQ, list); }
-  function getApproved(){ return loadJSON(APP_KEY_APPROVED, []); }
+  function dedupeByRequest(items){
+    const byRequestId = new Map();
+    const byContentId = new Map();
+    const result = [];
+    for (const item of (items||[])) {
+      if (!item || typeof item !== 'object') continue;
+      const reqId = item.requestId || item.id;
+      const contentId = item.data && item.data.id;
+      const titleKey = normalizeTitleKey(item.data && item.data.title);
+
+      if (reqId) {
+        if (byRequestId.has(reqId)) continue;
+        byRequestId.set(reqId, true);
+      }
+      if (contentId) {
+        if (byContentId.has(contentId)) continue;
+        byContentId.set(contentId, true);
+      }
+      if (contentId || titleKey) {
+        const key = contentId || titleKey;
+        if (!byContentId.has(key)) {
+          byContentId.set(key, true);
+        } else if (!reqId) {
+          continue;
+        }
+      }
+      result.push(item);
+    }
+    return result;
+  }
+
+  function getRequests(){
+    try {
+      const stored = JSON.parse(localStorage.getItem(APP_KEY_REQ) || '[]') || [];
+      const deduped = dedupeByRequest(stored);
+      if (deduped.length !== stored.length) {
+        localStorage.setItem(APP_KEY_REQ, JSON.stringify(deduped));
+      }
+      return deduped;
+    } catch (err) {
+      console.error('Failed to read requests:', err);
+      return [];
+    }
+  }
+  function setRequests(list){
+    const deduped = dedupeByRequest(list);
+    saveJSON(APP_KEY_REQ, deduped);
+  }
+  function getApproved(){
+    try {
+      const stored = JSON.parse(localStorage.getItem(APP_KEY_APPROVED) || '[]') || [];
+      const deduped = dedupeByRequest(stored);
+      if (deduped.length !== stored.length) {
+        localStorage.setItem(APP_KEY_APPROVED, JSON.stringify(deduped));
+      }
+      return deduped;
+    } catch (err) {
+      console.error('Failed to read approved items:', err);
+      return [];
+    }
+  }
   function setApproved(list){ 
-    // Always dedupe before saving to prevent duplicates from accumulating
-    const deduped = dedupeByIdAndTitle(list);
-    if (deduped.length !== list.length) {
-      console.warn(`⚠️ Removed ${list.length - deduped.length} duplicate(s) from approved list`);
+    const deduped = dedupeByRequest(list);
+    if (deduped.length !== (list||[]).length) {
+      console.warn(`⚠️ Removed ${(list||[]).length - deduped.length} duplicate(s) from approved list`);
     }
     saveJSON(APP_KEY_APPROVED, deduped); 
   }
