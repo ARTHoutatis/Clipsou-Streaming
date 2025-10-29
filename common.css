@@ -719,7 +719,9 @@ body.popup-open nav[aria-label="Navigation principale"] {
 .brand-badge img {
   display: block;
   width: auto;
-  height: 10px;
+  height: auto;
+  max-height: 24px;
+  max-width: 60px;
   object-fit: contain;
 }
 
@@ -772,10 +774,11 @@ body.popup-open nav[aria-label="Navigation principale"] {
 /* Prevent global card image rules from cropping the badge logo */
 .card .card-media .brand-badge img {
   width: auto !important;
-  height: 10px !important;
+  height: auto !important;
+  max-height: 24px !important;
+  max-width: 60px !important;
   aspect-ratio: auto !important;
   object-fit: contain !important;
-  max-width: none !important; /* prevent stretching */
 }
 
 /* Ensure no badge inside popups */
@@ -860,8 +863,9 @@ html { scrollbar-color: #615d5d #0a0a0a; scrollbar-width: thin; }
   .similar-section .card .card-media .brand-badge { bottom: 8px; }
   .card .card-media .brand-badge img {
     width: auto !important;
-    height: 8px !important; /* was 10px */
-    max-width: none !important;
+    height: auto !important;
+    max-height: 18px !important;
+    max-width: 50px !important;
   }
   /* Tight mobile layout: logo left, actions right, no overflow */
   nav[aria-label="Navigation principale"] {

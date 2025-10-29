@@ -164,6 +164,18 @@ function displayResults(results) {
         return m ? m[1] : src.replace(/\.(webp|jpg|jpeg|png)$/i, '');
     }
 
+    function isLocalAsset(src) {
+        if (!src) return false;
+        const value = String(src).trim();
+        if (!value) return false;
+        return !/^(?:https?:|\/\/|data:|blob:)/i.test(value);
+    }
+
+    function isClipsouOwned(item) {
+        if (!item) return false;
+        return isLocalAsset(item.portraitImage) || isLocalAsset(item.landscapeImage) || isLocalAsset(item.image);
+    }
+
     const resultsHTML = results.map(item => {
         // Map explicit types to data-type for styling
         let typeAttr = 'film';
@@ -181,13 +193,15 @@ function displayResults(results) {
             // If full URL or no extension, use as-is; otherwise nothing
             initialSrc = item.image || '';
         }
-        const isLocalFilm = LOCAL_FALLBACK_DB.some(local => local.id === item.id);
         const hasCustomBadge = Boolean(item.studioBadge && String(item.studioBadge).trim());
-        const shouldShowBadge = isLocalFilm || hasCustomBadge;
-        const badgeHtml = shouldShowBadge ? `
+        const clipsouOwned = isClipsouOwned(item) || LOCAL_FALLBACK_DB.some(local => local.id === item.id);
+        const badgeSrc = hasCustomBadge ? String(item.studioBadge).trim() : (clipsouOwned ? 'images/clipsoustudio.webp' : '');
+        const badgeHtml = badgeSrc ? `
                     <div class="brand-badge">
-                        <img src="${hasCustomBadge ? item.studioBadge : 'images/clipsoustudio.webp'}" alt="Studio" loading="lazy" decoding="async">
+                        <img src="${badgeSrc}" alt="${badgeSrc === 'images/clipsoustudio.webp' ? 'Clipsou Studio' : 'Studio'}" loading="lazy" decoding="async">
                     </div>` : '';
+        const badgeAttr = badgeSrc ? ` data-studio-badge="${badgeSrc.replace(/"/g, '&quot;')}"` : '';
+        const clipsouAttr = clipsouOwned ? ' data-clipsou-owned="1"' : '';
         return `
         <div class="card">
             <a href="fiche.html?id=${encodeURIComponent(item.id)}&from=search">
@@ -195,7 +209,7 @@ function displayResults(results) {
                     <img data-src="${initialSrc}" data-base="${base}" alt="Affiche de ${item.title}" loading="lazy" decoding="async" onerror="(function(img){var b=img.getAttribute('data-base'); var tried=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=tried; if(b && tried===1){ img.src=b+'.webp'; } else { img.onerror=null; img.removeAttribute('src'); }})(this)">
                     ${badgeHtml}
                 </div>
-                <div class="card-info" data-type="${typeAttr}"${ratingAttr}${item.studioBadge ? ` data-studio-badge="${String(item.studioBadge).replace(/"/g,'&quot;')}"` : ''}></div>
+                <div class="card-info" data-type="${typeAttr}"${ratingAttr}${badgeAttr}${clipsouAttr}></div>
             </a>
         </div>`;
     }).join('');

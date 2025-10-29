@@ -1733,6 +1733,20 @@ document.addEventListener('DOMContentLoaded', async function () {
       return btn;
     }
 
+    const CLIPSOU_BADGE_SRC = 'images/clipsoustudio.webp';
+
+    function isLocalAsset(url){
+      if (!url) return false;
+      const value = String(url).trim();
+      if (!value) return false;
+      return !/^(?:https?:|\/\/|data:|blob:)/i.test(value);
+    }
+
+    function isClipsouOwnedItem(item){
+      if (!item) return false;
+      return isLocalAsset(item.portraitImage) || isLocalAsset(item.landscapeImage) || isLocalAsset(item.image);
+    }
+
     // Helper to create a card node from item
     function createCard(item) {
       const card = document.createElement('div'); card.className = 'card';
@@ -1745,21 +1759,24 @@ document.addEventListener('DOMContentLoaded', async function () {
       img.onerror = function () { if (idx < thumbs.length - 1) { idx += 1; this.src = thumbs[idx]; } else { this.onerror = null; try { this.removeAttribute('src'); } catch {} } };
       img.setAttribute('alt', `Affiche de ${item.title}`);
       img.setAttribute('loading', 'lazy'); img.setAttribute('decoding', 'async');
-      const info = document.createElement('div'); info.className = 'card-info'; info.setAttribute('data-type', item.type || 'film'); if (typeof item.rating !== 'undefined') info.setAttribute('data-rating', String(item.rating)); if (item.studioBadge) info.setAttribute('data-studio-badge', String(item.studioBadge));
-      const media = document.createElement('div'); media.className = 'card-media';
-      // Badge studio (clipsoustudio pour films locaux, ou badge personnalisé)
-      const localFilmIds = ['film1', 'film2', 'film3', 'film4', 'film5', 'film6', 'film7', 'serie1', 'serie2', 'serie3'];
-      const isLocalFilm = localFilmIds.includes(item.id);
+      const info = document.createElement('div');
+      info.className = 'card-info';
+      info.setAttribute('data-type', item.type || 'film');
+      if (typeof item.rating !== 'undefined') info.setAttribute('data-rating', String(item.rating));
       const hasCustomBadge = Boolean(item.studioBadge && String(item.studioBadge).trim());
-      const shouldShowBadge = isLocalFilm || hasCustomBadge;
-      
-      if (shouldShowBadge) {
-        const badge = document.createElement('div'); badge.className = 'brand-badge'; 
-        const logo = document.createElement('img'); 
-        logo.src = hasCustomBadge ? item.studioBadge : 'images/clipsoustudio.webp'; 
-        logo.alt = hasCustomBadge ? 'Studio' : 'Clipsou Studio'; 
-        logo.setAttribute('loading', 'lazy'); 
-        logo.setAttribute('decoding', 'async'); 
+      const isClipsouOwned = isClipsouOwnedItem(item);
+      const badgeSrc = hasCustomBadge ? String(item.studioBadge).trim() : (isClipsouOwned ? CLIPSOU_BADGE_SRC : '');
+      if (badgeSrc) info.setAttribute('data-studio-badge', badgeSrc);
+      if (isClipsouOwned) info.setAttribute('data-clipsou-owned', '1');
+      const media = document.createElement('div'); media.className = 'card-media';
+      if (badgeSrc) {
+        const badge = document.createElement('div'); badge.className = 'brand-badge';
+        const logo = document.createElement('img');
+        logo.src = badgeSrc;
+        logo.alt = hasCustomBadge ? 'Studio' : 'Clipsou Studio';
+        logo.setAttribute('loading', 'lazy');
+        logo.setAttribute('decoding', 'async');
+        try { logo.fetchPriority = 'low'; } catch {}
         badge.appendChild(logo);
         media.appendChild(badge);
       }
@@ -2545,21 +2562,34 @@ document.addEventListener('DOMContentLoaded', async function () {
 
       // Determine preferred badge URL from data-studio-badge if present
       let desired = '';
+      let markedClipsou = false;
       try {
         const info = a.querySelector('.card-info');
         desired = (info && info.getAttribute('data-studio-badge')) || '';
+        markedClipsou = !!(info && info.getAttribute('data-clipsou-owned') === '1');
+        if (!desired && markedClipsou && info) {
+          desired = CLIPSOU_BADGE_SRC;
+          info.setAttribute('data-studio-badge', desired);
+        }
       } catch {}
       
-      // Identifier le film par son ID depuis le lien
-      const linkHref = a.getAttribute('href') || '';
-      const idMatch = linkHref.match(/id=([^&]+)/);
-      const itemId = idMatch ? decodeURIComponent(idMatch[1]) : '';
-      const localFilmIds = ['film1', 'film2', 'film3', 'film4', 'film5', 'film6', 'film7', 'serie1', 'serie2', 'serie3'];
-      const isLocalFilm = localFilmIds.includes(itemId);
+      let badgeSrc = String(desired || '').trim();
+      if (!badgeSrc) {
+        const imgEl = media.querySelector('img');
+        const candidate = (imgEl && (imgEl.getAttribute('data-src') || imgEl.getAttribute('src'))) || '';
+        if (isLocalAsset(candidate)) {
+          badgeSrc = CLIPSOU_BADGE_SRC;
+          try {
+            const info = a.querySelector('.card-info');
+            if (info) {
+              info.setAttribute('data-studio-badge', badgeSrc);
+              info.setAttribute('data-clipsou-owned', '1');
+            }
+          } catch {}
+        }
+      }
       
-      // Badge studio (clipsoustudio pour films locaux, ou badge personnalisé)
-      const hasCustomBadge = Boolean(desired && desired.trim());
-      const shouldShowBadge = isLocalFilm || hasCustomBadge;
+      const shouldShowBadge = Boolean(badgeSrc);
       let badge = media.querySelector('.brand-badge');
       
       if (shouldShowBadge) {
@@ -2576,10 +2606,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
         const logo = badge.querySelector('img');
         try { if (logo) logo.fetchPriority = 'low'; } catch {}
-        const badgeSrc = hasCustomBadge ? desired : 'images/clipsoustudio.webp';
         if (logo && logo.src !== badgeSrc) { 
           logo.src = badgeSrc; 
-          logo.alt = hasCustomBadge ? 'Studio' : 'Clipsou Studio'; 
+          logo.alt = (badgeSrc === CLIPSOU_BADGE_SRC) ? 'Clipsou Studio' : 'Studio'; 
         }
       } else {
         // Supprimer le badge s'il existe
