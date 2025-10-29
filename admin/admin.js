@@ -1050,6 +1050,9 @@
       const now = Date.now();
       if (req && typeof req === 'object') {
         if (!req.meta) req.meta = {};
+        // Add createdAt if it doesn't exist (first creation)
+        if (!req.meta.createdAt) req.meta.createdAt = now;
+        // Always update updatedAt
         req.meta.updatedAt = now;
       }
       return req;
@@ -2050,6 +2053,40 @@
         reqs = reqs.filter(matches);
       }
     } catch {}
+    
+    // Apply sorting
+    try {
+      const sortSelect = $('#requestsSort');
+      const sortMode = sortSelect ? sortSelect.value : 'recent';
+      
+      if (sortMode === 'recent') {
+        // Sort by most recently modified (updatedAt or createdAt)
+        reqs.sort((a, b) => {
+          const timeA = (a.meta && a.meta.updatedAt) || (a.meta && a.meta.createdAt) || 0;
+          const timeB = (b.meta && b.meta.updatedAt) || (b.meta && b.meta.createdAt) || 0;
+          return timeB - timeA; // Most recent first
+        });
+      } else if (sortMode === 'alpha') {
+        // Sort alphabetically by title
+        reqs.sort((a, b) => {
+          const titleA = String((a.data && a.data.title) || '').toLowerCase();
+          const titleB = String((b.data && b.data.title) || '').toLowerCase();
+          return titleA.localeCompare(titleB, 'fr');
+        });
+      } else if (sortMode === 'type') {
+        // Sort by type (film, série, trailer), then alphabetically
+        reqs.sort((a, b) => {
+          const typeA = String((a.data && a.data.type) || '').toLowerCase();
+          const typeB = String((b.data && b.data.type) || '').toLowerCase();
+          if (typeA !== typeB) return typeA.localeCompare(typeB, 'fr');
+          // Same type: sort alphabetically by title
+          const titleA = String((a.data && a.data.title) || '').toLowerCase();
+          const titleB = String((b.data && b.data.title) || '').toLowerCase();
+          return titleA.localeCompare(titleB, 'fr');
+        });
+      }
+    } catch {}
+    
     tbody.innerHTML = '';
     // Determine shared-approved state from the current approved list
     const aprList = getApproved();
@@ -2640,6 +2677,16 @@
             } catch {}
           }, 100);
         } catch {}
+      }
+    } catch {}
+    
+    // ===== Requests sort wiring =====
+    try {
+      const sortSelect = $('#requestsSort');
+      if (sortSelect) {
+        sortSelect.addEventListener('change', () => {
+          try { renderTable(); } catch {}
+        });
       }
     } catch {}
 
