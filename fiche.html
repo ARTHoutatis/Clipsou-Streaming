@@ -92,6 +92,22 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+      will-change: transform;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
+    /* Performance optimizations */
+    .section, .card, .fiche-content {
+      contain: layout style paint;
+    }
+    .rail {
+      will-change: scroll-position;
+      transform: translateZ(0);
+    }
+    /* Réduire le coût des transitions */
+    * {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
   </style>
   <!-- Prefetch likely next pages/assets to improve navigation latency -->

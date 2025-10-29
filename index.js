@@ -44,6 +44,10 @@
       } catch {}
     }
     // Utilise les fonctions partagées de utilities.js (pas de duplication)
+
+// Activer le lazy loading optimisé pour toutes les images
+installLazyImageLoader();
+
 document.addEventListener('DOMContentLoaded', async function () {
   // Preserve scroll position on load/refresh
   try { if ('scrollRestoration' in history) history.scrollRestoration = 'auto'; } catch {}
@@ -999,6 +1003,76 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (!img.getAttribute('alt')) img.setAttribute('alt', 'Image – Clipsou Streaming');
   });
 
+  // Optimiser le carousel: charger seulement la première image immédiatement
+  (function optimizeCarousel(){
+    try {
+      const slides = document.querySelectorAll('.carousel-slide .carousel-bg[data-src]');
+      if (slides.length === 0) return;
+      
+      // Charger la première image immédiatement avec haute priorité
+      const first = slides[0];
+      if (first && first.dataset.src) {
+        first.src = first.dataset.src;
+        first.removeAttribute('data-src');
+        first.classList.add('loaded');
+      }
+      
+      // Charger la deuxième image après un court délai
+      setTimeout(() => {
+        const second = slides[1];
+        if (second && second.dataset.src) {
+          second.src = second.dataset.src;
+          second.removeAttribute('data-src');
+        }
+      }, 500);
+      
+      // Charger les autres images quand elles deviennent visibles (via le carousel)
+      const loadSlideImage = (index) => {
+        try {
+          const slide = slides[index];
+          if (slide && slide.dataset.src) {
+            slide.src = slide.dataset.src;
+            slide.removeAttribute('data-src');
+          }
+        } catch {}
+      };
+      
+      // Observer les changements de slide pour charger l'image avant qu'elle soit visible
+      const indicators = document.querySelectorAll('.carousel-indicator');
+      indicators.forEach((indicator, idx) => {
+        indicator.addEventListener('click', () => {
+          loadSlideImage(idx);
+          // Précharger le suivant
+          loadSlideImage((idx + 1) % slides.length);
+        });
+      });
+      
+      // Pour les flèches
+      const prevBtn = document.querySelector('.carousel-arrow.prev');
+      const nextBtn = document.querySelector('.carousel-arrow.next');
+      if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+          const current = document.querySelector('.carousel-indicator.active');
+          if (current) {
+            const idx = parseInt(current.dataset.index || '0', 10);
+            const prevIdx = (idx - 1 + slides.length) % slides.length;
+            loadSlideImage(prevIdx);
+          }
+        });
+      }
+      if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+          const current = document.querySelector('.carousel-indicator.active');
+          if (current) {
+            const idx = parseInt(current.dataset.index || '0', 10);
+            const nextIdx = (idx + 1) % slides.length;
+            loadSlideImage(nextIdx);
+          }
+        });
+      }
+    } catch {}
+  })();
+
   // ===== Home Filters (genre chips + toggle) =====
   (function setupHomeFilters(){
     try {
@@ -1625,7 +1699,8 @@ document.addEventListener('DOMContentLoaded', async function () {
             const imgName = (landscapeImage || portraitImage || '').split('/').pop();
             const baseName = (imgName || '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/\d+$/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
             const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-            items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || '', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '', studioBadge: c.studioBadge || '' });
+            const studioBadge = optimizeCloudinaryUrlSmall(c.studioBadge || '');
+            items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || '', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '', studioBadge });
           });
           sharedLoaded = true;
           }
@@ -1647,7 +1722,8 @@ document.addEventListener('DOMContentLoaded', async function () {
               const imgName = (landscapeImage || portraitImage || '').split('/').pop();
               const baseName = (imgName || '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/\d+$/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
               const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-              items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || '', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '', studioBadge: c.studioBadge || '' });
+              const studioBadge = optimizeCloudinaryUrlSmall(c.studioBadge || '');
+              items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || '', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '', studioBadge });
             });
           }
         }

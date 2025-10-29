@@ -2,6 +2,9 @@
 
 // Utilise les fonctions partagées de utilities.js (pas de duplication)
 
+// Activer le lazy loading optimisé pour toutes les images
+installLazyImageLoader();
+
 // Force revenir en haut de la page au chargement / rafraîchissement
 // et désactiver la restauration automatique de position par le navigateur
 (function ensureTopOnLoad(){
@@ -408,7 +411,7 @@ async function buildItemsFromIndex() {
               }
               
               const studioBadgeRaw = (c.studioBadge || '').trim();
-              const studioBadge = optimizeCloudinaryUrl(studioBadgeRaw);
+              const studioBadge = optimizeCloudinaryUrlSmall(studioBadgeRaw);
               items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, episodes, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '', studioBadge });
             });
           }
@@ -434,7 +437,7 @@ async function buildItemsFromIndex() {
             const watchUrl = c.watchUrl || '';
             const actors = Array.isArray(c.actors) ? c.actors.filter(a=>a && a.name) : [];
             const episodes = Array.isArray(c.episodes) ? c.episodes.slice() : [];
-            const studioBadge = (c.studioBadge || '').trim();
+            const studioBadge = optimizeCloudinaryUrlSmall((c.studioBadge || '').trim());
             items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, episodes, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '', studioBadge });
           });
         }
@@ -1247,8 +1250,8 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
         if (photoSrc && !/^https?:\/\//i.test(photoSrc) && !photoSrc.startsWith('images/')) {
           photoSrc = 'images/' + photoSrc;
         }
-        // Optimize Cloudinary URLs for actor photos
-        photoSrc = optimizeCloudinaryUrl(photoSrc);
+        // Optimize Cloudinary URLs for actor photos (low quality)
+        photoSrc = optimizeCloudinaryUrlSmall(photoSrc);
         try { img.src = photoSrc; } catch { img.src = photoSrc || 'images/unknown.webp'; }
         img.setAttribute('data-explicit-photo', '1');
       } else if (globalPhoto) {
@@ -1257,8 +1260,8 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
         if (globalPhotoSrc && !/^https?:\/\//i.test(globalPhotoSrc) && !globalPhotoSrc.startsWith('images/')) {
           globalPhotoSrc = 'images/' + globalPhotoSrc;
         }
-        // Optimize Cloudinary URLs for actor photos
-        globalPhotoSrc = optimizeCloudinaryUrl(globalPhotoSrc);
+        // Optimize Cloudinary URLs for actor photos (low quality)
+        globalPhotoSrc = optimizeCloudinaryUrlSmall(globalPhotoSrc);
         try { img.src = globalPhotoSrc; } catch { img.src = globalPhotoSrc || 'images/unknown.webp'; }
         img.setAttribute('data-explicit-photo', '1');
       } else {

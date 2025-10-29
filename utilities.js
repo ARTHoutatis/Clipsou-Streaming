@@ -9,6 +9,7 @@
 
 /**
  * Optimise les URLs Cloudinary pour de meilleures performances
+ * Utilisé pour : carousel, grandes images, images générales
  */
 function optimizeCloudinaryUrl(url) {
   if (!url || typeof url !== 'string') return url;
@@ -19,6 +20,7 @@ function optimizeCloudinaryUrl(url) {
     return url;
   }
   
+  // Carousel et grandes images: meilleure qualité
   const optimized = 'f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:1920,c_limit';
   
   if (url.includes('/upload/')) {
@@ -29,7 +31,8 @@ function optimizeCloudinaryUrl(url) {
 }
 
 /**
- * Optimise les URLs Cloudinary pour les petites cartes (Continue Watching)
+ * Optimise les URLs Cloudinary pour les petites images
+ * Utilisé pour : badges, images d'acteurs
  */
 function optimizeCloudinaryUrlSmall(url) {
   if (!url || typeof url !== 'string') return url;
@@ -40,7 +43,8 @@ function optimizeCloudinaryUrlSmall(url) {
     return url;
   }
   
-  const optimized = 'f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit';
+  // Badges et acteurs: qualité basse, max 600px
+  const optimized = 'f_auto,q_auto:low,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit';
   
   if (url.includes('/upload/')) {
     return url.replace('/upload/', '/upload/' + optimized + '/');
@@ -61,7 +65,8 @@ function optimizeCloudinaryUrlCard(url) {
     return url;
   }
   
-  const optimized = 'f_auto,q_auto:good,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:500,c_limit';
+  // Cartes: qualité moyenne-basse, max 500px
+  const optimized = 'f_auto,q_auto:eco,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:500,c_limit';
   
   if (url.includes('/upload/')) {
     return url.replace('/upload/', '/upload/' + optimized + '/');
@@ -82,7 +87,8 @@ function optimizeCloudinaryUrlContinue(url) {
     return url;
   }
   
-  const optimized = 'f_auto,q_auto:good,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:400,c_limit';
+  // Continue Watching: qualité eco pour équilibrer vitesse et qualité, max 400px
+  const optimized = 'f_auto,q_auto:eco,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:400,c_limit';
   
   if (url.includes('/upload/')) {
     return url.replace('/upload/', '/upload/' + optimized + '/');
@@ -311,6 +317,9 @@ function installLazyImageLoader() {
       const src = el.getAttribute(ATTR);
       if (!src) return;
       
+      // Ajouter une transition fluide
+      el.style.transition = 'opacity 0.3s ease-in-out';
+      
       el.addEventListener('load', function onLoad() {
         el.classList.add('loaded');
         el.removeEventListener('load', onLoad);
@@ -327,6 +336,8 @@ function installLazyImageLoader() {
     } catch (_) {}
   }
   
+  // Réduire les marges pour éviter de charger trop d'images à l'avance
+  // Vertical: 300px, Horizontal: 400px (pour les rails horizontaux)
   const io = ('IntersectionObserver' in window) ? new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       const el = entry.target;
@@ -335,7 +346,7 @@ function installLazyImageLoader() {
         load(el);
       }
     });
-  }, { root: null, rootMargin: '600px 800px', threshold: 0.01 }) : null;
+  }, { root: null, rootMargin: '300px 400px', threshold: 0.01 }) : null;
   
   function observe(el) {
     if (!el || pending.has(el)) return;

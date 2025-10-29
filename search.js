@@ -73,7 +73,7 @@ async function buildDatabaseFromIndex() {
                             const rating = (typeof c.rating === 'number') ? c.rating : undefined;
                             const genres = Array.isArray(c.genres) ? c.genres.filter(Boolean) : [];
                             const image = optimizeCloudinaryUrlCard(c.portraitImage || c.image || c.landscapeImage || '');
-                            const studioBadge = optimizeCloudinaryUrl(c.studioBadge || '');
+                            const studioBadge = optimizeCloudinaryUrlSmall(c.studioBadge || '');
                             items.push({ id: c.id, title: c.title, type, rating, genres, image, studioBadge });
                         });
                     }
@@ -93,7 +93,7 @@ async function buildDatabaseFromIndex() {
                         const rating = (typeof c.rating === 'number') ? c.rating : undefined;
                         const genres = Array.isArray(c.genres) ? c.genres.filter(Boolean) : [];
                         const image = optimizeCloudinaryUrlCard(c.portraitImage || c.image || '');
-                        const studioBadge = optimizeCloudinaryUrl(c.studioBadge || '');
+                        const studioBadge = optimizeCloudinaryUrlSmall(c.studioBadge || '');
                         items.push({ id: c.id, title: c.title, type, rating, genres, image, studioBadge });
                     });
                 }
