@@ -1,7 +1,7 @@
 [
   {
     "requestId": "req_1761770155751_p7gco0n1n",
-    "status": "pending",
+    "status": "approved",
     "data": {
       "id": "custom-the-rise-of-brickbeard-2x2f",
       "requestId": "req_1761770155751_p7gco0n1n",
@@ -38,7 +38,7 @@
     "meta": {
       "createdAt": 1761770155751,
       "source": "user_submission",
-      "updatedAt": 1761771158816
+      "updatedAt": 1761771162015
     }
   },
   {
