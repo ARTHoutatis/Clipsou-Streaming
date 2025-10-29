@@ -3,21 +3,21 @@
     "requestId": "req_1761762603344_kc0wu71le",
     "status": "pending",
     "data": {
-      "id": null,
+      "id": "custom-les-aventures-de-kiki-vwu6",
+      "requestId": "req_1761762603344_kc0wu71le",
       "title": "Les Aventures de Kiki",
       "type": "film",
-      "rating": null,
+      "rating": 3,
       "genres": [
         "Found Footage",
         "Horreur psychologique",
-        "Faux film pour enfants"
+        "Comedie"
       ],
       "description": "Kiki se trouve un nouvel ami.",
-      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761323/ew5kv3icr3nbq7yw2kp2.png",
-      "image": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761332/hpdupbmcqfbwgn6h91ry.png",
+      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761762773/mzumtlnwwqtfzwqsggbu.jpg",
       "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761332/hpdupbmcqfbwgn6h91ry.png",
-      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761337/m84st4ucoorhtfmmqnsn.png",
       "watchUrl": "https://youtu.be/Nc9Orp2cxuw?si=fBV7NPq7Lr3vM4v7",
+      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761337/m84st4ucoorhtfmmqnsn.png",
       "actors": [
         {
           "name": "Quentin Joary",
@@ -44,7 +44,8 @@
     },
     "meta": {
       "createdAt": 1761762603344,
-      "source": "user_submission"
+      "source": "user_submission",
+      "updatedAt": 1761762873175
     }
   },
   {
