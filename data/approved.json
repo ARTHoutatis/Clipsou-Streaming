@@ -753,5 +753,36 @@
       }
     ],
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757793270/rm1rhimueqsrbwdbxqzd.png"
+  },
+  {
+    "id": "custom-the-rise-of-brickbeard-54vw",
+    "title": "The Rise Of Brickbeard",
+    "type": "film",
+    "rating": 4,
+    "genres": [
+      "Action",
+      "Aventure",
+      "Brickfilm"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761779972/khr1qafa8czobr1lsgvi.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761779973/zmtjzracwl0sx1fkeupm.webp",
+    "description": "Découvrez l'histoire du légendaire capitaine Brickbeard, la rencontre avec son équipage et comment il réquisitionné son navire.",
+    "watchUrl": "https://youtu.be/hklPdjFbZfc?si=Ww0glVJWT8tZAgMC",
+    "actors": [
+      {
+        "name": "Clone prod",
+        "role": "Role Random"
+      },
+      {
+        "name": "Super Ramtin",
+        "role": "Gamin"
+      },
+      {
+        "name": "Towering Tale",
+        "role": "Soldat anglais"
+      }
+    ],
+    "episodes": [],
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761779981/yuur5em3s6lnygvx1gvk.webp"
   }
 ]
