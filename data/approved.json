@@ -73,7 +73,7 @@
     "genres": [
       "Science-Fiction",
       "Aventure",
-      "Animation"
+      "Brickfilm"
     ],
     "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761679974/trjdh0lxisxvmxajobz2.webp",
     "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761680329/w319uq2yvcml6lwt2a3e.webp",
@@ -106,9 +106,7 @@
       }
     ],
     "episodes": [],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761679859/dfcmcwrwp0nxz8bzvc0x.webp",
-    "rating": 4.5,
-    "ratingCount": 4
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761679859/dfcmcwrwp0nxz8bzvc0x.webp"
   },
   {
     "id": "custom-cassette-n-13-sh76",
