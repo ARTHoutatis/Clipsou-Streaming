@@ -28,8 +28,9 @@
     ],
     "episodes": [],
     "submittedAt": 1761780120370,
-    "status": "pending",
-    "id": "user_req_1761780120370_sxep34sx9"
+    "status": "approved",
+    "id": "user_req_1761780120370_sxep34sx9",
+    "processedAt": 1761780802444
   },
   {
     "title": "Les Aventures de Kiki",
