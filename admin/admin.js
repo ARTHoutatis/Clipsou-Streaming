@@ -239,13 +239,8 @@
           const existing = merged[existingIndex];
           if (existing) {
             const preferred = choosePreferred(existing, localItem);
-            if (preferred === localItem) {
-              // Mark processing and set statusChangedAt
-              localItem.meta = mergeMeta(localItem.meta || {}, { processing: { state: 'pending' }, statusChangedAt: now });
-              merged[existingIndex] = localItem;
-            } else {
-              merged[existingIndex].meta = mergeMeta(existing.meta || {}, localItem.meta || {}, getInteractionTimestamp(preferred));
-            }
+            merged[existingIndex] = preferred;
+            merged[existingIndex].meta = mergeMeta(existing.meta || {}, localItem.meta || {}, getInteractionTimestamp(preferred));
             return;
           }
         }
@@ -377,29 +372,26 @@
           // Check if this item has a recent local action that hasn't been confirmed
           let hasRecentLocalAction = false;
           if (r.meta) {
-            const proc = r.meta.processing;
-            if (proc && proc.state === 'pending') {
+            if (r.meta.processing) {
               hasRecentLocalAction = true;
             }
-            // Check for very recent status change (within 30 seconds)
-            const lastLocal = Math.max(r.meta.lastInteractionAt || 0, r.meta.statusChangedAt || 0);
-            if (lastLocal && (now - lastLocal) < 30000) {
+            if (r.meta.updatedAt && (now - r.meta.updatedAt) < 30000) {
               hasRecentLocalAction = true;
             }
           }
-          
-          // Don't override local status if there's a recent local action
           if (hasRecentLocalAction) return;
 
-          // Otherwise, sync with remote
+          let entryChanged = false;
           if (isRemoteApproved && r.status !== 'approved') {
             r.status = 'approved';
-            r.meta = mergeMeta(r.meta || {}, { statusChangedAt: now });
-            changed = true;
-          }
-          if (!isRemoteApproved && r.status === 'approved') {
+            entryChanged = true;
+          } else if (!isRemoteApproved && r.status === 'approved') {
             r.status = 'pending';
-            r.meta = mergeMeta(r.meta || {}, { statusChangedAt: now });
+            entryChanged = true;
+          }
+
+          if (entryChanged) {
+            stampUpdatedAt(r, { reviewedAt: now, statusChangedAt: now });
             changed = true;
           }
         } catch {}
@@ -425,7 +417,8 @@
             studioBadge: String(it.studioBadge||''),
             actors: Array.isArray(it.actors) ? it.actors : []
           };
-          list.unshift({ requestId: rid, status: 'approved', data, meta: { importedFromPublic: true, updatedAt: Date.now() } });
+          const meta = { importedFromPublic: true, reviewedAt: now, statusChangedAt: now };
+          list.unshift(markInteraction({ requestId: rid, status: 'approved', data, meta }, meta, now));
           changed = true;
         }
       }
@@ -1023,7 +1016,6 @@
       m.updatedAt || 0,
       m.statusChangedAt || 0,
       m.reviewedAt || 0,
-      m.lastSyncAt || 0,
       m.createdAt || 0
     );
   }
@@ -1049,25 +1041,15 @@
     if (!incoming) return existing;
     const existingHasRating = typeof existing?.data?.rating === 'number';
     const incomingHasRating = typeof incoming?.data?.rating === 'number';
-    const existingProcessing = !!existing?.meta?.processing;
-    const incomingProcessing = !!incoming?.meta?.processing;
     const existingTime = getInteractionTimestamp(existing);
     const incomingTime = getInteractionTimestamp(incoming);
 
     let chosen;
-    if (existingProcessing && !incomingProcessing) {
-      chosen = existing;
-    }
-    else if (incomingProcessing && !existingProcessing) {
+    if (incomingHasRating && !existingHasRating) {
       chosen = incoming;
-    }
-    else if (incomingHasRating && !existingHasRating) {
-      chosen = incoming;
-    }
-    else if (!incomingHasRating && existingHasRating) {
+    } else if (!incomingHasRating && existingHasRating) {
       chosen = existing;
-    }
-    else {
+    } else {
       chosen = incomingTime >= existingTime ? incoming : existing;
     }
 
@@ -2420,8 +2402,8 @@
           // Clear processing flag
           const updatedList = getRequests();
           const updatedFound = updatedList.find(x=>x.requestId===r.requestId);
-          if (updatedFound) {
-            stampUpdatedAt(updatedFound, { processing: null });
+          if (updatedFound && updatedFound.meta) {
+            delete updatedFound.meta.processing;
             setRequests(updatedList);
           }
           
@@ -2444,7 +2426,7 @@
 
           // Optimistically set approved locally and update UI immediately
           found.status = 'approved';
-          stampUpdatedAt(found, { statusChangedAt: Date.now(), processing: { state: 'pending', startedAt: Date.now() } });
+          stampUpdatedAt(found);
           setRequests(list);
           
           // Dedupe approved list first to avoid accumulating duplicates
@@ -3167,9 +3149,9 @@
         const wasApproved = !!(existing && existing.status === 'approved') || existsInApproved;
         if (existing) {
           existing.data = data;
+          // IMPORTANT: switch to 'pending' during publication to reflect real-time GitHub propagation
           if (wasApproved) existing.status = 'pending';
-          stampUpdatedAt(existing, { statusChangedAt: wasApproved ? Date.now() : existing?.meta?.statusChangedAt });
-          markInteraction(existing, { processing: { state: 'pending', startedAt: Date.now() } });
+          stampUpdatedAt(existing);
         }
         else { list.unshift(stampUpdatedAt({ requestId: reqId, status: 'pending', data })); }
         setRequests(list);
@@ -3214,10 +3196,7 @@
             if (ok) {
               // Success: mark as approved and show deployment started
               const found = list.find(x => x.requestId === reqId);
-              if (found) {
-                found.status = 'approved';
-                stampUpdatedAt(found, { statusChangedAt: Date.now(), processing: null });
-              }
+              if (found) found.status = 'approved';
               setRequests(list);
               renderTable();
               // Clear any stale draft so removed actors don't reappear on reload
