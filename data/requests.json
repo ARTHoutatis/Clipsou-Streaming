@@ -7,6 +7,7 @@
       "requestId": "r_mhazsyuh_ysppgj",
       "title": "Astron - Résistance",
       "type": "film",
+      "rating": 4.5,
       "genres": [
         "Science-Fiction",
         "Aventure",
@@ -46,7 +47,7 @@
       "episodes": []
     },
     "meta": {
-      "updatedAt": 1761750108153,
+      "updatedAt": 1761752158675,
       "createdAt": 1761750108153
     }
   },
