@@ -1,7 +1,7 @@
 [
   {
     "requestId": "req_1761762603344_kc0wu71le",
-    "status": "pending",
+    "status": "approved",
     "data": {
       "id": "custom-les-aventures-de-kiki-vwu6",
       "requestId": "req_1761762603344_kc0wu71le",
@@ -45,7 +45,7 @@
     "meta": {
       "createdAt": 1761762603344,
       "source": "user_submission",
-      "updatedAt": 1761762873175
+      "updatedAt": 1761762876348
     }
   },
   {
