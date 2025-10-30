@@ -67,8 +67,10 @@
   {
     "id": "custom-test-jxgo",
     "ratings": [
-      1
-    ]
+      1,
+      4
+    ],
+    "baseRating": 1
   },
   {
     "id": "serie3",
