@@ -435,10 +435,16 @@
     const title = String(data.title || '').trim();
     const typeOk = ['film', 'série', 'trailer'].includes(String(data.type||'').trim());
     if (!typeOk) errors.push('Type invalide.');
-    if (typeof data.rating !== 'undefined') {
-      const r = data.rating;
-      if (!(typeof r === 'number' && r >= 0 && r <= 5)) errors.push('Note doit être entre 0 et 5.');
-      if (Math.round(r*2) !== r*2) errors.push('Note doit être par pas de 0.5.');
+    if (data.rating !== undefined && data.rating !== null && data.rating !== '') {
+      const r = Number(data.rating);
+      if (Number.isNaN(r) || r < 0 || r > 5) {
+        errors.push('Note doit être entre 0 et 5.');
+      } else if (Math.round(r * 2) !== r * 2) {
+        errors.push('Note doit être par pas de 0.5.');
+      }
+      data.rating = Number.isNaN(r) ? undefined : r;
+    } else {
+      data.rating = null;
     }
     const genres = Array.isArray(data.genres) ? data.genres.filter(Boolean) : [];
     if (genres.length !== 3) errors.push('3 genres sont requis.');
@@ -1782,12 +1788,22 @@
     let studioBadge = '';
     try { studioBadge = String($('#studioBadge').value || '').trim(); } catch {}
     if (!studioBadge) studioBadge = 'https://clipsoustreaming.com/images/clipsoustudio.webp';
+    const ratingValueRaw = $('#rating').value;
+    let rating = null;
+    if (ratingValueRaw !== undefined && ratingValueRaw !== null) {
+      const ratingTrim = String(ratingValueRaw).trim();
+      if (ratingTrim.length > 0) {
+        const parsed = parseFloat(ratingTrim);
+        rating = Number.isNaN(parsed) ? null : parsed;
+      }
+    }
+
     return {
       id,
       requestId: $('#requestId').value || '',
       title,
       type: $('#type').value,
-      rating: $('#rating').value ? parseFloat($('#rating').value) : undefined,
+      rating,
       genres,
       description: $('#description').value.trim(),
       portraitImage: $('#portraitImage').value.trim(),
@@ -1946,7 +1962,7 @@
 
 🎬 Titre: ${req.title || 'N/A'}
 📁 Type: ${req.type || 'N/A'}
-⭐ Note: ${req.rating || 'Non spécifiée'}
+⭐ Note: ${(typeof req.rating === 'number') ? req.rating : 'Non spécifiée'}
 🎭 Genres: ${genres}
 👥 Acteurs: ${actors}
 📺 Épisodes: ${Array.isArray(req.episodes) && req.episodes.length > 0 ? req.episodes.length + ' épisode(s)' : 'Aucun'}${Array.isArray(req.episodes) && req.episodes.length > 0 ? '\n' + episodes : ''}
@@ -1981,7 +1997,7 @@
           id: null, // Will be generated when approved
           title: req.title,
           type: req.type,
-          rating: req.rating || null,
+          rating: (typeof req.rating === 'number') ? req.rating : null,
           genres: req.genres || [],
           description: req.description || '',
           portraitImage: req.portraitImage || '',
