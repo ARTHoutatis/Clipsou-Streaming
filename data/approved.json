@@ -500,7 +500,7 @@
     "id": "custom-le-connard-au-fond-bleu-gtkf",
     "title": "Le Connard Au Fond Bleu",
     "type": "série",
-    "rating": 1,
+    "rating": 1.5,
     "genres": [
       "Émission",
       "Comédie",
@@ -564,7 +564,7 @@
       }
     ],
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761345961/hfjaeiqcxeyfqz5gosqr.webp",
-    "ratingCount": 1
+    "ratingCount": 3
   },
   {
     "id": "custom-les-aventures-de-kiki-vwu6",
