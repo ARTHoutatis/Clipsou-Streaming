@@ -1,7 +1,7 @@
 [
   {
     "requestId": "req_1761822688351_p1pne937p",
-    "status": "pending",
+    "status": "approved",
     "data": {
       "id": "custom-astron-les-prophetes-des-8-planetes-fsux",
       "requestId": "req_1761822688351_p1pne937p",
@@ -49,7 +49,7 @@
     "meta": {
       "createdAt": 1761822688351,
       "source": "user_submission",
-      "updatedAt": 1761822704299
+      "updatedAt": 1761822709083
     }
   },
   {
