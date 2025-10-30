@@ -743,6 +743,24 @@
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761522323/fizxslqefn1k4s9fh4y2.webp"
   },
   {
+    "id": "custom-test-ne-pas-valider-ptz0",
+    "title": "Test (ne pas valider)",
+    "type": "film",
+    "genres": [
+      "Documentaire",
+      "Brickfilm",
+      "Horreur"
+    ],
+    "image": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761824179/lcffgixm3mixlvssild5.webp",
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761824181/catpwnxh5czgo1jypwlx.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761824179/lcffgixm3mixlvssild5.webp",
+    "description": "test",
+    "watchUrl": "https://www.youtube.com/watch?v=k7CC9wBxuY0",
+    "actors": [],
+    "episodes": [],
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761824173/qhvra4dposv4gokhgymn.webp"
+  },
+  {
     "id": "custom-the-psycho-teacher-q2q6",
     "title": "The Psycho Teacher",
     "type": "film",
