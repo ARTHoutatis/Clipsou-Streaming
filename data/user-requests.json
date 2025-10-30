@@ -40,8 +40,9 @@
     ],
     "episodes": [],
     "submittedAt": 1761821816295,
-    "status": "pending",
-    "id": "user_req_1761821816295_14fz0ds4o"
+    "status": "approved",
+    "id": "user_req_1761821816295_14fz0ds4o",
+    "processedAt": 1761822634886
   },
   {
     "title": "The Rise Of Brickbeard",
