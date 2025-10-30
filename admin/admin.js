@@ -2424,6 +2424,13 @@
           
           // Make sure episodes are included
           const dataToApprove = { ...found.data };
+          let approvedId = String(dataToApprove.id || '').trim();
+          if (!approvedId) {
+            approvedId = makeIdFromTitle(dataToApprove.title || 'contenu');
+            dataToApprove.id = approvedId;
+            found.data.id = approvedId;
+            try { setRequests(list); } catch {}
+          }
           if (Array.isArray(dataToApprove.episodes)) {
             dataToApprove.episodes = dataToApprove.episodes.slice();
           }
@@ -3133,6 +3140,11 @@
           
           // Make sure all data including episodes is properly cloned
           const dataToPublish = { ...data };
+          if (!dataToPublish.id || String(dataToPublish.id).trim().length === 0) {
+            const generatedId = makeIdFromTitle(dataToPublish.title || 'contenu');
+            dataToPublish.id = generatedId;
+            data.id = generatedId;
+          }
           if (Array.isArray(data.episodes)) {
             dataToPublish.episodes = data.episodes.slice();
           }
