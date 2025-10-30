@@ -21,54 +21,63 @@ window.showRatingModal = function(itemId) {
 
 function applyOptimisticRatingUpdate() {
     try {
-        const baseRating = (currentItemData && typeof currentItemData.rating === 'number')
-            ? currentItemData.rating
-            : null;
-
-        let average = null;
-        let ratingCount = currentRatingCount || 0;
-        let total = 0;
-
-        if (Array.isArray(currentItemData?.ratings) && currentItemData.ratings.length) {
-            total = currentItemData.ratings.reduce((acc, r) => acc + r, 0);
-            ratingCount = currentItemData.ratings.length;
-        }
-
         const storedRatings = JSON.parse(localStorage.getItem('clipsou_ratings_cache') || '{}');
-        const entry = storedRatings[currentItemId];
-        if (entry && Array.isArray(entry.ratings)) {
-            total = entry.ratings.reduce((acc, r) => acc + r, 0);
-            ratingCount = entry.ratings.length;
+        if (!storedRatings[currentItemId]) {
+            storedRatings[currentItemId] = { ratings: [] };
         }
 
-        if (typeof baseRating === 'number') {
-            total += baseRating;
-            ratingCount += 1;
+        storedRatings[currentItemId].ratings.push(currentRating);
+        storedRatings[currentItemId].updatedAt = Date.now();
+
+        const ratingsArray = storedRatings[currentItemId].ratings.slice();
+        const sum = ratingsArray.reduce((acc, r) => acc + r, 0);
+        const count = ratingsArray.length;        
+        const baseValue = (currentItemData && typeof currentItemData.rating === 'number') ? currentItemData.rating : null;
+
+        if (typeof baseValue === 'number') {
+            ratingsArray.push(baseValue);
         }
 
-        total += currentRating;
-        ratingCount += 1;
+        const totalSum = ratingsArray.reduce((acc, r) => acc + r, 0);
+        const totalCount = ratingsArray.length;
 
-        if (ratingCount > 0) {
-            average = Math.round((total / ratingCount) * 2) / 2;
-        }
+        if (totalCount === 0) return;
 
-        if (average === null) return;
+        const average = Math.round((totalSum / totalCount) * 2) / 2;
 
-        updateRatingDisplay(average, ratingCount);
+        updateRatingDisplay(average, totalCount);
 
         try {
             const modal = document.getElementById('ratingModal');
             modal.dataset.rating = String(average);
-            modal.dataset.ratingCount = String(ratingCount);
+            modal.dataset.ratingCount = String(totalCount);
         } catch {}
 
         try {
-            if (!storedRatings[currentItemId]) storedRatings[currentItemId] = { ratings: [] };
-            storedRatings[currentItemId].ratings.push(currentRating);
-            storedRatings[currentItemId].updatedAt = Date.now();
             localStorage.setItem('clipsou_ratings_cache', JSON.stringify(storedRatings));
         } catch {}
+
+        try {
+            if (currentItemData) {
+                currentItemData.rating = average;
+                currentItemData.ratingCount = totalCount;
+            }
+
+            const approvedRaw = localStorage.getItem('clipsou_items_approved_v1');
+            if (approvedRaw) {
+                const approved = JSON.parse(approvedRaw);
+                if (Array.isArray(approved)) {
+                    const found = approved.find(item => item && item.id === currentItemId);
+                    if (found) {
+                        found.rating = average;
+                        found.ratingCount = totalCount;
+                        localStorage.setItem('clipsou_items_approved_v1', JSON.stringify(approved));
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('Impossible d\'écrire dans le cache local approuvé:', e);
+        }
     } catch (error) {
         console.error('Erreur lors de la mise à jour optimiste de la note:', error);
     }
