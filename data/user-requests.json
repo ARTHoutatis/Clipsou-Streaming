@@ -24,8 +24,9 @@
       }
     ],
     "submittedAt": 1761848334001,
-    "status": "pending",
-    "id": "user_req_1761848334001_t8umki0w7"
+    "status": "approved",
+    "id": "user_req_1761848334001_t8umki0w7",
+    "processedAt": 1761848532050
   },
   {
     "title": "Test (ne pas valider)",
