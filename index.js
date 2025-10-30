@@ -49,6 +49,18 @@
 installLazyImageLoader();
 
 document.addEventListener('DOMContentLoaded', async function () {
+  // Ensure carousel images stay hidden until loaded (works for static and dynamic imgs)
+  (function ensureCarouselImgReveal(){
+    try {
+      const markLoaded = (img) => { try { img.classList.add('is-loaded'); img.style.opacity = '1'; } catch{} };
+      document.querySelectorAll('.carousel-slide > img').forEach(function(img){
+        try {
+          if (img.complete && img.naturalWidth > 0) { markLoaded(img); return; }
+          img.addEventListener('load', function(){ markLoaded(img); }, { once: true });
+        } catch {}
+      });
+    } catch {}
+  })();
   // Preserve scroll position on load/refresh
   try { if ('scrollRestoration' in history) history.scrollRestoration = 'auto'; } catch {}
   // Audio unlocker: primes WebAudio on first user gesture so autoplay with sound is allowed later
@@ -2595,10 +2607,12 @@ document.addEventListener('DOMContentLoaded', async function () {
         // Force eager for all carousel backgrounds so they are ready instantly
         bg.loading = 'eager';
         try { bg.fetchPriority = (idx === 0 ? 'high' : 'low'); } catch {}
-        Object.assign(bg.style, { position: 'absolute', inset: '0', width: '100%', height: '100%', objectFit: 'cover', zIndex: '0' }); if ((it.baseName || '').toLowerCase() === 'bac') { bg.style.objectPosition = 'top center'; }
+        Object.assign(bg.style, { position: 'absolute', inset: '0', width: '100%', height: '100%', objectFit: 'cover', zIndex: '0', opacity: '0' }); if ((it.baseName || '').toLowerCase() === 'bac') { bg.style.objectPosition = 'top center'; }
         const primaryBg = optimizeCloudinaryUrl(it.landscapeImage || (it.image || ''));
         const backs = primaryBg ? [primaryBg, ...deriveBackgrounds(primaryBg)] : deriveBackgrounds(optimizeCloudinaryUrl(it.image || ''));
         let bIdx = 0;
+        // Reveal image once loaded
+        bg.addEventListener('load', function(){ try { bg.classList.add('is-loaded'); bg.style.opacity = '1'; } catch{} }, { once: true });
         bg.onerror = function () { if (bIdx < backs.length - 1) { bIdx += 1; this.src = backs[bIdx]; } };
         // Load source immediately for every slide (no data-src/lazy here)
         bg.src = backs[bIdx] || (it.image || '');
