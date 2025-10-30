@@ -70,11 +70,11 @@
     "id": "custom-astron-les-prophetes-des-8-planetes-fsux",
     "title": "Astron - Les Prophètes des 8 planètes",
     "type": "film",
-    "rating": 4,
+    "rating": 3,
     "genres": [
       "Science-Fiction",
       "Aventure",
-      "Animation"
+      "Brickfilm"
     ],
     "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761821792/zcwi4kgzwuozjezb6d3c.webp",
     "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761821798/bnr1scfo2d2toadws17n.webp",
@@ -107,8 +107,7 @@
       }
     ],
     "episodes": [],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761821809/t4fblpjkrgxg7q9wyedu.webp",
-    "ratingCount": 1
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761821809/t4fblpjkrgxg7q9wyedu.webp"
   },
   {
     "id": "custom-astron-resistance-2gvw",
