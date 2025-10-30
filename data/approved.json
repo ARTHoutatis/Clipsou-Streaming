@@ -113,7 +113,7 @@
     "id": "custom-cassette-n-13-sh76",
     "title": "Cassette N°13",
     "type": "film",
-    "rating": 5,
+    "rating": 4.5,
     "genres": [
       "Horreur",
       "Mystère",
@@ -142,7 +142,7 @@
     ],
     "episodes": [],
     "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp",
-    "ratingCount": 1
+    "ratingCount": 3
   },
   {
     "id": "custom-clipsou-explorer-1-ocfv",
