@@ -6,6 +6,48 @@
     --home-shift: 20px; /* desktop default */
 }
 
+/* ===== Loading Screen ===== */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #0b1117;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.loading-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-logo {
+    text-align: center;
+}
+
+.loading-logo-video {
+    width: 200px;
+    height: 200px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+/* Hide main content initially */
+body:not(.loading-complete) > :not(#loading-screen) {
+    opacity: 0;
+}
+
+body.loading-complete > :not(#loading-screen) {
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
 /* ===== Homepage Hero ===== */
 .home-hero {
   position: relative;
@@ -666,6 +708,10 @@ body.popup-open nav[aria-label="Navigation principale"] {
 /* Hide carousel images until they are fully loaded to avoid showing placeholders */
 .carousel-slide > img { opacity: 0; transition: opacity .3s ease; }
 .carousel-slide > img.is-loaded { opacity: 1; }
+
+/* Hide carousel content until background image is loaded */
+.carousel-content { opacity: 0; transition: opacity .3s ease; }
+.carousel-slide > img.is-loaded + .carousel-content { opacity: 1; }
 
 .carousel-slide.alex-focus {
     /* Responsive vertical focus using percentage for desktop/tablet */

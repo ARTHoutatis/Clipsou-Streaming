@@ -1,3 +1,63 @@
+    // --- Loading Screen Management ---
+    function initLoadingScreen() {
+      const loadingScreen = document.getElementById('loading-screen');
+      const body = document.body;
+      
+      // List of critical images to preload
+      const criticalImages = [
+        'images/La1.webp',
+        'images/Dé1.webp', 
+        'images/Ja1.webp',
+        'images/Al1.webp',
+        'images/Ka1.webp',
+        'images/clipsoustudio.webp',
+        'images/favicon.webp'
+      ];
+      
+      // Preload images function
+      function preloadImages(images) {
+        return Promise.all(images.map(src => {
+          return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = resolve;
+            img.onerror = resolve; // Continue even if some images fail
+            img.src = src;
+          });
+        }));
+      }
+      
+      // Start preloading and timer
+      const preloadPromise = preloadImages(criticalImages);
+      const minLoadTime = 3000; // 3 seconds minimum
+      
+      Promise.all([preloadPromise, new Promise(resolve => setTimeout(resolve, minLoadTime))])
+        .then(() => {
+          // Hide loading screen
+          loadingScreen.classList.add('hidden');
+          body.classList.add('loading-complete');
+          
+          // Remove loading screen from DOM after transition
+          setTimeout(() => {
+            loadingScreen.remove();
+          }, 500);
+        })
+        .catch(() => {
+          // Fallback: hide loading screen even if there's an error
+          loadingScreen.classList.add('hidden');
+          body.classList.add('loading-complete');
+          setTimeout(() => {
+            loadingScreen.remove();
+          }, 500);
+        });
+    }
+    
+    // Initialize loading screen immediately
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initLoadingScreen);
+    } else {
+      initLoadingScreen();
+    }
+
     // --- Shared small helpers (scoped) ---
     function getVid2Ep(){
       // Memoize on window so we don't recreate it
