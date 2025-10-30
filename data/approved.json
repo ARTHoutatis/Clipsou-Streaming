@@ -708,6 +708,32 @@
     "ratingCount": 1
   },
   {
+    "id": "custom-ruberren-eend-pbzx",
+    "title": "Ruberren Eend",
+    "type": "série",
+    "genres": [
+      "Horreur psychologique",
+      "Mini-série",
+      "Ambience"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761850120/py37aetr2ftydrm20f0m.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761848019/rxrlv9wurkhloz31rluq.png",
+    "description": "Un canard présente sa vie",
+    "watchUrl": "",
+    "actors": [],
+    "episodes": [
+      {
+        "title": "Rubberen Eend",
+        "url": "https://youtu.be/7L7lhqFzqwM?si=Refv2ydq3VSH3ef2"
+      },
+      {
+        "title": "Rubberen Eend is dood",
+        "url": "https://youtu.be/SjrpaZk-2rk?si=_66zP9_lFvcDwUCm"
+      }
+    ],
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761337/m84st4ucoorhtfmmqnsn.png"
+  },
+  {
     "id": "custom-south-park-the-fan-made-als5",
     "title": "South Park / The Fan Made",
     "type": "série",
