@@ -1,5 +1,33 @@
 [
   {
+    "requestId": "req_1761825148415_vnioq2l4l",
+    "status": "approved",
+    "data": {
+      "id": "custom-test-ne-pas-valider-ptz0",
+      "title": "Test (ne pas valider)",
+      "type": "film",
+      "rating": null,
+      "genres": [
+        "Documentaire",
+        "Brickfilm",
+        "Horreur"
+      ],
+      "description": "test",
+      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761824181/catpwnxh5czgo1jypwlx.webp",
+      "image": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761824179/lcffgixm3mixlvssild5.webp",
+      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761824179/lcffgixm3mixlvssild5.webp",
+      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761824173/qhvra4dposv4gokhgymn.webp",
+      "watchUrl": "https://www.youtube.com/watch?v=k7CC9wBxuY0",
+      "actors": [],
+      "episodes": []
+    },
+    "meta": {
+      "createdAt": 1761825148415,
+      "source": "user_submission",
+      "updatedAt": 1761825864980
+    }
+  },
+  {
     "requestId": "req_1761822688351_p1pne937p",
     "status": "pending",
     "data": {
@@ -94,34 +122,6 @@
       "importedFromPublic": true,
       "updatedAt": 1761825692027,
       "createdAt": 1761820711031
-    }
-  },
-  {
-    "requestId": "req_1761825148415_vnioq2l4l",
-    "status": "approved",
-    "data": {
-      "id": null,
-      "title": "Test (ne pas valider)",
-      "type": "film",
-      "rating": null,
-      "genres": [
-        "Documentaire",
-        "Brickfilm",
-        "Horreur"
-      ],
-      "description": "test",
-      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761824181/catpwnxh5czgo1jypwlx.webp",
-      "image": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761824179/lcffgixm3mixlvssild5.webp",
-      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761824179/lcffgixm3mixlvssild5.webp",
-      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761824173/qhvra4dposv4gokhgymn.webp",
-      "watchUrl": "https://www.youtube.com/watch?v=k7CC9wBxuY0",
-      "actors": [],
-      "episodes": []
-    },
-    "meta": {
-      "createdAt": 1761825148415,
-      "source": "user_submission",
-      "updatedAt": 1761825161378
     }
   },
   {
