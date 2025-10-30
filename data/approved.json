@@ -731,7 +731,9 @@
         "url": "https://youtu.be/SjrpaZk-2rk?si=_66zP9_lFvcDwUCm"
       }
     ],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761337/m84st4ucoorhtfmmqnsn.png"
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761337/m84st4ucoorhtfmmqnsn.png",
+    "rating": 1,
+    "ratingCount": 1
   },
   {
     "id": "custom-south-park-the-fan-made-als5",
