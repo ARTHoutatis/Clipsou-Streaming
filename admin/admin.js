@@ -1868,7 +1868,7 @@
 
     // Update count badge
     const countBadge = $('#userRequestsCount');
-    const prevCount = numberOrNull(countBadge && countBadge.dataset ? countBadge.dataset.count : null);
+    const prevCount = (typeof lastUserRequestsCount === 'number') ? lastUserRequestsCount : null;
     const pendingCount = userReqs.length;
     const displayValue = pendingCount > 99 ? '99+' : String(pendingCount);
     if (countBadge) {
