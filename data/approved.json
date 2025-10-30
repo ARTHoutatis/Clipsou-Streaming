@@ -758,7 +758,7 @@
     "id": "custom-the-rise-of-brickbeard-54vw",
     "title": "The Rise Of Brickbeard",
     "type": "film",
-    "rating": 4,
+    "rating": 3,
     "genres": [
       "Action",
       "Aventure",
@@ -783,6 +783,7 @@
       }
     ],
     "episodes": [],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761779981/yuur5em3s6lnygvx1gvk.webp"
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761779981/yuur5em3s6lnygvx1gvk.webp",
+    "ratingCount": 2
   }
 ]
