@@ -1,5 +1,33 @@
 [
   {
+    "title": "Ruberren Eend",
+    "type": "série",
+    "genres": [
+      "Horreur psychologique",
+      "Mini-série",
+      "Ambience"
+    ],
+    "description": "Un canard présente sa vie",
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761848013/e0ttbxgxixi176giodml.png",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761848019/rxrlv9wurkhloz31rluq.png",
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761337/m84st4ucoorhtfmmqnsn.png",
+    "watchUrl": "",
+    "actors": [],
+    "episodes": [
+      {
+        "title": "Rubberen Eend",
+        "url": "https://youtu.be/7L7lhqFzqwM?si=Refv2ydq3VSH3ef2"
+      },
+      {
+        "title": "Rubberen Eend is dood",
+        "url": "https://youtu.be/SjrpaZk-2rk?si=_66zP9_lFvcDwUCm"
+      }
+    ],
+    "submittedAt": 1761848334001,
+    "status": "pending",
+    "id": "user_req_1761848334001_t8umki0w7"
+  },
+  {
     "title": "Test (ne pas valider)",
     "type": "film",
     "genres": [
