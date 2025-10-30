@@ -1,5 +1,57 @@
 [
   {
+    "requestId": "req_1761822688351_p1pne937p",
+    "status": "pending",
+    "data": {
+      "id": null,
+      "title": "Astron - Les Prophètes des 8 planètes",
+      "type": "film",
+      "rating": null,
+      "genres": [
+        "Science-Fiction",
+        "Aventure",
+        "Animation"
+      ],
+      "description": "2 ans après la chute du Reca, la galaxie est menacée par un trou noir supermassif. La cellule Astron devra retrouver les orbes des prophètes des 8 planètes pour éradiquer le trou noir. Mais leur quête ne sera pas sans obstacles...",
+      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761821792/zcwi4kgzwuozjezb6d3c.webp",
+      "image": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761821798/bnr1scfo2d2toadws17n.webp",
+      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761821798/bnr1scfo2d2toadws17n.webp",
+      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761821809/t4fblpjkrgxg7q9wyedu.webp",
+      "watchUrl": "https://www.youtube.com/watch?v=CHbUztqfYRU",
+      "actors": [
+        {
+          "name": "Corentin Dubarry",
+          "role": "Einex"
+        },
+        {
+          "name": "Abby Duplessis",
+          "role": "Zweila"
+        },
+        {
+          "name": "Corentin Le Gat",
+          "role": "Dreyord"
+        },
+        {
+          "name": "Baptiste Pomme",
+          "role": "Vierxy"
+        },
+        {
+          "name": "Nadia El Yak",
+          "role": "HYDRA"
+        },
+        {
+          "name": "Mathieu Desroses",
+          "role": "Eridix"
+        }
+      ],
+      "episodes": []
+    },
+    "meta": {
+      "createdAt": 1761822688351,
+      "source": "user_submission"
+    }
+  },
+  {
     "requestId": "req_1761822661152_dhm05ba85",
     "status": "approved",
     "data": {
