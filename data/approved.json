@@ -676,7 +676,7 @@
     "id": "custom-reve-de-gosse-8u67",
     "title": "Rêve de gosse",
     "type": "film",
-    "rating": 5,
+    "rating": 4.5,
     "genres": [
       "Action",
       "Science-Fiction",
@@ -703,7 +703,8 @@
       }
     ],
     "episodes": [],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761851338/amhygihjmua7qvyqmobl.webp"
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761851338/amhygihjmua7qvyqmobl.webp",
+    "ratingCount": 2
   },
   {
     "id": "custom-ruberren-eend-pbzx",
