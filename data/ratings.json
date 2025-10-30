@@ -34,8 +34,10 @@
     "ratings": [
       1,
       5,
-      5
-    ]
+      5,
+      3
+    ],
+    "baseRating": 4
   },
   {
     "id": "custom-gta-irl-quand-tu-essayes-de-devenir-une-racaille-xv2g",
