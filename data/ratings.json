@@ -17,8 +17,10 @@
   {
     "id": "custom-le-connard-au-fond-bleu-gtkf",
     "ratings": [
-      1
-    ]
+      1,
+      3
+    ],
+    "baseRating": 1
   },
   {
     "id": "custom-couloirs-thi4",
