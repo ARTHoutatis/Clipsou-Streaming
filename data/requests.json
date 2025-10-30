@@ -1,7 +1,7 @@
 [
   {
     "requestId": "pub-custom-cassette-n-13-sh76",
-    "status": "pending",
+    "status": "approved",
     "data": {
       "id": "custom-cassette-n-13-sh76",
       "requestId": "pub-custom-cassette-n-13-sh76",
@@ -39,7 +39,7 @@
     },
     "meta": {
       "importedFromPublic": true,
-      "updatedAt": 1761820711031,
+      "updatedAt": 1761820729740,
       "createdAt": 1761820711031
     }
   },
