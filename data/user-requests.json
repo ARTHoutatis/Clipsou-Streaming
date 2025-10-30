@@ -15,8 +15,9 @@
     "actors": [],
     "episodes": [],
     "submittedAt": 1761824233764,
-    "status": "pending",
-    "id": "user_req_1761824233764_hku0z2q6s"
+    "status": "approved",
+    "id": "user_req_1761824233764_hku0z2q6s",
+    "processedAt": 1761825150180
   },
   {
     "title": "Astron - Les Prophètes des 8 planètes",
