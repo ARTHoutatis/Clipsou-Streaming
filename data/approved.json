@@ -674,6 +674,38 @@
     "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp"
   },
   {
+    "id": "custom-reve-de-gosse-8u67",
+    "title": "Rêve de gosse",
+    "type": "film",
+    "genres": [
+      "Animation",
+      "Science-Fiction",
+      "Fantastique"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761848956/g2h00vklev1og1lzaoqq.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761848838/kwguzqtp5r5gdrccte3x.jpg",
+    "description": "Je me suis perdu pendant plusieurs années dans le temps et l'espace pour bricoler ce court métrage de science fiction, il n'est certainement pas parfait mais j'ai mit tout mon coeur à l'ouvrage pour vous le faire parvenir sur terre aujourd'hui.\nCette fiction s'appelle \"Rêve de gosse\" et fait office d'introduction à la toute nouvelle chronique sur le thème de l'espace qui va bientôt suivre !",
+    "watchUrl": "https://youtu.be/xgOCsHrH5Tc?si=C-aT65nwU2mVN4FR",
+    "actors": [
+      {
+        "name": "Theo German",
+        "role": "Personnage Principale",
+        "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757797062/o6wlsmgxql9lqk56ikg9.jpg"
+      },
+      {
+        "name": "Boosty YTB",
+        "role": "Jimbo (robot)"
+      },
+      {
+        "name": "Winter7th",
+        "role": "Assistante",
+        "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1758042353/pgbdwwoqawlgzkjbecya.jpg"
+      }
+    ],
+    "episodes": [],
+    "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp"
+  },
+  {
     "id": "custom-south-park-the-fan-made-als5",
     "title": "South Park / The Fan Made",
     "type": "série",
