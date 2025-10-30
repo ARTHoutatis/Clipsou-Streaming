@@ -1,7 +1,7 @@
 [
   {
     "requestId": "req_1761822661152_dhm05ba85",
-    "status": "pending",
+    "status": "approved",
     "data": {
       "id": null,
       "title": "Astron - Les Prophètes des 8 planètes",
@@ -48,7 +48,8 @@
     },
     "meta": {
       "createdAt": 1761822661152,
-      "source": "user_submission"
+      "source": "user_submission",
+      "updatedAt": 1761822673707
     }
   },
   {
