@@ -317,7 +317,7 @@
     "id": "custom-fallout-pour-de-vrai-4mti",
     "title": "FALLOUT ... pour de vrai !",
     "type": "film",
-    "rating": 3.5,
+    "rating": 4,
     "genres": [
       "Comédie",
       "Action",
@@ -358,7 +358,7 @@
     ],
     "episodes": [],
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto/v1757789533/tueuyfqyikexkxft9vqt.png",
-    "ratingCount": 5
+    "ratingCount": 6
   },
   {
     "id": "custom-gta-irl-quand-tu-essayes-de-devenir-une-racaille-xv2g",
