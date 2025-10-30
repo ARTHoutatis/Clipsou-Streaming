@@ -157,14 +157,14 @@
     "id": "custom-cassette-n-13-sh76",
     "title": "Cassette N°13",
     "type": "film",
-    "rating": 4.5,
+    "rating": 4,
     "genres": [
       "Horreur",
       "Mystère",
       "Found Footage"
     ],
     "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1760726887/ur63zvyb3gyy6dgpdwbh.webp",
-    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1760726920/aww5g9vxav3wlkmubuxq.png",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761861283/frxayujroqrubwn0989v.jpg",
     "description": "J’ai retrouvé cette Cassette n°13 dans un vide-grenier… et ce qu’elle contient est troublant. On y voit des amis filmer leur sortie scolaire, jusqu’au moment où tout bascule dans le cauchemar. C’est difficile à expliquer, mais on dirait que cette ville est maudite.",
     "watchUrl": "https://youtu.be/fRe6mQN3zzo?si=g9Mnht_SvQVrrRKG",
     "actors": [
@@ -185,8 +185,7 @@
       }
     ],
     "episodes": [],
-    "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp",
-    "ratingCount": 5
+    "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp"
   },
   {
     "id": "custom-clipsou-explorer-1-ocfv",
