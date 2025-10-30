@@ -7,6 +7,7 @@ const RATING_WORKER_URL = window.ClipsouConfig?.workerUrl || 'https://clipsou-pu
 let currentRating = 0;
 let currentItemId = '';
 let currentItemData = null;
+let currentRatingCount = 0;
 
 // Fonction principale pour afficher la popup
 window.showRatingModal = function(itemId) {
@@ -17,6 +18,90 @@ window.showRatingModal = function(itemId) {
         console.error('Modal de notation non trouvée');
         return;
     }
+
+function applyOptimisticRatingUpdate() {
+    try {
+        const baseRating = (currentItemData && typeof currentItemData.rating === 'number')
+            ? currentItemData.rating
+            : null;
+
+        let average = null;
+        let ratingCount = currentRatingCount || 0;
+        let total = 0;
+
+        if (Array.isArray(currentItemData?.ratings) && currentItemData.ratings.length) {
+            total = currentItemData.ratings.reduce((acc, r) => acc + r, 0);
+            ratingCount = currentItemData.ratings.length;
+        }
+
+        const storedRatings = JSON.parse(localStorage.getItem('clipsou_ratings_cache') || '{}');
+        const entry = storedRatings[currentItemId];
+        if (entry && Array.isArray(entry.ratings)) {
+            total = entry.ratings.reduce((acc, r) => acc + r, 0);
+            ratingCount = entry.ratings.length;
+        }
+
+        if (typeof baseRating === 'number') {
+            total += baseRating;
+            ratingCount += 1;
+        }
+
+        total += currentRating;
+        ratingCount += 1;
+
+        if (ratingCount > 0) {
+            average = Math.round((total / ratingCount) * 2) / 2;
+        }
+
+        if (average === null) return;
+
+        updateRatingDisplay(average, ratingCount);
+
+        try {
+            const modal = document.getElementById('ratingModal');
+            modal.dataset.rating = String(average);
+            modal.dataset.ratingCount = String(ratingCount);
+        } catch {}
+
+        try {
+            if (!storedRatings[currentItemId]) storedRatings[currentItemId] = { ratings: [] };
+            storedRatings[currentItemId].ratings.push(currentRating);
+            storedRatings[currentItemId].updatedAt = Date.now();
+            localStorage.setItem('clipsou_ratings_cache', JSON.stringify(storedRatings));
+        } catch {}
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour optimiste de la note:', error);
+    }
+}
+
+function updateRatingDisplay(value, count) {
+    try {
+        const rounded = Math.round(value * 2) / 2;
+        let txt = rounded.toFixed(1);
+        if (txt.endsWith('.0')) txt = String(Math.round(rounded));
+        const displayText = `★${txt}/5`;
+
+        const ficheStars = document.querySelectorAll('.rating-genres .stars');
+        ficheStars.forEach((node) => {
+            try { node.textContent = displayText; } catch {}
+        });
+
+        const ratingLabel = document.querySelector('.card-info[data-rating]');
+        if (ratingLabel) {
+            try {
+                ratingLabel.setAttribute('data-rating', txt);
+                ratingLabel.dataset.ratingCount = String(count);
+            } catch {}
+        }
+
+        if (currentItemData) {
+            currentItemData.rating = rounded;
+            currentItemData.ratingCount = count;
+        }
+    } catch (error) {
+        console.error('Erreur lors de l\'actualisation de l\'affichage:', error);
+    }
+}
 
     // Charger les données du contenu
     loadItemDataForRating(itemId);
@@ -30,15 +115,16 @@ window.showRatingModal = function(itemId) {
         // Charger l'image maintenant que tout est prêt
         displayItemDataInModal();
     }, 100);
-    
+
     // Initialiser les événements si ce n'est pas déjà fait
     if (!modal.dataset.initialized) {
         initRatingModal();
         modal.dataset.initialized = 'true';
     }
-    
+
     // Reset rating
     currentRating = 0;
+    currentRatingCount = Number(modal.dataset.ratingCount || '0') || 0;
     resetStars();
     document.getElementById('submitRatingBtn').disabled = true;
 };
@@ -52,6 +138,9 @@ function loadItemDataForRating(itemId) {
             const items = JSON.parse(approvedItems);
             currentItemData = items.find(item => item.id === itemId);
             console.log('Données trouvées dans localStorage:', currentItemData);
+            if (currentItemData && typeof currentItemData.ratingCount === 'number') {
+                currentRatingCount = currentItemData.ratingCount;
+            }
         }
 
         // Si pas trouvé, chercher dans le DOM
@@ -61,6 +150,9 @@ function loadItemDataForRating(itemId) {
                 const items = JSON.parse(scriptTag.textContent);
                 currentItemData = items.find(item => item.id === itemId);
                 console.log('Données trouvées dans le DOM:', currentItemData);
+                if (currentItemData && typeof currentItemData.ratingCount === 'number') {
+                    currentRatingCount = currentItemData.ratingCount;
+                }
             }
         }
 
@@ -271,6 +363,7 @@ async function submitRating() {
         if (result.ok || response.ok) {
             showRatingMessage('Note envoyée avec succès !', 'success');
             console.log('✓ Note envoyée au serveur avec succès');
+            applyOptimisticRatingUpdate();
             
             setTimeout(() => {
                 closeRatingModal();
