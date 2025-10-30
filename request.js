@@ -97,7 +97,7 @@
   let termsCheckbox, submitBtn, resetBtn;
   let formSection, requestForm;
   let rateLimitNotice, pendingRequestNotice, successMessage;
-  let cancelRequestBtn;
+  let cancelRequestBtn, newRequestBtn;
   let actors = [];
   let episodes = [];
   
@@ -418,6 +418,7 @@
     pendingRequestNotice = document.getElementById('pendingRequestNotice');
     successMessage = document.getElementById('successMessage');
     cancelRequestBtn = document.getElementById('cancelRequestBtn');
+    newRequestBtn = document.getElementById('newRequestBtn');
 
     // Check rate limit and pending request
     checkRateLimitAndPendingRequest();
@@ -449,6 +450,10 @@
     // Cancel request button
     if (cancelRequestBtn) {
       cancelRequestBtn.addEventListener('click', handleCancelRequest);
+    }
+
+    if (newRequestBtn) {
+      newRequestBtn.addEventListener('click', handleNewRequest);
     }
 
     // Actor management
@@ -1032,9 +1037,49 @@
       pendingRequestNotice.className = 'notice notice-info';
     }
 
+    const actionsContainer = pendingRequestNotice.querySelector('.pending-actions');
+    const canStartNew = canStartNewRequest(request);
+    const shouldHideCancel = request.status === 'approved';
+
+    if (cancelRequestBtn) {
+      cancelRequestBtn.hidden = shouldHideCancel;
+    }
+
+    if (newRequestBtn) {
+      newRequestBtn.hidden = !canStartNew;
+    }
+
+    if (actionsContainer) {
+      const cancelHidden = !cancelRequestBtn || cancelRequestBtn.hidden;
+      const newHidden = !newRequestBtn || newRequestBtn.hidden;
+      actionsContainer.hidden = cancelHidden && newHidden;
+    }
+
     pendingRequestNotice.hidden = false;
     formSection.style.opacity = '0.5';
     formSection.style.pointerEvents = 'none';
+  }
+
+  /**
+   * Check if user can start a new request
+   */
+  function canStartNewRequest(request) {
+    if (!request) return false;
+    if (isAdmin()) return true;
+
+    const status = request.status || 'pending';
+    if (status === 'pending') {
+      return false;
+    }
+
+    const lastSubmitTime = getLastSubmitTimeSecure();
+    const referenceTime = lastSubmitTime || request.submittedAt || 0;
+    if (!referenceTime) {
+      return true;
+    }
+
+    const elapsed = Date.now() - referenceTime;
+    return elapsed >= RATE_LIMIT_HOURS * 60 * 60 * 1000;
   }
 
   /**
@@ -1295,6 +1340,39 @@
         termsCheckbox.checked = true;
       }
     }
+  }
+
+  /**
+   * Handle new request after previous one processed
+   */
+  function handleNewRequest() {
+    const pendingRequest = getPendingRequest();
+
+    if (!canStartNewRequest(pendingRequest)) {
+      alert('Vous pourrez soumettre une nouvelle demande une fois le délai de 24 heures écoulé.');
+      return;
+    }
+
+    // Remove only local pending state, keep history/GitHub record intact
+    localStorage.removeItem(STORAGE_KEY_REQUEST);
+
+    if (pendingRequestNotice) {
+      pendingRequestNotice.hidden = true;
+    }
+
+    // Re-enable form and navigation
+    enableForm();
+    const stepperContainer = document.getElementById('stepperContainer');
+    const slidesContainer = document.querySelector('.slides-container');
+    if (stepperContainer) stepperContainer.hidden = false;
+    if (slidesContainer) slidesContainer.hidden = false;
+
+    if (requestForm) {
+      requestForm.reset();
+      requestForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    alert('Vous pouvez maintenant soumettre une nouvelle demande.');
   }
 
   /**

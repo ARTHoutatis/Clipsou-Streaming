@@ -1826,6 +1826,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Helper to create a card node from item
     function createCard(item) {
       const card = document.createElement('div'); card.className = 'card';
+      if (item && item.id) card.setAttribute('data-item-id', item.id);
       const a = document.createElement('a'); a.setAttribute('href', `fiche.html?id=${item.id}`);
       const img = document.createElement('img');
       const primaryPortrait = optimizeCloudinaryUrlCard(item.portraitImage || '');
@@ -1837,6 +1838,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       img.setAttribute('loading', 'lazy'); img.setAttribute('decoding', 'async');
       const info = document.createElement('div');
       info.className = 'card-info';
+      if (item && item.id) info.setAttribute('data-item-id', item.id);
       info.setAttribute('data-type', item.type || 'film');
       if (typeof item.rating !== 'undefined') info.setAttribute('data-rating', String(item.rating));
       const hasCustomBadge = Boolean(item.studioBadge && String(item.studioBadge).trim());

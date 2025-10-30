@@ -263,6 +263,13 @@ h2 {
   margin: 8px 0;
 }
 
+.pending-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
 .notice .small {
   font-size: 14px;
   color: #94a3b8;

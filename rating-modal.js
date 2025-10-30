@@ -86,12 +86,37 @@ function updateRatingDisplay(value, count) {
             try { node.textContent = displayText; } catch {}
         });
 
-        const ratingLabel = document.querySelector('.card-info[data-rating]');
-        if (ratingLabel) {
+        const updateCardInfos = (infos) => {
+            infos.forEach((info) => {
+                try {
+                    info.setAttribute('data-rating', txt);
+                    info.dataset.ratingCount = String(count);
+                } catch {}
+            });
+        };
+
+        const safeId = (() => {
             try {
-                ratingLabel.setAttribute('data-rating', txt);
-                ratingLabel.dataset.ratingCount = String(count);
-            } catch {}
+                const id = String(currentItemId || '').trim();
+                if (!id) return '';
+                if (typeof CSS !== 'undefined' && CSS.escape) return CSS.escape(id);
+                return id.replace(/["\\]/g, '\\$&');
+            } catch {
+                return '';
+            }
+        })();
+
+        if (safeId) {
+            const targetedInfos = document.querySelectorAll(`.card-info[data-item-id="${safeId}"]`);
+            if (targetedInfos.length) {
+                updateCardInfos(Array.from(targetedInfos));
+            } else {
+                const fallback = document.querySelector('.card-info[data-rating]');
+                if (fallback) updateCardInfos([fallback]);
+            }
+        } else {
+            const fallback = document.querySelector('.card-info[data-rating]');
+            if (fallback) updateCardInfos([fallback]);
         }
 
         if (currentItemData) {

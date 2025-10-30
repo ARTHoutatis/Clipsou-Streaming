@@ -21,7 +21,10 @@
       <strong id="pendingNoticeTitle">📋 Demande en cours</strong>
       <p id="pendingNoticeMessage">Vous avez une demande en attente de validation par les administrateurs.</p>
       <div class="pending-details" id="pendingDetails"></div>
-      <button type="button" id="cancelRequestBtn" class="btn danger">Annuler ma demande</button>
+      <div class="pending-actions">
+        <button type="button" id="cancelRequestBtn" class="btn danger">Annuler ma demande</button>
+        <button type="button" id="newRequestBtn" class="btn primary" hidden>Nouvelle demande</button>
+      </div>
     </div>
 
     <!-- Stepper Navigation -->
