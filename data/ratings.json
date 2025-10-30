@@ -92,8 +92,10 @@
   {
     "id": "custom-cassette-n-13-sh76",
     "ratings": [
-      5
-    ]
+      5,
+      4
+    ],
+    "baseRating": 5
   },
   {
     "id": "custom-les-aventures-de-kiki-vwu6",
