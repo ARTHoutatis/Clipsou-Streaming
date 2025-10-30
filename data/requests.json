@@ -7,7 +7,7 @@
       "requestId": "r_mhdrf9ax_44rc2h",
       "title": "Rêve de gosse",
       "type": "film",
-      "rating": null,
+      "rating": 5,
       "genres": [
         "Animation",
         "Science-Fiction",
@@ -38,7 +38,7 @@
     },
     "meta": {
       "createdAt": 1761849031641,
-      "updatedAt": 1761851341352
+      "updatedAt": 1761851782954
     }
   },
   {
