@@ -389,11 +389,12 @@ async function submitRating() {
             showRatingMessage('Note envoyée avec succès !', 'success');
             console.log('✓ Note envoyée au serveur avec succès');
             applyOptimisticRatingUpdate();
-            
+
+            submitBtn.textContent = 'Merci !';
+
             setTimeout(() => {
                 closeRatingModal();
-                // Recharger la page pour mettre à jour la note
-                window.location.reload();
+                submitBtn.textContent = 'Envoyer ma note';
             }, 1500);
         } else {
             throw new Error(result.error || 'Erreur lors de l\'envoi');
