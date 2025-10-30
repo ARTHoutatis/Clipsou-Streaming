@@ -138,5 +138,11 @@
       5
     ],
     "baseRating": 3
+  },
+  {
+    "id": "serie1",
+    "ratings": [
+      4
+    ]
   }
 ]
