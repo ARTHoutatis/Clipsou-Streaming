@@ -238,9 +238,51 @@
       <p id="requestsHelp" class="muted">Approuvez une requête pour la publier. Vous pouvez modifier ou supprimer à tout moment.</p>
     </section>
 
+    <section class="form-section banned-users-section">
+      <h2>🚫 Utilisateurs bannis <span id="bannedUsersCount" class="badge notif-badge" hidden></span></h2>
+      <p class="muted">Gérez les utilisateurs bannis qui ne peuvent plus soumettre de demandes. Vous pouvez les bannir depuis les demandes utilisateurs ou manuellement.</p>
+      
+      <div class="ban-user-manual">
+        <h3>Bannir un utilisateur manuellement</h3>
+        <div class="grid" style="grid-template-columns: 1fr 1fr 1fr auto;">
+          <label>
+            <span>Email Google</span>
+            <input type="email" id="banUserEmail" placeholder="email@gmail.com">
+          </label>
+          <label>
+            <span>Nom d'utilisateur (optionnel)</span>
+            <input type="text" id="banUserName" placeholder="Nom">
+          </label>
+          <label>
+            <span>ID Chaîne YouTube (optionnel)</span>
+            <input type="text" id="banUserChannelId" placeholder="UCxxxxxxxxx">
+          </label>
+          <div style="display:flex; align-items:flex-end;">
+            <button type="button" id="addBanBtn" class="btn danger">🚫 Bannir</button>
+          </div>
+        </div>
+      </div>
+
+      <table class="table" id="bannedUsersTable">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Nom</th>
+            <th>Chaîne YouTube</th>
+            <th>Banni le</th>
+            <th>Raison</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p class="muted small" id="bannedUsersEmpty">Aucun utilisateur banni.</p>
+    </section>
+
     <section class="user-requests">
       <h2>📬 Demandes utilisateurs <span id="userRequestsCount" class="badge notif-badge" hidden></span></h2>
       <p class="muted">Les utilisateurs peuvent soumettre leurs films via la page publique. Validez les demandes pour les transférer dans "Requêtes d'ajout" où vous pourrez les approuver.</p>
+      <p class="muted small" id="localModeNotice" style="display:none; color: #fbbf24;">🚧 <strong>Mode local</strong> : Les demandes sont lues depuis localStorage. Rafraîchissement automatique toutes les 5 secondes.</p>
       <div class="actions">
         <button type="button" id="syncUserRequestsBtn" class="btn secondary">🔄 Synchroniser</button>
       </div>

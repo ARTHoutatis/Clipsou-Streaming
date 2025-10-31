@@ -139,10 +139,38 @@
     } catch {}
 
     // Periodic syncs so other admins' actions are reflected automatically
+    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname === '';
+    
+    // Show local mode notice if in local mode
+    if (isLocal) {
+      const localModeNotice = $('#localModeNotice');
+      if (localModeNotice) {
+        localModeNotice.style.display = 'block';
+      }
+      console.log('%c🚧 ADMIN EN MODE LOCAL', 'color: #f59e0b; font-size: 16px; font-weight: bold;');
+      console.log('%cLes demandes utilisateurs sont lues depuis localStorage.', 'color: #fbbf24;');
+    }
+    
     try { if (!window.__requestsPoller) window.__requestsPoller = setInterval(()=>{ try { hydrateRequestsFromPublic(); } catch {} }, 30000); } catch {}
     try { if (!window.__approvedPoller) window.__approvedPoller = setInterval(()=>{ try { hydrateRequestsFromPublicApproved(); } catch {} }, 30000); } catch {}
     try { if (!window.__trashPoller) window.__trashPoller = setInterval(()=>{ try { hydrateTrashFromPublic(); } catch {} }, 30000); } catch {}
-    try { if (!window.__userRequestsPoller) window.__userRequestsPoller = setInterval(()=>{ try { hydrateUserRequestsFromPublic(); } catch {} }, 30000); } catch {}
+    
+    // User requests poller: in local mode, just refresh the table periodically
+    try { 
+      if (!window.__userRequestsPoller) {
+        if (isLocal) {
+          // Local mode: just re-render from localStorage every 5 seconds
+          window.__userRequestsPoller = setInterval(()=>{ 
+            try { 
+              renderUserRequestsTable(); 
+            } catch {} 
+          }, 5000);
+        } else {
+          // Production mode: sync from GitHub every 30 seconds
+          window.__userRequestsPoller = setInterval(()=>{ try { hydrateUserRequestsFromPublic(); } catch {} }, 30000);
+        }
+      }
+    } catch {}
   }
 
   // Replace local requests with the shared public list when available
@@ -1921,6 +1949,27 @@
 
       const actions = tr.querySelector('.row-actions');
       
+      // YouTube link button (if video URL exists)
+      if (req.watchUrl && req.type !== 'série') {
+        const youtubeBtn = document.createElement('a');
+        youtubeBtn.className = 'btn secondary';
+        youtubeBtn.textContent = '▶️ YouTube';
+        youtubeBtn.title = 'Ouvrir la vidéo sur YouTube';
+        youtubeBtn.href = req.watchUrl;
+        youtubeBtn.target = '_blank';
+        youtubeBtn.rel = 'noopener noreferrer';
+        youtubeBtn.style.textDecoration = 'none';
+        actions.appendChild(youtubeBtn);
+      }
+
+      // View images button
+      const viewImagesBtn = document.createElement('button');
+      viewImagesBtn.className = 'btn secondary';
+      viewImagesBtn.textContent = '🖼️ Images';
+      viewImagesBtn.title = 'Prévisualiser les images';
+      viewImagesBtn.addEventListener('click', () => showUserRequestImages(req));
+      actions.appendChild(viewImagesBtn);
+      
       // View button
       const viewBtn = document.createElement('button');
       viewBtn.className = 'btn secondary';
@@ -1942,9 +1991,34 @@
       deleteBtn.title = 'Supprimer cette demande';
       deleteBtn.addEventListener('click', () => deleteUserRequest(req));
 
+      // Ban button
+      const banBtn = document.createElement('button');
+      banBtn.className = 'btn danger';
+      banBtn.textContent = '🚫 Bannir';
+      banBtn.title = 'Bannir cet utilisateur';
+      banBtn.addEventListener('click', () => {
+        const email = req.submittedBy?.email;
+        const name = req.submittedBy?.name;
+        const channelId = req.youtubeChannel?.id;
+        
+        if (!email) {
+          alert('Impossible de bannir : email introuvable dans la demande');
+          return;
+        }
+
+        const reason = prompt(`Bannir ${email} ?\n\nRaison du bannissement:`) || 'Banni depuis une demande utilisateur';
+        
+        if (banUser(email, name, channelId, reason)) {
+          alert(`✓ ${email} a été banni avec succès`);
+          // Also reject the request
+          deleteUserRequest(req);
+        }
+      });
+
       actions.appendChild(viewBtn);
       actions.appendChild(validateBtn);
       actions.appendChild(deleteBtn);
+      actions.appendChild(banBtn);
       tbody.appendChild(tr);
     });
   }
@@ -1975,6 +2049,168 @@
     `.trim();
 
     alert(details);
+  }
+
+  /**
+   * Show user request images in a modal
+   */
+  function showUserRequestImages(req) {
+    // Create modal overlay
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-y: auto;
+    `;
+
+    // Create content container
+    const content = document.createElement('div');
+    content.style.cssText = `
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 1200px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    `;
+
+    const title = document.createElement('h2');
+    title.textContent = `🖼️ Prévisualisation des images - ${req.title || 'Sans titre'}`;
+    title.style.cssText = 'color: #f1f5f9; margin: 0 0 20px 0; font-size: 24px;';
+    content.appendChild(title);
+
+    // Warning message
+    const warning = document.createElement('div');
+    warning.style.cssText = `
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    `;
+    warning.innerHTML = '⚠️ <strong>Vérification importante :</strong> Assurez-vous que les images ne contiennent pas de contenu inapproprié, offensant, raciste ou réservé aux adultes (-18).';
+    content.appendChild(warning);
+
+    // Images grid
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px;';
+
+    // Add portrait image
+    if (req.portraitImage) {
+      const portraitDiv = createImagePreview('Affiche Portrait (9:12)', req.portraitImage);
+      grid.appendChild(portraitDiv);
+    }
+
+    // Add landscape image
+    if (req.landscapeImage) {
+      const landscapeDiv = createImagePreview('Image Fiche (16:9)', req.landscapeImage);
+      grid.appendChild(landscapeDiv);
+    }
+
+    // Add studio badge
+    if (req.studioBadge) {
+      const badgeDiv = createImagePreview('Badge Studio', req.studioBadge);
+      grid.appendChild(badgeDiv);
+    }
+
+    content.appendChild(grid);
+
+    // Close button
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Fermer';
+    closeBtn.className = 'btn';
+    closeBtn.style.cssText = 'width: 100%; margin-top: 10px;';
+    closeBtn.addEventListener('click', () => document.body.removeChild(modal));
+    content.appendChild(closeBtn);
+
+    modal.appendChild(content);
+    
+    // Close on overlay click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        document.body.removeChild(modal);
+      }
+    });
+
+    // Close on Escape key
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        document.body.removeChild(modal);
+        document.removeEventListener('keydown', handleEscape);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+
+    document.body.appendChild(modal);
+  }
+
+  /**
+   * Create image preview card
+   */
+  function createImagePreview(label, url) {
+    const div = document.createElement('div');
+    div.style.cssText = `
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    `;
+
+    const labelEl = document.createElement('div');
+    labelEl.textContent = label;
+    labelEl.style.cssText = 'color: #cbd5e1; font-weight: 600; font-size: 14px;';
+    div.appendChild(labelEl);
+
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = label;
+    img.style.cssText = `
+      width: 100%;
+      height: auto;
+      border-radius: 4px;
+      display: block;
+      background: rgba(0, 0, 0, 0.3);
+      max-height: 500px;
+      object-fit: contain;
+    `;
+    
+    // Handle image load error
+    img.onerror = () => {
+      img.style.display = 'none';
+      const error = document.createElement('div');
+      error.textContent = '❌ Impossible de charger l\'image';
+      error.style.cssText = 'color: #ef4444; padding: 20px; text-align: center;';
+      div.appendChild(error);
+    };
+
+    div.appendChild(img);
+
+    // Open in new tab button
+    const openBtn = document.createElement('a');
+    openBtn.href = url;
+    openBtn.target = '_blank';
+    openBtn.rel = 'noopener noreferrer';
+    openBtn.textContent = '🔗 Ouvrir dans un nouvel onglet';
+    openBtn.className = 'btn secondary';
+    openBtn.style.cssText = 'text-decoration: none; text-align: center; font-size: 12px; padding: 8px;';
+    div.appendChild(openBtn);
+
+    return div;
   }
 
   /**
@@ -3275,8 +3511,19 @@
         try {
           syncUserRequestsBtn.disabled = true;
           syncUserRequestsBtn.textContent = '⏳ Synchronisation...';
-          await hydrateUserRequestsFromPublic();
-          alert('✓ Demandes utilisateurs synchronisées avec succès.');
+          
+          // Check if running locally
+          const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname === '';
+          
+          if (isLocal) {
+            // Local mode: just refresh from localStorage
+            renderUserRequestsTable();
+            alert('✓ Demandes rafraîchies depuis le stockage local.');
+          } else {
+            // Production mode: sync from GitHub
+            await hydrateUserRequestsFromPublic();
+            alert('✓ Demandes utilisateurs synchronisées avec succès.');
+          }
         } catch (e) {
           console.error('Error syncing user requests:', e);
           alert('❌ Erreur lors de la synchronisation des demandes.');
@@ -3298,6 +3545,7 @@
     renderTable();
     renderTrash();
     renderUserRequestsTable();
+    initBannedUsersManagement();
     populateGenresDatalist();
     restoreDraft();
     populateActorNamesDatalist();
@@ -3536,4 +3784,184 @@
     const names = collectActorNames();
     el.innerHTML = names.map(n=>`<option value="${n}"></option>`).join('');
   };
+
+  /**
+   * Banned Users Management System
+   */
+  const STORAGE_KEY_BANNED = 'clipsou_banned_users_v1';
+
+  function getBannedUsers() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY_BANNED);
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveBannedUsers(list) {
+    try {
+      localStorage.setItem(STORAGE_KEY_BANNED, JSON.stringify(list || []));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function isUserBanned(email, channelId) {
+    const banned = getBannedUsers();
+    return banned.some(user => {
+      if (email && user.email === email) return true;
+      if (channelId && user.channelId === channelId) return true;
+      return false;
+    });
+  }
+
+  function banUser(email, name, channelId, reason) {
+    if (!email) {
+      alert('L\'email est requis pour bannir un utilisateur');
+      return false;
+    }
+
+    const banned = getBannedUsers();
+    
+    // Check if already banned
+    if (isUserBanned(email, channelId)) {
+      alert('Cet utilisateur est déjà banni');
+      return false;
+    }
+
+    const newBan = {
+      email: email.toLowerCase().trim(),
+      name: name || 'Non spécifié',
+      channelId: channelId || '',
+      bannedAt: Date.now(),
+      reason: reason || 'Non spécifié'
+    };
+
+    banned.push(newBan);
+    saveBannedUsers(banned);
+    renderBannedUsersTable();
+    console.log('[Admin] User banned:', email);
+    return true;
+  }
+
+  function unbanUser(email) {
+    const banned = getBannedUsers();
+    const filtered = banned.filter(user => user.email !== email);
+    
+    if (banned.length === filtered.length) {
+      alert('Utilisateur introuvable dans la liste des bannis');
+      return false;
+    }
+
+    saveBannedUsers(filtered);
+    renderBannedUsersTable();
+    console.log('[Admin] User unbanned:', email);
+    return true;
+  }
+
+  function renderBannedUsersTable() {
+    const tbody = $('#bannedUsersTable tbody');
+    const emptyMsg = $('#bannedUsersEmpty');
+    const countBadge = $('#bannedUsersCount');
+    
+    if (!tbody) return;
+
+    const banned = getBannedUsers();
+    tbody.innerHTML = '';
+
+    // Update count
+    if (countBadge) {
+      if (banned.length > 0) {
+        countBadge.textContent = banned.length > 99 ? '99+' : String(banned.length);
+        countBadge.hidden = false;
+      } else {
+        countBadge.hidden = true;
+      }
+    }
+
+    if (emptyMsg) {
+      emptyMsg.hidden = banned.length > 0;
+    }
+
+    if (banned.length === 0) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td colspan="6" class="muted" style="text-align:center;">Aucun utilisateur banni</td>';
+      tbody.appendChild(tr);
+      return;
+    }
+
+    banned.forEach(user => {
+      const tr = document.createElement('tr');
+      const bannedDate = new Date(user.bannedAt).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      tr.innerHTML = `
+        <td data-label="Email">${escapeHtml(user.email || 'N/A')}</td>
+        <td data-label="Nom">${escapeHtml(user.name || 'N/A')}</td>
+        <td data-label="Chaîne">${escapeHtml(user.channelId || 'N/A')}</td>
+        <td data-label="Banni le">${bannedDate}</td>
+        <td data-label="Raison">${escapeHtml(user.reason || 'Non spécifié')}</td>
+        <td class="row-actions"></td>
+      `;
+
+      const actions = tr.querySelector('.row-actions');
+      
+      const unbanBtn = document.createElement('button');
+      unbanBtn.className = 'btn';
+      unbanBtn.textContent = '✓ Débannir';
+      unbanBtn.title = 'Autoriser cet utilisateur à soumettre des demandes';
+      unbanBtn.addEventListener('click', () => {
+        if (confirm(`Voulez-vous débannir ${user.email} ?`)) {
+          unbanUser(user.email);
+        }
+      });
+
+      actions.appendChild(unbanBtn);
+      tbody.appendChild(tr);
+    });
+  }
+
+  function initBannedUsersManagement() {
+    const addBanBtn = $('#addBanBtn');
+    const emailInput = $('#banUserEmail');
+    const nameInput = $('#banUserName');
+    const channelIdInput = $('#banUserChannelId');
+
+    if (addBanBtn) {
+      addBanBtn.addEventListener('click', () => {
+        const email = emailInput?.value?.trim();
+        const name = nameInput?.value?.trim();
+        const channelId = channelIdInput?.value?.trim();
+
+        if (!email) {
+          alert('L\'email est requis');
+          return;
+        }
+
+        const reason = prompt('Raison du bannissement (optionnel):') || 'Banni manuellement';
+        
+        if (banUser(email, name, channelId, reason)) {
+          alert(`✓ ${email} a été banni avec succès`);
+          if (emailInput) emailInput.value = '';
+          if (nameInput) nameInput.value = '';
+          if (channelIdInput) channelIdInput.value = '';
+        }
+      });
+    }
+
+    // Render initial table
+    renderBannedUsersTable();
+  }
+
+  // Expose ban checking function globally for use in request.js
+  window.ClipsouAdmin = window.ClipsouAdmin || {};
+  window.ClipsouAdmin.isUserBanned = isUserBanned;
+  window.ClipsouAdmin.getBannedUsers = getBannedUsers;
 })();
