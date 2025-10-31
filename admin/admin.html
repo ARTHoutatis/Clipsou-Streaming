@@ -7,6 +7,8 @@
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" href="../images/favicon.webp" type="image/webp">
   <link rel="stylesheet" href="admin.css?v=20250910">
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script>
     // Enforce apex domain online to share localStorage with the main site
     (function(){
@@ -28,8 +30,12 @@
 
     <section class="auth">
       <p class="muted">Accès restreint. Votre session admin est active.</p>
-      <button id="logoutBtn" type="button" class="btn">Se déconnecter</button>
-      <a id="homeShortcut" href="../" class="btn secondary" style="margin-left:8px;">Aller à l'accueil</a>
+      <div id="googleAuthContainer"></div>
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <button id="logoutBtn" type="button" class="btn">Se déconnecter</button>
+        <a id="homeShortcut" href="../" class="btn secondary">Aller à l'accueil</a>
+        <button id="adminListBtn" type="button" class="btn admin-list-btn" title="Gérer la liste des administrateurs">👥 Liste des admins</button>
+      </div>
     </section>
 
     <section class="form-section" id="cloudinary-section" hidden>
@@ -238,6 +244,29 @@
       <p id="requestsHelp" class="muted">Approuvez une requête pour la publier. Vous pouvez modifier ou supprimer à tout moment.</p>
     </section>
 
+    
+    <section class="user-requests">
+      <h2>📬 Demandes utilisateurs <span id="userRequestsCount" class="badge notif-badge" hidden></span></h2>
+      <p class="muted">Les utilisateurs peuvent soumettre leurs films via la page publique. Validez les demandes pour les transférer dans "Requêtes d'ajout" où vous pourrez les approuver.</p>
+      <p class="muted small" id="localModeNotice" style="display:none; color: #fbbf24;">🚧 <strong>Mode local</strong> : Les demandes sont lues depuis localStorage. Rafraîchissement automatique toutes les 5 secondes.</p>
+      <div class="actions">
+        <button type="button" id="syncUserRequestsBtn" class="btn secondary">🔄 Synchroniser</button>
+      </div>
+      <table class="table" id="userRequestsTable">
+        <thead>
+          <tr>
+            <th>Titre</th>
+            <th>Type</th>
+            <th>Soumis le</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p class="muted small">Note : Les demandes validées sont transférées dans "Requêtes d'ajout" ci-dessus où vous pouvez les modifier avant publication.</p>
+    </section>
+
     <section class="form-section banned-users-section">
       <h2>🚫 Utilisateurs bannis <span id="bannedUsersCount" class="badge notif-badge" hidden></span></h2>
       <p class="muted">Gérez les utilisateurs bannis qui ne peuvent plus soumettre de demandes. Vous pouvez les bannir depuis les demandes utilisateurs ou manuellement.</p>
@@ -278,33 +307,26 @@
       </table>
       <p class="muted small" id="bannedUsersEmpty">Aucun utilisateur banni.</p>
     </section>
-
-    <section class="user-requests">
-      <h2>📬 Demandes utilisateurs <span id="userRequestsCount" class="badge notif-badge" hidden></span></h2>
-      <p class="muted">Les utilisateurs peuvent soumettre leurs films via la page publique. Validez les demandes pour les transférer dans "Requêtes d'ajout" où vous pourrez les approuver.</p>
-      <p class="muted small" id="localModeNotice" style="display:none; color: #fbbf24;">🚧 <strong>Mode local</strong> : Les demandes sont lues depuis localStorage. Rafraîchissement automatique toutes les 5 secondes.</p>
-      <div class="actions">
-        <button type="button" id="syncUserRequestsBtn" class="btn secondary">🔄 Synchroniser</button>
-      </div>
-      <table class="table" id="userRequestsTable">
-        <thead>
-          <tr>
-            <th>Titre</th>
-            <th>Type</th>
-            <th>Soumis le</th>
-            <th>Statut</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <p class="muted small">Note : Les demandes validées sont transférées dans "Requêtes d'ajout" ci-dessus où vous pouvez les modifier avant publication.</p>
-    </section>
   </main>
 
   <div id="login" class="login">
     <h1>Admin – Connexion</h1>
-    <p class="muted">Entrez le mot de passe admin pour accéder à l’interface.</p>
+    <p class="muted">Entrez le mot de passe admin et connectez-vous avec Google pour accéder à l'interface.</p>
+    
+    <!-- Google Sign-In Button -->
+    <div id="googleSignInButton" style="display:flex; justify-content:center; margin:16px 0;"></div>
+    <p class="muted small" style="text-align:center; margin:8px 0;">Connexion Google requise (email autorisé uniquement)</p>
+    <p class="muted small" style="text-align:center; margin:8px 0;">
+      <a href="../privacy.html" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: none;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        Politique de confidentialité
+      </a>
+    </p>
+    
+    <hr style="border:none; border-top:1px solid #334155; margin:24px 0;">
+    
     <!-- Provide a dedicated username field so Chrome pairs credentials here instead of targeting unrelated inputs -->
     <input id="usernameInput" name="username" type="text" autocomplete="username" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none" tabindex="-1" aria-hidden="true">
     <!-- Hidden current-password decoy to further attract autofill away from the search field -->
@@ -322,7 +344,21 @@
     </div>
   </div>
 
-  <script src="admin.js?v=20250928-2" defer></script>
+  <script src="../config.js"></script>
+  <script src="../google-auth.js?v=20251031-buttonalign"></script>
+  <script src="admin-auth.js?v=20251031-superadmin"></script>
+  <script src="admin.js?v=20251031-profilefix" defer></script>
+  <script>
+    // Setup admin list button
+    document.addEventListener('DOMContentLoaded', function() {
+      const adminListBtn = document.getElementById('adminListBtn');
+      if (adminListBtn && window.AdminAuth) {
+        adminListBtn.addEventListener('click', function() {
+          window.AdminAuth.showAdminListPopup();
+        });
+      }
+    });
+  </script>
   <script>
     // Extra guard: delay enabling typing in the search box until real user interaction
     (function(){

@@ -171,6 +171,17 @@
         }
       }
     } catch {}
+
+    // Banned users poller: sync from GitHub every 30 seconds
+    try {
+      if (!window.__bannedUsersPoller) {
+        window.__bannedUsersPoller = setInterval(()=>{ 
+          try { 
+            hydrateBannedUsersFromPublic(); 
+          } catch {} 
+        }, 30000);
+      }
+    } catch {}
   }
 
   // Replace local requests with the shared public list when available
@@ -1361,6 +1372,65 @@
     } catch { return false; }
   }
 
+  // ===== Publish banned users (shared across admins) =====
+  async function publishBannedUserAdd(user){
+    const cfg = await ensurePublishConfig();
+    if (!cfg || !cfg.url || !cfg.secret) return false;
+    try {
+      const res = await fetch(cfg.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.secret },
+        body: JSON.stringify({ action: 'banned_user_add', user: user })
+      });
+      return !!res.ok;
+    } catch { return false; }
+  }
+
+  async function publishBannedUserRemove(email){
+    const cfg = await ensurePublishConfig();
+    if (!cfg || !cfg.url || !cfg.secret) return false;
+    try {
+      const res = await fetch(cfg.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.secret },
+        body: JSON.stringify({ action: 'banned_user_remove', email: email })
+      });
+      return !!res.ok;
+    } catch { return false; }
+  }
+
+  async function publishBannedUsersSync(banned){
+    const cfg = await ensurePublishConfig();
+    if (!cfg || !cfg.url || !cfg.secret) return false;
+    try {
+      const res = await fetch(cfg.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.secret },
+        body: JSON.stringify({ action: 'banned_users_sync', banned: banned })
+      });
+      return !!res.ok;
+    } catch { return false; }
+  }
+
+  // Fetch public banned-users.json to sync across admins
+  async function fetchPublicBannedUsersArray(){
+    const cfg = getPublishConfig();
+    const tryUrls = [
+      (function(){ try { return (window.location.origin || '') + '/data/banned-users.json'; } catch { return null; } })(),
+      '../data/banned-users.json',
+      'data/banned-users.json'
+    ].filter(Boolean);
+    for (const u of tryUrls) {
+      try {
+        const res = await fetch(u + '?v=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' });
+        if (!res.ok) continue;
+        const json = await res.json();
+        if (Array.isArray(json)) return json;
+      } catch {}
+    }
+    return [];
+  }
+
   // Fetch public user-requests.json to sync across admins
   async function fetchPublicUserRequestsArray(){
     const cfg = getPublishConfig();
@@ -1399,6 +1469,25 @@
     } catch (e) {
       // Silently fail if file doesn't exist yet - normal for first time
       console.debug('User requests file not available yet (normal on first setup)');
+    }
+  }
+
+  // Sync local banned users with remote shared list
+  async function hydrateBannedUsersFromPublic(){
+    try {
+      const remote = await fetchPublicBannedUsersArray();
+      if (Array.isArray(remote)) {
+        // Always sync with GitHub (source of truth)
+        saveBannedUsers(remote);
+        
+        // Re-render to update the display
+        try { renderBannedUsersTable(); } catch {}
+        
+        console.debug(`✓ Banned users synced: ${remote.length} banned`);
+      }
+    } catch (e) {
+      // Silently fail if file doesn't exist yet - normal for first time
+      console.debug('Banned users file not available yet (normal on first setup)');
     }
   }
 
@@ -1858,25 +1947,140 @@
   /**
    * Get user requests from localStorage
    */
-  function getUserRequests() {
-    try {
-      const data = localStorage.getItem('user_requests_history');
-      return data ? JSON.parse(data) : [];
-    } catch (e) {
-      console.error('Error loading user requests:', e);
+  const USER_REQUEST_SCHEMA_VERSION = 1;
+
+  function normalizeRequestStatus(status) {
+    switch ((status || '').toLowerCase()) {
+      case 'approved':
+      case 'validated':
+        return 'approved';
+      case 'rejected':
+      case 'denied':
+      case 'refused':
+        return 'rejected';
+      case 'pending':
+      default:
+        return 'pending';
+    }
+  }
+
+  function canonicalizeUserRequest(request) {
+    if (!request || typeof request !== 'object') return null;
+
+    const id = typeof request.id === 'string' && request.id.trim() ? request.id.trim() : null;
+    if (!id) return null;
+
+    return {
+      schema: USER_REQUEST_SCHEMA_VERSION,
+      id,
+      title: typeof request.title === 'string' ? request.title.trim() : '',
+      type: typeof request.type === 'string' ? request.type.trim() : '',
+      genres: Array.isArray(request.genres) ? request.genres.filter(Boolean) : [],
+      description: typeof request.description === 'string' ? request.description : '',
+      portraitImage: request.portraitImage || request.posterImage || '',
+      landscapeImage: request.landscapeImage || request.bannerImage || request.image || '',
+      studioBadge: request.studioBadge || '',
+      watchUrl: request.watchUrl || '',
+      rating: (typeof request.rating === 'number') ? request.rating : null,
+      status: normalizeRequestStatus(request.status),
+      submittedAt: typeof request.submittedAt === 'number' ? request.submittedAt : null,
+      processedAt: typeof request.processedAt === 'number' ? request.processedAt : null,
+      youtubeChannel: request.youtubeChannel && typeof request.youtubeChannel === 'object'
+        ? {
+            id: request.youtubeChannel.id || '',
+            title: request.youtubeChannel.title || '',
+            customUrl: request.youtubeChannel.customUrl || ''
+          }
+        : null,
+      submittedBy: request.submittedBy && typeof request.submittedBy === 'object'
+        ? {
+            email: request.submittedBy.email || '',
+            name: request.submittedBy.name || '',
+            googleId: request.submittedBy.googleId || ''
+          }
+        : null,
+      actors: Array.isArray(request.actors) ? request.actors.filter(Boolean) : [],
+      episodes: Array.isArray(request.episodes) ? request.episodes.filter(Boolean) : [],
+      notes: request.notes || ''
+    };
+  }
+
+  function canonicalizeRequestsCollection(collection) {
+    if (!Array.isArray(collection)) return [];
+    const seen = new Set();
+    const result = [];
+
+    collection.forEach(item => {
+      const canonical = canonicalizeUserRequest(item);
+      if (!canonical) return;
+      if (seen.has(canonical.id)) return;
+      seen.add(canonical.id);
+      result.push(canonical);
+    });
+
+    return result;
+  }
+
+  function getConfigSeedRequests() {
+    if (!window.ClipsouConfig || !Array.isArray(window.ClipsouConfig.userRequestsSeed)) {
       return [];
     }
+    return canonicalizeRequestsCollection(window.ClipsouConfig.userRequestsSeed);
+  }
+
+  function readUserRequestsFromStorage() {
+    try {
+      const data = localStorage.getItem('user_requests_history');
+      if (!data) return null;
+      const parsed = JSON.parse(data);
+      return canonicalizeRequestsCollection(parsed);
+    } catch (error) {
+      console.error('Error loading user requests:', error);
+      return null;
+    }
+  }
+
+  function persistUserRequests(requests) {
+    const canonical = canonicalizeRequestsCollection(requests);
+    try {
+      localStorage.setItem('user_requests_history', JSON.stringify(canonical));
+    } catch (error) {
+      console.error('Error saving user requests:', error);
+    }
+    return canonical;
+  }
+
+  function mergeSeedAndStoredRequests() {
+    const stored = readUserRequestsFromStorage();
+    const seeded = getConfigSeedRequests();
+
+    if (!stored && seeded.length) {
+      return persistUserRequests(seeded);
+    }
+
+    const combined = canonicalizeRequestsCollection([...(stored || []), ...seeded]);
+    if (!stored || combined.length !== stored.length) {
+      return persistUserRequests(combined);
+    }
+
+    return stored || [];
+  }
+
+  let cachedUserRequests = null;
+
+  function getUserRequests() {
+    if (cachedUserRequests) {
+      return cachedUserRequests.map(req => ({ ...req }));
+    }
+    cachedUserRequests = mergeSeedAndStoredRequests();
+    return cachedUserRequests.map(req => ({ ...req }));
   }
 
   /**
    * Save user requests to localStorage
    */
   function saveUserRequests(requests) {
-    try {
-      localStorage.setItem('user_requests_history', JSON.stringify(requests));
-    } catch (e) {
-      console.error('Error saving user requests:', e);
-    }
+    cachedUserRequests = persistUserRequests(requests);
   }
 
   /**
@@ -1996,7 +2200,7 @@
       banBtn.className = 'btn danger';
       banBtn.textContent = '🚫 Bannir';
       banBtn.title = 'Bannir cet utilisateur';
-      banBtn.addEventListener('click', () => {
+      banBtn.addEventListener('click', async () => {
         const email = req.submittedBy?.email;
         const name = req.submittedBy?.name;
         const channelId = req.youtubeChannel?.id;
@@ -2008,8 +2212,9 @@
 
         const reason = prompt(`Bannir ${email} ?\n\nRaison du bannissement:`) || 'Banni depuis une demande utilisateur';
         
-        if (banUser(email, name, channelId, reason)) {
-          alert(`✓ ${email} a été banni avec succès`);
+        const result = await banUser(email, name, channelId, reason);
+        if (result) {
+          alert(`✓ ${email} a été banni avec succès et synchronisé avec GitHub`);
           // Also reject the request
           deleteUserRequest(req);
         }
@@ -2910,6 +3115,16 @@
     const app = $('#app');
     app.hidden = false;
 
+    // Display admin info immediately after login
+    if (window.AdminAuth && window.AdminAuth.displayAdminInfo) {
+      try {
+        // Ensure admin profile is displayed in header
+        window.AdminAuth.displayAdminInfo();
+      } catch (e) {
+        console.error('Error displaying admin info:', e);
+      }
+    }
+
     // Logout button returns to login
     try {
       const logoutBtn = $('#logoutBtn');
@@ -2925,6 +3140,11 @@
             if (pwd) { pwd.value = ''; pwd.type = 'password'; }
             const chk = document.getElementById('showPwd');
             if (chk) chk.checked = false;
+          } catch {}
+          // Clear admin profile display
+          try {
+            const adminInfo = document.getElementById('adminInfo');
+            if (adminInfo) adminInfo.remove();
           } catch {}
           const login = $('#login');
           if (app) app.hidden = true;
@@ -3817,7 +4037,7 @@
     });
   }
 
-  function banUser(email, name, channelId, reason) {
+  async function banUser(email, name, channelId, reason) {
     if (!email) {
       alert('L\'email est requis pour bannir un utilisateur');
       return false;
@@ -3843,10 +4063,23 @@
     saveBannedUsers(banned);
     renderBannedUsersTable();
     console.log('[Admin] User banned:', email);
+
+    // Publish to GitHub for cross-admin synchronization
+    try {
+      const published = await publishBannedUserAdd(newBan);
+      if (published) {
+        console.log('✓ Ban synchronized to GitHub - all admins will see this change');
+      } else {
+        console.warn('⚠️ Could not sync to GitHub - other admins may not see the change immediately');
+      }
+    } catch (e) {
+      console.error('Error publishing ban to GitHub:', e);
+    }
+
     return true;
   }
 
-  function unbanUser(email) {
+  async function unbanUser(email) {
     const banned = getBannedUsers();
     const filtered = banned.filter(user => user.email !== email);
     
@@ -3858,6 +4091,19 @@
     saveBannedUsers(filtered);
     renderBannedUsersTable();
     console.log('[Admin] User unbanned:', email);
+
+    // Publish to GitHub for cross-admin synchronization
+    try {
+      const published = await publishBannedUserRemove(email);
+      if (published) {
+        console.log('✓ Unban synchronized to GitHub - all admins will see this change');
+      } else {
+        console.warn('⚠️ Could not sync to GitHub - other admins may not see the change immediately');
+      }
+    } catch (e) {
+      console.error('Error publishing unban to GitHub:', e);
+    }
+
     return true;
   }
 
@@ -3917,9 +4163,9 @@
       unbanBtn.className = 'btn';
       unbanBtn.textContent = '✓ Débannir';
       unbanBtn.title = 'Autoriser cet utilisateur à soumettre des demandes';
-      unbanBtn.addEventListener('click', () => {
+      unbanBtn.addEventListener('click', async () => {
         if (confirm(`Voulez-vous débannir ${user.email} ?`)) {
-          unbanUser(user.email);
+          await unbanUser(user.email);
         }
       });
 
@@ -3935,7 +4181,7 @@
     const channelIdInput = $('#banUserChannelId');
 
     if (addBanBtn) {
-      addBanBtn.addEventListener('click', () => {
+      addBanBtn.addEventListener('click', async () => {
         const email = emailInput?.value?.trim();
         const name = nameInput?.value?.trim();
         const channelId = channelIdInput?.value?.trim();
@@ -3947,8 +4193,9 @@
 
         const reason = prompt('Raison du bannissement (optionnel):') || 'Banni manuellement';
         
-        if (banUser(email, name, channelId, reason)) {
-          alert(`✓ ${email} a été banni avec succès`);
+        const result = await banUser(email, name, channelId, reason);
+        if (result) {
+          alert(`✓ ${email} a été banni avec succès et synchronisé avec GitHub`);
           if (emailInput) emailInput.value = '';
           if (nameInput) nameInput.value = '';
           if (channelIdInput) channelIdInput.value = '';
