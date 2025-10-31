@@ -4,16 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <!-- Maintenance mode check -->
-  <script src="maintenance-check.js"></script>
+  <script src="maintenance.js"></script>
   <title>Proposer un film – Clipsou Streaming</title>
   <link rel="icon" href="images/favicon.webp" type="image/webp">
   <link rel="stylesheet" href="request.css?v=1">
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
   <main class="container" id="app">
     <div class="header">
-      <h1>📽️ Proposer un film</h1>
-      <a href="/" class="btn secondary back-btn">← Retour à l'accueil</a>
+      <div>
+        <h1>📽️ Proposer un film</h1>
+        <div id="userInfo" class="user-info" hidden></div>
+      </div>
+      <div class="header-actions">
+        <button type="button" id="logoutBtn" class="btn secondary" hidden>🚪 Se déconnecter</button>
+        <a href="/" class="btn secondary back-btn">← Retour à l'accueil</a>
+      </div>
     </div>
 
     <!-- Pending request notification -->
@@ -32,16 +40,21 @@
       <div class="stepper">
         <div class="step active" data-step="1">
           <div class="step-circle">1</div>
-          <div class="step-label">Conditions</div>
+          <div class="step-label">Connexion</div>
         </div>
         <div class="step-line"></div>
         <div class="step" data-step="2">
           <div class="step-circle">2</div>
-          <div class="step-label">Guide</div>
+          <div class="step-label">Conditions</div>
         </div>
         <div class="step-line"></div>
         <div class="step" data-step="3">
           <div class="step-circle">3</div>
+          <div class="step-label">Guide</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" data-step="4">
+          <div class="step-circle">4</div>
           <div class="step-label">Formulaire</div>
         </div>
       </div>
@@ -49,20 +62,40 @@
 
     <!-- Slides Container -->
     <div class="slides-container">
-      <!-- Slide 1: Terms and Conditions -->
-      <section class="form-section terms-section slide active" data-slide="1">
+      <!-- Slide 1: Google OAuth Login -->
+      <section class="form-section auth-section slide active" data-slide="1">
+        <h2>🔐 Connexion requise</h2>
+        <p class="auth-description">Pour soumettre un film, vous devez vous connecter avec votre compte Google et vérifier que vous êtes propriétaire de votre chaîne YouTube.</p>
+        
+        <div class="auth-reasons">
+          <h3>Pourquoi cette connexion ?</h3>
+          <ul>
+            <li>✅ Vérifier que vous êtes propriétaire de la chaîne YouTube</li>
+            <li>✅ Éviter les soumissions frauduleuses</li>
+            <li>✅ Protéger les créateurs de contenu</li>
+            <li>✅ Associer vos demandes à votre compte</li>
+          </ul>
+        </div>
+
+        <div id="googleSignInButton" class="google-signin-container"></div>
+        
+        <div id="authError" class="error-message" hidden></div>
+        
+        <div class="auth-footer">
+          <p class="small muted">En vous connectant, vous acceptez que nous accédions aux informations de votre chaîne YouTube pour vérifier votre propriété.</p>
+        </div>
+        
+        <div class="slide-nav" id="authNextNav" hidden>
+          <button type="button" class="btn primary" id="nextStep1">Suivant →</button>
+        </div>
+      </section>
+
+      <!-- Slide 2: Terms and Conditions -->
+      <section class="form-section terms-section slide" data-slide="2">
         <h2>📜 Conditions d'utilisation</h2>
       <div class="terms-content">
         <p class="terms-intro">Avant de soumettre votre demande, veuillez lire attentivement et respecter les conditions suivantes :</p>
         <ul class="terms-list">
-          <li>
-            <strong>🎬 Films de votre chaîne uniquement</strong>
-            <p>Vous ne pouvez publier que des films provenant de VOTRE propre chaîne YouTube. Ne publiez pas de contenu appartenant à d'autres créateurs sans leur autorisation écrite explicite.</p>
-          </li>
-          <li>
-            <strong>⚖️ Responsabilité légale</strong>
-            <p><strong style="color: #ef4444;">IMPORTANT :</strong> En l'absence de système de vérification automatique, vous êtes SEUL RESPONSABLE en cas de publication du contenu d'un autre YouTubeur sans autorisation. Si le créateur original porte plainte, la responsabilité légale vous incombe entièrement. Clipsou Streaming décline toute responsabilité en cas de litige.</p>
-          </li>
           <li>
             <strong>✅ Remplissez tous les champs</strong>
             <p>Assurez-vous de compléter tous les champs requis du formulaire avec des informations exactes et complètes.</p>
@@ -90,13 +123,14 @@
           </div>
         </div>
         <div class="slide-nav">
-          <button type="button" class="btn primary" id="nextStep1">Suivant →</button>
+          <button type="button" class="btn secondary" id="prevStep2">← Précédent</button>
+          <button type="button" class="btn primary" id="nextStep2">Suivant →</button>
         </div>
       </div>
       </section>
 
-      <!-- Slide 2: Tutorial Section -->
-      <section class="form-section tutorial-section slide" data-slide="2">
+      <!-- Slide 3: Tutorial Section -->
+      <section class="form-section tutorial-section slide" data-slide="3">
         <h2>📚 Guide visuel des images</h2>
       <p class="tutorial-intro">Voici un exemple de carte de film pour vous aider à comprendre le positionnement des différentes images :</p>
       <div class="tutorial-card-wrapper">
@@ -130,13 +164,13 @@
         </ul>
       </div>
       <div class="slide-nav">
-        <button type="button" class="btn secondary" id="prevStep2">← Précédent</button>
-        <button type="button" class="btn primary" id="nextStep2">Suivant →</button>
+        <button type="button" class="btn secondary" id="prevStep3">← Précédent</button>
+        <button type="button" class="btn primary" id="nextStep3">Suivant →</button>
       </div>
       </section>
 
-      <!-- Slide 3: Request Form -->
-      <section class="form-section slide" id="requestFormSection" data-slide="3">
+      <!-- Slide 4: Request Form -->
+      <section class="form-section slide" id="requestFormSection" data-slide="4">
         <h2>🎬 Informations du contenu</h2>
       <form id="requestForm" autocomplete="off">
         <div class="grid">
@@ -229,6 +263,7 @@
           <label>
             <span>Lien YouTube <span class="required">*</span></span>
             <input type="url" id="watchUrl" placeholder="https://www.youtube.com/...">
+            <div id="videoVerificationStatus" class="verification-status" hidden></div>
           </label>
         </fieldset>
 
@@ -241,13 +276,6 @@
             <button type="button" id="addEpisodeBtn" class="btn secondary">Ajouter</button>
           </div>
         </fieldset>
-
-        <div class="actions">
-          <button type="submit" class="btn primary" disabled id="submitBtn">
-            <span>📤 Soumettre ma demande</span>
-          </button>
-          <button type="button" id="resetBtn" class="btn secondary" disabled>🔄 Réinitialiser</button>
-        </div>
       </form>
       <datalist id="genresDatalist">
         <option value="Action">
@@ -272,7 +300,9 @@
         <option value="Western">
       </datalist>
       <div class="slide-nav">
-        <button type="button" class="btn secondary" id="prevStep3">← Précédent</button>
+        <button type="button" class="btn secondary" id="prevStep4">← Précédent</button>
+        <button type="button" id="submitBtn" class="btn primary">📤 Envoyer la demande</button>
+        <button type="button" id="resetBtn" class="btn secondary">🔄 Réinitialiser</button>
       </div>
       </section>
     </div>
@@ -297,9 +327,28 @@
       <p>Votre demande a été envoyée aux administrateurs. Vous recevrez une réponse prochainement.</p>
       <p class="small">Vous pourrez soumettre une nouvelle demande dans 24 heures.</p>
     </div>
+    </div><!-- End mainContent -->
   </main>
 
   <script src="config.js"></script>
+  <script src="google-auth.js"></script>
+  <script>
+    // Load banned users data for verification (shared with admin via localStorage)
+    window.ClipsouAdmin = window.ClipsouAdmin || {};
+    window.ClipsouAdmin.isUserBanned = function(email, channelId) {
+      try {
+        const data = localStorage.getItem('clipsou_banned_users_v1');
+        const banned = data ? JSON.parse(data) : [];
+        return banned.some(user => {
+          if (email && user.email === email) return true;
+          if (channelId && user.channelId === channelId) return true;
+          return false;
+        });
+      } catch {
+        return false;
+      }
+    };
+  </script>
   <script src="request.js?v=1"></script>
 </body>
 </html>

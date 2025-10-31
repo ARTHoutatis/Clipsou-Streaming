@@ -22,5 +22,16 @@ window.ClipsouConfig = {
   // Paramètres de rate limiting
   rateLimits: {
     submissionCooldown: 24 * 60 * 60 * 1000 // 24 heures en millisecondes
+  },
+  
+  // Configuration Google OAuth
+  google: {
+    clientId: '663317187427-o82gkiqkupudrh38mffurgbtns0fffur.apps.googleusercontent.com',
+    // Scopes requis pour vérifier la chaîne YouTube
+    scopes: [
+      'https://www.googleapis.com/auth/youtube.readonly',
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile'
+    ].join(' ')
   }
 };

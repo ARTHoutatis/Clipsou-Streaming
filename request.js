@@ -103,7 +103,7 @@
   
   // Stepper state
   let currentSlide = 1;
-  const totalSlides = 3;
+  const totalSlides = 4;
   let isTransitioning = false;
 
   /**
@@ -482,11 +482,22 @@
         if (watchUrlFieldset) {
           watchUrlFieldset.style.display = isSerie ? 'none' : 'block';
         }
+        
+        // Reset video verification when switching types
+        isVideoValid = false;
+        lastVerifiedUrl = null;
+        const statusDiv = document.getElementById('videoVerificationStatus');
+        if (statusDiv) {
+          statusDiv.hidden = true;
+        }
       });
     }
 
     // Setup image uploads
     setupImageUploads();
+
+    // Setup real-time video verification
+    setupVideoVerification();
 
     // Prefill studio badge from history
     prefillStudioBadge();
@@ -514,16 +525,24 @@
    * Setup stepper navigation
    */
   function setupStepperNavigation() {
-    // Navigation buttons
+    // Navigation buttons for 4 steps
+    // Step 1: Connexion
     const nextStep1 = document.getElementById('nextStep1');
+    // Step 2: Conditions
     const nextStep2 = document.getElementById('nextStep2');
     const prevStep2 = document.getElementById('prevStep2');
+    // Step 3: Guide
+    const nextStep3 = document.getElementById('nextStep3');
     const prevStep3 = document.getElementById('prevStep3');
+    // Step 4: Formulaire
+    const prevStep4 = document.getElementById('prevStep4');
     
     if (nextStep1) nextStep1.addEventListener('click', () => goToSlide(2));
     if (nextStep2) nextStep2.addEventListener('click', () => goToSlide(3));
     if (prevStep2) prevStep2.addEventListener('click', () => goToSlide(1));
+    if (nextStep3) nextStep3.addEventListener('click', () => goToSlide(4));
     if (prevStep3) prevStep3.addEventListener('click', () => goToSlide(2));
+    if (prevStep4) prevStep4.addEventListener('click', () => goToSlide(3));
     
     // Step circles clickable (only for completed steps)
     const steps = document.querySelectorAll('.step');
@@ -549,8 +568,8 @@
     // Set transitioning flag
     isTransitioning = true;
     
-    // Validation: Can't go to slide 2 or 3 without accepting terms
-    if (slideNumber > 1 && !termsCheckbox.checked) {
+    // Validation: Can't go to slide 3 or 4 without accepting terms (slide 2)
+    if (slideNumber > 2 && !termsCheckbox.checked) {
       isTransitioning = false; // Reset flag
       const termsError = document.getElementById('termsError');
       if (termsError) {
@@ -564,6 +583,13 @@
           termsError.hidden = true;
         }, 5000);
       }
+      return;
+    }
+    
+    // Validation: Can't go past slide 1 without Google authentication
+    if (slideNumber > 1 && (!window.GoogleAuth || !window.GoogleAuth.isAuthenticated())) {
+      isTransitioning = false;
+      alert('Veuillez vous connecter avec Google pour continuer.');
       return;
     }
     
@@ -1181,10 +1207,119 @@
   }
 
   /**
+   * Setup real-time video verification
+   */
+  let videoVerificationTimer = null;
+  let lastVerifiedUrl = null;
+  let isVideoValid = false;
+
+  function setupVideoVerification() {
+    const watchUrlInput = document.getElementById('watchUrl');
+    const statusDiv = document.getElementById('videoVerificationStatus');
+    
+    if (!watchUrlInput || !statusDiv) return;
+
+    // Debounce function to avoid too many API calls
+    function debounceVerify() {
+      clearTimeout(videoVerificationTimer);
+      
+      const url = watchUrlInput.value.trim();
+      
+      // Hide status if empty
+      if (!url) {
+        statusDiv.hidden = true;
+        isVideoValid = false;
+        lastVerifiedUrl = null;
+        return;
+      }
+
+      // Don't verify if URL hasn't changed
+      if (url === lastVerifiedUrl) {
+        return;
+      }
+
+      // Check if it's a valid YouTube URL format first
+      if (!isValidYouTubeUrl(url)) {
+        statusDiv.hidden = true;
+        isVideoValid = false;
+        return;
+      }
+
+      // Show verifying status
+      statusDiv.hidden = false;
+      statusDiv.className = 'verification-status verifying';
+      statusDiv.innerHTML = '<div class="spinner"></div><span>Vérification de la propriété de la vidéo...</span>';
+
+      // Wait 1 second before verifying
+      videoVerificationTimer = setTimeout(async () => {
+        try {
+          if (!window.GoogleAuth || !window.GoogleAuth.isAuthenticated()) {
+            statusDiv.className = 'verification-status error';
+            statusDiv.innerHTML = '❌ Vous devez être connecté pour vérifier la vidéo';
+            isVideoValid = false;
+            return;
+          }
+
+          const verification = await window.GoogleAuth.verifyVideoOwnership(url);
+          lastVerifiedUrl = url;
+
+          if (verification.valid) {
+            statusDiv.className = 'verification-status success';
+            statusDiv.innerHTML = `✅ Vidéo vérifiée : "${verification.videoTitle || 'Titre non disponible'}"`;
+            isVideoValid = true;
+          } else {
+            statusDiv.className = 'verification-status error';
+            statusDiv.innerHTML = `❌ ${verification.error || 'Cette vidéo ne vous appartient pas'}`;
+            isVideoValid = false;
+          }
+
+        } catch (error) {
+          console.error('Error verifying video:', error);
+          statusDiv.className = 'verification-status error';
+          statusDiv.innerHTML = '❌ Erreur lors de la vérification. Veuillez réessayer.';
+          isVideoValid = false;
+        }
+      }, 1000); // 1 second debounce
+    }
+
+    // Add event listeners
+    watchUrlInput.addEventListener('input', debounceVerify);
+    watchUrlInput.addEventListener('blur', debounceVerify);
+    watchUrlInput.addEventListener('paste', () => {
+      // Delay to let paste complete
+      setTimeout(debounceVerify, 100);
+    });
+  }
+
+  /**
    * Handle form submission
    */
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
+
+    // Check Google authentication
+    if (!window.GoogleAuth || !window.GoogleAuth.isAuthenticated()) {
+      alert('Vous devez être connecté avec Google pour soumettre un film.');
+      return;
+    }
+
+    const youtubeChannel = window.GoogleAuth.getYouTubeChannel();
+    if (!youtubeChannel) {
+      alert('Impossible de récupérer les informations de votre chaîne YouTube. Veuillez vous reconnecter.');
+      return;
+    }
+
+    // Check if user is banned
+    const authUser = window.GoogleAuth.getCurrentUser();
+    const userEmail = authUser?.user?.email;
+    const channelId = youtubeChannel?.id;
+    
+    if (window.ClipsouAdmin && typeof window.ClipsouAdmin.isUserBanned === 'function') {
+      if (window.ClipsouAdmin.isUserBanned(userEmail, channelId)) {
+        alert('❌ Votre compte a été banni.\n\nVous ne pouvez plus soumettre de demandes sur Clipsou Streaming.\n\nSi vous pensez qu\'il s\'agit d\'une erreur, veuillez contacter l\'administrateur.');
+        return;
+      }
+    }
 
     const termsError = document.getElementById('termsError');
 
@@ -1223,6 +1358,8 @@
       return val;
     }).filter(Boolean);
 
+    const currentUser = window.GoogleAuth.getCurrentUser();
+    
     const formData = {
       title: document.getElementById('title').value.trim(),
       type: document.getElementById('type').value,
@@ -1235,7 +1372,20 @@
       actors: actors.slice(), // Copy actors array
       episodes: episodes.slice(), // Copy episodes array
       submittedAt: Date.now(),
-      status: 'pending'
+      status: 'pending',
+      // YouTube channel information (verified via OAuth)
+      youtubeChannel: {
+        id: youtubeChannel.id,
+        title: youtubeChannel.title,
+        customUrl: youtubeChannel.customUrl || '',
+        verifiedAt: Date.now()
+      },
+      // User information
+      submittedBy: {
+        email: currentUser?.user?.email || '',
+        name: currentUser?.user?.name || '',
+        googleId: currentUser?.user?.id || ''
+      }
     };
 
     if (invalidEntries.length > 0) {
@@ -1265,6 +1415,17 @@
     // Validate YouTube URL (only for non-series)
     if (!isSerie && !isValidYouTubeUrl(formData.watchUrl)) {
       alert('Veuillez entrer un lien YouTube valide.');
+      return;
+    }
+
+    // Check video ownership verification status (only for films and trailers)
+    if (!isSerie && formData.watchUrl && !isVideoValid) {
+      alert('❌ La vidéo YouTube n\'a pas été vérifiée ou ne vous appartient pas. Veuillez saisir une URL de vidéo appartenant à votre chaîne.');
+      const watchUrlInput = document.getElementById('watchUrl');
+      if (watchUrlInput) {
+        watchUrlInput.focus();
+        watchUrlInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
 
@@ -1334,6 +1495,14 @@
       
       // Prefill studio badge from history
       prefillStudioBadge();
+      
+      // Reset video verification status
+      isVideoValid = false;
+      lastVerifiedUrl = null;
+      const statusDiv = document.getElementById('videoVerificationStatus');
+      if (statusDiv) {
+        statusDiv.hidden = true;
+      }
       
       // Keep terms checkbox checked if it was
       if (termsCheckbox.checked) {
@@ -1741,14 +1910,36 @@
    * Add request to history
    */
   function addToHistory(request) {
+    // Save to user's personal history
     const history = getRequestHistory();
     history.unshift({
-      id: Date.now().toString(),
+      id: request.id || Date.now().toString(),
       ...request,
-      submittedAt: Date.now()
+      submittedAt: request.submittedAt || Date.now()
     });
     saveRequestHistory(history);
     renderHistory();
+    
+    // ALSO save to admin-visible requests list (shared storage)
+    try {
+      const adminRequests = JSON.parse(localStorage.getItem('user_requests_history') || '[]');
+      
+      // Check if already exists
+      const existingIndex = adminRequests.findIndex(r => r.id === request.id);
+      
+      if (existingIndex === -1) {
+        // Add new request
+        adminRequests.unshift({
+          ...request,
+          status: request.status || 'pending',
+          submittedAt: request.submittedAt || Date.now()
+        });
+        localStorage.setItem('user_requests_history', JSON.stringify(adminRequests));
+        console.log('✓ Request added to admin-visible list');
+      }
+    } catch (e) {
+      console.error('Error adding to admin requests:', e);
+    }
   }
 
   /**
@@ -1844,8 +2035,12 @@
     });
   }
 
-  // Expose delete function globally for onclick
+  // Expose functions and variables globally
   window.__deleteHistoryItem = deleteFromHistory;
+  window.goToSlide = goToSlide;
+  Object.defineProperty(window, 'currentSlide', {
+    get: function() { return currentSlide; }
+  });
 
   /**
    * Escape HTML to prevent XSS
