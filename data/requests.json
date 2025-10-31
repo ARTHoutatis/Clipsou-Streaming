@@ -1,7 +1,7 @@
 [
   {
     "requestId": "r_mhe3ky5g_pgywfx",
-    "status": "pending",
+    "status": "approved",
     "data": {
       "id": "custom-freecam-uncharted-irl-seul-face-au-desert-4cv2",
       "requestId": "r_mhe3ky5g_pgywfx",
@@ -33,7 +33,7 @@
     },
     "meta": {
       "createdAt": 1761869452516,
-      "updatedAt": 1761869452516
+      "updatedAt": 1761869456123
     }
   },
   {
