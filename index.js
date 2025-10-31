@@ -2627,6 +2627,15 @@ document.addEventListener('DOMContentLoaded', async function () {
         const dot = document.createElement('div'); dot.className = 'carousel-indicator' + (idx === 0 ? ' active' : ''); dot.setAttribute('role', 'button'); dot.setAttribute('tabindex', '0'); dot.setAttribute('aria-label', `Aller à la diapositive ${idx + 1}`); dot.setAttribute('data-index', String(idx)); if (idx === 0) dot.setAttribute('aria-current', 'true'); indicatorsWrap.appendChild(dot);
       });
       setupCarousel();
+      
+      // Reveal carousel now that it's built
+      try {
+        const carouselSection = document.querySelector('.carousel-section');
+        if (carouselSection) {
+          carouselSection.style.opacity = '1';
+        }
+      } catch {}
+      
       // Final safety: rebuild after carousel construction
       try { if (typeof window.__rebuildDrawerLinks === 'function') setTimeout(window.__rebuildDrawerLinks, 0); } catch {}
     })();

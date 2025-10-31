@@ -27,6 +27,28 @@
   }
 
   /**
+   * Check if user wants to force real OAuth in local mode
+   */
+  function shouldForceRealOAuth() {
+    // Check URL parameter ?oauth=true or ?oauth=real
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('oauth') === 'true' || urlParams.get('oauth') === 'real') {
+      return true;
+    }
+    
+    // Check localStorage preference
+    const preference = localStorage.getItem('clipsou_force_real_oauth');
+    return preference === 'true';
+  }
+
+  /**
+   * Set OAuth preference for local development
+   */
+  function setOAuthPreference(useRealOAuth) {
+    localStorage.setItem('clipsou_force_real_oauth', useRealOAuth ? 'true' : 'false');
+  }
+
+  /**
    * Create fake dev user for local testing
    */
   function createDevUser() {
@@ -67,12 +89,16 @@
       return;
     }
 
+    // Hide user info and logout button by default (will be shown when user is authenticated)
+    if (userInfoDiv) userInfoDiv.hidden = true;
+    if (logoutBtn) logoutBtn.hidden = true;
+
     // Check for local development mode
-    if (isLocalDev()) {
+    if (isLocalDev() && !shouldForceRealOAuth()) {
       console.warn('[OAuth] 🚧 LOCAL DEVELOPMENT MODE - OAuth bypassed');
       console.log('%c🚧 MODE DÉVELOPPEMENT LOCAL', 'color: #f59e0b; font-size: 16px; font-weight: bold;');
       console.log('%cOAuth Google et vérifications de vidéo désactivés pour faciliter les tests.', 'color: #fbbf24;');
-      console.log('%cConsultez DEV_MODE.md pour plus d\'informations.', 'color: #fbbf24;');
+      console.log('%cPour tester l\'OAuth réel en local : ajoutez ?oauth=true à l\'URL', 'color: #fbbf24;');
       
       // Check if dev user already exists
       const savedAuth = getSavedAuth();
@@ -85,9 +111,10 @@
 
       // Create dev login button
       googleSignInButton.innerHTML = '';
+      
       const devBtn = document.createElement('button');
       devBtn.className = 'btn primary';
-      devBtn.style.cssText = 'display: flex; align-items: center; gap: 12px; font-size: 16px; padding: 14px 32px; background: #f59e0b;';
+      devBtn.style.cssText = 'display: inline-flex; align-items: center; gap: 12px; font-size: 16px; padding: 14px 32px; background: #f59e0b;';
       devBtn.innerHTML = `
         <span>🚧</span>
         Se connecter en mode DEV (Local)
@@ -108,6 +135,28 @@
       
       googleSignInButton.appendChild(devBtn);
       
+      // Add button to switch to real OAuth
+      const realOAuthBtn = document.createElement('button');
+      realOAuthBtn.className = 'btn secondary';
+      realOAuthBtn.style.cssText = 'display: inline-flex; align-items: center; gap: 12px; font-size: 16px; padding: 14px 32px; margin-top: 12px;';
+      realOAuthBtn.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Tester OAuth Google réel
+      `;
+      
+      realOAuthBtn.onclick = () => {
+        console.log('[OAuth] Switching to real OAuth mode');
+        setOAuthPreference(true);
+        window.location.reload();
+      };
+      
+      googleSignInButton.appendChild(realOAuthBtn);
+      
       // Add dev mode indicator
       const devNotice = document.createElement('div');
       devNotice.style.cssText = `
@@ -120,10 +169,16 @@
         font-size: 14px;
         text-align: center;
       `;
-      devNotice.innerHTML = '🚧 <strong>Mode développement local</strong> - Les vérifications OAuth sont désactivées';
+      devNotice.innerHTML = '🚧 <strong>Mode développement local</strong> - Les vérifications OAuth sont désactivées<br><small>Cliquez sur "Tester OAuth Google réel" pour activer l\'authentification Google</small>';
       googleSignInButton.appendChild(devNotice);
       
       return;
+    }
+    
+    // If we're in local mode but forcing real OAuth, show a notice
+    if (isLocalDev() && shouldForceRealOAuth()) {
+      console.log('[OAuth] 🔐 LOCAL MODE with REAL OAuth enabled');
+      console.log('%c🔐 OAuth Google activé en local', 'color: #2563eb; font-size: 16px; font-weight: bold;');
     }
 
     // Check if user is already authenticated (production)
@@ -169,7 +224,7 @@
       // Create custom sign-in button
       const button = document.createElement('button');
       button.className = 'btn primary';
-      button.style.cssText = 'display: flex; align-items: center; gap: 12px; font-size: 16px; padding: 14px 32px;';
+      button.style.cssText = 'display: inline-flex; align-items: center; gap: 12px; font-size: 16px; padding: 14px 32px;';
       button.innerHTML = `
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -387,16 +442,47 @@
 
     const { user, channel } = currentUser;
     
-    const devBadge = isLocalDev() ? '<span style="background: #f59e0b; color: #000; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-left: 8px;">DEV</span>' : '';
+    // Show different badge based on mode
+    let badge = '';
+    if (isLocalDev()) {
+      if (shouldForceRealOAuth()) {
+        badge = '<span style="background: #2563eb; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-left: 8px;">LOCAL + OAuth Réel</span>';
+      } else {
+        badge = '<span style="background: #f59e0b; color: #000; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-left: 8px;">DEV</span>';
+      }
+    }
     
     userInfoDiv.innerHTML = `
       ${user.picture ? `<img src="${user.picture}" alt="${user.name}">` : ''}
       <div class="user-info-text">
-        <div class="user-info-name">${user.name}${devBadge}</div>
+        <div class="user-info-name">${user.name}${badge}</div>
         <div class="user-info-channel">📺 ${channel.title}</div>
       </div>
     `;
     userInfoDiv.hidden = false;
+    
+    // Add a button to switch back to DEV mode if in local + real OAuth
+    if (isLocalDev() && shouldForceRealOAuth()) {
+      const switchBtn = document.createElement('button');
+      switchBtn.className = 'btn secondary';
+      switchBtn.style.cssText = 'margin-top: 8px; font-size: 13px; padding: 8px 12px; height: auto;';
+      switchBtn.textContent = '↩️ Revenir en mode DEV';
+      switchBtn.title = 'Désactiver OAuth réel et revenir au mode développement';
+      switchBtn.onclick = () => {
+        if (confirm('Revenir en mode développement local (sans OAuth réel) ?')) {
+          setOAuthPreference(false);
+          clearAuth();
+          window.location.reload();
+        }
+      };
+      
+      // Find the auth section or user info container to append the button
+      const authSection = document.querySelector('.auth-section') || document.querySelector('.slide[data-slide="1"]');
+      if (authSection && !document.getElementById('switchToDevBtn')) {
+        switchBtn.id = 'switchToDevBtn';
+        authSection.appendChild(switchBtn);
+      }
+    }
   }
 
   /**
@@ -541,13 +627,18 @@
   async function verifyVideoOwnership(videoUrl) {
     console.log('[OAuth] Verifying video ownership for:', videoUrl);
     
-    // Skip verification in local dev mode
-    if (isLocalDev()) {
+    // Skip verification in local dev mode ONLY if not using real OAuth
+    if (isLocalDev() && !shouldForceRealOAuth()) {
       console.warn('[OAuth] 🚧 DEV MODE - Skipping video ownership verification');
       return { 
         valid: true, 
         videoTitle: 'Dev Test Video (verification bypassed)'
       };
+    }
+    
+    // If in local mode with real OAuth, log it
+    if (isLocalDev() && shouldForceRealOAuth()) {
+      console.log('[OAuth] 🔐 LOCAL MODE with REAL OAuth - Performing real video verification');
     }
     
     if (!currentUser || !currentUser.accessToken) {
@@ -614,7 +705,9 @@
     isAuthenticated,
     logout: handleLogout,
     verifyVideoOwnership,
-    isLocalDev
+    isLocalDev,
+    shouldForceRealOAuth,
+    setOAuthPreference
   };
 
   // Auto-initialize when DOM is ready

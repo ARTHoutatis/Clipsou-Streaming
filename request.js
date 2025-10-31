@@ -84,6 +84,8 @@
   const STORAGE_KEY_TERMS_ACCEPTED = 'user_terms_accepted';
   const STORAGE_KEY_FINGERPRINT = 'user_browser_fp';
   const STORAGE_KEY_SUBMIT_LOG = 'user_submit_log_v1';
+  const STORAGE_KEY_FORM_DRAFT = 'user_form_draft_v1';
+  const STORAGE_KEY_CURRENT_SLIDE = 'user_current_slide';
   const RATE_LIMIT_HOURS = 24;
 
   // Cloudinary configuration (unsigned upload)
@@ -408,6 +410,13 @@
   }
 
   function init() {
+    // Log configuration for debugging
+    console.log('🔧 Request system initialization');
+    console.log('🔧 Worker URL config:', {
+      hasConfig: !!(window.ClipsouConfig && window.ClipsouConfig.workerUrl),
+      workerUrl: window.ClipsouConfig?.workerUrl || 'not configured',
+      localStorageUrl: localStorage.getItem('clipsou_worker_url') || 'not set'
+    });
     // Get DOM elements
     termsCheckbox = document.getElementById('termsAccepted');
     submitBtn = document.getElementById('submitBtn');
@@ -440,6 +449,14 @@
     // Form submission
     if (requestForm) {
       requestForm.addEventListener('submit', handleSubmit);
+    }
+
+    // Submit button - explicit handler since button has type="button"
+    if (submitBtn) {
+      submitBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        handleSubmit(e);
+      });
     }
 
     // Reset button
@@ -519,8 +536,56 @@
     
     // Setup stepper navigation
     setupStepperNavigation();
+
+    // Restore form draft if exists (after all DOM elements are initialized)
+    setTimeout(() => {
+      const draftRestored = loadFormDraft();
+      if (draftRestored) {
+        console.log('💾 Brouillon restauré - Vous pouvez reprendre où vous en étiez');
+      }
+
+      // Restore saved slide/step
+      const savedSlide = loadCurrentSlide();
+      if (savedSlide > 1 && window.GoogleAuth && window.GoogleAuth.isAuthenticated()) {
+        console.log('📍 Restauration de l\'étape', savedSlide);
+        goToSlide(savedSlide);
+      }
+    }, 100);
+
+    // Setup auto-save for form fields
+    setupAutoSave();
   }
   
+  /**
+   * Setup auto-save for form fields
+   */
+  function setupAutoSave() {
+    // Debounce function to avoid saving too often
+    let saveTimeout;
+    const debouncedSave = () => {
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => {
+        saveFormDraft();
+      }, 1000); // Save 1 second after user stops typing
+    };
+
+    // Listen to all form inputs
+    const formInputs = [
+      'title', 'type', 'genre1', 'genre2', 'genre3', 'description',
+      'portraitImage', 'landscapeImage', 'studioBadge', 'watchUrl'
+    ];
+
+    formInputs.forEach(id => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.addEventListener('input', debouncedSave);
+        element.addEventListener('change', debouncedSave);
+      }
+    });
+
+    console.log('💾 Auto-sauvegarde activée');
+  }
+
   /**
    * Setup stepper navigation
    */
@@ -632,6 +697,9 @@
       
       // Update current slide
       currentSlide = slideNumber;
+      
+      // Save current slide to localStorage
+      saveCurrentSlide(slideNumber);
       
       // Reset transitioning flag after animation completes
       setTimeout(() => {
@@ -1176,11 +1244,13 @@
       }
       
       if (!workerUrl || workerUrl.includes('votre-worker')) {
-        console.info('ℹ️ Worker URL not configured - request saved locally only');
+        console.warn('⚠️ Worker URL not configured - request saved locally only');
+        console.info('To enable GitHub sync, configure ClipsouConfig.workerUrl or clipsou_worker_url');
         return false;
       }
 
-      console.log('📤 Publishing request to GitHub via worker...');
+      console.log('📤 Publishing request to GitHub via worker:', workerUrl);
+      console.log('📤 Request data:', { id: request.id, title: request.title, hasOAuth: !!(request.submittedBy && request.youtubeChannel) });
 
       const response = await fetch(workerUrl, {
         method: 'POST',
@@ -1194,14 +1264,18 @@
       });
 
       if (!response.ok) {
-        const errorText = await response.text().catch(() => '');
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
+        const errorText = await response.text();
+        console.error('❌ Worker response error:', response.status, errorText);
+        throw new Error(`Worker error: ${response.status} ${errorText}`);
       }
 
-      console.log('✅ Request published to GitHub successfully');
+      const result = await response.json();
+      console.log('✅ Request published to GitHub successfully:', result);
       return true;
+
     } catch (error) {
-      console.warn('⚠️ Could not publish to GitHub (request saved locally):', error.message);
+      console.error('❌ Failed to publish request to GitHub:', error);
+      // Don't throw - let the main submission continue even if GitHub sync fails
       return false;
     }
   }
@@ -1297,169 +1371,259 @@
   async function handleSubmit(e) {
     e.preventDefault();
 
-    // Check Google authentication
-    if (!window.GoogleAuth || !window.GoogleAuth.isAuthenticated()) {
-      alert('Vous devez être connecté avec Google pour soumettre un film.');
-      return;
+    console.log('📤 [Submit] Starting form submission process...');
+
+    // Disable submit button to prevent double submission
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<div class="spinner"></div> Envoi en cours...';
     }
 
-    const youtubeChannel = window.GoogleAuth.getYouTubeChannel();
-    if (!youtubeChannel) {
-      alert('Impossible de récupérer les informations de votre chaîne YouTube. Veuillez vous reconnecter.');
-      return;
-    }
-
-    // Check if user is banned
-    const authUser = window.GoogleAuth.getCurrentUser();
-    const userEmail = authUser?.user?.email;
-    const channelId = youtubeChannel?.id;
-    
-    if (window.ClipsouAdmin && typeof window.ClipsouAdmin.isUserBanned === 'function') {
-      if (window.ClipsouAdmin.isUserBanned(userEmail, channelId)) {
-        alert('❌ Votre compte a été banni.\n\nVous ne pouvez plus soumettre de demandes sur Clipsou Streaming.\n\nSi vous pensez qu\'il s\'agit d\'une erreur, veuillez contacter l\'administrateur.');
+    try {
+      // Check Google authentication
+      if (!window.GoogleAuth || !window.GoogleAuth.isAuthenticated()) {
+        alert('❌ Connexion Google requise\n\n' +
+              'Vous devez être connecté avec votre compte Google pour soumettre un film.\n\n' +
+              '💡 Cliquez sur le bouton "Se connecter avec Google" à l\'étape 1.');
         return;
       }
-    }
 
-    const termsError = document.getElementById('termsError');
+      const youtubeChannel = window.GoogleAuth.getYouTubeChannel();
+      if (!youtubeChannel) {
+        alert('❌ Chaîne YouTube introuvable\n\n' +
+              'Impossible de récupérer les informations de votre chaîne YouTube.\n\n' +
+              'Solutions :\n' +
+              '• Déconnectez-vous et reconnectez-vous avec Google\n' +
+              '• Vérifiez que vous avez une chaîne YouTube active\n' +
+              '• Vérifiez que vous avez autorisé l\'accès à YouTube');
+        return;
+      }
 
-    // Validate terms accepted
-    if (!termsCheckbox.checked) {
+      // Check if user is banned
+      const currentUser = window.GoogleAuth.getCurrentUser();
+      const userEmail = currentUser?.user?.email;
+      const channelId = youtubeChannel?.id;
+      
+      console.log('📤 [Submit] User authenticated:', { email: userEmail, channelId });
+      
+      if (window.ClipsouAdmin && typeof window.ClipsouAdmin.isUserBanned === 'function') {
+        if (window.ClipsouAdmin.isUserBanned(userEmail, channelId)) {
+          alert('❌ Votre compte a été banni.\n\nVous ne pouvez plus soumettre de demandes sur Clipsou Streaming.\n\nSi vous pensez qu\'il s\'agit d\'une erreur, veuillez contacter l\'administrateur.');
+          return;
+        }
+      }
+
+      const termsError = document.getElementById('termsError');
+
+      // Validate terms accepted
+      if (!termsCheckbox.checked) {
+        alert('❌ Conditions non acceptées\n\nVous devez accepter les conditions d\'utilisation pour soumettre votre demande.');
+        if (termsError) {
+          termsError.hidden = false;
+          // Scroll to terms section
+          termsCheckbox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Auto-hide after 5 seconds
+          setTimeout(() => {
+            termsError.hidden = true;
+          }, 5000);
+        }
+        return;
+      }
+      
+      // Hide error message if visible
       if (termsError) {
-        termsError.hidden = false;
-        // Scroll to terms section
-        termsCheckbox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Auto-hide after 5 seconds
-        setTimeout(() => {
-          termsError.hidden = true;
-        }, 5000);
+        termsError.hidden = true;
       }
-      return;
-    }
-    
-    // Hide error message if visible
-    if (termsError) {
-      termsError.hidden = true;
-    }
 
-    // Gather form data
-    const rawGenres = [
-      document.getElementById('genre1').value.trim(),
-      document.getElementById('genre2').value.trim(),
-      document.getElementById('genre3').value.trim()
-    ].filter(str => str && str.trim().length > 0);
-    const canonicalResults = rawGenres.map(g => canonicalizeGenre(g));
-    const invalidEntries = [];
-    const canonGenres = canonicalResults.map((val, idx) => {
-      if (!val) {
-        invalidEntries.push(rawGenres[idx]);
-        return null;
+      console.log('📤 [Submit] Gathering form data...');
+
+      // Gather form data
+      const rawGenres = [
+        document.getElementById('genre1').value.trim(),
+        document.getElementById('genre2').value.trim(),
+        document.getElementById('genre3').value.trim()
+      ].filter(str => str && str.trim().length > 0);
+      const canonicalResults = rawGenres.map(g => canonicalizeGenre(g));
+      const invalidEntries = [];
+      const canonGenres = canonicalResults.map((val, idx) => {
+        if (!val) {
+          invalidEntries.push(rawGenres[idx]);
+          return null;
+        }
+        return val;
+      }).filter(Boolean);
+
+      // Validate that we have user data before proceeding
+      if (!currentUser) {
+        alert('❌ Informations utilisateur manquantes\n\n' +
+              'Impossible de récupérer vos informations Google.\n\n' +
+              'Solutions :\n' +
+              '• Déconnectez-vous et reconnectez-vous avec Google\n' +
+              '• Rechargez la page\n' +
+              '• Videz le cache de votre navigateur');
+        return;
       }
-      return val;
-    }).filter(Boolean);
 
-    const currentUser = window.GoogleAuth.getCurrentUser();
-    
-    const formData = {
-      title: document.getElementById('title').value.trim(),
-      type: document.getElementById('type').value,
-      genres: canonGenres,
-      description: document.getElementById('description').value.trim(),
-      portraitImage: document.getElementById('portraitImage').value.trim(),
-      landscapeImage: document.getElementById('landscapeImage').value.trim(),
-      studioBadge: document.getElementById('studioBadge').value.trim() || null,
-      watchUrl: document.getElementById('watchUrl').value.trim(),
-      actors: actors.slice(), // Copy actors array
-      episodes: episodes.slice(), // Copy episodes array
-      submittedAt: Date.now(),
-      status: 'pending',
-      // YouTube channel information (verified via OAuth)
-      youtubeChannel: {
-        id: youtubeChannel.id,
-        title: youtubeChannel.title,
-        customUrl: youtubeChannel.customUrl || '',
-        verifiedAt: Date.now()
-      },
-      // User information
-      submittedBy: {
-        email: currentUser?.user?.email || '',
-        name: currentUser?.user?.name || '',
-        googleId: currentUser?.user?.id || ''
+      const formData = {
+        title: document.getElementById('title').value.trim(),
+        type: document.getElementById('type').value,
+        genres: canonGenres,
+        description: document.getElementById('description').value.trim(),
+        portraitImage: document.getElementById('portraitImage').value.trim(),
+        landscapeImage: document.getElementById('landscapeImage').value.trim(),
+        studioBadge: document.getElementById('studioBadge').value.trim() || null,
+        watchUrl: document.getElementById('watchUrl').value.trim(),
+        actors: actors.slice(), // Copy actors array
+        episodes: episodes.slice(), // Copy episodes array
+        submittedAt: Date.now(),
+        status: 'pending',
+        // YouTube channel information (verified via OAuth)
+        youtubeChannel: {
+          id: youtubeChannel.id,
+          title: youtubeChannel.title,
+          customUrl: youtubeChannel.customUrl || '',
+          verifiedAt: Date.now()
+        },
+        // User information
+        submittedBy: {
+          email: currentUser?.user?.email || '',
+          name: currentUser?.user?.name || '',
+          googleId: currentUser?.user?.id || ''
+        }
+      };
+
+      if (invalidEntries.length > 0) {
+        alert('❌ Genres invalides\n\n' +
+              'Les genres doivent être sélectionnés parmi la liste proposée.\n\n' +
+              'Genres invalides : ' + invalidEntries.join(', ') + '\n\n' +
+              '💡 Utilisez l\'auto-complétion pour sélectionner des genres valides.');
+        return;
       }
-    };
 
-    if (invalidEntries.length > 0) {
-      alert('Les genres doivent être sélectionnés parmi la liste proposée. Genres invalides : ' + invalidEntries.join(', '));
-      return;
-    }
+      console.log('📤 [Submit] Validating form data...');
 
-    // Validate required fields
-    const isSerie = (formData.type === 'série');
-    if (!formData.title || !formData.type || formData.genres.length < 3 || !formData.description) {
-      alert('Veuillez remplir tous les champs obligatoires (marqués d\'une étoile *).');
-      return;
-    }
-    
-    // watchUrl est requis seulement pour les films et trailers, pas pour les séries
-    if (!isSerie && !formData.watchUrl) {
-      alert('Veuillez remplir le lien YouTube pour les films et trailers.');
-      return;
-    }
-
-    // Validate images
-    if (!formData.portraitImage || !formData.landscapeImage) {
-      alert('Veuillez importer les deux images obligatoires (Affiche Portrait et Image Fiche).');
-      return;
-    }
-
-    // Validate YouTube URL (only for non-series)
-    if (!isSerie && !isValidYouTubeUrl(formData.watchUrl)) {
-      alert('Veuillez entrer un lien YouTube valide.');
-      return;
-    }
-
-    // Check video ownership verification status (only for films and trailers)
-    if (!isSerie && formData.watchUrl && !isVideoValid) {
-      alert('❌ La vidéo YouTube n\'a pas été vérifiée ou ne vous appartient pas. Veuillez saisir une URL de vidéo appartenant à votre chaîne.');
-      const watchUrlInput = document.getElementById('watchUrl');
-      if (watchUrlInput) {
-        watchUrlInput.focus();
-        watchUrlInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Validate all required fields at once
+      const isSerie = (formData.type === 'série');
+      const missingFields = [];
+      
+      // Check basic fields
+      if (!formData.title) missingFields.push('Titre');
+      if (!formData.type) missingFields.push('Type');
+      if (formData.genres.length < 3) missingFields.push('3 Genres');
+      if (!formData.description) missingFields.push('Description');
+      
+      // Check images
+      if (!formData.portraitImage) missingFields.push('Image : Affiche Portrait');
+      if (!formData.landscapeImage) missingFields.push('Image : Image Fiche');
+      
+      // Check YouTube URL (only for non-series)
+      if (!isSerie && !formData.watchUrl) missingFields.push('Lien YouTube');
+      
+      // If any fields are missing, show error
+      if (missingFields.length > 0) {
+        alert('❌ Champs obligatoires manquants\n\n' +
+              'Veuillez remplir les champs suivants :\n' +
+              missingFields.map(f => '• ' + f).join('\n') + '\n\n' +
+              '💡 Les champs marqués d\'une étoile (*) sont obligatoires.\n' +
+              '💡 Pour les images, utilisez le bouton "Upload" Cloudinary.');
+        return;
       }
-      return;
+
+      // Validate YouTube URL (only for non-series)
+      if (!isSerie && !isValidYouTubeUrl(formData.watchUrl)) {
+        alert('❌ URL YouTube invalide\n\n' +
+              'Le lien YouTube fourni n\'est pas valide.\n\n' +
+              'Formats acceptés :\n' +
+              '• https://www.youtube.com/watch?v=...\n' +
+              '• https://youtu.be/...\n' +
+              '• https://www.youtube.com/embed/...');
+        return;
+      }
+
+      // Check video ownership verification status (only for films and trailers)
+      if (!isSerie && formData.watchUrl && !isVideoValid) {
+        alert('❌ Propriété de la vidéo non vérifiée\n\n' +
+              'La vidéo YouTube n\'a pas été vérifiée ou ne vous appartient pas.\n\n' +
+              '💡 Veuillez saisir une URL de vidéo appartenant à votre chaîne YouTube connectée.\n\n' +
+              '⏱️ Attendez que le statut de vérification affiche "✅ Vidéo vérifiée".');
+        const watchUrlInput = document.getElementById('watchUrl');
+        if (watchUrlInput) {
+          watchUrlInput.focus();
+          watchUrlInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return;
+      }
+
+      console.log('📤 [Submit] Validation passed, saving request...');
+
+      // Generate unique ID for the request
+      const requestId = 'user_req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      
+      // Add ID to form data
+      const requestWithId = {
+        ...formData,
+        id: requestId
+      };
+      
+      // Save request to localStorage (with ID!)
+      const now = Date.now();
+      savePendingRequest(requestWithId);
+      saveLastSubmitTime(now);
+      saveSubmitLog(now); // Multi-layer protection
+      
+      // Add to history
+      addToHistory(requestWithId);
+
+      // Publish to GitHub (best effort - doesn't block submission)
+      console.log('📤 [Submit] Publishing to GitHub...');
+      publishUserRequestToGitHub(requestWithId).then(success => {
+        if (success) {
+          console.log('✅ [Submit] GitHub publish completed successfully');
+        } else {
+          console.warn('⚠️ [Submit] GitHub publish failed, but request was saved locally');
+        }
+      }).catch(err => {
+        console.error('❌ [Submit] GitHub publish error:', err);
+      });
+
+      // Show success message
+      showSuccessMessage();
+
+      // Disable form
+      formSection.style.opacity = '0.5';
+      formSection.style.pointerEvents = 'none';
+
+      // Clear form draft and saved slide since submission was successful
+      clearFormDraft();
+      clearCurrentSlide();
+
+      console.log('✅ [Submit] Request submitted successfully:', requestWithId);
+      
+    } catch (error) {
+      console.error('❌ [Submit] Submission error:', error);
+      
+      // Show detailed error message
+      let errorMessage = '❌ Erreur lors de l\'envoi\n\n';
+      errorMessage += 'Une erreur est survenue lors de la soumission de votre demande.\n\n';
+      
+      if (error.message) {
+        errorMessage += 'Détails : ' + error.message + '\n\n';
+      }
+      
+      errorMessage += 'Solutions possibles :\n';
+      errorMessage += '• Vérifiez votre connexion Internet\n';
+      errorMessage += '• Reconnectez-vous avec Google\n';
+      errorMessage += '• Rechargez la page et réessayez\n';
+      errorMessage += '• Contactez un administrateur si le problème persiste';
+      
+      alert(errorMessage);
+    } finally {
+      // Re-enable submit button
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '📤 Envoyer la demande';
+      }
     }
-
-    // Generate unique ID for the request
-    const requestId = 'user_req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    
-    // Add ID to form data
-    const requestWithId = {
-      ...formData,
-      id: requestId
-    };
-    
-    // Save request to localStorage (with ID!)
-    const now = Date.now();
-    savePendingRequest(requestWithId);
-    saveLastSubmitTime(now);
-    saveSubmitLog(now); // Multi-layer protection
-    
-    // Add to history
-    addToHistory(requestWithId);
-
-    // Publish to GitHub (best effort - doesn't block submission)
-    publishUserRequestToGitHub(requestWithId).catch(err => {
-      console.warn('Failed to publish to GitHub, request saved locally:', err);
-    });
-
-    // Show success message
-    showSuccessMessage();
-
-    // Disable form
-    formSection.style.opacity = '0.5';
-    formSection.style.pointerEvents = 'none';
-
-    console.log('Request submitted:', requestWithId);
   }
 
   /**
@@ -1508,6 +1672,9 @@
       if (termsCheckbox.checked) {
         termsCheckbox.checked = true;
       }
+
+      // Clear saved draft
+      clearFormDraft();
     }
   }
 
@@ -1540,6 +1707,10 @@
       requestForm.reset();
       requestForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+
+    // Clear saved draft and slide
+    clearFormDraft();
+    clearCurrentSlide();
 
     alert('Vous pouvez maintenant soumettre une nouvelle demande.');
   }
@@ -1648,6 +1819,9 @@
     // Clear inputs
     nameInput.value = '';
     roleInput.value = '';
+
+    // Save draft
+    saveFormDraft();
   }
 
   /**
@@ -1656,6 +1830,9 @@
   function removeActor(index) {
     actors.splice(index, 1);
     renderActorsList();
+    
+    // Save draft
+    saveFormDraft();
   }
 
   /**
@@ -1706,6 +1883,9 @@
     // Clear inputs
     titleInput.value = '';
     urlInput.value = '';
+
+    // Save draft
+    saveFormDraft();
   }
 
   /**
@@ -1714,6 +1894,9 @@
   function removeEpisode(index) {
     episodes.splice(index, 1);
     renderEpisodesList();
+    
+    // Save draft
+    saveFormDraft();
   }
 
   /**
@@ -1744,15 +1927,21 @@
    * Show success message
    */
   function showSuccessMessage() {
+    // Show popup confirmation
+    alert('✅ Demande envoyée avec succès !\n\n' +
+          '📋 Votre demande a été enregistrée et sera examinée par les administrateurs.\n\n' +
+          '⏰ Vous recevrez une notification une fois que votre demande sera traitée.\n\n' +
+          '💡 Vous ne pouvez soumettre qu\'une seule demande toutes les 24 heures.');
+
     if (!successMessage) return;
 
     successMessage.hidden = false;
     successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-    // Hide after 10 seconds
+    // Hide after 15 seconds
     setTimeout(() => {
       successMessage.hidden = true;
-    }, 10000);
+    }, 15000);
   }
 
   /**
@@ -1855,6 +2044,169 @@
       localStorage.setItem(STORAGE_KEY_TERMS_ACCEPTED, accepted.toString());
     } catch (e) {
       console.error('Error saving terms accepted:', e);
+    }
+  }
+
+  /**
+   * Save form draft to localStorage
+   */
+  function saveFormDraft() {
+    try {
+      const draft = {
+        title: document.getElementById('title')?.value || '',
+        type: document.getElementById('type')?.value || '',
+        genre1: document.getElementById('genre1')?.value || '',
+        genre2: document.getElementById('genre2')?.value || '',
+        genre3: document.getElementById('genre3')?.value || '',
+        description: document.getElementById('description')?.value || '',
+        portraitImage: document.getElementById('portraitImage')?.value || '',
+        landscapeImage: document.getElementById('landscapeImage')?.value || '',
+        studioBadge: document.getElementById('studioBadge')?.value || '',
+        watchUrl: document.getElementById('watchUrl')?.value || '',
+        actors: actors.slice(),
+        episodes: episodes.slice(),
+        savedAt: Date.now()
+      };
+      localStorage.setItem(STORAGE_KEY_FORM_DRAFT, JSON.stringify(draft));
+      console.log('📝 Form draft saved');
+    } catch (e) {
+      console.error('Error saving form draft:', e);
+    }
+  }
+
+  /**
+   * Load form draft from localStorage
+   */
+  function loadFormDraft() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY_FORM_DRAFT);
+      if (!data) return false;
+
+      const draft = JSON.parse(data);
+      
+      // Check if draft is not too old (7 days)
+      const maxAge = 7 * 24 * 60 * 60 * 1000;
+      if (Date.now() - draft.savedAt > maxAge) {
+        console.log('📝 Draft too old, clearing...');
+        clearFormDraft();
+        return false;
+      }
+
+      console.log('📝 Restoring form draft...');
+
+      // Restore basic fields
+      const titleInput = document.getElementById('title');
+      const typeInput = document.getElementById('type');
+      const genre1Input = document.getElementById('genre1');
+      const genre2Input = document.getElementById('genre2');
+      const genre3Input = document.getElementById('genre3');
+      const descInput = document.getElementById('description');
+      const portraitInput = document.getElementById('portraitImage');
+      const landscapeInput = document.getElementById('landscapeImage');
+      const studioBadgeInput = document.getElementById('studioBadge');
+      const watchUrlInput = document.getElementById('watchUrl');
+
+      if (titleInput) titleInput.value = draft.title || '';
+      if (typeInput) typeInput.value = draft.type || '';
+      if (genre1Input) genre1Input.value = draft.genre1 || '';
+      if (genre2Input) genre2Input.value = draft.genre2 || '';
+      if (genre3Input) genre3Input.value = draft.genre3 || '';
+      if (descInput) descInput.value = draft.description || '';
+      if (portraitInput) portraitInput.value = draft.portraitImage || '';
+      if (landscapeInput) landscapeInput.value = draft.landscapeImage || '';
+      if (studioBadgeInput) studioBadgeInput.value = draft.studioBadge || '';
+      if (watchUrlInput) watchUrlInput.value = draft.watchUrl || '';
+
+      // Restore image previews
+      if (draft.portraitImage) {
+        const preview = document.getElementById('portraitPreview');
+        if (preview) {
+          preview.src = draft.portraitImage;
+          preview.hidden = false;
+        }
+      }
+      if (draft.landscapeImage) {
+        const preview = document.getElementById('landscapePreview');
+        if (preview) {
+          preview.src = draft.landscapeImage;
+          preview.hidden = false;
+        }
+      }
+      if (draft.studioBadge) {
+        const preview = document.getElementById('studioBadgePreview');
+        if (preview) {
+          preview.src = draft.studioBadge;
+          preview.hidden = false;
+        }
+      }
+
+      // Restore actors and episodes
+      if (Array.isArray(draft.actors)) {
+        actors = draft.actors.slice();
+        renderActorsList();
+      }
+      if (Array.isArray(draft.episodes)) {
+        episodes = draft.episodes.slice();
+        renderEpisodesList();
+      }
+
+      // Trigger type change to show/hide episodes
+      if (typeInput) {
+        typeInput.dispatchEvent(new Event('change'));
+      }
+
+      console.log('✅ Form draft restored');
+      return true;
+    } catch (e) {
+      console.error('Error loading form draft:', e);
+      return false;
+    }
+  }
+
+  /**
+   * Clear form draft from localStorage
+   */
+  function clearFormDraft() {
+    try {
+      localStorage.removeItem(STORAGE_KEY_FORM_DRAFT);
+      console.log('📝 Form draft cleared');
+    } catch (e) {
+      console.error('Error clearing form draft:', e);
+    }
+  }
+
+  /**
+   * Save current slide/step
+   */
+  function saveCurrentSlide(slideNumber) {
+    try {
+      localStorage.setItem(STORAGE_KEY_CURRENT_SLIDE, slideNumber.toString());
+    } catch (e) {
+      console.error('Error saving current slide:', e);
+    }
+  }
+
+  /**
+   * Load saved slide/step
+   */
+  function loadCurrentSlide() {
+    try {
+      const slide = localStorage.getItem(STORAGE_KEY_CURRENT_SLIDE);
+      return slide ? parseInt(slide, 10) : 1;
+    } catch (e) {
+      console.error('Error loading current slide:', e);
+      return 1;
+    }
+  }
+
+  /**
+   * Clear saved slide
+   */
+  function clearCurrentSlide() {
+    try {
+      localStorage.removeItem(STORAGE_KEY_CURRENT_SLIDE);
+    } catch (e) {
+      console.error('Error clearing current slide:', e);
     }
   }
 
