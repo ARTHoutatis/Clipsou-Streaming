@@ -602,7 +602,7 @@
     "id": "custom-les-aventures-de-kiki-vwu6",
     "title": "Les Aventures de Kiki",
     "type": "film",
-    "rating": 3.5,
+    "rating": 4,
     "genres": [
       "Found Footage",
       "Horreur psychologique",
@@ -636,7 +636,7 @@
     ],
     "episodes": [],
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761337/m84st4ucoorhtfmmqnsn.png",
-    "ratingCount": 6
+    "ratingCount": 7
   },
   {
     "id": "custom-ose-ouvrir-8vaq",
