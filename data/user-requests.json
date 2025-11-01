@@ -1,5 +1,40 @@
 [
   {
+    "title": "Test",
+    "type": "film",
+    "genres": [
+      "Familial",
+      "Historique",
+      "Enfants"
+    ],
+    "description": "test",
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1762037956/pnvgcfcyn4w4v5saugjt.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1762037970/pd06h4saonbcs63i989b.webp",
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1762037978/gaetzi5oupn5xmwvvqxn.webp",
+    "watchUrl": "https://www.youtube.com/watch?v=OQz5boiZkk8",
+    "actors": [
+      {
+        "name": "ARTH",
+        "role": "TEST"
+      }
+    ],
+    "episodes": [],
+    "submittedAt": 1762038021837,
+    "status": "pending",
+    "youtubeChannel": {
+      "id": "UC_IlsQoGmLaPwjnVnBkVrUw",
+      "title": "ARTHsz",
+      "customUrl": "@arthsz",
+      "verifiedAt": 1762038021837
+    },
+    "submittedBy": {
+      "email": "arthurcapon54@gmail.com",
+      "name": "arthur capon",
+      "googleId": "104998728425530599404"
+    },
+    "id": "user_req_1762038021837_fd4fhf9qt"
+  },
+  {
     "title": "Ruberren Eend",
     "type": "série",
     "genres": [
