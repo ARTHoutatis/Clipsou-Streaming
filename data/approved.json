@@ -443,7 +443,7 @@
     "id": "custom-i-ll08",
     "title": "i",
     "type": "film",
-    "rating": 3,
+    "rating": 3.5,
     "genres": [
       "Biopic",
       "Comédie",
@@ -469,7 +469,7 @@
     ],
     "episodes": [],
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761741967/svhbf8plle2gpvileadw.webp",
-    "ratingCount": 6
+    "ratingCount": 7
   },
   {
     "id": "custom-le-cafe-des-heros-k4a8",
