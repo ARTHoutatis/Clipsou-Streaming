@@ -1314,7 +1314,9 @@
 
       // Check if it's a valid YouTube URL format first
       if (!isValidYouTubeUrl(url)) {
-        statusDiv.hidden = true;
+        statusDiv.hidden = false;
+        statusDiv.className = 'verification-status error';
+        statusDiv.innerHTML = '❌ URL YouTube invalide. Formats acceptés : youtube.com/watch?v=..., youtu.be/..., youtube.com/embed/...';
         isVideoValid = false;
         return;
       }

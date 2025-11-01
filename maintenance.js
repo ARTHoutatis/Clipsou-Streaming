@@ -113,18 +113,140 @@ function showMaintenanceBanner() {
   document.body.style.paddingTop = '48px';
 }
 
+// Show popup informing users about OAuth validation issues
+function showOAuthValidationNotice() {
+  const STORAGE_KEY = 'clipsou_oauth_notice_dismissed_v1';
+
+  if (sessionStorage.getItem(STORAGE_KEY) === '1') {
+    return;
+  }
+
+  const renderNotice = () => {
+    if (document.getElementById('oauth-validation-notice')) {
+      return;
+    }
+
+    const overlay = document.createElement('div');
+    overlay.id = 'oauth-validation-notice';
+    overlay.style.cssText = `
+      position: fixed;
+      inset: 0;
+      background: rgba(11, 17, 23, 0.72);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 100000;
+      backdrop-filter: blur(2px);
+    `;
+
+    const card = document.createElement('div');
+    card.style.cssText = `
+      max-width: 420px;
+      width: 100%;
+      background: #111827;
+      color: #f9fafb;
+      border-radius: 16px;
+      padding: 28px 32px;
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.4);
+      border: 1px solid rgba(96, 165, 250, 0.35);
+      position: relative;
+      font-family: inherit;
+    `;
+
+    const title = document.createElement('h2');
+    title.style.cssText = `
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 12px 0;
+      font-size: 1.3rem;
+    `;
+    title.innerHTML = `
+      <span style="font-size: 1.6rem;">⚠️</span>
+      Authentification Google en cours de validation
+    `;
+
+    const message = document.createElement('p');
+    message.style.cssText = `
+      margin: 0 0 18px 0;
+      line-height: 1.5;
+      color: rgba(229, 231, 235, 0.9);
+      font-size: 0.98rem;
+    `;
+    message.innerHTML = `
+      Notre intégration OAuth Google est actuellement en cours de validation. <br>
+      La connexion via Google peut être temporairement indisponible ou afficher un message d'avertissement. <br>
+      Vos données restent protégées et aucune action supplémentaire n'est requise de votre part.
+    `;
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.style.cssText = `
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border: none;
+      border-radius: 9999px;
+      padding: 10px 20px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: #f9fafb;
+      transition: transform 0.2s;
+    `;
+    button.textContent = 'Compris, je continue';
+
+    button.addEventListener('mouseenter', () => {
+      button.style.transform = 'translateY(-1px)';
+    });
+
+    button.addEventListener('mouseleave', () => {
+      button.style.transform = 'translateY(0)';
+    });
+
+    const closeNotice = () => {
+      sessionStorage.setItem(STORAGE_KEY, '1');
+      overlay.remove();
+    };
+
+    button.addEventListener('click', closeNotice);
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) {
+        closeNotice();
+      }
+    });
+
+    card.appendChild(title);
+    card.appendChild(message);
+    card.appendChild(button);
+    overlay.appendChild(card);
+
+    document.body.appendChild(overlay);
+  };
+
+  if (document.body) {
+    renderNotice();
+  } else {
+    document.addEventListener('DOMContentLoaded', renderNotice, { once: true });
+  }
+}
+
 // Initialize maintenance system
 (function() {
   'use strict';
   
   // Check if maintenance mode is enabled
-  const MAINTENANCE_ENABLED = true; // Set to false to disable maintenance
+  const MAINTENANCE_ENABLED = false; // Set to false to disable maintenance
   
   if (MAINTENANCE_ENABLED) {
     checkMaintenance();
   } else {
     // If maintenance is disabled but scheduled, show banner
     // showMaintenanceBanner();
+    showOAuthValidationNotice();
   }
   
   console.log('Maintenance system initialized');
