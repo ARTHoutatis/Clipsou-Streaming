@@ -590,16 +590,16 @@
    * Setup stepper navigation
    */
   function setupStepperNavigation() {
-    // Navigation buttons for 4 steps
-    // Step 1: Connexion
+    // Navigation buttons pour les 4 étapes
+    // Étape 1 : Conditions
     const nextStep1 = document.getElementById('nextStep1');
-    // Step 2: Conditions
+    // Étape 2 : Connexion
     const nextStep2 = document.getElementById('nextStep2');
     const prevStep2 = document.getElementById('prevStep2');
-    // Step 3: Guide
+    // Étape 3 : Guide
     const nextStep3 = document.getElementById('nextStep3');
     const prevStep3 = document.getElementById('prevStep3');
-    // Step 4: Formulaire
+    // Étape 4 : Formulaire
     const prevStep4 = document.getElementById('prevStep4');
     
     if (nextStep1) nextStep1.addEventListener('click', () => goToSlide(2));
@@ -633,8 +633,8 @@
     // Set transitioning flag
     isTransitioning = true;
     
-    // Validation: Can't go to slide 3 or 4 without accepting terms (slide 2)
-    if (slideNumber > 2 && !termsCheckbox.checked) {
+    // Validation: Can't leave slide 1 without accepting terms
+    if (slideNumber > 1 && !termsCheckbox.checked) {
       isTransitioning = false; // Reset flag
       const termsError = document.getElementById('termsError');
       if (termsError) {
@@ -651,8 +651,8 @@
       return;
     }
     
-    // Validation: Can't go past slide 1 without Google authentication
-    if (slideNumber > 1 && (!window.GoogleAuth || !window.GoogleAuth.isAuthenticated())) {
+    // Validation: Can't go past slide 2 without Google authentication
+    if (slideNumber > 2 && (!window.GoogleAuth || !window.GoogleAuth.isAuthenticated())) {
       isTransitioning = false;
       alert('Veuillez vous connecter avec Google pour continuer.');
       return;

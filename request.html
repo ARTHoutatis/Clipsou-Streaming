@@ -40,12 +40,12 @@
       <div class="stepper">
         <div class="step active" data-step="1">
           <div class="step-circle">1</div>
-          <div class="step-label">Connexion</div>
+          <div class="step-label">Conditions</div>
         </div>
         <div class="step-line"></div>
         <div class="step" data-step="2">
           <div class="step-circle">2</div>
-          <div class="step-label">Conditions</div>
+          <div class="step-label">Connexion</div>
         </div>
         <div class="step-line"></div>
         <div class="step" data-step="3">
@@ -62,44 +62,8 @@
 
     <!-- Slides Container -->
     <div class="slides-container">
-      <!-- Slide 1: Google OAuth Login -->
-      <section class="form-section auth-section slide active" data-slide="1">
-        <h2>🔐 Connexion requise</h2>
-        <p class="auth-description">Pour soumettre un film, vous devez vous connecter avec votre compte Google et vérifier que vous êtes propriétaire de votre chaîne YouTube.</p>
-        
-        <div class="auth-reasons">
-          <h3>Pourquoi cette connexion ?</h3>
-          <ul>
-            <li>✅ Vérifier que vous êtes propriétaire de la chaîne YouTube</li>
-            <li>✅ Éviter les soumissions frauduleuses</li>
-            <li>✅ Protéger les créateurs de contenu</li>
-            <li>✅ Associer vos demandes à votre compte</li>
-          </ul>
-        </div>
-
-        <div id="googleSignInButton" class="google-signin-container"></div>
-        
-        <div id="authError" class="error-message" hidden></div>
-        
-        <div class="auth-footer">
-          <p class="small muted">En vous connectant, vous acceptez que nous accédions aux informations de votre chaîne YouTube pour vérifier votre propriété.</p>
-          <p class="small muted" style="margin-top: 8px;">
-            <a href="privacy.html" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: none;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              </svg>
-              Consulter notre politique de confidentialité
-            </a>
-          </p>
-        </div>
-        
-        <div class="slide-nav" id="authNextNav" hidden>
-          <button type="button" class="btn primary" id="nextStep1">Suivant →</button>
-        </div>
-      </section>
-
-      <!-- Slide 2: Terms and Conditions -->
-      <section class="form-section terms-section slide" data-slide="2">
+      <!-- Slide 1: Terms and Conditions -->
+      <section class="form-section terms-section slide active" data-slide="1">
         <h2>📜 Conditions d'utilisation</h2>
       <div class="terms-content">
         <p class="terms-intro">Avant de soumettre votre demande, veuillez lire attentivement et respecter les conditions suivantes :</p>
@@ -131,10 +95,46 @@
           </div>
         </div>
         <div class="slide-nav">
-          <button type="button" class="btn secondary" id="prevStep2">← Précédent</button>
-          <button type="button" class="btn primary" id="nextStep2">Suivant →</button>
+          <button type="button" class="btn primary" id="nextStep1">J'accepte →</button>
         </div>
       </div>
+      </section>
+
+      <!-- Slide 2: Google OAuth Login -->
+      <section class="form-section auth-section slide" data-slide="2">
+        <h2>🔐 Connexion requise</h2>
+        <p class="auth-description">Pour soumettre un film, vous devez vous connecter avec votre compte Google et vérifier que vous êtes propriétaire de votre chaîne YouTube.</p>
+        
+        <div class="auth-reasons">
+          <h3>Pourquoi cette connexion ?</h3>
+          <ul>
+            <li>✅ Vérifier que vous êtes propriétaire de la chaîne YouTube</li>
+            <li>✅ Éviter les soumissions frauduleuses</li>
+            <li>✅ Protéger les créateurs de contenu</li>
+            <li>✅ Associer vos demandes à votre compte</li>
+          </ul>
+        </div>
+
+        <div id="googleSignInButton" class="google-signin-container"></div>
+        
+        <div id="authError" class="error-message" hidden></div>
+        
+        <div class="auth-footer">
+          <p class="small muted">En vous connectant, vous acceptez que nous accédions aux informations de votre chaîne YouTube pour vérifier votre propriété.</p>
+          <p class="small muted" style="margin-top: 8px;">
+            <a href="privacy.html" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: none;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              Consulter notre politique de confidentialité
+            </a>
+          </p>
+        </div>
+        
+        <div class="slide-nav" id="authNextNav" hidden>
+          <button type="button" class="btn secondary" id="prevStep2">← Retour</button>
+          <button type="button" class="btn primary" id="nextStep2">Suivant →</button>
+        </div>
       </section>
 
       <!-- Slide 3: Tutorial Section -->
