@@ -1771,6 +1771,14 @@
           try { localStorage.setItem('clipsou_admin_logged_in_v1','1'); localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now())); } catch {}
           showApp();
           initApp();
+          // Display admin profile info after successful login
+          try { 
+            if (window.AdminAuth && typeof window.AdminAuth.displayAdminInfo === 'function') {
+              window.AdminAuth.displayAdminInfo();
+            }
+          } catch (e) {
+            console.error('Error displaying admin info:', e);
+          }
         } else {
           alert('Mot de passe incorrect.');
           if (pwdInput) pwdInput.value = '';
@@ -1798,12 +1806,32 @@
         try { localStorage.setItem('clipsou_admin_logged_in_v1','1'); localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now())); } catch {}
         showApp();
         initApp();
+        // Display admin profile info after auto-login
+        setTimeout(() => {
+          try { 
+            if (window.AdminAuth && typeof window.AdminAuth.displayAdminInfo === 'function') {
+              window.AdminAuth.displayAdminInfo();
+            }
+          } catch (e) {
+            console.error('Error displaying admin info on auto-login:', e);
+          }
+        }, 100);
         return;
       }
       if (sessionStorage.getItem(APP_KEY_SESSION) === '1') {
         showApp();
         try { localStorage.setItem('clipsou_admin_logged_in_v1','1'); localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now())); } catch {}
         initApp();
+        // Display admin profile info after session restore
+        setTimeout(() => {
+          try { 
+            if (window.AdminAuth && typeof window.AdminAuth.displayAdminInfo === 'function') {
+              window.AdminAuth.displayAdminInfo();
+            }
+          } catch (e) {
+            console.error('Error displaying admin info on session restore:', e);
+          }
+        }, 100);
         return;
       }
     } catch {}
