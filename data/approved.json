@@ -440,6 +440,40 @@
     "ratingCount": 4
   },
   {
+    "id": "custom-horror-show-jean-michel-content-episode-hors-serie-n5hy",
+    "title": "Horror Show : Jean-Michel Content ( Episode Hors Serie )",
+    "type": "film",
+    "rating": 4,
+    "genres": [
+      "Comédie",
+      "Parodie",
+      "Horreur"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1762043628/mc7qtlgfzccvhuevicje.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1762043629/uj7fcecusu50dm9ctaoe.jpg",
+    "description": "Jean-Michel et Snoopy passent une soirée tranquille devant un film... jusqu’à ce qu’un petit clown vienne frapper à la porte. Ce qui devait être un simple échange de croquettes va vite virer au cauchemar.",
+    "watchUrl": "https://youtu.be/i0hheOPqOzU?si=Cjbf8aPV7FpuOwjT",
+    "actors": [
+      {
+        "name": "Kassielator",
+        "role": "Jean Michel Content",
+        "photo": "kassielator.webp"
+      },
+      {
+        "name": "Liam Roxxor",
+        "role": "Snoopy",
+        "photo": "liam-roxxor.webp"
+      },
+      {
+        "name": "Kassielator",
+        "role": "Enfant",
+        "photo": "kassielator.webp"
+      }
+    ],
+    "episodes": [],
+    "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp"
+  },
+  {
     "id": "custom-i-ll08",
     "title": "i",
     "type": "film",
@@ -692,7 +726,8 @@
       },
       {
         "name": "Kassielator",
-        "role": "Cassiel"
+        "role": "Cassiel",
+        "photo": "kassielator.webp"
       },
       {
         "name": "Monique Veyrat",
