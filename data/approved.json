@@ -568,9 +568,9 @@
     "type": "série",
     "rating": 1.5,
     "genres": [
-      "Émission",
+      "Emission",
       "Comédie",
-      "Animation"
+      "Sitcom"
     ],
     "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761345953/snfugu8ztrnnxrfp4krl.webp",
     "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761345958/pgngxqoxcpp9bu6xbnft.webp",
@@ -629,8 +629,7 @@
         "url": "https://youtu.be/ZGqHl2awm1I?si=DnZilGTXU34xwXE6"
       }
     ],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761345961/hfjaeiqcxeyfqz5gosqr.webp",
-    "ratingCount": 3
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761345961/hfjaeiqcxeyfqz5gosqr.webp"
   },
   {
     "id": "custom-les-aventures-de-kiki-vwu6",
