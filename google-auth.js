@@ -14,6 +14,22 @@
   // DOM elements
   let googleSignInButton, userInfoDiv, logoutBtn, authErrorDiv;
 
+  // OAuth state
+  let tokenClient = null;
+  let initPromise = null;
+  let silentAuthAttempted = false;
+  let refreshTimer = null;
+
+  const GOOGLE_BUTTON_HTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Se connecter avec Google
+      `;
+
   // Authentication state
   let googleAuth = null;
   let currentUser = null;
@@ -76,131 +92,125 @@
    * Initialize Google OAuth
    */
   function initGoogleAuth() {
-    console.log('[OAuth] Initializing Google Authentication...');
-    
-    // Get DOM elements
-    googleSignInButton = document.getElementById('googleSignInButton');
-    userInfoDiv = document.getElementById('userInfo');
-    logoutBtn = document.getElementById('logoutBtn');
-    authErrorDiv = document.getElementById('authError');
+    if (initPromise) return initPromise;
 
-    if (!googleSignInButton) {
-      console.error('[OAuth] Google Sign-In button not found');
-      return;
-    }
+    initPromise = (async () => {
+      console.log('[OAuth] Initializing Google Authentication...');
 
-    // Hide user info and logout button by default (will be shown when user is authenticated)
-    if (userInfoDiv) userInfoDiv.hidden = true;
-    if (logoutBtn) logoutBtn.hidden = true;
+      // Get DOM elements
+      googleSignInButton = document.getElementById('googleSignInButton');
+      userInfoDiv = document.getElementById('userInfo');
+      logoutBtn = document.getElementById('logoutBtn');
+      authErrorDiv = document.getElementById('authError');
 
-    // Check for local development mode
-    if (isLocalDev() && !shouldForceRealOAuth()) {
-      console.warn('[OAuth] 🚧 LOCAL DEVELOPMENT MODE - OAuth bypassed');
-      console.log('%c🚧 MODE DÉVELOPPEMENT LOCAL', 'color: #f59e0b; font-size: 16px; font-weight: bold;');
-      console.log('%cOAuth Google et vérifications de vidéo désactivés pour faciliter les tests.', 'color: #fbbf24;');
-      console.log('%cPour tester l\'OAuth réel en local : ajoutez ?oauth=true à l\'URL', 'color: #fbbf24;');
-      
-      // Check if dev user already exists
-      const savedAuth = getSavedAuth();
-      if (savedAuth && isAuthValid(savedAuth)) {
-        console.log('[OAuth] Using saved dev user');
-        currentUser = savedAuth;
-        showMainContent();
-        return;
+      if (!googleSignInButton) {
+        console.error('[OAuth] Google Sign-In button not found');
+        return currentUser;
       }
 
-      // Create dev login button
-      googleSignInButton.innerHTML = '';
-      
-      const devBtn = document.createElement('button');
-      devBtn.className = 'btn primary';
-      devBtn.style.cssText = 'display: inline-flex; align-items: center; gap: 12px; font-size: 16px; padding: 14px 32px; background: #f59e0b;';
-      devBtn.innerHTML = `
-        <span>🚧</span>
-        Se connecter en mode DEV (Local)
-      `;
-      
-      devBtn.onclick = () => {
-        console.log('[OAuth] Creating dev user for local testing');
-        const devUser = createDevUser();
-        saveAuth(devUser);
-        currentUser = devUser;
+      // Hide user info and logout button by default (will be shown when user is authenticated)
+      if (userInfoDiv) userInfoDiv.hidden = true;
+      if (logoutBtn) logoutBtn.hidden = true;
+
+      // Check for local development mode
+      if (isLocalDev() && !shouldForceRealOAuth()) {
+        console.warn('[OAuth] 🚧 LOCAL DEVELOPMENT MODE - OAuth bypassed');
+        console.log('%c🚧 MODE DÉVELOPPEMENT LOCAL', 'color: #f59e0b; font-size: 16px; font-weight: bold;');
+        console.log('%cOAuth Google et vérifications de vidéo désactivés pour faciliter les tests.', 'color: #fbbf24;');
+        console.log('%cPour tester l\'OAuth réel en local : ajoutez ?oauth=true à l\'URL', 'color: #fbbf24;');
+
+        const savedDevAuth = getSavedAuth();
+        if (savedDevAuth && isAuthValid(savedDevAuth)) {
+          console.log('[OAuth] Using saved dev user');
+          currentUser = savedDevAuth;
+          showMainContent();
+          return currentUser;
+        }
+
+        googleSignInButton.innerHTML = '';
+
+        const devBtn = document.createElement('button');
+        devBtn.className = 'btn primary';
+        devBtn.style.cssText = 'display: inline-flex; align-items: center; gap: 12px; font-size: 16px; padding: 14px 32px; background: #f59e0b;';
+        devBtn.innerHTML = `
+          <span>🚧</span>
+          Se connecter en mode DEV (Local)
+        `;
+
+        devBtn.onclick = () => {
+          console.log('[OAuth] Creating dev user for local testing');
+          const devUser = createDevUser();
+          saveAuth(devUser);
+          currentUser = devUser;
+          showMainContent();
+
+          setTimeout(() => {
+            alert('🚧 MODE DÉVELOPPEMENT\n\nVous êtes connecté avec un compte de test local.\nCe mode permet de tester les fonctionnalités sans OAuth Google.\n\nEmail: dev@localhost.test\nChaîne: Dev Test Channel');
+          }, 500);
+        };
+
+        googleSignInButton.appendChild(devBtn);
+
+        const realOAuthBtn = document.createElement('button');
+        realOAuthBtn.className = 'btn secondary';
+        realOAuthBtn.style.cssText = 'display: inline-flex; align-items: center; gap: 12px; font-size: 16px; padding: 14px 32px; margin-top: 12px;';
+        realOAuthBtn.innerHTML = GOOGLE_BUTTON_HTML.replace('Se connecter avec Google', 'Tester OAuth Google réel');
+
+        realOAuthBtn.onclick = () => {
+          console.log('[OAuth] Switching to real OAuth mode');
+          setOAuthPreference(true);
+          window.location.reload();
+        };
+
+        googleSignInButton.appendChild(realOAuthBtn);
+
+        const devNotice = document.createElement('div');
+        devNotice.style.cssText = `
+          background: rgba(245, 158, 11, 0.1);
+          border: 1px solid rgba(245, 158, 11, 0.3);
+          color: #fbbf24;
+          padding: 12px 16px;
+          border-radius: 8px;
+          margin-top: 16px;
+          font-size: 14px;
+          text-align: center;
+        `;
+        devNotice.innerHTML = '🚧 <strong>Mode développement local</strong> - Les vérifications OAuth sont désactivées<br><small>Cliquez sur "Tester OAuth Google réel" pour activer l\'authentification Google</small>';
+        googleSignInButton.appendChild(devNotice);
+
+        return currentUser;
+      }
+
+      if (isLocalDev() && shouldForceRealOAuth()) {
+        console.log('[OAuth] 🔐 LOCAL MODE with REAL OAuth enabled');
+        console.log('%c🔐 OAuth Google activé en local', 'color: #2563eb; font-size: 16px; font-weight: bold;');
+      }
+
+      const savedAuth = getSavedAuth();
+      if (savedAuth && isAuthValid(savedAuth)) {
+        console.log('[OAuth] Valid authentication found in storage');
+        currentUser = savedAuth;
         showMainContent();
-        
-        // Show dev mode notice
-        setTimeout(() => {
-          alert('🚧 MODE DÉVELOPPEMENT\n\nVous êtes connecté avec un compte de test local.\nCe mode permet de tester les fonctionnalités sans OAuth Google.\n\nEmail: dev@localhost.test\nChaîne: Dev Test Channel');
-        }, 500);
-      };
-      
-      googleSignInButton.appendChild(devBtn);
-      
-      // Add button to switch to real OAuth
-      const realOAuthBtn = document.createElement('button');
-      realOAuthBtn.className = 'btn secondary';
-      realOAuthBtn.style.cssText = 'display: inline-flex; align-items: center; gap: 12px; font-size: 16px; padding: 14px 32px; margin-top: 12px;';
-      realOAuthBtn.innerHTML = `
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-        </svg>
-        Tester OAuth Google réel
-      `;
-      
-      realOAuthBtn.onclick = () => {
-        console.log('[OAuth] Switching to real OAuth mode');
-        setOAuthPreference(true);
-        window.location.reload();
-      };
-      
-      googleSignInButton.appendChild(realOAuthBtn);
-      
-      // Add dev mode indicator
-      const devNotice = document.createElement('div');
-      devNotice.style.cssText = `
-        background: rgba(245, 158, 11, 0.1);
-        border: 1px solid rgba(245, 158, 11, 0.3);
-        color: #fbbf24;
-        padding: 12px 16px;
-        border-radius: 8px;
-        margin-top: 16px;
-        font-size: 14px;
-        text-align: center;
-      `;
-      devNotice.innerHTML = '🚧 <strong>Mode développement local</strong> - Les vérifications OAuth sont désactivées<br><small>Cliquez sur "Tester OAuth Google réel" pour activer l\'authentification Google</small>';
-      googleSignInButton.appendChild(devNotice);
-      
-      return;
-    }
-    
-    // If we're in local mode but forcing real OAuth, show a notice
-    if (isLocalDev() && shouldForceRealOAuth()) {
-      console.log('[OAuth] 🔐 LOCAL MODE with REAL OAuth enabled');
-      console.log('%c🔐 OAuth Google activé en local', 'color: #2563eb; font-size: 16px; font-weight: bold;');
-    }
+        scheduleTokenRefresh(Math.floor((savedAuth.expiresAt - Date.now()) / 1000));
+        return currentUser;
+      }
 
-    // Check if user is already authenticated (production)
-    const savedAuth = getSavedAuth();
-    if (savedAuth && isAuthValid(savedAuth)) {
-      console.log('[OAuth] Valid authentication found in storage');
-      currentUser = savedAuth;
-      showMainContent();
-      return;
-    }
+      await initializeGoogleSignIn(savedAuth);
+      return currentUser;
+    })();
 
-    // Initialize Google Sign-In (production)
-    initializeGoogleSignIn();
+    return initPromise;
   }
 
   /**
    * Initialize Google Sign-In button
    */
-  function initializeGoogleSignIn() {
-    if (typeof google === 'undefined' || !google.accounts) {
-      console.warn('[OAuth] Google Identity Services not loaded yet, retrying...');
-      setTimeout(initializeGoogleSignIn, 100);
+  async function initializeGoogleSignIn(savedAuth) {
+    try {
+      await waitForGoogleLibrary();
+    } catch (error) {
+      console.error('[OAuth] Google Identity Services failed to load', error);
+      showAuthError('Impossible de charger les services Google.');
       return;
     }
 
@@ -213,110 +223,208 @@
 
     console.log('[OAuth] Rendering Google Sign-In button');
 
-    try {
-      // Initialize OAuth client
-      const client = google.accounts.oauth2.initTokenClient({
-        client_id: config.clientId,
-        scope: config.scopes,
-        callback: handleGoogleResponse
-      });
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: config.clientId,
+      scope: config.scopes,
+      callback: () => {}
+    });
 
-      // Create custom sign-in button
-      const button = document.createElement('button');
-      button.className = 'btn primary';
-      button.style.cssText = 'display: inline-flex; align-items: center; gap: 12px; font-size: 16px; padding: 14px 32px;';
-      button.innerHTML = `
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-        </svg>
-        Se connecter avec Google
-      `;
-      
-      button.onclick = () => {
-        console.log('[OAuth] User clicked sign-in button');
-        button.disabled = true;
-        button.textContent = 'Connexion...';
-        
-        try {
-          client.requestAccessToken();
-        } catch (error) {
-          console.error('[OAuth] Error requesting access token:', error);
-          showAuthError('Erreur lors de la connexion. Veuillez réessayer.');
-          button.disabled = false;
-          button.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-            </svg>
-            Se connecter avec Google
-          `;
+    const button = document.createElement('button');
+    button.className = 'btn primary';
+    button.style.cssText = 'display: inline-flex; align-items: center; gap: 12px; font-size: 16px; padding: 14px 32px;';
+    button.innerHTML = GOOGLE_BUTTON_HTML;
+
+    button.onclick = () => {
+      console.log('[OAuth] User clicked sign-in button');
+      const previousHTML = button.innerHTML;
+      button.disabled = true;
+      button.textContent = 'Connexion...';
+
+      try {
+        tokenClient.callback = (response) => {
+          handleTokenResponse(response, { button, previousHTML }).then((success) => {
+            if (success) {
+              // nothing to do, showMainContent already called
+            }
+          });
+        };
+        tokenClient.requestAccessToken({ prompt: 'consent' });
+      } catch (error) {
+        console.error('[OAuth] Error requesting access token:', error);
+        showAuthError('Erreur lors de la connexion. Veuillez réessayer.');
+        button.disabled = false;
+        button.innerHTML = previousHTML;
+      }
+    };
+
+    googleSignInButton.innerHTML = '';
+    googleSignInButton.appendChild(button);
+
+    if (savedAuth && !isAuthValid(savedAuth) && !silentAuthAttempted) {
+      await attemptSilentSignIn(savedAuth);
+    }
+  }
+
+  function waitForGoogleLibrary() {
+    if (typeof google !== 'undefined' && google.accounts) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve, reject) => {
+      let attempts = 0;
+      const maxAttempts = 100; // ~10s with 100ms interval
+      const interval = setInterval(() => {
+        attempts += 1;
+        if (typeof google !== 'undefined' && google.accounts) {
+          clearInterval(interval);
+          resolve();
+        } else if (attempts >= maxAttempts) {
+          clearInterval(interval);
+          reject(new Error('Google Identity Services not available'));
         }
-      };
+      }, 100);
+    });
+  }
 
-      googleSignInButton.innerHTML = '';
-      googleSignInButton.appendChild(button);
+  async function attemptSilentSignIn(savedAuth) {
+    if (silentAuthAttempted) return;
+    silentAuthAttempted = true;
 
+    if (isLocalDev() && !shouldForceRealOAuth()) {
+      return;
+    }
+
+    const success = await refreshAccessToken(savedAuth);
+    if (!success) {
+      clearAuth();
+    }
+  }
+
+  function scheduleTokenRefresh(expiresInSeconds) {
+    if (!expiresInSeconds || isLocalDev() && !shouldForceRealOAuth()) {
+      return;
+    }
+
+    if (refreshTimer) {
+      clearTimeout(refreshTimer);
+    }
+
+    const safetyWindow = Math.max((expiresInSeconds - 120) * 1000, 15000);
+    refreshTimer = setTimeout(() => {
+      refreshAccessToken();
+    }, safetyWindow);
+  }
+
+  async function refreshAccessToken(existingAuth = null) {
+    if (isLocalDev() && !shouldForceRealOAuth()) {
+      return true;
+    }
+
+    const savedAuth = existingAuth || getSavedAuth();
+    if (!savedAuth) {
+      clearAuth();
+      return false;
+    }
+
+    try {
+      await waitForGoogleLibrary();
+
+      const config = window.ClipsouConfig?.google;
+      if (!config || !config.clientId) {
+        console.error('[OAuth] Impossible de rafraîchir le token: configuration manquante');
+        return false;
+      }
+
+      if (!tokenClient) {
+        tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: config.clientId,
+          scope: config.scopes,
+          callback: () => {}
+        });
+      }
+
+      return await new Promise((resolve) => {
+        tokenClient.callback = (response) => {
+          handleTokenResponse(response, { silent: true, savedAuth }).then(resolve);
+        };
+
+        try {
+          tokenClient.requestAccessToken({ prompt: 'none' });
+        } catch (error) {
+          console.error('[OAuth] Silent refresh failed:', error);
+          resolve(false);
+        }
+      });
     } catch (error) {
-      console.error('[OAuth] Error initializing Google Sign-In:', error);
-      showAuthError('Erreur d\'initialisation de la connexion Google');
+      console.error('[OAuth] Error refreshing access token:', error);
+      return false;
     }
   }
 
   /**
    * Handle Google OAuth response
    */
-  async function handleGoogleResponse(response) {
+  async function handleTokenResponse(response, options = {}) {
+    const { button, previousHTML, silent = false, savedAuth = null } = options;
     console.log('[OAuth] Received response from Google');
-    
+
     if (response.error) {
-      console.error('[OAuth] Error from Google:', response.error);
-      showAuthError(`Erreur: ${response.error}`);
-      
-      // Reset button
-      const button = googleSignInButton.querySelector('button');
-      if (button) {
-        button.disabled = false;
-        button.innerHTML = `
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
-          Se connecter avec Google
-        `;
+      if (silent) {
+        console.warn('[OAuth] Silent token request failed:', response.error);
+        if (response.error === 'consent_required' || response.error === 'interaction_required') {
+          clearAuth();
+        }
+      } else {
+        console.error('[OAuth] Error from Google:', response.error);
+        showAuthError(`Erreur: ${response.error}`);
+        if (button) {
+          button.disabled = false;
+          button.innerHTML = previousHTML || GOOGLE_BUTTON_HTML;
+        }
       }
-      return;
+      return false;
     }
 
+    const expiresInSeconds = Number(response.expires_in || 3600);
+
     try {
+      if (silent && savedAuth) {
+        const refreshedAuth = {
+          ...savedAuth,
+          accessToken: response.access_token,
+          expiresAt: Date.now() + expiresInSeconds * 1000,
+          authenticatedAt: Date.now()
+        };
+        saveAuth(refreshedAuth);
+        currentUser = refreshedAuth;
+        scheduleTokenRefresh(expiresInSeconds);
+        showMainContent();
+        return true;
+      }
+
       const accessToken = response.access_token;
       console.log('[OAuth] Access token received, fetching user info...');
 
-      // Fetch user info
       const userInfo = await fetchUserInfo(accessToken);
       console.log('[OAuth] User info received:', userInfo.email);
 
-      // Fetch YouTube channel info
       console.log('[OAuth] Fetching YouTube channel info...');
       const channelInfo = await fetchYouTubeChannel(accessToken);
-      
+
       if (!channelInfo) {
         showAuthError('Aucune chaîne YouTube trouvée pour ce compte. Vous devez avoir une chaîne YouTube pour soumettre un film.');
-        return;
+        if (button) {
+          button.disabled = false;
+          button.innerHTML = previousHTML || GOOGLE_BUTTON_HTML;
+        }
+        return false;
       }
 
       console.log('[OAuth] Channel info received:', channelInfo.title);
 
-      // Save authentication data
       const authData = {
         accessToken,
-        expiresAt: Date.now() + (3600 * 1000), // 1 hour
+        expiresAt: Date.now() + expiresInSeconds * 1000,
         user: userInfo,
         channel: channelInfo,
         authenticatedAt: Date.now()
@@ -324,13 +432,22 @@
 
       saveAuth(authData);
       currentUser = authData;
-
       console.log('[OAuth] Authentication successful');
+      scheduleTokenRefresh(expiresInSeconds);
       showMainContent();
-
+      return true;
     } catch (error) {
       console.error('[OAuth] Error during authentication:', error);
       showAuthError('Erreur lors de la récupération des informations. Veuillez réessayer.');
+      if (silent) {
+        clearAuth();
+      }
+      return false;
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.innerHTML = previousHTML || GOOGLE_BUTTON_HTML;
+      }
     }
   }
 
@@ -574,6 +691,11 @@
     } catch (error) {
       console.error('[OAuth] Error clearing auth data:', error);
     }
+    currentUser = null;
+    if (refreshTimer) {
+      clearTimeout(refreshTimer);
+      refreshTimer = null;
+    }
   }
 
   /**
@@ -594,7 +716,15 @@
    * Check if user is authenticated
    */
   function isAuthenticated() {
-    return currentUser !== null;
+    if (currentUser && isAuthValid(currentUser)) {
+      return true;
+    }
+    const savedAuth = getSavedAuth();
+    if (savedAuth && isAuthValid(savedAuth)) {
+      currentUser = savedAuth;
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -643,6 +773,13 @@
     
     if (!currentUser || !currentUser.accessToken) {
       return { valid: false, error: 'Non authentifié' };
+    }
+
+    if (currentUser.expiresAt && Date.now() > currentUser.expiresAt - 60000) {
+      const refreshed = await refreshAccessToken();
+      if (!refreshed) {
+        return { valid: false, error: 'Session expirée. Veuillez vous reconnecter.' };
+      }
     }
 
     const videoId = extractVideoId(videoUrl);
@@ -707,12 +844,13 @@
     verifyVideoOwnership,
     isLocalDev,
     shouldForceRealOAuth,
-    setOAuthPreference
+    setOAuthPreference,
+    refreshAccessToken
   };
 
   // Auto-initialize when DOM is ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initGoogleAuth);
+    document.addEventListener('DOMContentLoaded', () => { initGoogleAuth(); });
   } else {
     initGoogleAuth();
   }
