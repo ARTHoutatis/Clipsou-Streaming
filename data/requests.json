@@ -1,7 +1,7 @@
 [
   {
     "requestId": "r_mhgzbczc_3x1l8y",
-    "status": "pending",
+    "status": "approved",
     "data": {
       "id": "custom-horror-show-jean-michel-content-episode-hors-serie-n5hy",
       "requestId": "r_mhgzbczc_3x1l8y",
@@ -39,7 +39,7 @@
     },
     "meta": {
       "createdAt": 1762043685240,
-      "updatedAt": 1762043685240
+      "updatedAt": 1762043689210
     }
   },
   {
