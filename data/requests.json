@@ -7,7 +7,7 @@
       "requestId": "r_mhgzbczc_3x1l8y",
       "title": "Horror Show : Jean-Michel Content ( Episode Hors Serie )",
       "type": "film",
-      "rating": 3.5,
+      "rating": 3,
       "genres": [
         "Comédie",
         "Parodie",
@@ -39,7 +39,7 @@
     },
     "meta": {
       "createdAt": 1762043685240,
-      "updatedAt": 1762085247580
+      "updatedAt": 1762085268011
     }
   },
   {
