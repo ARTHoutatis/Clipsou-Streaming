@@ -841,11 +841,7 @@
         sessionStorage.setItem(STORAGE_KEY_SUBMIT_LOG + '_' + fp, timestamp.toString());
       } catch (e) {}
       
-      // Try to save in cookie as additional layer
-      try {
-        const expires = new Date(timestamp + (48 * 60 * 60 * 1000)).toUTCString();
-        document.cookie = `clipsou_submit_${fp}=${timestamp}; expires=${expires}; path=/; SameSite=Strict`;
-      } catch (e) {}
+      // Cookie layer removed for GDPR compliance - localStorage + sessionStorage sufficient
     } catch (e) {
       console.error('Error saving submit log:', e);
     }
@@ -876,17 +872,7 @@
       if (sessTime) timestamps.push(parseInt(sessTime, 10));
     } catch (e) {}
     
-    // Check cookies
-    try {
-      const cookies = document.cookie.split(';');
-      for (let cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
-        if (name === `clipsou_submit_${fp}`) {
-          const cookieTime = parseInt(value, 10);
-          if (cookieTime) timestamps.push(cookieTime);
-        }
-      }
-    } catch (e) {}
+    // Cookie check removed for GDPR compliance
     
     // Return the most recent timestamp
     return timestamps.length > 0 ? Math.max(...timestamps) : null;

@@ -3083,11 +3083,185 @@ html {
 /* Footer icons size */
 .footer .footer-list svg { width: 18px !important; height: 18px !important; }
 
+/* Footer top section with 2 columns */
+.footer-top-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  margin-bottom: 48px;
+  align-items: start;
+}
+
+.footer-partners-section {
+  text-align: left;
+}
+
+a.partnership-btn,
+.partnership-btn,
+a.partnership-btn:link,
+a.partnership-btn:visited {
+  transform: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  outline-offset: 0 !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  padding: 12px 24px !important;
+  border: 1px solid #2B22EE !important;
+  line-height: 1.5 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  position: relative !important;
+  top: 0 !important;
+  left: 0 !important;
+  margin: 0 !important;
+}
+
+a.partnership-btn:hover,
+.partnership-btn:hover {
+  filter: brightness(1.08) !important;
+  transform: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  outline-offset: 0 !important;
+  border: 1px solid #2B22EE !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  padding: 12px 24px !important;
+  line-height: 1.5 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  position: relative !important;
+  top: 0 !important;
+  left: 0 !important;
+  margin: 0 !important;
+}
+
+a.partnership-btn:focus,
+a.partnership-btn:active,
+a.partnership-btn:focus-visible,
+.partnership-btn:focus,
+.partnership-btn:active,
+.partnership-btn:focus-visible {
+  transform: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  outline-offset: 0 !important;
+  filter: brightness(1.08) !important;
+  border: 1px solid #2B22EE !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  padding: 12px 24px !important;
+  line-height: 1.5 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  position: relative !important;
+  top: 0 !important;
+  left: 0 !important;
+  margin: 0 !important;
+}
+
+a.partnership-btn svg,
+.partnership-btn svg,
+a.partnership-btn:hover svg,
+.partnership-btn:hover svg,
+a.partnership-btn:focus svg,
+.partnership-btn:focus svg,
+a.partnership-btn:active svg,
+.partnership-btn:active svg,
+a.partnership-btn:focus-visible svg,
+.partnership-btn:focus-visible svg {
+  transform: none !important;
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  max-width: 20px !important;
+  min-height: 20px !important;
+  max-height: 20px !important;
+}
+
+/* Footer columns responsive */
+.footer-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  margin-top: 0;
+  text-align: left;
+}
+
+.footer-columns > div {
+  min-width: 0; /* Prevent overflow */
+}
+
+.footer-title {
+  font-size: 20px !important;
+  font-weight: 600;
+  margin: 0 0 12px 0 !important;
+  color: #ffffff !important;
+}
+
+.footer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-list a {
+  color: rgba(255,255,255,0.72);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: color 0.2s ease;
+}
+
+.footer-list a:hover {
+  color: #ffffff;
+}
+
 /* Mobile: add extra space between last cards and footer */
 @media (max-width: 768px) {
-  .footer { margin-top: 24px; }
+  .footer { margin-top: 24px; padding: 24px 16px; }
   main#contenu { padding-bottom: 48px !important; }
   .section:last-of-type { margin-bottom: 24px !important; }
+  
+  /* Footer top section en 1 colonne sur mobile */
+  .footer-top-section {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    margin-bottom: 32px;
+  }
+  
+  /* Footer columns en 1 colonne sur mobile */
+  .footer-columns {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-top: 0;
+  }
+  
+  .footer-title {
+    font-size: 18px !important;
+  }
+  
+  .footer-list a {
+    font-size: 16px !important;
+  }
+  
+  .footer-list svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+  
+  .partnership-btn {
+    font-size: 16px !important;
+    padding: 10px 20px !important;
+  }
 }
 
 /* Header extras (menu, search, avatar) */

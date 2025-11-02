@@ -374,6 +374,18 @@ async function submitRating() {
     localStorage.setItem('clipsou_user_ratings', JSON.stringify(userRatings));
     console.log('✓ Note sauvegardée localement pour:', currentItemId, '=', currentRating);
 
+    // Affichage immédiat du succès local
+    showRatingMessage('Note sauvegardée !', 'success');
+    submitBtn.textContent = 'Merci !';
+    
+    setTimeout(() => {
+        closeRatingModal();
+        submitBtn.textContent = 'Envoyer ma note';
+    }, 1500);
+
+    // Tentative d'envoi au serveur en arrière-plan (optionnel)
+    // Note: désactivé car le worker n'est pas encore configuré
+    /*
     const baseRating = (currentItemData && typeof currentItemData.rating === 'number')
         ? currentItemData.rating
         : null;
@@ -395,28 +407,13 @@ async function submitRating() {
         const result = await response.json();
 
         if (result.ok || response.ok) {
-            showRatingMessage('Note envoyée avec succès !', 'success');
             console.log('✓ Note envoyée au serveur avec succès');
             applyOptimisticRatingUpdate();
-
-            submitBtn.textContent = 'Merci !';
-
-            setTimeout(() => {
-                closeRatingModal();
-                submitBtn.textContent = 'Envoyer ma note';
-            }, 1500);
-        } else {
-            throw new Error(result.error || 'Erreur lors de l\'envoi');
         }
     } catch (error) {
-        console.error('Erreur lors de la soumission:', error);
-        // Même en cas d'erreur, on garde la note locale pour ne pas redemander
-        showRatingMessage('Note sauvegardée (erreur réseau)', 'success');
-        
-        setTimeout(() => {
-            closeRatingModal();
-        }, 2000);
+        console.log('Note sauvegardée localement uniquement (worker non configuré)');
     }
+    */
 }
 
 // Toggle favoris
