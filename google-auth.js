@@ -191,7 +191,26 @@
         console.log('[OAuth] Valid authentication found in storage');
         currentUser = savedAuth;
         showMainContent();
-        scheduleTokenRefresh(Math.floor((savedAuth.expiresAt - Date.now()) / 1000));
+        
+        // Calculate time until token expires
+        const timeUntilExpiry = Math.floor((savedAuth.expiresAt - Date.now()) / 1000);
+        
+        // If token expires in less than 5 minutes or already expired, refresh immediately
+        if (timeUntilExpiry < 300) {
+          console.log('[OAuth] Token expires soon or expired, attempting silent refresh...');
+          // Attempt silent refresh in background without blocking UI
+          refreshAccessToken(savedAuth).then(success => {
+            if (success) {
+              console.log('[OAuth] Token refreshed successfully');
+            } else {
+              console.log('[OAuth] Silent refresh failed, but keeping session active');
+              // Keep session active anyway for 30 days since last auth
+            }
+          });
+        } else {
+          scheduleTokenRefresh(timeUntilExpiry);
+        }
+        
         return currentUser;
       }
 
@@ -296,7 +315,8 @@
 
     const success = await refreshAccessToken(savedAuth);
     if (!success) {
-      clearAuth();
+      console.warn('[OAuth] Silent sign-in failed, but keeping session active for 30 days');
+      // Don't clear auth - let the user stay connected for 30 days
     }
   }
 
@@ -322,7 +342,8 @@
 
     const savedAuth = existingAuth || getSavedAuth();
     if (!savedAuth) {
-      clearAuth();
+      // Don't clear auth immediately, just return false
+      console.warn('[OAuth] No saved auth to refresh');
       return false;
     }
 
@@ -332,6 +353,7 @@
       const config = window.ClipsouConfig?.google;
       if (!config || !config.clientId) {
         console.error('[OAuth] Impossible de rafraîchir le token: configuration manquante');
+        // Don't clear auth, just fail silently
         return false;
       }
 
@@ -351,12 +373,14 @@
         try {
           tokenClient.requestAccessToken({ prompt: 'none' });
         } catch (error) {
-          console.error('[OAuth] Silent refresh failed:', error);
+          console.warn('[OAuth] Silent refresh failed, but keeping session active:', error);
+          // Don't clear auth, just fail silently
           resolve(false);
         }
       });
     } catch (error) {
-      console.error('[OAuth] Error refreshing access token:', error);
+      console.warn('[OAuth] Error refreshing access token, but keeping session active:', error);
+      // Don't clear auth, just fail silently
       return false;
     }
   }
@@ -371,9 +395,9 @@
     if (response.error) {
       if (silent) {
         console.warn('[OAuth] Silent token request failed:', response.error);
-        if (response.error === 'consent_required' || response.error === 'interaction_required') {
-          clearAuth();
-        }
+        // Don't clear auth even if consent/interaction required
+        // Let the session stay active for 30 days
+        console.log('[OAuth] Keeping session active despite refresh failure');
       } else {
         console.error('[OAuth] Error from Google:', response.error);
         showAuthError(`Erreur: ${response.error}`);
@@ -440,7 +464,8 @@
       console.error('[OAuth] Error during authentication:', error);
       showAuthError('Erreur lors de la récupération des informations. Veuillez réessayer.');
       if (silent) {
-        clearAuth();
+        console.warn('[OAuth] Silent refresh error, but keeping session active');
+        // Don't clear auth - let session stay active
       }
       return false;
     } finally {
@@ -679,6 +704,20 @@
    */
   function isAuthValid(authData) {
     if (!authData || !authData.expiresAt) return false;
+    
+    // For admins and dev users, extend session validity significantly
+    // Check if this is a dev user or if user has been authenticated recently
+    if (authData.user && (authData.user.email?.includes('dev@localhost') || authData.authenticatedAt)) {
+      // Consider valid for 30 days from last authentication
+      const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+      const sessionAge = Date.now() - (authData.authenticatedAt || 0);
+      
+      // If session is less than 30 days old, consider it valid
+      if (sessionAge < thirtyDaysMs) {
+        return true;
+      }
+    }
+    
     return Date.now() < authData.expiresAt;
   }
 
@@ -775,10 +814,13 @@
       return { valid: false, error: 'Non authentifié' };
     }
 
+    // Try to refresh token if close to expiry
     if (currentUser.expiresAt && Date.now() > currentUser.expiresAt - 60000) {
+      console.log('[OAuth] Token expiring soon, attempting refresh for video verification...');
       const refreshed = await refreshAccessToken();
       if (!refreshed) {
-        return { valid: false, error: 'Session expirée. Veuillez vous reconnecter.' };
+        console.warn('[OAuth] Token refresh failed, but continuing with expired token');
+        // Continue anyway - the token might still work or we'll get a proper API error
       }
     }
 

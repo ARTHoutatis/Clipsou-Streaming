@@ -155,17 +155,26 @@
 </head>
 <body class="notranslate">
 
+<!-- Language Selector -->
+<div style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; gap: 8px; background: rgba(11, 17, 23, 0.95); padding: 8px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
+  <button id="lang-fr" class="lang-btn" style="padding: 6px 12px; background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); color: #3b82f6; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s;">FR</button>
+  <button id="lang-en" class="lang-btn" style="padding: 6px 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s;">EN</button>
+</div>
+
 <div class="cgu-container">
   <a href="index.html" class="back-btn">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M19 12H5M12 19l-7-7 7-7"/>
     </svg>
-    Retour à l'accueil
+    <span class="lang-fr">Retour à l'accueil</span>
+    <span class="lang-en" style="display: none;">Back to home</span>
   </a>
 
   <div class="cgu-header">
-    <h1>Conditions Générales d'Utilisation</h1>
-    <p class="last-update">Dernière mise à jour : 2 novembre 2025</p>
+    <h1 class="lang-fr">Conditions Générales d'Utilisation</h1>
+    <h1 class="lang-en" style="display: none;">Terms of Use</h1>
+    <p class="last-update lang-fr">Dernière mise à jour : 2 novembre 2025</p>
+    <p class="last-update lang-en" style="display: none;">Last updated: November 2, 2025</p>
   </div>
 
   <div class="cgu-section">
@@ -454,6 +463,10 @@
     <p>&copy; 2025 Clipsou Streaming. Tous droits réservés.</p>
   </div>
 </div>
+
+<script src="legal-translations.js"></script>
+<script src="legal-content-loader.js"></script>
+<script src="legal-lang-selector.js"></script>
 
 </body>
 </html>

@@ -176,7 +176,15 @@
       'genre.aventure.subtitle': 'Cap sur l\'évasion',
       'genre.aventure.title': 'Partez à l\'aventure !',
       'genre.familial.subtitle': 'À partager en famille',
-      'genre.familial.title': 'Moments en famille !'
+      'genre.familial.title': 'Moments en famille !',
+      
+      // Pages légales
+      'legal.back': 'Retour à l\'accueil',
+      'legal.updated': 'Dernière mise à jour : 2 novembre 2025',
+      'legal.privacy.title': 'Politique de confidentialité',
+      'legal.terms.title': 'Conditions générales d\'utilisation',
+      'legal.mentions.title': 'Mentions légales',
+      'legal.content.notice': '📢 Le contenu détaillé de cette page est actuellement disponible uniquement en français. Une traduction complète sera bientôt disponible.'
     },
     en: {
       // Navigation
@@ -372,7 +380,15 @@
       'genre.aventure.subtitle': 'Set course for escape',
       'genre.aventure.title': 'Go on an adventure!',
       'genre.familial.subtitle': 'To share with family',
-      'genre.familial.title': 'Family moments!'
+      'genre.familial.title': 'Family moments!',
+      
+      // Legal pages
+      'legal.back': 'Back to home',
+      'legal.updated': 'Last updated: November 2, 2025',
+      'legal.privacy.title': 'Privacy Policy',
+      'legal.terms.title': 'Terms of Use',
+      'legal.mentions.title': 'Legal Notices',
+      'legal.content.notice': '📢 The detailed content of this page is currently available in French only. A full English translation will be available soon.'
     }
   };
 
