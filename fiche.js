@@ -511,7 +511,10 @@ function renderFiche(container, item) {
   (item.genres || []).forEach(g => {
     const tag = document.createElement('span');
     tag.className = 'genre-tag';
-    tag.textContent = g;
+    // Traduire le genre si possible
+    const translatedGenre = window.i18n ? window.i18n.translateGenre(g) : g;
+    tag.textContent = translatedGenre;
+    tag.setAttribute('data-original-genre', g); // Stocker l'original pour retraduction
     genresDiv.appendChild(tag);
   });
   rg.appendChild(genresDiv);
@@ -719,6 +722,35 @@ function renderFiche(container, item) {
 
   const p = document.createElement('p');
   p.textContent = item.description || '';
+  
+  // Stocker le texte original pour permettre la retraduction lors du changement de langue
+  if (item.description) {
+    p.setAttribute('data-original-text', item.description);
+  }
+  
+  // Traduire automatiquement la description si la langue n'est pas français
+  if (window.i18n && item.description) {
+    const currentLang = window.i18n.getCurrentLanguage();
+    if (currentLang !== 'fr') {
+      // Afficher temporairement la version française avec indicateur de chargement
+      p.textContent = item.description;
+      p.style.opacity = '0.6';
+      p.title = 'Traduction en cours...';
+      
+      // Traduire automatiquement en arrière-plan
+      window.i18n.autoTranslate(item.description, currentLang).then(translatedText => {
+        if (translatedText && p) {
+          p.textContent = translatedText;
+          p.style.opacity = '1';
+          p.title = '';
+        }
+      }).catch(err => {
+        console.warn('Translation failed for description:', err);
+        p.style.opacity = '1';
+        p.title = '';
+      });
+    }
+  }
 
   // Mobile overlay: clone title + rating/genres into an overlay inside the image container
   try {
@@ -768,7 +800,8 @@ function renderFiche(container, item) {
     try { a.href = item.watchUrl; } catch { a.href = item.watchUrl || ''; }
     a.target = '_blank';
     a.rel = 'noopener noreferrer';
-    a.textContent = '▶ Regarder';
+    a.setAttribute('data-i18n', 'button.watch');
+    a.textContent = window.i18n ? '▶ ' + window.i18n.translate('button.watch') : '▶ Regarder';
     
     console.log('🔧 [Debug] Creating watch button for item:', item.id);
     
@@ -791,6 +824,11 @@ function renderFiche(container, item) {
       }
     });
     
+    // Mettre à jour le texte lors du changement de langue
+    window.addEventListener('languageChanged', function() {
+      a.textContent = window.i18n ? '▶ ' + window.i18n.translate('button.watch') : '▶ Regarder';
+    });
+    
     console.log('🔧 [Debug] Event listener attached to watch button');
     buttons.appendChild(a);
   }
@@ -809,7 +847,12 @@ function renderFiche(container, item) {
       favBtn.className = 'button fav-primary';
       const ICON_ADD = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="width:18px;height:18px;vertical-align:middle;margin-right:8px;"><path d="M2 9.1371C2 14 6.01943 16.5914 8.96173 18.9109C10 19.7294 11 20.5 12 20.5C13 20.5 14 19.7294 15.0383 18.9109C17.9806 16.5914 22 14 22 9.1371C22 4.27416 16.4998 0.825464 12 5.50063C7.50016 0.825464 2 4.27416 2 9.1371Z" fill="currentColor"></path></svg>';
       const ICON_REMOVE = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="width:18px;height:18px;vertical-align:middle;margin-right:8px;"><path d="M8.10627 18.2468C5.29819 16.0833 2 13.5422 2 9.1371C2 4.53656 6.9226 1.20176 11.2639 4.81373L9.81064 8.20467C9.6718 8.52862 9.77727 8.90554 10.0641 9.1104L12.8973 11.1341L10.4306 14.012C10.1755 14.3096 10.1926 14.7533 10.4697 15.0304L12.1694 16.7302L11.2594 20.3702C10.5043 20.1169 9.74389 19.5275 8.96173 18.9109C8.68471 18.6925 8.39814 18.4717 8.10627 18.2468Z" fill="currentColor"></path><path d="M12.8118 20.3453C13.5435 20.0798 14.2807 19.5081 15.0383 18.9109C15.3153 18.6925 15.6019 18.4717 15.8937 18.2468C18.7018 16.0833 22 13.5422 22 9.1371C22 4.62221 17.259 1.32637 12.9792 4.61919L11.4272 8.24067L14.4359 10.3898C14.6072 10.5121 14.7191 10.7007 14.7445 10.9096C14.7699 11.1185 14.7064 11.3284 14.5694 11.4882L12.0214 14.4609L13.5303 15.9698C13.7166 16.1561 13.7915 16.4264 13.7276 16.682L12.8118 20.3453Z" fill="currentColor"></path></svg>';
-      const setLabel = (active)=>{ favBtn.innerHTML = (active ? ICON_REMOVE + 'Retirer des favoris' : ICON_ADD + 'Mettre en favoris'); };
+      const setLabel = (active)=>{ 
+        const addText = window.i18n ? window.i18n.translate('button.add.favorites') : 'Mettre en favoris';
+        const removeText = window.i18n ? window.i18n.translate('button.remove.favorites') : 'Retirer des favoris';
+        favBtn.innerHTML = (active ? ICON_REMOVE + removeText : ICON_ADD + addText); 
+        favBtn.setAttribute('data-i18n', active ? 'button.remove.favorites' : 'button.add.favorites');
+      };
       let active = isFavorite(item.id);
       setLabel(active);
       favBtn.addEventListener('click', function(e){
@@ -817,6 +860,12 @@ function renderFiche(container, item) {
         active = toggleFavorite(item.id);
         setLabel(active);
       });
+      
+      // Mettre à jour le label lors du changement de langue
+      window.addEventListener('languageChanged', function() {
+        setLabel(active);
+      });
+      
       buttons.appendChild(favBtn);
     } catch {}
   })();
@@ -915,7 +964,8 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   const similarBtn = document.createElement('button');
   similarBtn.type = 'button';
   similarBtn.className = 'button secondary active';
-  similarBtn.textContent = 'Contenu similaire';
+  similarBtn.setAttribute('data-i18n', 'fiche.similar');
+  similarBtn.textContent = window.i18n ? window.i18n.translate('fiche.similar') : 'Contenu similaire';
   header.appendChild(similarBtn);
   
   // Bouton Épisodes (seulement pour les séries)
@@ -927,14 +977,16 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   const episodesBtn = document.createElement('button');
   episodesBtn.type = 'button';
   episodesBtn.className = 'button secondary';
-  episodesBtn.textContent = 'Épisodes';
+  episodesBtn.setAttribute('data-i18n', 'fiche.episodes');
+  episodesBtn.textContent = window.i18n ? window.i18n.translate('fiche.episodes') : 'Épisodes';
   if (hasEpisodes) header.appendChild(episodesBtn);
   
   // Bouton Acteurs
   const actorsBtn = document.createElement('button');
   actorsBtn.type = 'button';
   actorsBtn.className = 'button secondary';
-  actorsBtn.textContent = 'Acteurs & Doubleurs';
+  actorsBtn.setAttribute('data-i18n', 'fiche.actors');
+  actorsBtn.textContent = window.i18n ? window.i18n.translate('fiche.actors') : 'Acteurs & Doubleurs';
   header.appendChild(actorsBtn);
   
   section.appendChild(header);
@@ -946,7 +998,8 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   actorsPanel.style.display = 'none';
   actorsPanel.setAttribute('aria-hidden', 'true');
   const actorsTitle = document.createElement('h3');
-  actorsTitle.textContent = 'Acteurs & Doubleurs';
+  actorsTitle.setAttribute('data-i18n', 'fiche.actors');
+  actorsTitle.textContent = window.i18n ? window.i18n.translate('fiche.actors') : 'Acteurs & Doubleurs';
   actorsPanel.appendChild(actorsTitle);
   const actorsGrid = document.createElement('div');
   actorsGrid.className = 'actors-grid';
@@ -961,7 +1014,8 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   episodesPanel.style.display = 'none';
   episodesPanel.setAttribute('aria-hidden', 'true');
   const episodesTitle = document.createElement('h3');
-  episodesTitle.textContent = 'Épisodes';
+  episodesTitle.setAttribute('data-i18n', 'fiche.episodes');
+  episodesTitle.textContent = window.i18n ? window.i18n.translate('fiche.episodes') : 'Épisodes';
   episodesPanel.appendChild(episodesTitle);
   const episodesRail = document.createElement('div');
   episodesRail.className = 'episodes-rail';
@@ -1041,7 +1095,28 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       // Info bar
       const info = document.createElement('div');
       info.className = 'card-info';
-      info.setAttribute('data-type', it.type || 'film');
+      const itemType = it.type || 'film';
+      info.setAttribute('data-type', itemType);
+      
+      // Ajouter data-type-display pour la traduction
+      if (window.i18n) {
+        const lang = window.i18n.getCurrentLanguage();
+        const typeLower = itemType.toLowerCase();
+        let translatedType = itemType;
+        
+        if (lang === 'en') {
+          if (typeLower === 'film') translatedType = 'Movie';
+          else if (typeLower === 'série' || typeLower === 'serie') translatedType = 'Series';
+          else if (typeLower === 'trailer') translatedType = 'Trailer';
+        } else {
+          if (typeLower === 'film') translatedType = 'Film';
+          else if (typeLower === 'série' || typeLower === 'serie') translatedType = 'Série';
+          else if (typeLower === 'trailer') translatedType = 'Trailer';
+        }
+        
+        info.setAttribute('data-type-display', translatedType);
+      }
+      
       if (typeof it.rating === 'number') {
         info.setAttribute('data-rating', String(it.rating));
       }
@@ -1057,6 +1132,12 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
   
   // Ajouter la section au DOM (simplement à la fin du rootEl)
   rootEl.appendChild(section);
+  
+  // Appliquer les traductions sur les cartes créées
+  if (window.i18n && typeof window.i18n.updateCardTypes === 'function') {
+    const lang = window.i18n.getCurrentLanguage();
+    window.i18n.updateCardTypes(lang);
+  }
   try { if (typeof installLazyImageLoader === 'function') installLazyImageLoader(); } catch {}
   
   // Fonctions de switching simples et propres
@@ -1303,6 +1384,20 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       const roleEl = document.createElement('div');
       roleEl.className = 'actor-role';
       roleEl.textContent = a.role || '';
+      roleEl.setAttribute('data-original-role', a.role || ''); // Pour retraduction
+      
+      // Traduire le rôle si nécessaire (asynchrone)
+      if (window.i18n && a.role) {
+        const lang = window.i18n.getCurrentLanguage();
+        if (lang !== 'fr') {
+          window.i18n.translateRole(a.role, lang).then(translated => {
+            if (translated && roleEl) {
+              roleEl.textContent = translated;
+            }
+          }).catch(() => {});
+        }
+      }
+      
       card.appendChild(imgWrap);
       card.appendChild(nameEl);
       card.appendChild(roleEl);
@@ -1437,7 +1532,8 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       a.rel = 'noopener noreferrer';
       a.className = 'button';
       const epNum = (typeof ep.n === 'number') ? ep.n : (idx + 1);
-      const baseLabel = ep && ep.title ? `Épisode ${epNum} — ${ep.title}` : `Épisode ${epNum}`;
+      const episodeText = window.i18n ? window.i18n.translate('episode.label') : 'Épisode';
+      const baseLabel = ep && ep.title ? `${episodeText} ${epNum} — ${ep.title}` : `${episodeText} ${epNum}`;
 
       let statusText = '';
       const ensureFormat = (sec)=>{
@@ -1604,7 +1700,28 @@ function renderList(container, items, titleText) {
     media.appendChild(img);
     const info = document.createElement('div');
     info.className = 'card-info';
-    info.setAttribute('data-type', it.type || 'film');
+    const itemType = it.type || 'film';
+    info.setAttribute('data-type', itemType);
+    
+    // Ajouter data-type-display pour la traduction
+    if (window.i18n) {
+      const lang = window.i18n.getCurrentLanguage();
+      const typeLower = itemType.toLowerCase();
+      let translatedType = itemType;
+      
+      if (lang === 'en') {
+        if (typeLower === 'film') translatedType = 'Movie';
+        else if (typeLower === 'série' || typeLower === 'serie') translatedType = 'Series';
+        else if (typeLower === 'trailer') translatedType = 'Trailer';
+      } else {
+        if (typeLower === 'film') translatedType = 'Film';
+        else if (typeLower === 'série' || typeLower === 'serie') translatedType = 'Série';
+        else if (typeLower === 'trailer') translatedType = 'Trailer';
+      }
+      
+      info.setAttribute('data-type-display', translatedType);
+    }
+    
     if (typeof it.rating === 'number') info.setAttribute('data-rating', String(it.rating));
     a.appendChild(media);
     a.appendChild(info);
@@ -1613,6 +1730,12 @@ function renderList(container, items, titleText) {
   });
   box.appendChild(grid);
   container.appendChild(box);
+  
+  // Appliquer les traductions sur les cartes créées
+  if (window.i18n && typeof window.i18n.updateCardTypes === 'function') {
+    const lang = window.i18n.getCurrentLanguage();
+    window.i18n.updateCardTypes(lang);
+  }
 }
 
 function updateHeadSEO(item) {
@@ -3077,3 +3200,11 @@ const container = document.getElementById('fiche-container');
     init();
   }
 })();
+
+// Écouter le changement de langue pour mettre à jour les types des cartes
+window.addEventListener('languageChanged', function(e) {
+  const lang = e.detail && e.detail.language;
+  if (lang && window.i18n && typeof window.i18n.updateCardTypes === 'function') {
+    window.i18n.updateCardTypes(lang);
+  }
+});

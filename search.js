@@ -215,6 +215,40 @@ function displayResults(results) {
     }).join('');
     
     resultsContainer.innerHTML = `<div class="search-grid">${resultsHTML}</div>`;
+    
+    // Appliquer les traductions sur les cartes nouvellement créées
+    if (window.i18n) {
+        const lang = window.i18n.getCurrentLanguage();
+        if (typeof window.i18n.updateCardTypes === 'function') {
+            window.i18n.updateCardTypes(lang);
+        } else {
+            // Fallback si la fonction n'est pas disponible
+            updateCardTypesLocal(lang);
+        }
+    }
+}
+
+// Fonction locale pour mettre à jour les types sur les cartes
+function updateCardTypesLocal(lang) {
+    document.querySelectorAll('.card-info[data-type]').forEach(cardInfo => {
+        const type = cardInfo.getAttribute('data-type');
+        if (!type) return;
+        
+        const typeLower = type.toLowerCase();
+        let translatedType = type;
+        
+        if (lang === 'en') {
+            if (typeLower === 'film') translatedType = 'Movie';
+            else if (typeLower === 'série' || typeLower === 'serie') translatedType = 'Series';
+            else if (typeLower === 'trailer') translatedType = 'Trailer';
+        } else {
+            if (typeLower === 'film') translatedType = 'Film';
+            else if (typeLower === 'série' || typeLower === 'serie') translatedType = 'Série';
+            else if (typeLower === 'trailer') translatedType = 'Trailer';
+        }
+        
+        cardInfo.setAttribute('data-type-display', translatedType);
+    });
 }
 
 // Récupère tous les genres uniques depuis la base (déduplication accent-insensible)
@@ -247,7 +281,19 @@ function renderGenreFilters(onChange) {
     const container = document.getElementById('genre-chips');
     if (!container) return { getSelected: () => [], selectGenres: () => {} };
     const genres = getAllGenres();
-    container.innerHTML = genres.map(g => `<button type="button" class="genre-chip" data-genre="${g}">${g}</button>`).join('');
+    
+    // Traduire les genres si i18n est disponible
+    const translateGenreText = (g) => {
+        if (window.i18n && typeof window.i18n.translateGenre === 'function') {
+            return window.i18n.translateGenre(g);
+        }
+        return g;
+    };
+    
+    container.innerHTML = genres.map(g => {
+        const translatedGenre = translateGenreText(g);
+        return `<button type="button" class="genre-chip" data-genre="${g}" data-original-genre="${g}">${translatedGenre}</button>`;
+    }).join('');
     const selected = new Set();
     function notify(){ if (typeof onChange === 'function') onChange(Array.from(selected)); }
     function setActive(btn, on){ if (!btn) return; btn.classList.toggle('active', !!on); }
@@ -424,5 +470,27 @@ document.addEventListener('DOMContentLoaded', async function() {
             } catch {}
         }, true);
     })();
+    
+    // Fonction pour mettre à jour les genres traduits
+    function updateGenreChipsTranslation() {
+        const container = document.getElementById('genre-chips');
+        if (!container) return;
+        
+        container.querySelectorAll('.genre-chip[data-original-genre]').forEach(btn => {
+            const originalGenre = btn.getAttribute('data-original-genre');
+            if (originalGenre && window.i18n && typeof window.i18n.translateGenre === 'function') {
+                btn.textContent = window.i18n.translateGenre(originalGenre);
+            }
+        });
+    }
+    
+    // Écouter le changement de langue pour mettre à jour les types des cartes et les genres
+    window.addEventListener('languageChanged', function(e) {
+        const lang = e.detail && e.detail.language;
+        if (lang) {
+            updateCardTypesLocal(lang);
+            updateGenreChipsTranslation();
+        }
+    });
     
 });

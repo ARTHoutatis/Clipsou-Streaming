@@ -388,14 +388,22 @@ body.drawer-open nav[aria-label="Navigation principale"] {
 .hamburger .bar::after { top: 7px; }
 
 /* Type label mappings via data-type (support attribute on .card-info or on .card) */
-.card .card-info[data-type="film"]::before,
-.card[data-type="film"] .card-info::before { content: 'Film'; }
-.card .card-info[data-type="serie"]::before,
-.card[data-type="serie"] .card-info::before { content: 'Série'; }
-.card .card-info[data-type="série"]::before,
-.card[data-type="série"] .card-info::before { content: 'Série'; }
-.card .card-info[data-type="trailer"]::before,
-.card[data-type="trailer"] .card-info::before { content: 'Trailer'; }
+/* Priorité 1 : Utiliser data-type-display si disponible (pour la traduction) */
+.card-info[data-type-display]::before { 
+  content: attr(data-type-display) !important; 
+}
+
+/* Priorité 2 : Fallback sur data-type si data-type-display n'existe pas */
+.card-info[data-type="film"]:not([data-type-display])::before { content: 'Film'; }
+.card-info[data-type="serie"]:not([data-type-display])::before { content: 'Série'; }
+.card-info[data-type="série"]:not([data-type-display])::before { content: 'Série'; }
+.card-info[data-type="trailer"]:not([data-type-display])::before { content: 'Trailer'; }
+
+/* Support legacy: si data-type est sur .card au lieu de .card-info */
+.card[data-type="film"] .card-info:not([data-type])::before { content: 'Film'; }
+.card[data-type="serie"] .card-info:not([data-type])::before { content: 'Série'; }
+.card[data-type="série"] .card-info:not([data-type])::before { content: 'Série'; }
+.card[data-type="trailer"] .card-info:not([data-type])::before { content: 'Trailer'; }
 
 * { box-sizing: border-box; }
 

@@ -186,19 +186,39 @@ document.addEventListener('DOMContentLoaded', async function () {
       removeByHash('#nouveautes');
 
       // Build entries
-      function makeLi(hash, label){
+      function makeLi(hash, i18nKey){
         const li = document.createElement('li');
         li.setAttribute('data-fixed','1');
-        const a = document.createElement('a'); a.className = 'link'; a.href = hash; a.textContent = label; li.appendChild(a);
+        const a = document.createElement('a'); 
+        a.className = 'link'; 
+        a.href = hash;
+        a.setAttribute('data-i18n', i18nKey);
+        a.textContent = window.i18n ? window.i18n.translate(i18nKey) : hash.replace('#', '');
+        li.appendChild(a);
         return li;
       }
-      const liFav = makeLi('#favorites', '❤️ Favoris');
-      const liNew = makeLi('#nouveautes', '✨ Nouveautés');
+      const liFav = makeLi('#favorites', 'drawer.favorites');
+      const liNew = makeLi('#nouveautes', 'drawer.nouveautes');
 
       // Insert at the very top with Nouveautés au-dessus de Favoris
       const first = list.firstChild;
       list.insertBefore(liFav, first);
       list.insertBefore(liNew, liFav);
+    } catch {}
+    
+    // Re-run when language changes
+    try {
+      window.addEventListener('languageChanged', () => {
+        try {
+          const list = document.getElementById('drawer-sections');
+          if (!list) return;
+          // Update Favoris and Nouveautés text
+          const favLink = list.querySelector('a.link[href="#favorites"]');
+          const newLink = list.querySelector('a.link[href="#nouveautes"]');
+          if (favLink && window.i18n) favLink.textContent = window.i18n.translate('drawer.favorites');
+          if (newLink && window.i18n) newLink.textContent = window.i18n.translate('drawer.nouveautes');
+        } catch {}
+      });
     } catch {}
   })();
 
@@ -732,6 +752,12 @@ document.addEventListener('DOMContentLoaded', async function () {
       }
 
       items.slice(0, 20).forEach(it => { rail.appendChild(createCard(it)); });
+
+      // Appliquer les traductions sur les cartes créées
+      if (window.i18n && typeof window.i18n.updateCardTypes === 'function') {
+        const lang = window.i18n.getCurrentLanguage();
+        window.i18n.updateCardTypes(lang);
+      }
 
       // Keep list trimmed in storage to avoid growth
       try {
@@ -1420,16 +1446,23 @@ document.addEventListener('DOMContentLoaded', async function () {
 
       // Helper functions for genres (duplicated here for menu access)
       const normalizeGenreMenu = (name) => (name || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-      const PRETTY_MAP_MENU = { comedie:'Comédie', familial:'Familial', aventure:'Aventure', action:'Action', horreur:'Horreur' };
-      const prettyMenu = (n)=> PRETTY_MAP_MENU[normalizeGenreMenu(n)] || (n||'').charAt(0).toUpperCase() + (n||'').slice(1);
-      const emojiMenu = (n) => {
-        const key = normalizeGenreMenu(n);
-        if (key === 'comedie') return '😂';
-        if (key === 'familial') return '👥';
-        if (key === 'aventure') return '🗺️';
-        if (key === 'action') return '💥';
-        if (key === 'horreur') return '👻';
-        return '';
+      
+      // Function to get translated genre label with emoji
+      const getGenreDrawerLabel = (normalizedKey) => {
+        const i18nKey = 'drawer.' + normalizedKey;
+        if (window.i18n) {
+          const translated = window.i18n.translate(i18nKey);
+          if (translated !== i18nKey) return translated;
+        }
+        // Fallback to French
+        const FALLBACK_MAP = { 
+          comedie:'😂 Comédie', 
+          familial:'👥 Familial', 
+          aventure:'🗺️ Aventure', 
+          action:'💥 Action', 
+          horreur:'👻 Horreur' 
+        };
+        return FALLBACK_MAP[normalizedKey] || normalizedKey;
       };
 
       // Find genre sections
@@ -1442,13 +1475,15 @@ document.addEventListener('DOMContentLoaded', async function () {
         a.className = 'link';
         a.href = '#' + section.id;
         
-        // Extract genre name from section id and add icon
+        // Extract genre name from section id and get translated label
         const genreName = section.id.replace(/^genre-/, '').replace(/-/g, ' ');
         const normalizedGenre = normalizeGenreMenu(genreName);
-        const prettyName = prettyMenu(normalizedGenre);
-        const emoji = emojiMenu(normalizedGenre);
-        // Prefix shortcuts with the same emoji used for section titles
-        a.textContent = (emoji ? (emoji + ' ') : '') + prettyName;
+        const i18nKey = 'drawer.' + normalizedGenre;
+        
+        // Set data-i18n attribute for automatic translation updates
+        a.setAttribute('data-i18n', i18nKey);
+        a.textContent = getGenreDrawerLabel(normalizedGenre);
+        
         li.appendChild(a);
         list.appendChild(li);
         enableLink(a);
@@ -1494,6 +1529,13 @@ document.addEventListener('DOMContentLoaded', async function () {
     buildDrawerLinks();
     // Safety: rebuild shortly after load in case sections arrive asynchronously
     try { setTimeout(buildDrawerLinks, 300); } catch {}
+    
+    // Rebuild drawer links when language changes
+    try {
+      window.addEventListener('languageChanged', () => {
+        buildDrawerLinks();
+      });
+    } catch {}
   })();
 
   // Helper to set up carousel controls once slides/indicators are built
@@ -1851,7 +1893,28 @@ document.addEventListener('DOMContentLoaded', async function () {
       const info = document.createElement('div');
       info.className = 'card-info';
       if (item && item.id) info.setAttribute('data-item-id', item.id);
-      info.setAttribute('data-type', item.type || 'film');
+      const itemType = item.type || 'film';
+      info.setAttribute('data-type', itemType);
+      
+      // Ajouter data-type-display pour la traduction
+      if (window.i18n) {
+        const lang = window.i18n.getCurrentLanguage();
+        const typeLower = itemType.toLowerCase();
+        let translatedType = itemType;
+        
+        if (lang === 'en') {
+          if (typeLower === 'film') translatedType = 'Movie';
+          else if (typeLower === 'série' || typeLower === 'serie') translatedType = 'Series';
+          else if (typeLower === 'trailer') translatedType = 'Trailer';
+        } else {
+          if (typeLower === 'film') translatedType = 'Film';
+          else if (typeLower === 'série' || typeLower === 'serie') translatedType = 'Série';
+          else if (typeLower === 'trailer') translatedType = 'Trailer';
+        }
+        
+        info.setAttribute('data-type-display', translatedType);
+      }
+      
       if (typeof item.rating !== 'undefined') info.setAttribute('data-rating', String(item.rating));
       const hasCustomBadge = Boolean(item.studioBadge && String(item.studioBadge).trim());
       const isClipsouOwned = isClipsouOwnedItem(item);
@@ -1945,8 +2008,8 @@ document.addEventListener('DOMContentLoaded', async function () {
           section = document.createElement('div'); section.className = 'section'; section.id = 'nouveautes';
           section.classList.add('modern');
           const h2 = document.createElement('h2');
-          const sub = document.createElement('div'); sub.className = 'genre-subtitle'; sub.textContent = 'Les derniers ajouts';
-          h2.className = 'genre-hero-title'; h2.textContent = 'Nouveautés';
+          const sub = document.createElement('div'); sub.className = 'genre-subtitle'; sub.setAttribute('data-i18n', 'home.nouveautes.subtitle'); sub.textContent = window.i18n ? window.i18n.translate('home.nouveautes.subtitle') : 'Les derniers ajouts';
+          h2.className = 'genre-hero-title'; h2.setAttribute('data-i18n', 'home.nouveautes.title'); h2.textContent = window.i18n ? window.i18n.translate('home.nouveautes.title') : 'Nouveautés';
           const rail = document.createElement('div'); rail.className = 'rail';
           section.appendChild(sub); section.appendChild(h2); section.appendChild(rail);
           // Insert right after the hero and before Top Rated
@@ -2042,13 +2105,32 @@ document.addEventListener('DOMContentLoaded', async function () {
         // Util helpers for genres
         const normalizeGenre = (name) => (name || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
         const PRETTY_MAP = { comedie:'Comédie', familial:'Familial', aventure:'Aventure', action:'Action', horreur:'Horreur' };
-        // Custom headers per genre (subtitle + big title)
-        const GENRE_HEADERS = {
-          comedie: { subtitle: 'Les films qui vont vous faire rire', title: 'Vous allez rire !!' },
-          action:   { subtitle: 'Des scènes qui décoiffent',          title: 'Ça va bouger !' },
-          horreur:  { subtitle: 'Âmes sensibles s\'abstenir',           title: 'Frissons garantis !' },
-          aventure: { subtitle: 'Cap sur l\'évasion',                   title: 'Partez à l\'aventure !' },
-          familial: { subtitle: 'À partager en famille',               title: 'Moments en famille !' }
+        
+        // Helper pour obtenir les headers avec traduction
+        const getGenreHeader = (key) => {
+          if (!window.i18n) {
+            // Fallback si i18n pas encore chargé
+            const fallback = {
+              comedie: { subtitle: 'Les films qui vont vous faire rire', title: 'Vous allez rire !!' },
+              action:   { subtitle: 'Des scènes qui décoiffent',          title: 'Ça va bouger !' },
+              horreur:  { subtitle: 'Âmes sensibles s\'abstenir',           title: 'Frissons garantis !' },
+              aventure: { subtitle: 'Cap sur l\'évasion',                   title: 'Partez à l\'aventure !' },
+              familial: { subtitle: 'À partager en famille',               title: 'Moments en famille !' }
+            };
+            return fallback[key];
+          }
+          
+          // Utiliser les traductions i18n
+          const subtitleKey = `genre.${key}.subtitle`;
+          const titleKey = `genre.${key}.title`;
+          const subtitle = window.i18n.translate(subtitleKey);
+          const title = window.i18n.translate(titleKey);
+          
+          // Si la traduction existe (pas égale à la clé), retourner
+          if (subtitle !== subtitleKey && title !== titleKey) {
+            return { subtitle, title };
+          }
+          return null;
         };
         const pretty = (n)=> PRETTY_MAP[normalizeGenre(n)] || (n||'').charAt(0).toUpperCase() + (n||'').slice(1);
         const getIcon = (n) => {
@@ -2075,12 +2157,14 @@ document.addEventListener('DOMContentLoaded', async function () {
             // Add subtitle for Series
             const sub = document.createElement('div');
             sub.className = 'genre-subtitle';
-            sub.textContent = 'Lot de séries amateures';
+            sub.setAttribute('data-i18n', 'home.series.subtitle');
+            sub.textContent = window.i18n ? window.i18n.translate('home.series.subtitle') : 'Lot de séries amateures';
             section.appendChild(sub);
             // Add main title with icon
             const h2 = document.createElement('h2');
             h2.classList.add('genre-hero-title');
-            h2.textContent = 'Séries amateures';
+            h2.setAttribute('data-i18n', 'home.series.title');
+            h2.textContent = window.i18n ? window.i18n.translate('home.series.title') : '📺 Séries amateures';
             const rail = document.createElement('div'); rail.className = 'rail';
             section.appendChild(h2); section.appendChild(rail);
             insertSection(section);
@@ -2093,11 +2177,13 @@ document.addEventListener('DOMContentLoaded', async function () {
               const h2 = section.querySelector(':scope > h2');
               if (h2) section.insertBefore(sub, h2);
             }
-            sub.textContent = 'Lot de séries amateures';
+            sub.setAttribute('data-i18n', 'home.series.subtitle');
+            sub.textContent = window.i18n ? window.i18n.translate('home.series.subtitle') : 'Lot de séries amateures';
             const h2 = section.querySelector(':scope > h2');
             if (h2) {
               h2.classList.add('genre-hero-title');
-              h2.textContent = 'Séries amateures';
+              h2.setAttribute('data-i18n', 'home.series.title');
+              h2.textContent = window.i18n ? window.i18n.translate('home.series.title') : '📺 Séries amateures';
             }
           }
           const rail = section.querySelector('.rail');
@@ -2130,13 +2216,15 @@ document.addEventListener('DOMContentLoaded', async function () {
           if (!section) {
             section = document.createElement('div'); section.className = 'section'; section.id = id;
             const h2 = document.createElement('h2');
-            const header = GENRE_HEADERS[key];
+            const header = getGenreHeader(key);
             if (header) {
               const sub = document.createElement('div');
               sub.className = 'genre-subtitle';
+              sub.setAttribute('data-i18n', `genre.${key}.subtitle`);
               sub.textContent = header.subtitle;
               section.appendChild(sub);
               h2.classList.add('genre-hero-title');
+              h2.setAttribute('data-i18n', `genre.${key}.title`);
               h2.textContent = header.title;
             } else {
               h2.textContent = pretty(name);
@@ -2148,7 +2236,7 @@ document.addEventListener('DOMContentLoaded', async function () {
           const rail = section.querySelector('.rail');
           const h2 = section.querySelector('h2');
           if (h2) {
-            const header = GENRE_HEADERS[key];
+            const header = getGenreHeader(key);
             if (header) {
               let sub = section.querySelector(':scope > .genre-subtitle');
               if (!sub) {
@@ -2156,8 +2244,10 @@ document.addEventListener('DOMContentLoaded', async function () {
                 sub.className = 'genre-subtitle';
                 section.insertBefore(sub, h2);
               }
+              sub.setAttribute('data-i18n', `genre.${key}.subtitle`);
               sub.textContent = header.subtitle;
               h2.classList.add('genre-hero-title');
+              h2.setAttribute('data-i18n', `genre.${key}.title`);
               h2.textContent = header.title;
             } else {
               h2.classList.remove('genre-hero-title');
@@ -2189,10 +2279,12 @@ document.addEventListener('DOMContentLoaded', async function () {
               sub.className = 'genre-subtitle';
               sec.insertBefore(sub, h2);
             }
-            sub.textContent = "Vous avez mis en favoris";
+            sub.setAttribute('data-i18n', 'home.favorites.subtitle');
+            sub.textContent = window.i18n ? window.i18n.translate('home.favorites.subtitle') : 'Vous avez mis en favoris';
             // Plain text title (no icon)
             h2.classList.add('genre-hero-title');
-            h2.textContent = 'Titres en favoris';
+            h2.setAttribute('data-i18n', 'home.favorites.title');
+            h2.textContent = window.i18n ? window.i18n.translate('home.favorites.title') : '❤️ Titres en favoris';
           } catch {}
         })();
         
@@ -2210,14 +2302,22 @@ document.addEventListener('DOMContentLoaded', async function () {
               sub.className = 'genre-subtitle';
               sec.insertBefore(sub, h2);
             }
-            sub.textContent = "On les adore et vous ?";
+            sub.setAttribute('data-i18n', 'home.toprated.subtitle');
+            sub.textContent = window.i18n ? window.i18n.translate('home.toprated.subtitle') : 'On les adore et vous ?';
             // Plain text title (no icon)
             h2.classList.add('genre-hero-title');
-            h2.textContent = 'Mieux notés';
+            h2.setAttribute('data-i18n', 'home.toprated.title');
+            h2.textContent = window.i18n ? window.i18n.translate('home.toprated.title') : '⭐ Mieux notés';
           } catch {}
         })();
       } catch {}
     })();
+
+    // Appliquer les traductions sur toutes les cartes créées
+    if (window.i18n && typeof window.i18n.updateCardTypes === 'function') {
+      const lang = window.i18n.getCurrentLanguage();
+      window.i18n.updateCardTypes(lang);
+    }
 
     // After all rails are (re)built, add desktop-only arrows and wire scroll
     function enhanceRailsWithArrows(){
@@ -2382,6 +2482,9 @@ document.addEventListener('DOMContentLoaded', async function () {
       function applyOnce(root){
         try {
           (root || document).querySelectorAll('main .section > h2, #continue-watching > h2').forEach(h2 => {
+            // Skip if already processed
+            if (h2.dataset.emojiApplied === '1') return;
+            
             // remove any inline SVGs inside titles
             h2.querySelectorAll('svg').forEach(svg => { try { svg.remove(); } catch {} });
             const sec = h2.closest('.section');
@@ -2389,8 +2492,12 @@ document.addEventListener('DOMContentLoaded', async function () {
             const t = h2.textContent || '';
             if (!prefix) return;
             // Avoid double prefixing
-            if (t.trim().startsWith(prefix)) return;
+            if (t.trim().startsWith(prefix)) {
+              h2.dataset.emojiApplied = '1';
+              return;
+            }
             h2.textContent = `${prefix} ${t.trim()}`;
+            h2.dataset.emojiApplied = '1';
           });
         } catch {}
       }
@@ -2407,6 +2514,16 @@ document.addEventListener('DOMContentLoaded', async function () {
           }
         });
         mo.observe(document.body, { childList: true, subtree: true });
+      } catch {}
+      
+      // Reset flags when language changes to allow re-applying emojis
+      try {
+        window.addEventListener('languageChanged', () => {
+          document.querySelectorAll('main .section > h2, #continue-watching > h2').forEach(h2 => {
+            delete h2.dataset.emojiApplied;
+          });
+          applyOnce(document);
+        });
       } catch {}
     })();
     // Replace Discord icons in menu and footer with provided SVG (uses currentColor)
@@ -2619,9 +2736,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         try { if (typeof bg.decode === 'function') bg.decode().catch(function(){}); } catch {}
         const content = document.createElement('div'); content.className = 'carousel-content';
         const h2 = document.createElement('h2'); h2.className = 'carousel-title'; h2.textContent = it.title || '';
-        const genresWrap = document.createElement('div'); genresWrap.className = 'carousel-genres'; if (typeof it.rating === 'number' && !Number.isNaN(it.rating)) { const ratingSpan = document.createElement('span'); ratingSpan.className = 'carousel-rating'; const rounded = Math.round(it.rating * 2) / 2; let txt = rounded.toFixed(1); if (txt.endsWith('.0')) txt = String(Math.round(rounded)); const star = document.createElement('span'); star.className = 'star'; star.textContent = '★'; star.setAttribute('aria-hidden', 'true'); ratingSpan.appendChild(star); ratingSpan.appendChild(document.createTextNode(`${txt}/5`)); ratingSpan.setAttribute('aria-label', `Note ${txt} sur 5`); ratingSpan.setAttribute('data-rating', String(it.rating)); genresWrap.appendChild(ratingSpan); } (it.genres || []).slice(0, 3).forEach(g => { const tag = document.createElement('span'); tag.className = 'carousel-genre-tag'; tag.textContent = g; genresWrap.appendChild(tag); });
-        const p = document.createElement('p'); p.className = 'carousel-description'; p.textContent = it.description || '';
-        const link = document.createElement('a'); link.className = 'carousel-btn'; link.href = `fiche.html?id=${it.id}`; link.textContent = 'Voir la fiche';
+        const genresWrap = document.createElement('div'); genresWrap.className = 'carousel-genres'; if (typeof it.rating === 'number' && !Number.isNaN(it.rating)) { const ratingSpan = document.createElement('span'); ratingSpan.className = 'carousel-rating'; const rounded = Math.round(it.rating * 2) / 2; let txt = rounded.toFixed(1); if (txt.endsWith('.0')) txt = String(Math.round(rounded)); const star = document.createElement('span'); star.className = 'star'; star.textContent = '★'; star.setAttribute('aria-hidden', 'true'); ratingSpan.appendChild(star); ratingSpan.appendChild(document.createTextNode(`${txt}/5`)); ratingSpan.setAttribute('aria-label', `Note ${txt} sur 5`); ratingSpan.setAttribute('data-rating', String(it.rating)); genresWrap.appendChild(ratingSpan); } (it.genres || []).slice(0, 3).forEach(g => { const tag = document.createElement('span'); tag.className = 'carousel-genre-tag'; const translatedGenre = window.i18n ? window.i18n.translateGenre(g) : g; tag.textContent = translatedGenre; tag.setAttribute('data-original-genre', g); genresWrap.appendChild(tag); });
+        const p = document.createElement('p'); p.className = 'carousel-description'; p.textContent = it.description || ''; if (it.description) { p.setAttribute('data-original-text', it.description); if (window.i18n) { const lang = window.i18n.getCurrentLanguage(); if (lang !== 'fr') { window.i18n.autoTranslate(it.description, lang).then(translated => { if (translated && p) p.textContent = translated; }).catch(() => {}); } } }
+        const link = document.createElement('a'); link.className = 'carousel-btn'; link.href = `fiche.html?id=${it.id}`; link.setAttribute('data-i18n', 'button.view.details'); link.textContent = window.i18n ? window.i18n.translate('button.view.details') : 'Voir la fiche';
         content.appendChild(h2); content.appendChild(genresWrap); if (it.description) content.appendChild(p); content.appendChild(link);
         slide.appendChild(bg); slide.appendChild(content); slidesTrack.appendChild(slide);
         const dot = document.createElement('div'); dot.className = 'carousel-indicator' + (idx === 0 ? ' active' : ''); dot.setAttribute('role', 'button'); dot.setAttribute('tabindex', '0'); dot.setAttribute('aria-label', `Aller à la diapositive ${idx + 1}`); dot.setAttribute('data-index', String(idx)); if (idx === 0) dot.setAttribute('aria-current', 'true'); indicatorsWrap.appendChild(dot);
@@ -3099,7 +3216,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         try { intro.muted = false; intro.defaultMuted = false; intro.volume = 1.0; } catch {}
         Object.assign(intro.style, { width: '100%', height: '100%', objectFit: 'cover', display: 'block' });
         const skip = document.createElement('button');
-        skip.textContent = 'Passer l\'intro';
+        skip.setAttribute('data-i18n', 'player.skip');
+        skip.textContent = window.i18n ? window.i18n.translate('player.skip') : 'Passer l\'intro';
         skip.className = 'button';
         Object.assign(skip.style, { position: 'absolute', right: '12px', bottom: '12px', background: '#111', color: '#fff', border: '1px solid rgba(255,255,255,0.25)', padding: '10px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', opacity: '0.9', zIndex: 2 });
 
@@ -3189,5 +3307,13 @@ document.addEventListener('DOMContentLoaded', async function () {
       });
     } catch {}
   })();
+
+  // Écouter le changement de langue pour mettre à jour les types des cartes
+  window.addEventListener('languageChanged', function(e) {
+    const lang = e.detail && e.detail.language;
+    if (lang && window.i18n && typeof window.i18n.updateCardTypes === 'function') {
+      window.i18n.updateCardTypes(lang);
+    }
+  });
 
 });

@@ -1,9 +1,12 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" translate="no">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#0b1117">
+  <meta name="google" content="notranslate">
+  <meta name="googlebot" content="notranslate">
+  <meta http-equiv="Content-Language" content="fr">
   <!-- Maintenance mode check -->
   <script src="maintenance-check.js"></script>
   <title>Fiche – Clipsou Streaming</title>
@@ -32,6 +35,7 @@
   <link rel="stylesheet" href="common.css?v=20250929-1">
   <link rel="stylesheet" href="index.css?v=20250929-1">
   <link rel="stylesheet" href="rating-modal.css">
+  <script src="i18n.js"></script>
   <script src="utilities.js?v=20250929-1"></script>
   <style>
     /* Prevent card clipping on fiche page */
@@ -115,7 +119,7 @@
   <link rel="prefetch" href="search.css?v=20250912-2" as="style">
   <link rel="prefetch" href="search.js?v=20250912-2" as="script">
 </head>
-<body class="fiche-page-view">
+<body class="fiche-page-view notranslate">
   <nav aria-label="Navigation principale">
     <div class="logo">
       <a href="./" aria-label="Accueil Clipsou Streaming" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:8px">
@@ -123,10 +127,10 @@
         <span>Clipsou</span>
         <span>Streaming</span>
       </a>
-      <a href="./" class="home-link">Accueil</a>
+      <a href="./" class="home-link" data-i18n="nav.home">Accueil</a>
     </div>
     <div class="nav-links">
-      <a href="search.html" class="search-link">Recherche</a>
+      <a href="search.html" class="search-link" data-i18n="nav.search">Recherche</a>
     </div>
   </nav>
 
@@ -148,10 +152,10 @@
         <!-- Conteneur de contenu -->
         <div class="rating-content">
           <!-- Titre principal -->
-          <h2 class="rating-title">Comment Avez-Vous Trouvé Ce Contenu ?</h2>
+          <h2 class="rating-title" data-i18n="rating.title">Comment Avez-Vous Trouvé Ce Contenu ?</h2>
           
           <!-- Sous-titre -->
-          <p class="rating-subtitle">La note que vous mettrez aura un impact sur la note générale du contenu.</p>
+          <p class="rating-subtitle" data-i18n="rating.subtitle">La note que vous mettrez aura un impact sur la note générale du contenu.</p>
 
           <!-- Système d'étoiles -->
           <div class="rating-stars" id="starRating">
@@ -187,7 +191,7 @@
         <div class="rating-actions">
           <!-- Bouton Soumettre -->
           <button type="button" id="submitRatingBtn" class="rating-submit-btn" disabled>
-            Soumettre
+            <span data-i18n="rating.submit">Soumettre</span>
           </button>
 
           <!-- Bouton Mettre en favoris -->
@@ -195,7 +199,7 @@
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="heart-icon">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            Mettre en favoris
+            <span data-i18n="button.add.favorites">Mettre en favoris</span>
           </button>
         </div>
 

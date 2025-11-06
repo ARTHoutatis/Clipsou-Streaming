@@ -1,9 +1,12 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" translate="no">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0b1117">
+<meta name="google" content="notranslate">
+<meta name="googlebot" content="notranslate">
+<meta http-equiv="Content-Language" content="fr">
 <title>Recherche - Clipsou Streaming</title>
 <meta name="description" content="Recherchez rapidement des brickfilms et séries sur Clipsou Streaming.">
 <link rel="icon" href="images/favicon.webp" type="image/webp">
@@ -45,6 +48,7 @@
 <meta name="twitter:image" content="https://clipsoustreaming.com/images/apercu.webp">
 <link rel="stylesheet" href="common.css?v=20250929-1">
 <link rel="stylesheet" href="search.css?v=20250929-1">
+<script src="i18n.js"></script>
 <script src="utilities.js?v=20250929-1"></script>
 <style>
   /* Remove thin white borders on search boxes/cards */
@@ -92,16 +96,15 @@
 <link rel="prefetch" href="fiche.html" as="document">
 <link rel="prefetch" href="fiche.js?v=20250916-1" as="script">
 </head>
-<body>
-
+<body class="notranslate">
 <nav aria-label="Navigation principale">
     <div class="logo">
-        <a href="./" aria-label="Accueil Clipsou Streaming" style="display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none">
+        <a href="./" aria-label="Accueil Clipsou Streaming" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:8px">
             <img src="images/favicon.webp" alt="Logo Clipsou" width="35" height="35" fetchpriority="high" decoding="async">
             <span>Clipsou</span>
             <span>Streaming</span>
         </a>
-        <a href="./" class="home-link">Accueil</a>
+        <a href="./" class="home-link" data-i18n="nav.home">Accueil</a>
     </div>
 
     <div class="nav-links">
@@ -110,19 +113,19 @@
 
 <main class="search-container">
     <div class="search-header">
-        <h1>Recherche de films et séries</h1>
+        <h1 data-i18n="search.title">Recherche de films et séries</h1>
     </div>
     
     <div class="search-input-container">
         <img src="images/loupe.webp" alt="Recherche" class="search-icon" width="32" height="32" decoding="async" fetchpriority="high">
-        <input type="search" id="search-input" placeholder="Recherchez un genre, un film ou une série..." autocomplete="off" enterkeyhint="search" inputmode="search" autocapitalize="none">
+        <input type="search" id="search-input" data-i18n-placeholder="search.placeholder" placeholder="Recherchez un genre, un film ou une série..." autocomplete="off" enterkeyhint="search" inputmode="search" autocapitalize="none">
     </div>
     <div id="genre-filters" class="genre-filters" aria-label="Filtres de genres">
-        <button id="filters-toggle" class="filters-toggle" aria-controls="genre-filters" aria-expanded="false" type="button" title="Afficher/masquer les filtres">
+        <button id="filters-toggle" class="filters-toggle" aria-controls="genre-filters" aria-expanded="false" type="button" data-i18n-title="search.filters.toggle" title="Afficher/masquer les filtres">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22" aria-hidden="true">
               <path d="M21 6H19M21 12H16M21 18H16M7 20V13.5612C7 13.3532 7 13.2492 6.97958 13.1497C6.96147 13.0615 6.93151 12.9761 6.89052 12.8958C6.84431 12.8054 6.77934 12.7242 6.64939 12.5617L3.35061 8.43826C3.22066 8.27583 3.15569 8.19461 3.10948 8.10417C3.06849 8.02393 3.03853 7.93852 3.02042 7.85026C3 7.75078 3 7.64677 3 7.43875V5.6C3 5.03995 3 4.75992 3.10899 4.54601C3.20487 4.35785 3.35785 4.20487 3.54601 4.10899C3.75992 4 4.03995 4 4.6 4H13.4C13.9601 4 14.2401 4 14.454 4.10899C14.6422 4.20487 14.7951 4.35785 14.891 4.54601C15 4.75992 15 5.03995 15 5.6V7.43875C15 7.64677 15 7.75078 14.9796 7.85026C14.9615 7.93852 14.9315 8.02393 14.8905 8.10417C14.8443 8.19461 14.7793 8.27583 14.6494 8.43826L11.3506 12.5617C11.2207 12.7242 11.1557 12.8054 11.1095 12.8958C11.0685 12.9761 11.0385 13.0615 11.0204 13.1497C11 13.2492 11 13.3532 11 13.5612V17L7 20Z" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
             </svg>
-            <span>Filtres</span>
+            <span data-i18n="search.filters">Filtres</span>
         </button>
         <div id="genre-chips" class="genre-chips"><!-- chips injected by search.js --></div>
     </div>
