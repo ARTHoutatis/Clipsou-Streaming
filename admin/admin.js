@@ -1,6 +1,38 @@
+
+
 'use strict';
 
 (function(){
+  // ===== Security: Redirect if not logged in =====
+  // Check if user is trying to access admin without being logged in
+  // If they're not logged in and not on their first visit, redirect to home
+  (function checkAccessAndRedirect(){
+    try {
+      const isLoggedIn = localStorage.getItem('clipsou_admin_logged_in_v1') === '1';
+      const hasRemember = localStorage.getItem('clipsou_admin_remember_v1') === '1';
+      const hasSession = sessionStorage.getItem('clipsou_admin_session_v1') === '1';
+      
+      // If not logged in and no remember flag and no active session, redirect to home
+      if (!isLoggedIn && !hasRemember && !hasSession) {
+        // Check if this is a repeated attempt (to prevent redirect loops)
+        const lastRedirect = sessionStorage.getItem('clipsou_admin_redirect_attempt');
+        const now = Date.now();
+        
+        if (lastRedirect && (now - parseInt(lastRedirect)) < 5000) {
+          // If redirected within last 5 seconds, allow access to login page
+          return;
+        }
+        
+        // Mark this redirect attempt
+        sessionStorage.setItem('clipsou_admin_redirect_attempt', String(now));
+        
+        // Redirect to home page
+        window.location.href = '../';
+        return;
+      }
+    } catch {}
+  })();
+  
   const APP_KEY_REQ = 'clipsou_requests_v1';
   const APP_KEY_APPROVED = 'clipsou_items_approved_v1';
   const APP_KEY_DRAFT = 'clipsou_admin_form_draft_v1';
@@ -1769,6 +1801,8 @@
           try { localStorage.setItem(APP_KEY_REMEMBER, '1'); } catch {}
           // Broadcast logged-in state (for public site to show Admin shortcut immediately)
           try { localStorage.setItem('clipsou_admin_logged_in_v1','1'); localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now())); } catch {}
+          // Clear redirect attempt flag on successful login
+          try { sessionStorage.removeItem('clipsou_admin_redirect_attempt'); } catch {}
           showApp();
           initApp();
           // Display admin profile info after successful login
@@ -1804,6 +1838,8 @@
       if (localStorage.getItem(APP_KEY_REMEMBER) === '1') {
         sessionStorage.setItem(APP_KEY_SESSION, '1');
         try { localStorage.setItem('clipsou_admin_logged_in_v1','1'); localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now())); } catch {}
+        // Clear redirect attempt flag on auto-login
+        try { sessionStorage.removeItem('clipsou_admin_redirect_attempt'); } catch {}
         showApp();
         initApp();
         // Display admin profile info after auto-login
@@ -1821,6 +1857,8 @@
       if (sessionStorage.getItem(APP_KEY_SESSION) === '1') {
         showApp();
         try { localStorage.setItem('clipsou_admin_logged_in_v1','1'); localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now())); } catch {}
+        // Clear redirect attempt flag on session restore
+        try { sessionStorage.removeItem('clipsou_admin_redirect_attempt'); } catch {}
         initApp();
         // Display admin profile info after session restore
         setTimeout(() => {
