@@ -1,5 +1,40 @@
 [
   {
+    "title": "ROUTINE",
+    "type": "film",
+    "genres": [
+      "Drame",
+      "Psychologique",
+      "Musical"
+    ],
+    "description": "Une histoire simple, mais vraie.\nUn regard sur nos journées, nos doutes et nos rêves.\nVoici ROUTINE, mon premier court-métrage. ❤️\n\nAprès des mois de travail, je suis fier de vous dévoiler mon tout premier court-métrage, coécrit avec mon frérot ‪Moipers‬  🎬\n\nUn projet né d’une idée simple : raconter une histoire qui nous ressemble.\n\nJ’espère qu’il vous touchera autant qu’il nous a inspirés, et que vous prendrez autant de plaisir à le découvrir que nous en avons eu à le créer ❤️\n\n🙏 Merci à toutes les personnes qui ont contribué à donner vie à ce court-métrage.\n\n🎧 Merci à P.C.M WAV pour ça musique incroyable.\n\n🎶 Merci à ‪Moipers‬ pour son son exceptionnel.",
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1762535453/op9krbcuwll2qz7tkyp5.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1762535458/o0loh1aavfrucdlo86x4.webp",
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1762535462/lmxztoeqbagfk2tsz9vl.webp",
+    "watchUrl": "https://youtu.be/Cd5TzyBWj54?si=bBkeTmdo--ZNSuny",
+    "actors": [
+      {
+        "name": "SOLO",
+        "role": "SOLO"
+      }
+    ],
+    "episodes": [],
+    "submittedAt": 1762535496507,
+    "status": "pending",
+    "youtubeChannel": {
+      "id": "UCAjs_nLo8pJcQAP4mZwFDnw",
+      "title": "SOLO_L4Z",
+      "customUrl": "@solo_l4z",
+      "verifiedAt": 1762535496507
+    },
+    "submittedBy": {
+      "email": "zack04laine@gmail.com",
+      "name": "Zack Lainé",
+      "googleId": "112418056792661632914"
+    },
+    "id": "user_req_1762535496507_ovsiglckc"
+  },
+  {
     "title": "Ruberren Eend",
     "type": "série",
     "genres": [
