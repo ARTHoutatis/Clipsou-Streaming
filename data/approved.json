@@ -773,6 +773,7 @@
     "id": "custom-routine-ciwo",
     "title": "ROUTINE",
     "type": "film",
+    "rating": 3,
     "genres": [
       "Drame",
       "Psychologique",
