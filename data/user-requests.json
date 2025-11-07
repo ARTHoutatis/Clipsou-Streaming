@@ -1,5 +1,7 @@
 [
   {
+    "schema": 1,
+    "id": "user_req_1762535496507_ovsiglckc",
     "title": "ROUTINE",
     "type": "film",
     "genres": [
@@ -12,6 +14,20 @@
     "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1762535458/o0loh1aavfrucdlo86x4.webp",
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1762535462/lmxztoeqbagfk2tsz9vl.webp",
     "watchUrl": "https://youtu.be/Cd5TzyBWj54?si=bBkeTmdo--ZNSuny",
+    "rating": null,
+    "status": "approved",
+    "submittedAt": 1762535496507,
+    "processedAt": 1762535959494,
+    "youtubeChannel": {
+      "id": "UCAjs_nLo8pJcQAP4mZwFDnw",
+      "title": "SOLO_L4Z",
+      "customUrl": "@solo_l4z"
+    },
+    "submittedBy": {
+      "email": "zack04laine@gmail.com",
+      "name": "Zack Lainé",
+      "googleId": "112418056792661632914"
+    },
     "actors": [
       {
         "name": "SOLO",
@@ -19,20 +35,7 @@
       }
     ],
     "episodes": [],
-    "submittedAt": 1762535496507,
-    "status": "pending",
-    "youtubeChannel": {
-      "id": "UCAjs_nLo8pJcQAP4mZwFDnw",
-      "title": "SOLO_L4Z",
-      "customUrl": "@solo_l4z",
-      "verifiedAt": 1762535496507
-    },
-    "submittedBy": {
-      "email": "zack04laine@gmail.com",
-      "name": "Zack Lainé",
-      "googleId": "112418056792661632914"
-    },
-    "id": "user_req_1762535496507_ovsiglckc"
+    "notes": ""
   },
   {
     "title": "Ruberren Eend",
