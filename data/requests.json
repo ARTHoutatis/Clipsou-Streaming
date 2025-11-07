@@ -7,7 +7,7 @@
       "requestId": "req_1762535958030_qtshsy4r9",
       "title": "ROUTINE",
       "type": "film",
-      "rating": null,
+      "rating": 3,
       "genres": [
         "Drame",
         "Psychologique",
@@ -29,7 +29,7 @@
     "meta": {
       "createdAt": 1762535958030,
       "source": "user_submission",
-      "updatedAt": 1762536376559
+      "updatedAt": 1762536605331
     }
   },
   {
