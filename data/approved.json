@@ -770,6 +770,28 @@
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761851338/amhygihjmua7qvyqmobl.webp"
   },
   {
+    "id": "custom-routine-ciwo",
+    "title": "ROUTINE",
+    "type": "film",
+    "genres": [
+      "Drame",
+      "Psychologique",
+      "Musical"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1762535453/op9krbcuwll2qz7tkyp5.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1762535458/o0loh1aavfrucdlo86x4.webp",
+    "description": "Une histoire simple, mais vraie.\nUn regard sur nos journées, nos doutes et nos rêves.\nVoici ROUTINE, mon premier court-métrage.",
+    "watchUrl": "https://youtu.be/Cd5TzyBWj54?si=bBkeTmdo--ZNSuny",
+    "actors": [
+      {
+        "name": "SOLO",
+        "role": "SOLO"
+      }
+    ],
+    "episodes": [],
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1762535462/lmxztoeqbagfk2tsz9vl.webp"
+  },
+  {
     "id": "custom-ruberren-eend-pbzx",
     "title": "Ruberren Eend",
     "type": "série",
