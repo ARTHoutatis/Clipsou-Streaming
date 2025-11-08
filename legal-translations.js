@@ -6,6 +6,7 @@ window.legalTranslations = {
   // ========== CGU.HTML ==========
   cgu: {
     sections: [
+      // Note: Section "1. Objet et acceptation" is in the HTML (not translated by loader)
       {
         id: 'cgu-1',
         title: { fr: '1. Objet et acceptation', en: '1. Purpose and Acceptance' },
@@ -353,57 +354,15 @@ window.legalTranslations = {
             <p>Failing an amicable agreement, the French courts shall have sole jurisdiction, in accordance with common law rules.</p>
           `
         }
-      },
-      {
-        id: 'cgu-contact',
-        title: { fr: '12. Contact', en: '12. Contact Us' },
-        content: {
-          fr: `
-            <p>Pour toute question concernant ces Conditions Générales d'Utilisation, vous pouvez nous contacter :</p>
-            <ul>
-              <li><strong>Email :</strong> <a href="mailto:roxxormister@gmail.com" style="color: #3b82f6;">roxxormister@gmail.com</a></li>
-              <li><strong>Discord :</strong> arth.d.i.s.c.o.r.d</li>
-            </ul>
-          `,
-          en: `
-            <p>For any questions regarding these Terms, you can contact us:</p>
-            <ul>
-              <li><strong>Email:</strong> <a href="mailto:roxxormister@gmail.com" style="color: #3b82f6;">roxxormister@gmail.com</a></li>
-              <li><strong>Discord:</strong> arth.d.i.s.c.o.r.d</li>
-            </ul>
-          `
-        }
       }
+      // Note: Section "12. Contact" has data-manual-translation in HTML, so it's excluded from loader
     ]
   },
   
   // ========== MENTIONS-LEGALES.HTML ==========
   mentions: {
     sections: [
-      {
-        id: 'mentions-1',
-        title: { fr: 'Éditeur du site', en: 'Website Publisher' },
-        content: {
-          fr: `
-            <p>Le site <strong>Clipsou Streaming</strong> (accessible à l'adresse <strong>clipsoustreaming.com</strong>) est édité par :</p>
-            <ul>
-              <li><strong>Responsable de publication :</strong> Arthur D. (pseudonyme : arth.d.i.s.c.o.r.d)</li>
-              <li><strong>Contact :</strong> <a href="mailto:roxxormister@gmail.com" style="color: #3b82f6;">roxxormister@gmail.com</a></li>
-              <li><strong>Discord :</strong> arth.d.i.s.c.o.r.d</li>
-            </ul>
-            <p>Clipsou Streaming est une plateforme communautaire à but non lucratif dédiée à la promotion et à la diffusion de créations audiovisuelles (brickfilms, animations, courts-métrages) créées par des créateurs YouTube indépendants.</p>
-          `,
-          en: `
-            <p>The website <strong>Clipsou Streaming</strong> (accessible at <strong>clipsoustreaming.com</strong>) is published by:</p>
-            <ul>
-              <li><strong>Publication Manager:</strong> Arthur D. (username: arth.d.i.s.c.o.r.d)</li>
-              <li><strong>Contact:</strong> <a href="mailto:roxxormister@gmail.com" style="color: #3b82f6;">roxxormister@gmail.com</a></li>
-              <li><strong>Discord:</strong> arth.d.i.s.c.o.r.d</li>
-            </ul>
-            <p>Clipsou Streaming is a non-profit community platform dedicated to promoting and broadcasting audiovisual creations (brickfilms, animations, short films) created by independent YouTube creators.</p>
-          `
-        }
-      },
+      // Note: Section "Éditeur du site" has data-manual-translation in HTML, so it's excluded from loader
       {
         id: 'mentions-2',
         title: { fr: 'Hébergement', en: 'Hosting' },
@@ -503,27 +462,8 @@ window.legalTranslations = {
             <p><strong>Reporting contact:</strong> <a href="mailto:roxxormister@gmail.com" style="color: #3b82f6;">roxxormister@gmail.com</a></p>
           `
         }
-      },
-      {
-        id: 'mentions-contact',
-        title: { fr: 'Nous contacter', en: 'Contact Us' },
-        content: {
-          fr: `
-            <p>Pour toute question concernant ces mentions légales :</p>
-            <p style="margin-top: 16px;">
-              <strong>Email :</strong> <a href="mailto:roxxormister@gmail.com">roxxormister@gmail.com</a><br>
-              <strong>Discord :</strong> arth.d.i.s.c.o.r.d
-            </p>
-          `,
-          en: `
-            <p>For any questions regarding these legal notices:</p>
-            <p style="margin-top: 16px;">
-              <strong>Email:</strong> <a href="mailto:roxxormister@gmail.com">roxxormister@gmail.com</a><br>
-              <strong>Discord:</strong> arth.d.i.s.c.o.r.d
-            </p>
-          `
-        }
       }
+      // Note: "Nous contacter" contact-box has manual translation in HTML (not a .legal-section)
     ]
   },
   
@@ -887,27 +827,8 @@ window.legalTranslations = {
             </p>
           `
         }
-      },
-      {
-        id: 'privacy-contact',
-        title: { fr: 'Nous contacter', en: 'Contact Us' },
-        content: {
-          fr: `
-            <p>Pour toute question concernant cette politique de confidentialité ou pour exercer vos droits :</p>
-            <p style="margin-top: 16px;">
-              <strong>Email :</strong> <a href="mailto:roxxormister@gmail.com">roxxormister@gmail.com</a><br>
-              <strong>Discord :</strong> arth.d.i.s.c.o.r.d
-            </p>
-          `,
-          en: `
-            <p>For any questions regarding this privacy policy or to exercise your rights:</p>
-            <p style="margin-top: 16px;">
-              <strong>Email:</strong> <a href="mailto:roxxormister@gmail.com">roxxormister@gmail.com</a><br>
-              <strong>Discord:</strong> arth.d.i.s.c.o.r.d
-            </p>
-          `
-        }
       }
+      // Note: "Nous contacter" contact-box has manual translation in HTML (not a .privacy-section)
     ]
   },
   
