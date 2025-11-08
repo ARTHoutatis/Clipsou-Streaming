@@ -1345,7 +1345,8 @@
           if (!window.GoogleAuth) {
             console.error('❌ [Video Verification] window.GoogleAuth is not defined');
             statusDiv.className = 'verification-status error';
-            statusDiv.innerHTML = '❌ Système d\'authentification non chargé';
+            const authMissingMsg = window.i18n ? window.i18n.translate('video.verify.auth.missing') : '❌ Système d\'authentification non chargé';
+            statusDiv.innerHTML = authMissingMsg;
             isVideoValid = false;
             return;
           }
@@ -1356,7 +1357,8 @@
           if (!window.GoogleAuth.isAuthenticated()) {
             console.warn('⚠️ [Video Verification] User is not authenticated');
             statusDiv.className = 'verification-status error';
-            statusDiv.innerHTML = '❌ Vous devez être connecté pour vérifier la vidéo';
+            const authRequiredMsg = window.i18n ? window.i18n.translate('video.verify.auth.required') : '❌ Vous devez être connecté pour vérifier la vidéo';
+            statusDiv.innerHTML = authRequiredMsg;
             isVideoValid = false;
             return;
           }
@@ -1370,12 +1372,16 @@
           if (verification.valid) {
             console.log('✅ [Video Verification] Video is valid');
             statusDiv.className = 'verification-status success';
-            statusDiv.innerHTML = `✅ Vidéo vérifiée : "${verification.videoTitle || 'Titre non disponible'}"`;
+            const successMsg = window.i18n 
+              ? window.i18n.translate('video.verify.success').replace('{title}', verification.videoTitle || 'N/A')
+              : `✅ Vidéo vérifiée : "${verification.videoTitle || 'Titre non disponible'}"`;
+            statusDiv.innerHTML = successMsg;
             isVideoValid = true;
           } else {
             console.warn('❌ [Video Verification] Video is invalid:', verification.error);
             statusDiv.className = 'verification-status error';
-            statusDiv.innerHTML = `❌ ${verification.error || 'Cette vidéo ne vous appartient pas'}`;
+            // L'erreur est déjà traduite dans google-auth.js
+            statusDiv.innerHTML = verification.error || (window.i18n ? window.i18n.translate('video.verify.error') : '❌ Cette vidéo ne vous appartient pas');
             isVideoValid = false;
           }
 
@@ -1383,7 +1389,8 @@
           console.error('💥 [Video Verification] Exception caught:', error);
           console.error('Stack trace:', error.stack);
           statusDiv.className = 'verification-status error';
-          statusDiv.innerHTML = '❌ Erreur lors de la vérification. Veuillez réessayer.';
+          const retryMsg = window.i18n ? window.i18n.translate('video.verify.error.retry') : '❌ Erreur lors de la vérification. Veuillez réessayer.';
+          statusDiv.innerHTML = retryMsg;
           isVideoValid = false;
         }
       }, 1000); // 1 second debounce

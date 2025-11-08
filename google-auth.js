@@ -860,7 +860,8 @@
     if (!videoId) {
       console.error('[OAuth] ❌ Failed to extract video ID from URL');
       console.log('[OAuth] ========== VERIFICATION END (INVALID URL) ==========');
-      return { valid: false, error: 'URL YouTube invalide' };
+      const invalidUrlMsg = window.i18n ? window.i18n.translate('video.verify.invalid.url') : '❌ URL YouTube invalide';
+      return { valid: false, error: invalidUrlMsg };
     }
 
     try {
@@ -887,14 +888,17 @@
         // Erreurs spécifiques
         if (response.status === 401) {
           console.log('[OAuth] ========== VERIFICATION END (401 UNAUTHORIZED) ==========');
-          return { valid: false, error: 'Session expirée. Veuillez vous reconnecter.' };
+          const expiredMsg = window.i18n ? window.i18n.translate('video.verify.expired') : '❌ Session expirée. Veuillez vous reconnecter.';
+          return { valid: false, error: expiredMsg };
         } else if (response.status === 403) {
           console.log('[OAuth] ========== VERIFICATION END (403 FORBIDDEN) ==========');
-          return { valid: false, error: 'Accès refusé. Vérifiez les permissions YouTube.' };
+          const forbiddenMsg = window.i18n ? window.i18n.translate('video.verify.forbidden') : '❌ Accès refusé. Vérifiez les permissions YouTube.';
+          return { valid: false, error: forbiddenMsg };
         }
         
         console.log('[OAuth] ========== VERIFICATION END (API ERROR) ==========');
-        return { valid: false, error: 'Erreur lors de la vérification de la vidéo' };
+        const errorMsg = window.i18n ? window.i18n.translate('video.verify.error') : '❌ Erreur lors de la vérification de la vidéo';
+        return { valid: false, error: errorMsg };
       }
 
       const data = await response.json();
@@ -906,9 +910,10 @@
       if (!data.items || data.items.length === 0) {
         console.warn('[OAuth] ❌ No items returned - video not found or private');
         console.log('[OAuth] ========== VERIFICATION END (NOT FOUND) ==========');
+        const notFoundMsg = window.i18n ? window.i18n.translate('video.verify.not.found') : '❌ Vidéo introuvable ou privée. Vérifiez que le lien est correct et que la vidéo est publique.';
         return { 
           valid: false, 
-          error: 'Vidéo introuvable ou privée. Vérifiez que le lien est correct et que la vidéo est publique.' 
+          error: notFoundMsg 
         };
       }
 
@@ -930,9 +935,12 @@
       if (videoChannelId !== userChannelId) {
         console.error('[OAuth] ❌ Channel ID mismatch!');
         console.log('[OAuth] ========== VERIFICATION END (NOT OWNER) ==========');
+        const notOwnerMsg = window.i18n 
+          ? window.i18n.translate('video.verify.not.owner').replace('{channel}', videoChannelTitle)
+          : `❌ Cette vidéo appartient à "${videoChannelTitle}". Vous ne pouvez soumettre que vos propres vidéos YouTube.`;
         return {
           valid: false,
-          error: `Cette vidéo appartient à "${videoChannelTitle}". Vous ne pouvez soumettre que vos propres vidéos YouTube.`,
+          error: notOwnerMsg,
           videoTitle
         };
       }
@@ -946,7 +954,8 @@
       console.error('[OAuth] 💥 Exception during verification:', error);
       console.error('[OAuth] Stack trace:', error.stack);
       console.log('[OAuth] ========== VERIFICATION END (EXCEPTION) ==========');
-      return { valid: false, error: 'Erreur lors de la vérification de la vidéo' };
+      const errorMsg = window.i18n ? window.i18n.translate('video.verify.error') : '❌ Erreur lors de la vérification de la vidéo';
+      return { valid: false, error: errorMsg };
     }
   }
 

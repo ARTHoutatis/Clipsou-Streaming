@@ -202,6 +202,18 @@
       
       // History
       'request.history.title': '📜 Historique de mes demandes',
+      
+      // Video verification
+      'video.verify.success': '✅ Vidéo vérifiée : "{title}"',
+      'video.verify.not.owner': '❌ Cette vidéo appartient à "{channel}". Vous ne pouvez soumettre que vos propres vidéos YouTube.',
+      'video.verify.not.found': '❌ Vidéo introuvable ou privée. Vérifiez que le lien est correct et que la vidéo est publique.',
+      'video.verify.expired': '❌ Session expirée. Veuillez vous reconnecter.',
+      'video.verify.forbidden': '❌ Accès refusé. Vérifiez les permissions YouTube.',
+      'video.verify.error': '❌ Erreur lors de la vérification de la vidéo',
+      'video.verify.invalid.url': '❌ URL YouTube invalide',
+      'video.verify.auth.required': '❌ Vous devez être connecté pour vérifier la vidéo',
+      'video.verify.auth.missing': '❌ Système d\'authentification non chargé',
+      'video.verify.error.retry': '❌ Erreur lors de la vérification. Veuillez réessayer.',
 
       // Popup Partenariats
       'popup.partners.title': 'Partenariats',
@@ -504,6 +516,18 @@
       
       // History
       'request.history.title': '📜 My request history',
+      
+      // Video verification
+      'video.verify.success': '✅ Video verified: "{title}"',
+      'video.verify.not.owner': '❌ This video belongs to "{channel}". You can only submit your own YouTube videos.',
+      'video.verify.not.found': '❌ Video not found or private. Check that the link is correct and the video is public.',
+      'video.verify.expired': '❌ Session expired. Please sign in again.',
+      'video.verify.forbidden': '❌ Access denied. Check YouTube permissions.',
+      'video.verify.error': '❌ Error verifying video',
+      'video.verify.invalid.url': '❌ Invalid YouTube URL',
+      'video.verify.auth.required': '❌ You must be signed in to verify the video',
+      'video.verify.auth.missing': '❌ Authentication system not loaded',
+      'video.verify.error.retry': '❌ Error during verification. Please try again.',
 
       // Partnerships popup
       'popup.partners.title': 'Partnerships',
