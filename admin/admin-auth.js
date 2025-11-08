@@ -165,6 +165,13 @@
     return Array.isArray(admins) ? admins.map(admin => ({ ...admin })) : [];
   }
 
+  /**
+   * Invalidate cached admin list to force reload from storage
+   */
+  function invalidateAdminCache() {
+    cachedAdmins = null;
+  }
+
   function loadAdminList() {
     if (Array.isArray(cachedAdmins)) {
       return cachedAdmins;
@@ -532,6 +539,10 @@
     // Remove existing popup if any
     const existing = document.getElementById('adminListPopup');
     if (existing) existing.remove();
+
+    // Invalidate cache to force reload from localStorage
+    // This ensures we see the latest admin list from other sessions
+    invalidateAdminCache();
 
     const admins = getAdminList();
     const currentAdmin = getCurrentAdmin();
@@ -919,8 +930,25 @@
     getAdminList,
     getCurrentAdmin,
     initAdminAuth,
-    displayAdminInfo
+    displayAdminInfo,
+    invalidateAdminCache
   };
+
+  // Listen for storage changes from other tabs/windows
+  // This allows real-time updates when another admin modifies the list
+  window.addEventListener('storage', (event) => {
+    if (event.key === STORAGE_KEY_ADMINS) {
+      console.log('[AdminAuth] Admin list changed in another tab, invalidating cache');
+      invalidateAdminCache();
+      
+      // If admin list popup is open, refresh it
+      const popup = document.getElementById('adminListPopup');
+      if (popup) {
+        console.log('[AdminAuth] Refreshing admin list popup');
+        renderAdminList();
+      }
+    }
+  });
 
   // Initialize on load
   if (document.readyState === 'loading') {
