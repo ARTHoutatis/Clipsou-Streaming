@@ -259,8 +259,39 @@
       button.disabled = true;
       button.textContent = 'Connexion...';
 
+      let hasReceivedResponse = false;
+
+      // Timeout de sécurité : si aucune réponse après 30 secondes, réactiver le bouton
+      const safetyTimeout = setTimeout(() => {
+        if (!hasReceivedResponse) {
+          console.warn('[OAuth] No response from Google after 30s, re-enabling button');
+          button.disabled = false;
+          button.innerHTML = previousHTML;
+        }
+      }, 30000);
+
+      // Détecter si l'utilisateur ferme la popup et revient sur la page
+      // sans avoir complété l'authentification
+      const handleFocus = () => {
+        setTimeout(() => {
+          if (!hasReceivedResponse && button.disabled) {
+            console.log('[OAuth] User returned to page without completing auth, re-enabling button');
+            clearTimeout(safetyTimeout);
+            button.disabled = false;
+            button.innerHTML = previousHTML;
+            window.removeEventListener('focus', handleFocus);
+          }
+        }, 1000); // Délai de 1 seconde pour laisser le temps à Google de répondre
+      };
+      window.addEventListener('focus', handleFocus, { once: true });
+
       try {
         tokenClient.callback = (response) => {
+          // Annuler le timeout de sécurité puisqu'on a une réponse
+          hasReceivedResponse = true;
+          clearTimeout(safetyTimeout);
+          window.removeEventListener('focus', handleFocus);
+          
           handleTokenResponse(response, { button, previousHTML }).then((success) => {
             if (success) {
               // nothing to do, showMainContent already called
@@ -269,6 +300,9 @@
         };
         tokenClient.requestAccessToken({ prompt: 'consent' });
       } catch (error) {
+        hasReceivedResponse = true;
+        clearTimeout(safetyTimeout);
+        window.removeEventListener('focus', handleFocus);
         console.error('[OAuth] Error requesting access token:', error);
         showAuthError('Erreur lors de la connexion. Veuillez réessayer.');
         button.disabled = false;
@@ -529,6 +563,11 @@
   function showMainContent() {
     if (!currentUser) return;
 
+    // Masquer le message d'erreur d'authentification si visible
+    if (authErrorDiv) {
+      authErrorDiv.hidden = true;
+    }
+
     // Check if user is banned
     const userEmail = currentUser?.user?.email;
     const channelId = currentUser?.channel?.id;
@@ -641,6 +680,11 @@
     if (userInfoDiv) userInfoDiv.hidden = true;
     if (logoutBtn) logoutBtn.hidden = true;
 
+    // Masquer le message d'erreur d'authentification si visible
+    if (authErrorDiv) {
+      authErrorDiv.hidden = true;
+    }
+
     // Hide the "Next" button on step 1
     const authNextNav = document.getElementById('authNextNav');
     if (authNextNav) {
@@ -670,9 +714,17 @@
     authErrorDiv.textContent = `⚠️ ${message}`;
     authErrorDiv.hidden = false;
     
-    setTimeout(() => {
-      authErrorDiv.hidden = true;
-    }, 5000);
+    // Si c'est l'erreur de chaîne YouTube manquante, garder le message visible
+    // jusqu'à reconnexion ou fermeture de page
+    const isYouTubeChannelError = message.includes('chaîne YouTube');
+    
+    if (!isYouTubeChannelError) {
+      // Pour les autres erreurs, masquer après 5 secondes
+      setTimeout(() => {
+        authErrorDiv.hidden = true;
+      }, 5000);
+    }
+    // Sinon, le message reste affiché indéfiniment
   }
 
   /**

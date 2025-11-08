@@ -10,8 +10,10 @@
   <script src="maintenance.js"></script>
   <title>Proposer un film – Clipsou Streaming</title>
   <link rel="icon" href="images/favicon.webp" type="image/webp">
+  <!-- Performance detector -->
+  <script src="performance-detector.js"></script>
   <link rel="stylesheet" href="request.css?v=1">
-  <script src="i18n.js"></script>
+  <script src="i18n.js" defer></script>
   <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -216,8 +218,8 @@
         </div>
 
         <label>
-          <span>Description <span class="required">*</span></span>
-          <textarea id="description" rows="5" required disabled placeholder="Décrivez le contenu..."></textarea>
+          <span>Description <span class="required">*</span> <small id="descriptionCounter" style="color: #888; font-weight: 400;">(0/400)</small></span>
+          <textarea id="description" rows="5" maxlength="400" required disabled placeholder="Décrivez le contenu..."></textarea>
         </label>
 
         <div class="grid">

@@ -42,6 +42,8 @@
   </script>
 <title>Clipsou Streaming</title>
 <meta name="description" content="Regardez des films et séries comme La vie au petit âge, Dédoublement, Jackson Goup, Karma et Alex. Gratuit, rapide et sans inscription.">
+<!-- Performance detector - Must load first to optimize rendering -->
+<script src="performance-detector.js"></script>
 <link rel="icon" href="images/favicon.webp" type="image/webp">
 <link rel="apple-touch-icon" href="images/favicon.webp">
 <link rel="canonical" href="https://clipsoustreaming.com/">
@@ -107,14 +109,14 @@
   }
 }
 </script>
-  <!-- Fonts for styled popup titles (trimmed to only used families) -->
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Baloo+2:wght@700;800&family=Bevan:ital@0;1&family=Cinzel:wght@700&family=Luckiest+Guy&family=Rye&family=Shrikhand&family=VT323&display=swap" rel="stylesheet">
-  <!-- Base UI font: Inter -->
+  <!-- Fonts for styled popup titles (trimmed to only used families) - Optimized with font-display swap -->
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Baloo+2:wght@700;800&family=Bevan:ital@0;1&family=Cinzel:wght@700&family=Luckiest+Guy&family=Rye&family=Shrikhand&family=VT323&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <!-- Base UI font: Inter - Critical, load immediately but with swap -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
  <link rel="stylesheet" href="common.css?v=20250929-1">
  <link rel="stylesheet" href="index.css?v=20250929-1">
- <script src="i18n.js"></script>
- <script src="utilities.js?v=20250929-1"></script>
+ <script src="utilities.js?v=20250929-1" defer></script>
+ <script src="i18n.js" defer></script>
  <style>
   /* Discord banner overrides */
   .discord-banner { background: rgba(255,255,255,0.04); }
@@ -356,24 +358,23 @@
       height: 20px;
     }
   }
-  /* Card images optimization */
+  /* Card images optimization - will-change removed for better memory on low-end devices */
   .card-media img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    will-change: transform;
     transform: translateZ(0);
     backface-visibility: hidden;
   }
-  /* Performance optimizations globales */
+  /* Performance optimizations - contain: layout paint only (style removed for better compatibility) */
   .carousel-section, .section, .card {
-    contain: layout style paint;
+    contain: layout paint;
   }
+  /* Rail optimization - will-change removed, only transform for GPU acceleration */
   .rail {
-    will-change: scroll-position;
     transform: translateZ(0);
   }
-  /* Réduire le coût des transitions */
+  /* Reduce transition costs - font rendering optimizations */
   * {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

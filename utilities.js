@@ -336,8 +336,8 @@ function installLazyImageLoader() {
     } catch (_) {}
   }
   
-  // Réduire les marges pour éviter de charger trop d'images à l'avance
-  // Vertical: 300px, Horizontal: 400px (pour les rails horizontaux)
+  // Optimisation pour bas de gamme : marges réduites pour charger uniquement le visible proche
+  // Vertical: 150px, Horizontal: 200px - réduit la charge mémoire et CPU
   const io = ('IntersectionObserver' in window) ? new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       const el = entry.target;
@@ -346,7 +346,7 @@ function installLazyImageLoader() {
         load(el);
       }
     });
-  }, { root: null, rootMargin: '300px 400px', threshold: 0.01 }) : null;
+  }, { root: null, rootMargin: '150px 200px', threshold: 0.01 }) : null;
   
   function observe(el) {
     if (!el || pending.has(el)) return;

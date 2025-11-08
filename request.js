@@ -583,6 +583,30 @@
       }
     });
 
+    // Compteur de caractères pour la description (limite 400)
+    const descriptionInput = document.getElementById('description');
+    const descriptionCounter = document.getElementById('descriptionCounter');
+    if (descriptionInput && descriptionCounter) {
+      const updateCounter = () => {
+        const currentLength = descriptionInput.value.length;
+        const maxLength = 400;
+        descriptionCounter.textContent = `(${currentLength}/${maxLength})`;
+        
+        // Changer la couleur si proche de la limite
+        if (currentLength >= maxLength) {
+          descriptionCounter.style.color = '#ef4444'; // Rouge
+        } else if (currentLength >= maxLength * 0.9) {
+          descriptionCounter.style.color = '#f59e0b'; // Orange
+        } else {
+          descriptionCounter.style.color = '#888'; // Gris par défaut
+        }
+      };
+      
+      descriptionInput.addEventListener('input', updateCounter);
+      // Initialiser le compteur
+      updateCounter();
+    }
+
     console.log('💾 Auto-sauvegarde activée');
   }
 
@@ -1517,6 +1541,15 @@
         return;
       }
 
+      // Validate description length (max 400 characters)
+      if (formData.description && formData.description.length > 400) {
+        alert('❌ Description trop longue\n\n' +
+              'La description doit faire maximum 400 caractères.\n\n' +
+              `Actuellement : ${formData.description.length} caractères\n` +
+              '💡 Veuillez raccourcir votre description.');
+        return;
+      }
+
       // Validate YouTube URL (only for non-series)
       if (!isSerie && !isValidYouTubeUrl(formData.watchUrl)) {
         alert('❌ URL YouTube invalide\n\n' +
@@ -2141,6 +2174,11 @@
       // Trigger type change to show/hide episodes
       if (typeInput) {
         typeInput.dispatchEvent(new Event('change'));
+      }
+
+      // Trigger description input to update character counter
+      if (descInput) {
+        descInput.dispatchEvent(new Event('input'));
       }
 
       console.log('✅ Form draft restored');

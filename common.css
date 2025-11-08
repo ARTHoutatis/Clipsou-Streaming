@@ -10,14 +10,14 @@ html {
 /* Global background fallback to avoid white flash when scroll is locked */
 html, body { background-color: #0b1117; }
 
-/* Shared button styles */
+/* Shared button styles - Optimized transitions for low-end devices */
 .button {
   background: #2B22EE;
   border-radius: 5px;
   padding: 12px 24px;
   color: #fff;
   font-weight: 600;
-  transition: all 0.3s ease;
+  transition: filter 0.2s ease;
   border: none;
   cursor: pointer;
   font-size: 14px;
@@ -27,7 +27,7 @@ html, body { background-color: #0b1117; }
   align-items: center;
   justify-content: center;
 }
-.button:hover { transform: translateY(-1px); box-shadow: none; }
+.button:hover { filter: brightness(1.08); box-shadow: none; }
 .close-btn { background: #ff4444; }
 .close-btn:hover { background: #cc0000; box-shadow: none; }
 
@@ -37,7 +37,7 @@ body.drawer-open nav[aria-label="Navigation principale"] {
   background: #0b1117; /* solid */
 }
 
-/* Drawer overlay and panel */
+/* Drawer overlay and panel - Optimized for low-end devices */
 .drawer-overlay {
   position: fixed;
   left: 0; right: 0; bottom: 0; top: 70px; /* below nav to avoid blur/light halo */
@@ -45,8 +45,9 @@ body.drawer-open nav[aria-label="Navigation principale"] {
   backdrop-filter: none;
   opacity: 0;
   pointer-events: none;
-  transition: opacity .25s ease;
+  transition: opacity .2s ease;
   z-index: 998;
+  will-change: opacity;
 }
 .drawer-overlay.open { opacity: 1; pointer-events: auto; }
 
@@ -58,10 +59,11 @@ body.drawer-open nav[aria-label="Navigation principale"] {
   background: linear-gradient(180deg, #0b1117, #0e141b);
   border-right: 1px solid rgba(255,255,255,0.08);
   transform: translateX(-100%);
-  transition: transform .28s ease;
+  transition: transform .22s ease;
   z-index: 999;
   display: flex;
   flex-direction: column;
+  will-change: transform;
 }
 .drawer.open { transform: translateX(0); }
 .drawer header {

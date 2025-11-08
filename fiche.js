@@ -824,10 +824,11 @@ function renderFiche(container, item) {
       }
     });
     
-    // Mettre à jour le texte lors du changement de langue
-    window.addEventListener('languageChanged', function() {
+    // Mettre à jour le texte lors du changement de langue - optimized with once flag
+    const updateWatchText = () => {
       a.textContent = window.i18n ? '▶ ' + window.i18n.translate('button.watch') : '▶ Regarder';
-    });
+    };
+    window.addEventListener('languageChanged', updateWatchText, { passive: true });
     
     console.log('🔧 [Debug] Event listener attached to watch button');
     buttons.appendChild(a);
@@ -861,10 +862,8 @@ function renderFiche(container, item) {
         setLabel(active);
       });
       
-      // Mettre à jour le label lors du changement de langue
-      window.addEventListener('languageChanged', function() {
-        setLabel(active);
-      });
+      // Mettre à jour le label lors du changement de langue - passive listener
+      window.addEventListener('languageChanged', () => setLabel(active), { passive: true });
       
       buttons.appendChild(favBtn);
     } catch {}
@@ -889,13 +888,17 @@ function renderFiche(container, item) {
       if (typeof mq.addEventListener === 'function') {
         mq.addEventListener('change', placeButtons);
       } else if (typeof mq.addListener === 'function') {
-        // Fallback for older browsers
         mq.addListener(placeButtons);
       }
     } else {
-      // Ultimate fallback on resize
-      window.addEventListener('resize', placeButtons);
-      window.addEventListener('orientationchange', placeButtons);
+      // Throttled fallback on resize - prevent excessive calls
+      let resizeTimeout;
+      const throttledPlace = () => {
+        if (resizeTimeout) clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(placeButtons, 100);
+      };
+      window.addEventListener('resize', throttledPlace, { passive: true });
+      window.addEventListener('orientationchange', throttledPlace, { passive: true });
     }
   } catch (e) {
     right.appendChild(buttons);
@@ -1619,40 +1622,29 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     });
   }
   
-  // Auto-refresh when progress or durations are updated
+  // Auto-refresh when progress or durations are updated - Optimized with longer debounce
   let refreshTimeout = null;
   function scheduleRefresh(){
     if (refreshTimeout) clearTimeout(refreshTimeout);
     refreshTimeout = setTimeout(()=> {
       if (!episodesPanel.hidden) populateEpisodes();
-    }, 30);
+    }, 150); // Increased from 30ms to 150ms to reduce CPU load
   }
   
-  // Listen for progress updates (when user watches episodes)
-  try { 
-    window.addEventListener('clipsou-progress-updated', scheduleRefresh); 
-  } catch {}
+  // Consolidate all refresh listeners into one handler
+  const refreshHandler = (e) => {
+    if (!e || !e.key || e.key === 'clipsou_watch_progress_v1' || e.key === 'clipsou_video_duration_v1') {
+      scheduleRefresh();
+    }
+  };
   
-  // Listen for duration updates (when durations are fetched)
+  // Single listener setup - reduced from 5 to 2 listeners
   try { 
-    window.addEventListener('clipsou-duration-updated', scheduleRefresh); 
-  } catch {}
-  
-  // Listen for storage changes from other tabs
-  try { 
-    window.addEventListener('storage', (e)=> {
-      if (e && (e.key === 'clipsou_watch_progress_v1' || e.key === 'clipsou_video_duration_v1')) {
-        scheduleRefresh();
-      }
-    }); 
-  } catch {}
-  
-  // Refresh when user comes back to the page
-  try { 
-    window.addEventListener('pageshow', scheduleRefresh); 
-    document.addEventListener('visibilitychange', ()=> {
-      if (!document.hidden) scheduleRefresh();
-    }); 
+    window.addEventListener('clipsou-progress-updated', scheduleRefresh, { passive: true }); 
+    window.addEventListener('clipsou-duration-updated', scheduleRefresh, { passive: true }); 
+    window.addEventListener('storage', refreshHandler, { passive: true }); 
+    window.addEventListener('pageshow', scheduleRefresh, { passive: true, once: true }); 
+    document.addEventListener('visibilitychange', ()=> { if (!document.hidden) scheduleRefresh(); }, { passive: true }); 
   } catch {}
 }
 

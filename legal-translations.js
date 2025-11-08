@@ -468,8 +468,384 @@ window.legalTranslations = {
   // ========== PRIVACY.HTML ==========
   privacy: {
     sections: [
-      // Privacy sections will use the same auto-translate system
-      // Or manual translations can be added here later
+      {
+        id: 'privacy-intro',
+        title: { fr: 'Introduction', en: 'Introduction' },
+        content: {
+          fr: `
+            <p>
+              Bienvenue sur <strong>Clipsou Streaming</strong> (ci-après « nous », « notre » ou « le Site »). 
+              Nous accordons une grande importance à la protection de votre vie privée et de vos données personnelles.
+            </p>
+            <p>
+              Cette politique de confidentialité explique quelles informations nous collectons, comment nous les utilisons, 
+              les protégeons et les partageons lorsque vous utilisez notre site web <strong>clipsoustreaming.com</strong>.
+            </p>
+          `,
+          en: `
+            <p>
+              Welcome to <strong>Clipsou Streaming</strong> (hereinafter "we", "our" or "the Site"). 
+              We attach great importance to protecting your privacy and personal data.
+            </p>
+            <p>
+              This privacy policy explains what information we collect, how we use it, 
+              protect it and share it when you use our website <strong>clipsoustreaming.com</strong>.
+            </p>
+          `
+        }
+      },
+      {
+        id: 'privacy-collection',
+        title: { fr: 'Informations que nous collectons', en: 'Information We Collect' },
+        content: {
+          fr: `
+            <h3>1.1 Informations que vous nous fournissez</h3>
+            <p>Lorsque vous utilisez notre service de soumission de films (Beta), nous pouvons collecter :</p>
+            <ul>
+              <li><strong>Informations de connexion Google</strong> : nom, adresse e-mail, photo de profil (via Google OAuth 2.0)</li>
+              <li><strong>Informations de chaîne YouTube</strong> : nom de la chaîne, ID de la chaîne, URL personnalisée et miniature publique</li>
+              <li><strong>Contenu soumis</strong> : titre du film, description, genres, lien YouTube, informations sur les acteurs</li>
+            </ul>
+            <p>Nous ne collectons pas de statistiques de chaîne (comme le nombre d'abonnés) ni d'autres données Google supplémentaires.</p>
+
+            <h3>1.2 Informations collectées automatiquement</h3>
+            <p>Nous ne recourons à aucun outil d'analyse ou de suivi publicitaire. Les seules données collectées automatiquement proviennent de :</p>
+            <ul>
+              <li><strong>Journaux techniques de l'hébergeur</strong> : Cloudflare peut journaliser temporairement des informations limitées (adresse IP tronquée, type de navigateur) pour assurer la sécurité et la stabilité du site.</li>
+              <li><strong>Métriques internes agrégées</strong> : nous suivons le volume global de demandes ou d'erreurs sans associer ces données à des profils individuels.</li>
+            </ul>
+
+            <h3>1.3 Stockage local uniquement</h3>
+            <p>Clipsou Streaming n'utilise aucun cookie. Notre système utilise exclusivement le <strong>localStorage</strong> de votre navigateur pour stocker vos préférences, favoris et autres informations personnelles localement.</p>
+
+            <h3>1.4 Données stockées localement</h3>
+            <p>Nous utilisons le <strong>localStorage</strong> de votre navigateur pour stocker :</p>
+            <ul>
+              <li>Vos informations d'authentification Google (jeton d'accès, profil de base et détails essentiels de votre chaîne) pour maintenir votre session</li>
+              <li>La progression de vos formulaires (brouillons, images téléversées, étape en cours)</li>
+              <li>Les données anti-abus (horodatages de demande, identifiant de navigateur anonymisé) qui imposent la limite d'une demande par 24 heures</li>
+              <li>Vos préférences (acceptation des conditions, choix du mode OAuth en développement local)</li>
+            </ul>
+            <div class="highlight-box">
+              <p><strong>Important :</strong> Ces données restent sur votre appareil et ne sont jamais transmises à nos serveurs sans votre consentement explicite.</p>
+            </div>
+          `,
+          en: `
+            <h3>1.1 Information You Provide to Us</h3>
+            <p>When you use our film submission service (Beta), we may collect:</p>
+            <ul>
+              <li><strong>Google login information</strong>: name, email address, profile photo (via Google OAuth 2.0)</li>
+              <li><strong>YouTube channel information</strong>: channel name, channel ID, custom URL and public thumbnail</li>
+              <li><strong>Submitted content</strong>: film title, description, genres, YouTube link, actor information</li>
+            </ul>
+            <p>We do not collect channel statistics (such as subscriber count) or other additional Google data.</p>
+
+            <h3>1.2 Automatically Collected Information</h3>
+            <p>We do not use any analytics or advertising tracking tools. The only automatically collected data comes from:</p>
+            <ul>
+              <li><strong>Host technical logs</strong>: Cloudflare may temporarily log limited information (truncated IP address, browser type) to ensure site security and stability.</li>
+              <li><strong>Aggregated internal metrics</strong>: we track the overall volume of requests or errors without associating this data with individual profiles.</li>
+            </ul>
+
+            <h3>1.3 Local Storage Only</h3>
+            <p>Clipsou Streaming does not use any cookies. Our system exclusively uses your browser's <strong>localStorage</strong> to store your preferences, favorites and other personal information locally.</p>
+
+            <h3>1.4 Locally Stored Data</h3>
+            <p>We use your browser's <strong>localStorage</strong> to store:</p>
+            <ul>
+              <li>Your Google authentication information (access token, basic profile and essential channel details) to maintain your session</li>
+              <li>Your form progress (drafts, uploaded images, current step)</li>
+              <li>Anti-abuse data (request timestamps, anonymized browser identifier) that enforces the one request per 24 hours limit</li>
+              <li>Your preferences (terms acceptance, OAuth mode choice in local development)</li>
+            </ul>
+            <div class="highlight-box">
+              <p><strong>Important:</strong> This data remains on your device and is never transmitted to our servers without your explicit consent.</p>
+            </div>
+          `
+        }
+      },
+      {
+        id: 'privacy-usage',
+        title: { fr: 'Comment nous utilisons vos informations', en: 'How We Use Your Information' },
+        content: {
+          fr: `
+            <p>Nous utilisons les informations collectées pour :</p>
+            <ul>
+              <li><strong>Fournir et améliorer nos services</strong> : streaming de contenu, gestion des demandes de films - <em>Base légale : exécution du contrat / intérêt légitime</em></li>
+              <li><strong>Authentifier les utilisateurs</strong> : via Google OAuth pour sécuriser l'accès à certaines fonctionnalités - <em>Base légale : consentement (OAuth)</em></li>
+              <li><strong>Vérifier la propriété des vidéos YouTube</strong> : confirmer que vous êtes bien le créateur de la vidéo soumise - <em>Base légale : consentement + intérêt légitime (anti-fraude)</em></li>
+              <li><strong>Modérer le contenu</strong> : vérifier et approuver les soumissions de films - <em>Base légale : intérêt légitime (qualité du service)</em></li>
+              <li><strong>Communiquer avec vous</strong> : répondre à vos questions et demandes - <em>Base légale : exécution du contrat</em></li>
+              <li><strong>Analyser l'utilisation</strong> : comprendre comment les utilisateurs interagissent avec notre site (métriques agrégées uniquement) - <em>Base légale : intérêt légitime</em></li>
+              <li><strong>Prévenir les abus</strong> : détecter et empêcher les activités frauduleuses ou malveillantes (rate limiting, bannissements) - <em>Base légale : intérêt légitime</em></li>
+            </ul>
+          `,
+          en: `
+            <p>We use the collected information to:</p>
+            <ul>
+              <li><strong>Provide and improve our services</strong>: content streaming, film request management - <em>Legal basis: contract performance / legitimate interest</em></li>
+              <li><strong>Authenticate users</strong>: via Google OAuth to secure access to certain features - <em>Legal basis: consent (OAuth)</em></li>
+              <li><strong>Verify YouTube video ownership</strong>: confirm that you are the creator of the submitted video - <em>Legal basis: consent + legitimate interest (anti-fraud)</em></li>
+              <li><strong>Moderate content</strong>: review and approve film submissions - <em>Legal basis: legitimate interest (service quality)</em></li>
+              <li><strong>Communicate with you</strong>: respond to your questions and requests - <em>Legal basis: contract performance</em></li>
+              <li><strong>Analyze usage</strong>: understand how users interact with our site (aggregated metrics only) - <em>Legal basis: legitimate interest</em></li>
+              <li><strong>Prevent abuse</strong>: detect and prevent fraudulent or malicious activities (rate limiting, bans) - <em>Legal basis: legitimate interest</em></li>
+            </ul>
+          `
+        }
+      },
+      {
+        id: 'privacy-sharing',
+        title: { fr: 'Partage de vos informations', en: 'Sharing Your Information' },
+        content: {
+          fr: `
+            <p>Nous ne vendons jamais vos données personnelles. Nous pouvons partager vos informations uniquement dans les cas suivants :</p>
+            <ul>
+              <li><strong>Avec votre consentement</strong> : lorsque vous autorisez explicitement le partage</li>
+              <li><strong>Fournisseurs de services</strong> : 
+                <ul>
+                  <li><strong>Google</strong> (authentification OAuth) - États-Unis</li>
+                  <li><strong>YouTube</strong> (intégration de vidéos, vérification de propriété) - États-Unis</li>
+                  <li><strong>Cloudinary</strong> (hébergement et optimisation d'images) - États-Unis</li>
+                  <li><strong>Cloudflare</strong> (hébergement et CDN) - États-Unis/Europe</li>
+                  <li><strong>GitHub</strong> (hébergement du code et synchronisation des données) - États-Unis</li>
+                </ul>
+                <p style="margin-top: 8px;"><strong>Transferts hors UE :</strong> Ces services peuvent traiter vos données en dehors de l'Union européenne (notamment aux États-Unis). Ces transferts sont encadrés par les clauses contractuelles types de la Commission européenne et les mécanismes de certification (ex. EU-US Data Privacy Framework pour certains fournisseurs).</p>
+              </li>
+              <li><strong>Obligations légales</strong> : si requis par la loi ou en réponse à une procédure judiciaire</li>
+              <li><strong>Protection des droits</strong> : pour protéger nos droits, notre propriété ou notre sécurité</li>
+            </ul>
+          `,
+          en: `
+            <p>We never sell your personal data. We may share your information only in the following cases:</p>
+            <ul>
+              <li><strong>With your consent</strong>: when you explicitly authorize sharing</li>
+              <li><strong>Service providers</strong>: 
+                <ul>
+                  <li><strong>Google</strong> (OAuth authentication) - United States</li>
+                  <li><strong>YouTube</strong> (video integration, ownership verification) - United States</li>
+                  <li><strong>Cloudinary</strong> (image hosting and optimization) - United States</li>
+                  <li><strong>Cloudflare</strong> (hosting and CDN) - United States/Europe</li>
+                  <li><strong>GitHub</strong> (code hosting and data synchronization) - United States</li>
+                </ul>
+                <p style="margin-top: 8px;"><strong>Transfers outside the EU:</strong> These services may process your data outside the European Union (particularly in the United States). These transfers are governed by the European Commission's standard contractual clauses and certification mechanisms (e.g. EU-US Data Privacy Framework for certain providers).</p>
+              </li>
+              <li><strong>Legal obligations</strong>: if required by law or in response to legal proceedings</li>
+              <li><strong>Rights protection</strong>: to protect our rights, property or security</li>
+            </ul>
+          `
+        }
+      },
+      {
+        id: 'privacy-security',
+        title: { fr: 'Sécurité de vos données', en: 'Security of Your Data' },
+        content: {
+          fr: `
+            <p>Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles pour protéger vos données :</p>
+            <ul>
+              <li><strong>Chiffrement HTTPS</strong> : toutes les communications sont chiffrées</li>
+              <li><strong>OAuth 2.0</strong> : authentification sécurisée via Google</li>
+              <li><strong>Stockage sécurisé</strong> : données hébergées sur des serveurs sécurisés (GitHub, Cloudflare)</li>
+              <li><strong>Accès restreint</strong> : seuls les administrateurs autorisés peuvent accéder aux données sensibles</li>
+              <li><strong>Surveillance</strong> : détection et prévention des accès non autorisés</li>
+            </ul>
+            <div class="highlight-box">
+              <p><strong>Note :</strong> Aucune méthode de transmission sur Internet n'est 100% sécurisée. Nous nous efforçons de protéger vos données, mais ne pouvons garantir une sécurité absolue.</p>
+            </div>
+          `,
+          en: `
+            <p>We implement technical and organizational security measures to protect your data:</p>
+            <ul>
+              <li><strong>HTTPS encryption</strong>: all communications are encrypted</li>
+              <li><strong>OAuth 2.0</strong>: secure authentication via Google</li>
+              <li><strong>Secure storage</strong>: data hosted on secure servers (GitHub, Cloudflare)</li>
+              <li><strong>Restricted access</strong>: only authorized administrators can access sensitive data</li>
+              <li><strong>Monitoring</strong>: detection and prevention of unauthorized access</li>
+            </ul>
+            <div class="highlight-box">
+              <p><strong>Note:</strong> No method of transmission over the Internet is 100% secure. We strive to protect your data but cannot guarantee absolute security.</p>
+            </div>
+          `
+        }
+      },
+      {
+        id: 'privacy-localstorage',
+        title: { fr: 'Stockage local', en: 'Local Storage' },
+        content: {
+          fr: `
+            <p>Clipsou Streaming n'utilise aucun cookie. Toutes les données sont stockées localement via le <strong>localStorage</strong> de votre navigateur (voir section 1.3 ci-dessus).</p>
+            
+            <p>La majorité des informations nécessaires à votre navigation sont stockées localement via le <strong>localStorage</strong> de votre navigateur (session OAuth, brouillons de formulaire, préférences, favoris, historique de lecture, protection anti-abus).</p>
+            <p>Vous pouvez à tout moment vider ce stockage local depuis les paramètres de votre navigateur, ce qui aura pour effet de réinitialiser vos brouillons et de vous déconnecter.</p>
+          `,
+          en: `
+            <p>Clipsou Streaming does not use any cookies. All data is stored locally via your browser's <strong>localStorage</strong> (see section 1.3 above).</p>
+            
+            <p>Most of the information needed for your browsing is stored locally via your browser's <strong>localStorage</strong> (OAuth session, form drafts, preferences, favorites, viewing history, anti-abuse protection).</p>
+            <p>You can clear this local storage at any time from your browser settings, which will reset your drafts and log you out.</p>
+          `
+        }
+      },
+      {
+        id: 'privacy-rights',
+        title: { fr: 'Vos droits', en: 'Your Rights' },
+        content: {
+          fr: `
+            <p>Conformément au RGPD (Règlement Général sur la Protection des Données), vous disposez des droits suivants :</p>
+            <ul>
+              <li><strong>Droit d'accès</strong> : obtenir une copie de vos données personnelles</li>
+              <li><strong>Droit de rectification</strong> : corriger vos données inexactes ou incomplètes</li>
+              <li><strong>Droit à l'effacement</strong> : demander la suppression de vos données</li>
+              <li><strong>Droit à la limitation</strong> : restreindre le traitement de vos données</li>
+              <li><strong>Droit à la portabilité</strong> : recevoir vos données dans un format structuré</li>
+              <li><strong>Droit d'opposition</strong> : vous opposer au traitement de vos données</li>
+              <li><strong>Droit de retirer votre consentement</strong> : à tout moment</li>
+            </ul>
+            <p>Pour exercer ces droits, contactez-nous à l'adresse indiquée ci-dessous.</p>
+          `,
+          en: `
+            <p>In accordance with GDPR (General Data Protection Regulation), you have the following rights:</p>
+            <ul>
+              <li><strong>Right of access</strong>: obtain a copy of your personal data</li>
+              <li><strong>Right of rectification</strong>: correct inaccurate or incomplete data</li>
+              <li><strong>Right to erasure</strong>: request deletion of your data</li>
+              <li><strong>Right to restriction</strong>: restrict the processing of your data</li>
+              <li><strong>Right to portability</strong>: receive your data in a structured format</li>
+              <li><strong>Right to object</strong>: object to the processing of your data</li>
+              <li><strong>Right to withdraw consent</strong>: at any time</li>
+            </ul>
+            <p>To exercise these rights, contact us at the address provided below.</p>
+          `
+        }
+      },
+      {
+        id: 'privacy-retention',
+        title: { fr: 'Conservation des données', en: 'Data Retention' },
+        content: {
+          fr: `
+            <p>Nous conservons vos données personnelles uniquement aussi longtemps que nécessaire pour les finalités décrites. Durées de conservation détaillées :</p>
+            <ul>
+              <li><strong>Données d'authentification OAuth</strong> : 1 heure (durée du jeton), puis stockage local jusqu'à déconnexion manuelle ou expiration</li>
+              <li><strong>Demandes de films soumises</strong> : conservation permanente après approbation (archivage nécessaire au fonctionnement du service) ; 6 mois pour les demandes rejetées</li>
+              <li><strong>Brouillons de formulaire</strong> : 7 jours maximum (nettoyage automatique), ou jusqu'à suppression manuelle</li>
+              <li><strong>Historique de visionnage et favoris</strong> : conservation locale illimitée jusqu'à suppression manuelle par l'utilisateur</li>
+              <li><strong>Journaux techniques (Cloudflare)</strong> : 30 jours maximum</li>
+              <li><strong>Données de bannissement</strong> : conservation permanente ou jusqu'à levée manuelle du bannissement</li>
+            </ul>
+            <p>Vous pouvez demander la suppression anticipée de vos données en nous contactant (sauf obligations légales de conservation).</p>
+          `,
+          en: `
+            <p>We retain your personal data only as long as necessary for the described purposes. Detailed retention periods:</p>
+            <ul>
+              <li><strong>OAuth authentication data</strong>: 1 hour (token duration), then local storage until manual logout or expiration</li>
+              <li><strong>Submitted film requests</strong>: permanent retention after approval (archiving necessary for service operation); 6 months for rejected requests</li>
+              <li><strong>Form drafts</strong>: 7 days maximum (automatic cleanup), or until manual deletion</li>
+              <li><strong>Viewing history and favorites</strong>: unlimited local retention until manual deletion by user</li>
+              <li><strong>Technical logs (Cloudflare)</strong>: 30 days maximum</li>
+              <li><strong>Ban data</strong>: permanent retention or until manual ban removal</li>
+            </ul>
+            <p>You can request early deletion of your data by contacting us (except for legal retention obligations).</p>
+          `
+        }
+      },
+      {
+        id: 'privacy-thirdparty',
+        title: { fr: 'Services tiers', en: 'Third-Party Services' },
+        content: {
+          fr: `
+            <p>Notre site utilise des services tiers qui ont leurs propres politiques de confidentialité :</p>
+            <ul>
+              <li><strong>Google OAuth</strong> : <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">Politique de confidentialité Google</a></li>
+              <li><strong>YouTube</strong> : <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">Conditions d'utilisation YouTube</a> | <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">Politique de Google</a></li>
+              <li><strong>Cloudinary</strong> : <a href="https://cloudinary.com/privacy" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">Politique de confidentialité Cloudinary</a></li>
+              <li><strong>Cloudflare</strong> : <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">Politique de confidentialité Cloudflare</a></li>
+              <li><strong>GitHub</strong> : <a href="https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">Déclaration de confidentialité GitHub</a></li>
+            </ul>
+            <p>Nous vous encourageons à consulter ces politiques pour comprendre comment ces services traitent vos données.</p>
+          `,
+          en: `
+            <p>Our site uses third-party services that have their own privacy policies:</p>
+            <ul>
+              <li><strong>Google OAuth</strong>: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">Google Privacy Policy</a></li>
+              <li><strong>YouTube</strong>: <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">YouTube Terms of Service</a> | <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">Google Policy</a></li>
+              <li><strong>Cloudinary</strong>: <a href="https://cloudinary.com/privacy" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">Cloudinary Privacy Policy</a></li>
+              <li><strong>Cloudflare</strong>: <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">Cloudflare Privacy Policy</a></li>
+              <li><strong>GitHub</strong>: <a href="https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">GitHub Privacy Statement</a></li>
+            </ul>
+            <p>We encourage you to review these policies to understand how these services process your data.</p>
+          `
+        }
+      },
+      {
+        id: 'privacy-minors',
+        title: { fr: 'Protection des mineurs', en: 'Protection of Minors' },
+        content: {
+          fr: `
+            <p>
+              Notre site est accessible à tous, mais nous ne collectons pas sciemment d'informations personnelles 
+              auprès d'enfants de moins de 13 ans sans le consentement parental.
+            </p>
+            <p>
+              Si vous êtes parent et pensez que votre enfant nous a fourni des informations personnelles, 
+              veuillez nous contacter pour que nous puissions supprimer ces données.
+            </p>
+          `,
+          en: `
+            <p>
+              Our site is accessible to everyone, but we do not knowingly collect personal information 
+              from children under 13 without parental consent.
+            </p>
+            <p>
+              If you are a parent and believe your child has provided us with personal information, 
+              please contact us so we can delete this data.
+            </p>
+          `
+        }
+      },
+      {
+        id: 'privacy-modifications',
+        title: { fr: 'Modifications de cette politique', en: 'Modifications to This Policy' },
+        content: {
+          fr: `
+            <p>
+              Nous pouvons mettre à jour cette politique de confidentialité de temps à autre. 
+              Les modifications seront publiées sur cette page avec une nouvelle date de « Dernière mise à jour ».
+            </p>
+            <p>
+              Nous vous encourageons à consulter régulièrement cette page pour rester informé de nos pratiques en matière de confidentialité.
+            </p>
+          `,
+          en: `
+            <p>
+              We may update this privacy policy from time to time. 
+              Changes will be published on this page with a new "Last Updated" date.
+            </p>
+            <p>
+              We encourage you to regularly review this page to stay informed about our privacy practices.
+            </p>
+          `
+        }
+      },
+      {
+        id: 'privacy-contact',
+        title: { fr: 'Nous contacter', en: 'Contact Us' },
+        content: {
+          fr: `
+            <p>Pour toute question concernant cette politique de confidentialité ou pour exercer vos droits :</p>
+            <p style="margin-top: 16px;">
+              <strong>Email :</strong> <a href="mailto:roxxormister@gmail.com">roxxormister@gmail.com</a><br>
+              <strong>Discord :</strong> arth.d.i.s.c.o.r.d
+            </p>
+          `,
+          en: `
+            <p>For any questions regarding this privacy policy or to exercise your rights:</p>
+            <p style="margin-top: 16px;">
+              <strong>Email:</strong> <a href="mailto:roxxormister@gmail.com">roxxormister@gmail.com</a><br>
+              <strong>Discord:</strong> arth.d.i.s.c.o.r.d
+            </p>
+          `
+        }
+      }
     ]
   },
   

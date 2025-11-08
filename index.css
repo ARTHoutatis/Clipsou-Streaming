@@ -282,7 +282,7 @@ body.player-open, html.player-open {
     border-radius: 8px;
     cursor: pointer;
     z-index: 2;
-    transition: background .2s ease, opacity .3s cubic-bezier(0.22, 1, 0.36, 1), transform .3s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: background .15s ease, opacity .2s ease, transform .2s ease;
     opacity: 0.85;
     -webkit-tap-highlight-color: transparent;
     transform: translateX(0);
@@ -304,7 +304,7 @@ body.player-open, html.player-open {
     z-index: 5 !important;
     opacity: 0 !important; /* Masqué par défaut */
     transform: translateX(0) !important;
-    transition: opacity .3s cubic-bezier(0.22, 1, 0.36, 1), transform .3s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: opacity .2s ease, transform .2s ease;
   }
   
   /* Afficher les dégradés dès qu'ils ne sont pas masqués (indépendant du hover) */
@@ -625,7 +625,7 @@ body.popup-open nav[aria-label="Navigation principale"] {
     overflow: hidden; /* prevent any overflow on all devices */
 }
 
-.carousel-slides { display: flex; width: 500%; height: 100%; animation: carousel-auto 25s infinite; margin: 0; padding: 0; gap: 0; will-change: transform; transition: transform .6s ease; }
+.carousel-slides { display: flex; width: 500%; height: 100%; animation: carousel-auto 25s infinite; margin: 0; padding: 0; gap: 0; transition: transform .4s ease; }
 
 /* Manual navigation: stop auto animation when user interacts */
 .carousel-slides.manual { animation: none !important; }
@@ -664,11 +664,11 @@ body.popup-open nav[aria-label="Navigation principale"] {
 }
 
 /* Hide carousel images until they are fully loaded to avoid showing placeholders */
-.carousel-slide > img { opacity: 0; transition: opacity .3s ease; }
+.carousel-slide > img { opacity: 0; transition: opacity .2s ease; }
 .carousel-slide > img.is-loaded { opacity: 1; }
 
 /* Hide carousel content until background image is loaded */
-.carousel-content { opacity: 0; transition: opacity .3s ease; }
+.carousel-content { opacity: 0; transition: opacity .2s ease; }
 .carousel-slide > img.is-loaded + .carousel-content { opacity: 1; }
 
 .carousel-slide.alex-focus {
