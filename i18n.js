@@ -34,7 +34,7 @@
       'footer.language': 'Langue',
 
       // Sections page d'accueil
-      'home.continue': '▶️ Reprendre la lecture',
+      'home.continue': 'Reprendre la lecture',
       'home.favorites': '❤️ Favoris',
       'home.top.rated': '⭐ Mieux notés',
       'home.discord.title': 'Des questions ? Un souci ? Rejoins-nous',
@@ -334,7 +334,7 @@
       'footer.language': 'Language',
 
       // Home sections
-      'home.continue': '▶️ Continue watching',
+      'home.continue': 'Continue watching',
       'home.favorites': '❤️ Favorites',
       'home.top.rated': '⭐ Top rated',
       'home.discord.title': 'Questions? An issue? Join us',
