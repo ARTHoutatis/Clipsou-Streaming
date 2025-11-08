@@ -909,9 +909,10 @@
     }
 
     try {
-      // Récupérer les informations de la vidéo
+      // Utiliser mine=true pour récupérer seulement les vidéos de l'utilisateur authentifié
+      // Cela évite le besoin d'une clé API et vérifie directement la propriété
       const response = await fetch(
-        `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}`,
+        `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&mine=true`,
         {
           headers: {
             'Authorization': `Bearer ${currentUser.accessToken}`
@@ -920,33 +921,39 @@
       );
 
       if (!response.ok) {
-        console.error('[OAuth] YouTube API error:', response.status);
+        const errorText = await response.text();
+        console.error('[OAuth] YouTube API error:', response.status, errorText);
+        
+        // Erreurs spécifiques
+        if (response.status === 401) {
+          return { valid: false, error: 'Session expirée. Veuillez vous reconnecter.' };
+        } else if (response.status === 403) {
+          return { valid: false, error: 'Accès refusé. Vérifiez les permissions YouTube.' };
+        }
+        
         return { valid: false, error: 'Erreur lors de la vérification de la vidéo' };
       }
 
       const data = await response.json();
       
+      console.log('[OAuth] API Response:', data);
+      
+      // Si mine=true ne retourne aucun résultat, la vidéo n'appartient pas à l'utilisateur
       if (!data.items || data.items.length === 0) {
-        return { valid: false, error: 'Vidéo introuvable ou privée' };
-      }
-
-      const video = data.items[0];
-      const videoChannelId = video.snippet.channelId;
-      const videoTitle = video.snippet.title;
-      const userChannelId = currentUser.channel.id;
-
-      console.log('[OAuth] Video channel:', videoChannelId);
-      console.log('[OAuth] User channel:', userChannelId);
-
-      if (videoChannelId !== userChannelId) {
-        return {
-          valid: false,
-          error: `Cette vidéo appartient à une autre chaîne (${video.snippet.channelTitle}). Vous ne pouvez soumettre que vos propres vidéos.`,
-          videoTitle
+        return { 
+          valid: false, 
+          error: 'Cette vidéo ne vous appartient pas ou est introuvable. Vous ne pouvez soumettre que vos propres vidéos YouTube.' 
         };
       }
 
+      const video = data.items[0];
+      const videoTitle = video.snippet.title;
+      const videoChannelId = video.snippet.channelId;
+
       console.log('[OAuth] ✅ Video ownership verified');
+      console.log('[OAuth] Video title:', videoTitle);
+      console.log('[OAuth] Channel ID:', videoChannelId);
+      
       return { valid: true, videoTitle };
 
     } catch (error) {
