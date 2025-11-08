@@ -3,33 +3,26 @@
 'use strict';
 
 (function(){
-  // ===== Security: Redirect if not logged in =====
-  // Check if user is trying to access admin without being logged in
-  // If they're not logged in and not on their first visit, redirect to home
-  (function checkAccessAndRedirect(){
+  // ===== Security: Show/Hide Admin Interface based on login status =====
+  // The page has two sections:
+  // 1. #login (visible by default) - Login form
+  // 2. #app (hidden by default) - Admin interface
+  // No redirection - let users access the login page
+  (function checkAccessAndShow(){
     try {
       const isLoggedIn = localStorage.getItem('clipsou_admin_logged_in_v1') === '1';
       const hasRemember = localStorage.getItem('clipsou_admin_remember_v1') === '1';
       const hasSession = sessionStorage.getItem('clipsou_admin_session_v1') === '1';
       
-      // If not logged in and no remember flag and no active session, redirect to home
-      if (!isLoggedIn && !hasRemember && !hasSession) {
-        // Check if this is a repeated attempt (to prevent redirect loops)
-        const lastRedirect = sessionStorage.getItem('clipsou_admin_redirect_attempt');
-        const now = Date.now();
+      // If logged in, show admin interface and hide login
+      if (isLoggedIn || hasRemember || hasSession) {
+        const loginDiv = document.getElementById('login');
+        const appDiv = document.getElementById('app');
         
-        if (lastRedirect && (now - parseInt(lastRedirect)) < 5000) {
-          // If redirected within last 5 seconds, allow access to login page
-          return;
-        }
-        
-        // Mark this redirect attempt
-        sessionStorage.setItem('clipsou_admin_redirect_attempt', String(now));
-        
-        // Redirect to home page
-        window.location.href = '../';
-        return;
+        if (loginDiv) loginDiv.style.display = 'none';
+        if (appDiv) appDiv.removeAttribute('hidden');
       }
+      // Otherwise, keep login page visible (default state)
     } catch {}
   })();
   
