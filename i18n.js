@@ -97,6 +97,112 @@
       // Popup Infos
       'popup.info.title': 'Infos',
 
+      // Page de demande (request.html)
+      'request.title': '📽️ Proposer un film',
+      'request.logout': '🚪 Se déconnecter',
+      'request.back': '← Retour à l\'accueil',
+      
+      // Stepper
+      'request.step.terms': 'Conditions',
+      'request.step.auth': 'Connexion',
+      'request.step.guide': 'Guide',
+      'request.step.form': 'Formulaire',
+      
+      // Pending request
+      'request.pending.title': '📋 Demande en cours',
+      'request.pending.message': 'Vous avez une demande en attente de validation par les administrateurs.',
+      'request.pending.cancel': 'Annuler ma demande',
+      'request.pending.new': 'Nouvelle demande',
+      
+      // Terms section
+      'request.terms.title': '📜 Conditions d\'utilisation',
+      'request.terms.intro': 'Avant de soumettre votre demande, veuillez lire attentivement et respecter les conditions suivantes :',
+      'request.terms.complete': '✅ Remplissez tous les champs',
+      'request.terms.complete.desc': 'Assurez-vous de compléter tous les champs requis du formulaire avec des informations exactes et complètes.',
+      'request.terms.notroll': '🚫 Pas de trolling',
+      'request.terms.notroll.desc': 'Les demandes fantaisistes, offensantes ou non sérieuses seront automatiquement rejetées et pourront entraîner un blocage.',
+      'request.terms.filmsonly': '🎥 Films uniquement',
+      'request.terms.filmsonly.desc': 'Cette plateforme est dédiée aux FILMS. Ne soumettez pas de vidéos courtes, sketches, vlogs ou autres contenus non-cinématographiques.',
+      'request.terms.ratelimit': '⏱️ Une demande par jour',
+      'request.terms.ratelimit.desc': 'Vous êtes limité à une seule demande par période de 24 heures. Vous pouvez annuler votre demande actuelle pour en soumettre une nouvelle.',
+      'request.terms.accept': 'J\'ai lu et j\'accepte les conditions d\'utilisation ci-dessus',
+      'request.terms.error': '⚠️ Vous devez accepter les conditions d\'utilisation pour soumettre votre demande.',
+      'request.terms.button': 'J\'accepte →',
+      
+      // Auth section
+      'request.auth.title': '🔐 Connexion requise',
+      'request.auth.desc': 'Pour soumettre un film, vous devez vous connecter avec votre compte Google et vérifier que vous êtes propriétaire de votre chaîne YouTube.',
+      'request.auth.google': 'Se connecter à Google',
+      'request.auth.why': 'Pourquoi cette connexion ?',
+      'request.auth.verify': '✅ Vérifier que vous êtes propriétaire de la chaîne YouTube',
+      'request.auth.prevent': '✅ Éviter les soumissions frauduleuses',
+      'request.auth.protect': '✅ Protéger les créateurs de contenu',
+      'request.auth.associate': '✅ Associer vos demandes à votre compte',
+      'request.auth.footer': 'En vous connectant, vous acceptez que nous accédions aux informations de votre chaîne YouTube pour vérifier votre propriété.',
+      'request.auth.privacy': 'Consulter notre politique de confidentialité',
+      'request.auth.prev': '← Retour',
+      'request.auth.next': 'Suivant →',
+      
+      // Tutorial section
+      'request.tutorial.title': '📚 Guide visuel des images',
+      'request.tutorial.intro': 'Voici un exemple de carte de film pour vous aider à comprendre le positionnement des différentes images :',
+      'request.tutorial.portrait': 'Affiche Portrait',
+      'request.tutorial.portrait.format': 'Format 9:12 (vertical)',
+      'request.tutorial.badge': 'Badge Studio',
+      'request.tutorial.rating': 'Note du contenu',
+      'request.tutorial.landscape': 'Image Fiche',
+      'request.tutorial.landscape.format': 'Format 16:9 (paysage)',
+      'request.tutorial.landscape.note': 'Cette image s\'affiche sur la page détaillée du contenu',
+      'request.tutorial.tips': '💡 Conseils pour vos images',
+      'request.tutorial.tip.portrait': 'Affiche Portrait (9:12) - Utilisée sur les cartes de la page d\'accueil. Taille recommandée : 540x720px minimum',
+      'request.tutorial.tip.landscape': 'Image Fiche (16:9) - Affichée sur la page de détail du contenu. Taille recommandée : 1920x1080px',
+      'request.tutorial.tip.badge': 'Badge Studio - Logo de votre chaîne/studio pour différencier les créateurs. Fond transparent recommandé (.png). Taille : 200x80px',
+      'request.tutorial.tip.formats': 'Formats acceptés : JPG, PNG, WebP. Poids max : 10MB par image',
+      'request.tutorial.prev': '← Précédent',
+      'request.tutorial.next': 'Suivant →',
+      
+      // Form section
+      'request.form.title': '🎬 Informations du contenu',
+      'request.form.title.field': 'Titre',
+      'request.form.type': 'Type',
+      'request.form.type.film': 'Film',
+      'request.form.type.series': 'Série',
+      'request.form.type.trailer': 'Trailer',
+      'request.form.genre': 'Genre',
+      'request.form.description': 'Description',
+      'request.form.description.placeholder': 'Décrivez le contenu...',
+      'request.form.portrait': 'Affiche (format 9/12)',
+      'request.form.landscape': 'Image fiche (paysage 16/9)',
+      'request.form.badge': 'Badge studio (image)',
+      'request.form.badge.info': '💡 Votre dernier badge studio est automatiquement réutilisé',
+      'request.form.upload': 'Importer image',
+      'request.form.clear': 'Effacer',
+      'request.form.actors': 'Acteurs & Doubleurs',
+      'request.form.actor.name': 'Nom de l\'acteur',
+      'request.form.actor.role': 'Rôle',
+      'request.form.actor.add': 'Ajouter',
+      'request.form.watchurl': 'Lien de visionnage',
+      'request.form.youtube': 'Lien YouTube',
+      'request.form.episodes': 'Épisodes',
+      'request.form.episode.title': 'Titre de l\'épisode',
+      'request.form.episode.url': 'Lien YouTube de l\'épisode',
+      'request.form.episode.add': 'Ajouter',
+      'request.form.prev': '← Précédent',
+      'request.form.submit': '📤 Envoyer la demande',
+      'request.form.reset': '🔄 Réinitialiser',
+      
+      // Rate limit
+      'request.limit.title': '⏳ Limite atteinte',
+      'request.limit.message': 'Vous avez déjà soumis une demande aujourd\'hui. Vous pourrez soumettre une nouvelle demande demain.',
+      
+      // Success
+      'request.success.title': '✅ Demande soumise avec succès !',
+      'request.success.message': 'Votre demande a été envoyée aux administrateurs. Vous recevrez une réponse prochainement.',
+      'request.success.cooldown': 'Vous pourrez soumettre une nouvelle demande dans 24 heures.',
+      
+      // History
+      'request.history.title': '📜 Historique de mes demandes',
+
       // Popup Partenariats
       'popup.partners.title': 'Partenariats',
       'popup.partners.nova.title': 'Bienvenue sur NOVA – Le Meilleur du Streaming Gratuit en VF & VOSTFR !',
@@ -292,6 +398,112 @@
 
       // Info popup
       'popup.info.title': 'Info',
+      
+      // Request page (request.html)
+      'request.title': '📽️ Submit a film',
+      'request.logout': '🚪 Logout',
+      'request.back': '← Back to home',
+      
+      // Stepper
+      'request.step.terms': 'Terms',
+      'request.step.auth': 'Login',
+      'request.step.guide': 'Guide',
+      'request.step.form': 'Form',
+      
+      // Pending request
+      'request.pending.title': '📋 Pending request',
+      'request.pending.message': 'You have a request awaiting validation by administrators.',
+      'request.pending.cancel': 'Cancel my request',
+      'request.pending.new': 'New request',
+      
+      // Terms section
+      'request.terms.title': '📜 Terms of use',
+      'request.terms.intro': 'Before submitting your request, please read carefully and comply with the following conditions:',
+      'request.terms.complete': '✅ Complete all fields',
+      'request.terms.complete.desc': 'Make sure to fill out all required form fields with accurate and complete information.',
+      'request.terms.notroll': '🚫 No trolling',
+      'request.terms.notroll.desc': 'Fanciful, offensive or non-serious requests will be automatically rejected and may result in a ban.',
+      'request.terms.filmsonly': '🎥 Films only',
+      'request.terms.filmsonly.desc': 'This platform is dedicated to FILMS. Do not submit short videos, sketches, vlogs or other non-cinematic content.',
+      'request.terms.ratelimit': '⏱️ One request per day',
+      'request.terms.ratelimit.desc': 'You are limited to one request per 24-hour period. You can cancel your current request to submit a new one.',
+      'request.terms.accept': 'I have read and accept the terms of use above',
+      'request.terms.error': '⚠️ You must accept the terms of use to submit your request.',
+      'request.terms.button': 'I accept →',
+      
+      // Auth section
+      'request.auth.title': '🔐 Login required',
+      'request.auth.desc': 'To submit a film, you must log in with your Google account and verify that you own your YouTube channel.',
+      'request.auth.google': 'Sign in with Google',
+      'request.auth.why': 'Why this login?',
+      'request.auth.verify': '✅ Verify that you own the YouTube channel',
+      'request.auth.prevent': '✅ Prevent fraudulent submissions',
+      'request.auth.protect': '✅ Protect content creators',
+      'request.auth.associate': '✅ Associate your requests with your account',
+      'request.auth.footer': 'By logging in, you agree that we access your YouTube channel information to verify your ownership.',
+      'request.auth.privacy': 'View our privacy policy',
+      'request.auth.prev': '← Back',
+      'request.auth.next': 'Next →',
+      
+      // Tutorial section
+      'request.tutorial.title': '📚 Visual image guide',
+      'request.tutorial.intro': 'Here is an example film card to help you understand the positioning of the different images:',
+      'request.tutorial.portrait': 'Portrait Poster',
+      'request.tutorial.portrait.format': '9:12 format (vertical)',
+      'request.tutorial.badge': 'Studio Badge',
+      'request.tutorial.rating': 'Content rating',
+      'request.tutorial.landscape': 'Details Image',
+      'request.tutorial.landscape.format': '16:9 format (landscape)',
+      'request.tutorial.landscape.note': 'This image is displayed on the content details page',
+      'request.tutorial.tips': '💡 Tips for your images',
+      'request.tutorial.tip.portrait': 'Portrait Poster (9:12) - Used on homepage cards. Recommended size: 540x720px minimum',
+      'request.tutorial.tip.landscape': 'Details Image (16:9) - Displayed on content detail page. Recommended size: 1920x1080px',
+      'request.tutorial.tip.badge': 'Studio Badge - Your channel/studio logo to differentiate creators. Transparent background recommended (.png). Size: 200x80px',
+      'request.tutorial.tip.formats': 'Accepted formats: JPG, PNG, WebP. Max size: 10MB per image',
+      'request.tutorial.prev': '← Previous',
+      'request.tutorial.next': 'Next →',
+      
+      // Form section
+      'request.form.title': '🎬 Content information',
+      'request.form.title.field': 'Title',
+      'request.form.type': 'Type',
+      'request.form.type.film': 'Movie',
+      'request.form.type.series': 'Series',
+      'request.form.type.trailer': 'Trailer',
+      'request.form.genre': 'Genre',
+      'request.form.description': 'Description',
+      'request.form.description.placeholder': 'Describe the content...',
+      'request.form.portrait': 'Poster (9/12 format)',
+      'request.form.landscape': 'Details image (landscape 16/9)',
+      'request.form.badge': 'Studio badge (image)',
+      'request.form.badge.info': '💡 Your last studio badge is automatically reused',
+      'request.form.upload': 'Upload image',
+      'request.form.clear': 'Clear',
+      'request.form.actors': 'Actors & Voice actors',
+      'request.form.actor.name': 'Actor name',
+      'request.form.actor.role': 'Role',
+      'request.form.actor.add': 'Add',
+      'request.form.watchurl': 'Watch link',
+      'request.form.youtube': 'YouTube link',
+      'request.form.episodes': 'Episodes',
+      'request.form.episode.title': 'Episode title',
+      'request.form.episode.url': 'Episode YouTube link',
+      'request.form.episode.add': 'Add',
+      'request.form.prev': '← Previous',
+      'request.form.submit': '📤 Send request',
+      'request.form.reset': '🔄 Reset',
+      
+      // Rate limit
+      'request.limit.title': '⏳ Limit reached',
+      'request.limit.message': 'You have already submitted a request today. You will be able to submit a new request tomorrow.',
+      
+      // Success
+      'request.success.title': '✅ Request submitted successfully!',
+      'request.success.message': 'Your request has been sent to administrators. You will receive a response soon.',
+      'request.success.cooldown': 'You will be able to submit a new request in 24 hours.',
+      
+      // History
+      'request.history.title': '📜 My request history',
 
       // Partnerships popup
       'popup.partners.title': 'Partnerships',
@@ -661,6 +873,9 @@
         setLanguage(lang);
       }
     });
+    
+    // Dispatcher un événement pour indiquer que i18n est prêt
+    document.dispatchEvent(new CustomEvent('i18nReady', { detail: { language: currentLang } }));
   }
 
   // Fonction pour traduire un type de contenu

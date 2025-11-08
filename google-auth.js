@@ -13,6 +13,8 @@
 
   // DOM elements
   let googleSignInButton, userInfoDiv, logoutBtn, authErrorDiv;
+  let googleButton = null; // Référence au bouton Google pour mise à jour dynamique
+  let realOAuthButton = null; // Référence au bouton OAuth réel (mode dev)
 
   // OAuth state
   let tokenClient = null;
@@ -20,15 +22,32 @@
   let silentAuthAttempted = false;
   let refreshTimer = null;
 
-  const GOOGLE_BUTTON_HTML = `
+  const GOOGLE_ICON_SVG = `
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
           <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
           <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
           <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
         </svg>
-        Se connecter avec Google
       `;
+  
+  function getGoogleButtonHTML() {
+    // Vérifier la langue actuelle dans localStorage
+    const currentLang = localStorage.getItem('site_language') || 'fr';
+    let text = 'Se connecter à Google'; // Défaut français
+    
+    if (window.i18n) {
+      text = window.i18n.translate('request.auth.google');
+      console.log('[Google Button] Using i18n translation:', text, '(lang:', window.i18n.getCurrentLanguage() + ')');
+    } else if (currentLang === 'en') {
+      text = 'Sign in with Google'; // Fallback anglais si i18n pas chargé
+      console.log('[Google Button] Using fallback EN:', text);
+    } else {
+      console.log('[Google Button] Using fallback FR:', text);
+    }
+    
+    return GOOGLE_ICON_SVG + text;
+  }
 
   // Authentication state
   let googleAuth = null;
@@ -154,13 +173,18 @@
         const realOAuthBtn = document.createElement('button');
         realOAuthBtn.className = 'btn secondary';
         realOAuthBtn.style.cssText = 'display: inline-flex; align-items: center; gap: 12px; font-size: 16px; padding: 14px 32px; margin-top: 12px;';
-        realOAuthBtn.innerHTML = GOOGLE_BUTTON_HTML.replace('Se connecter avec Google', 'Tester OAuth Google réel');
+        const currentLang = localStorage.getItem('site_language') || 'fr';
+        const googleText = window.i18n ? window.i18n.translate('request.auth.google') : (currentLang === 'en' ? 'Sign in with Google' : 'Se connecter à Google');
+        realOAuthBtn.innerHTML = getGoogleButtonHTML().replace(googleText, 'Tester OAuth Google réel');
 
         realOAuthBtn.onclick = () => {
           console.log('[OAuth] Switching to real OAuth mode');
           setOAuthPreference(true);
           window.location.reload();
         };
+
+        // Stocker la référence globale pour mise à jour dynamique
+        realOAuthButton = realOAuthBtn;
 
         googleSignInButton.appendChild(realOAuthBtn);
 
@@ -251,7 +275,10 @@
     const button = document.createElement('button');
     button.className = 'btn primary';
     button.style.cssText = 'display: inline-flex; align-items: center; gap: 12px; font-size: 16px; padding: 14px 32px;';
-    button.innerHTML = GOOGLE_BUTTON_HTML;
+    button.innerHTML = getGoogleButtonHTML();
+    
+    // Stocker la référence globale pour mise à jour dynamique
+    googleButton = button;
 
     button.onclick = () => {
       console.log('[OAuth] User clicked sign-in button');
@@ -437,7 +464,7 @@
         showAuthError(`Erreur: ${response.error}`);
         if (button) {
           button.disabled = false;
-          button.innerHTML = previousHTML || GOOGLE_BUTTON_HTML;
+          button.innerHTML = previousHTML || getGoogleButtonHTML();
         }
       }
       return false;
@@ -473,7 +500,7 @@
         showAuthError('Aucune chaîne YouTube trouvée pour ce compte. Vous devez avoir une chaîne YouTube pour soumettre un film.');
         if (button) {
           button.disabled = false;
-          button.innerHTML = previousHTML || GOOGLE_BUTTON_HTML;
+          button.innerHTML = previousHTML || getGoogleButtonHTML();
         }
         return false;
       }
@@ -505,7 +532,7 @@
     } finally {
       if (button) {
         button.disabled = false;
-        button.innerHTML = previousHTML || GOOGLE_BUTTON_HTML;
+        button.innerHTML = previousHTML || getGoogleButtonHTML();
       }
     }
   }
@@ -941,6 +968,31 @@
     setOAuthPreference,
     refreshAccessToken
   };
+
+  // Écouteurs globaux pour la traduction dynamique du bouton Google
+  document.addEventListener('i18nReady', () => {
+    console.log('[Google Button] i18n ready, updating button');
+    if (googleButton && !googleButton.disabled) {
+      googleButton.innerHTML = getGoogleButtonHTML();
+    }
+    if (realOAuthButton) {
+      const currentLang = localStorage.getItem('site_language') || 'fr';
+      const googleText = window.i18n ? window.i18n.translate('request.auth.google') : (currentLang === 'en' ? 'Sign in with Google' : 'Se connecter à Google');
+      realOAuthButton.innerHTML = getGoogleButtonHTML().replace(googleText, 'Tester OAuth Google réel');
+    }
+  }, { once: true });
+
+  document.addEventListener('languageChanged', () => {
+    console.log('[Google Button] Language changed, updating button');
+    if (googleButton && !googleButton.disabled) {
+      googleButton.innerHTML = getGoogleButtonHTML();
+    }
+    if (realOAuthButton) {
+      const currentLang = localStorage.getItem('site_language') || 'fr';
+      const googleText = window.i18n ? window.i18n.translate('request.auth.google') : (currentLang === 'en' ? 'Sign in with Google' : 'Se connecter à Google');
+      realOAuthButton.innerHTML = getGoogleButtonHTML().replace(googleText, 'Tester OAuth Google réel');
+    }
+  });
 
   // Auto-initialize when DOM is ready
   if (document.readyState === 'loading') {

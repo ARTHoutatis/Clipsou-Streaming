@@ -1182,6 +1182,7 @@ label .actions {
   display: flex;
   gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .user-info {
