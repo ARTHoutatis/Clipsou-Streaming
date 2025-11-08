@@ -34,157 +34,213 @@ window.legalTranslations = {
             <p>Clipsou Streaming est une plateforme communautaire gratuite dédiée au streaming de créations audiovisuelles (brickfilms, animations, courts-métrages) réalisées par des créateurs YouTube indépendants.</p>
             <p>Le Site propose les services suivants :</p>
             <ul>
-              <li><strong>Diffusion de vidéos :</strong> Intégration de vidéos YouTube hébergées par les créateurs</li>
-              <li><strong>Système de favoris :</strong> Sauvegarde locale de vos contenus préférés</li>
-              <li><strong>Système de notation :</strong> Évaluation des contenus sur 5 étoiles</li>
-              <li><strong>Soumission de demandes :</strong> Demande d'ajout de nouveaux contenus</li>
-              <li><strong>Recherche et filtrage :</strong> Recherche avancée par titre, créateur, genre, etc.</li>
+              <li>Visionnage gratuit de films, séries et animations via intégration YouTube</li>
+              <li>Soumission de contenus par les créateurs (après authentification Google/YouTube)</li>
+              <li>Gestion de favoris et historique de visionnage (stockage local)</li>
+              <li>Recherche et filtrage par genre</li>
             </ul>
-            <div class="warning-box">
-              <p><strong>⚠️ Avertissement :</strong> Le Site est fourni « tel quel » sans garantie d'aucune sorte. Nous ne garantissons pas la disponibilité continue du Site ni l'absence d'erreurs ou d'interruptions.</p>
-            </div>
+            <p><strong>Nature du service :</strong> Clipsou Streaming ne stocke ni n'héberge les vidéos. Nous intégrons uniquement des liens vers des vidéos hébergées sur YouTube. Le visionnage se fait via le lecteur YouTube intégré.</p>
           `,
           en: `
             <p>Clipsou Streaming is a free community platform dedicated to streaming audiovisual creations (brickfilms, animations, short films) made by independent YouTube creators.</p>
             <p>The Site offers the following services:</p>
             <ul>
-              <li><strong>Video streaming:</strong> Integration of YouTube videos hosted by creators</li>
-              <li><strong>Favorites system:</strong> Local saving of your favorite content</li>
-              <li><strong>Rating system:</strong> 5-star content evaluation</li>
-              <li><strong>Request submission:</strong> Request addition of new content</li>
-              <li><strong>Search and filtering:</strong> Advanced search by title, creator, genre, etc.</li>
+              <li>Free viewing of films, series, and animations via YouTube integration</li>
+              <li>Content submission by creators (after Google/YouTube authentication)</li>
+              <li>Favorites management and viewing history (local storage)</li>
+              <li>Search and filtering by genre</li>
             </ul>
-            <div class="warning-box">
-              <p><strong>⚠️ Warning:</strong> The Site is provided "as is" without warranty of any kind. We do not guarantee the Site's continuous availability or the absence of errors or interruptions.</p>
-            </div>
+            <p><strong>Nature of the service:</strong> Clipsou Streaming does not store or host videos. We only integrate links to videos hosted on YouTube. Viewing is done via the embedded YouTube player.</p>
           `
         }
       },
       {
         id: 'cgu-3',
-        title: { fr: '3. Accès au site', en: '3. Site Access' },
+        title: { fr: '3. Accès au Site', en: '3. Site Access' },
         content: {
           fr: `
-            <p>L'accès au Site est gratuit et ne nécessite aucune inscription obligatoire. Cependant, certaines fonctionnalités (favoris, notation, soumission de demandes) peuvent nécessiter l'utilisation du stockage local (localStorage) de votre navigateur.</p>
-            <p><strong>Conditions techniques :</strong></p>
+            <h3>3.1 Conditions d'accès</h3>
+            <p>L'accès au Site est gratuit et ne nécessite pas d'inscription pour le visionnage. Cependant, certaines fonctionnalités (soumission de films, notation) requièrent une authentification via Google OAuth 2.0.</p>
+            
+            <h3>3.2 Prérequis techniques</h3>
+            <p>Pour utiliser le Site, vous devez disposer :</p>
             <ul>
-              <li>Connexion Internet stable recommandée</li>
-              <li>Navigateur web moderne (Chrome, Firefox, Safari, Edge)</li>
-              <li>JavaScript activé</li>
-              <li>Cookies et localStorage autorisés pour certaines fonctionnalités</li>
+              <li>D'un navigateur web récent (Chrome, Firefox, Safari, Edge)</li>
+              <li>D'une connexion Internet fonctionnelle</li>
+              <li>D'un compte Google (pour les fonctionnalités avancées)</li>
+              <li>D'accepter les cookies et le stockage local (localStorage)</li>
             </ul>
-            <p>Vous êtes responsable de maintenir la sécurité de votre connexion Internet et de votre appareil. Clipsou Streaming ne peut être tenu responsable des problèmes techniques liés à votre connexion ou à votre matériel.</p>
+            
+            <h3>3.3 Disponibilité</h3>
+            <p>Nous nous efforçons de maintenir le Site accessible 24h/24 et 7j/7, mais ne garantissons pas une disponibilité ininterrompue. Le Site peut être temporairement indisponible pour maintenance, mises à jour ou raisons techniques indépendantes de notre volonté.</p>
           `,
           en: `
-            <p>Access to the Site is free and does not require mandatory registration. However, certain features (favorites, ratings, request submission) may require the use of your browser's local storage (localStorage).</p>
-            <p><strong>Technical requirements:</strong></p>
+            <h3>3.1 Access Conditions</h3>
+            <p>Access to the Site is free and does not require registration for viewing. However, certain features (film submission, rating) require authentication via Google OAuth 2.0.</p>
+            
+            <h3>3.2 Technical Requirements</h3>
+            <p>To use the Site, you must have:</p>
             <ul>
-              <li>Stable Internet connection recommended</li>
-              <li>Modern web browser (Chrome, Firefox, Safari, Edge)</li>
-              <li>JavaScript enabled</li>
-              <li>Cookies and localStorage allowed for certain features</li>
+              <li>A recent web browser (Chrome, Firefox, Safari, Edge)</li>
+              <li>A functional Internet connection</li>
+              <li>A Google account (for advanced features)</li>
+              <li>Acceptance of cookies and local storage (localStorage)</li>
             </ul>
-            <p>You are responsible for maintaining the security of your Internet connection and device. Clipsou Streaming cannot be held responsible for technical problems related to your connection or equipment.</p>
+            
+            <h3>3.3 Availability</h3>
+            <p>We strive to keep the Site accessible 24/7, but we do not guarantee uninterrupted availability. The Site may be temporarily unavailable for maintenance, updates, or technical reasons beyond our control.</p>
           `
         }
       },
       {
         id: 'cgu-4',
-        title: { fr: '4. Utilisation du site et obligations de l\'utilisateur', en: '4. Site Use and User Obligations' },
+        title: { fr: '4. Utilisation du Site et obligations des utilisateurs', en: '4. Site Use and User Obligations' },
         content: {
           fr: `
-            <p>En utilisant le Site, vous vous engagez à :</p>
+            <h3>4.1 Usage autorisé</h3>
+            <p>Vous vous engagez à utiliser le Site conformément à sa destination, à savoir :</p>
             <ul>
-              <li>Respecter la législation en vigueur et les présentes CGU</li>
-              <li>Ne pas utiliser le Site à des fins illégales ou non autorisées</li>
-              <li>Ne pas tenter de contourner, désactiver ou perturber les fonctionnalités du Site</li>
-              <li>Ne pas utiliser de scripts, bots ou outils automatisés sans autorisation</li>
-              <li>Ne pas extraire, copier ou réutiliser le contenu du Site sans autorisation</li>
-              <li>Ne pas soumettre de fausses informations ou de contenu malveillant</li>
-              <li>Respecter les droits de propriété intellectuelle des créateurs</li>
+              <li>Visionner les contenus disponibles</li>
+              <li>Soumettre vos propres créations (si vous en êtes l'auteur)</li>
+              <li>Interagir avec les fonctionnalités de recherche, filtrage et favoris</li>
+            </ul>
+            
+            <h3>4.2 Usages interdits</h3>
+            <p>Il est strictement interdit de :</p>
+            <ul>
+              <li>Télécharger, copier ou redistribuer les contenus sans autorisation des créateurs</li>
+              <li>Utiliser des robots, scrapers ou outils automatisés pour extraire des données du Site</li>
+              <li>Tenter de contourner les mesures de sécurité ou d'accéder à des zones restreintes</li>
+              <li>Soumettre des contenus contrefaits, illégaux, offensants ou violant les droits de tiers</li>
+              <li>Usurper l'identité d'un tiers ou soumettre des contenus ne vous appartenant pas</li>
+              <li>Spammer, troller ou abuser du système de soumission</li>
+              <li>Perturber le fonctionnement du Site ou nuire à l'expérience d'autres utilisateurs</li>
             </ul>
             <div class="warning-box">
-              <p><strong>⚠️ Sanctions :</strong> Tout manquement à ces obligations peut entraîner la suspension ou le blocage de votre accès au Site, sans préavis ni indemnité.</p>
+              <p><strong>⚠️ Attention :</strong> Toute violation de ces interdictions peut entraîner la suspension ou le bannissement de votre compte, ainsi que des poursuites judiciaires le cas échéant.</p>
             </div>
           `,
           en: `
-            <p>By using the Site, you agree to:</p>
+            <h3>4.1 Authorized Use</h3>
+            <p>You agree to use the Site in accordance with its purpose, namely:</p>
             <ul>
-              <li>Comply with applicable laws and these Terms</li>
-              <li>Not use the Site for illegal or unauthorized purposes</li>
-              <li>Not attempt to bypass, disable, or disrupt Site features</li>
-              <li>Not use scripts, bots, or automated tools without authorization</li>
-              <li>Not extract, copy, or reuse Site content without permission</li>
-              <li>Not submit false information or malicious content</li>
-              <li>Respect creators' intellectual property rights</li>
+              <li>View available content</li>
+              <li>Submit your own creations (if you are the author)</li>
+              <li>Interact with search, filtering, and favorites features</li>
+            </ul>
+            
+            <h3>4.2 Prohibited Uses</h3>
+            <p>It is strictly forbidden to:</p>
+            <ul>
+              <li>Download, copy, or redistribute content without creators' permission</li>
+              <li>Use robots, scrapers, or automated tools to extract data from the Site</li>
+              <li>Attempt to bypass security measures or access restricted areas</li>
+              <li>Submit counterfeit, illegal, offensive content or content violating third party rights</li>
+              <li>Impersonate a third party or submit content that does not belong to you</li>
+              <li>Spam, troll, or abuse the submission system</li>
+              <li>Disrupt the Site's operation or harm other users' experience</li>
             </ul>
             <div class="warning-box">
-              <p><strong>⚠️ Sanctions:</strong> Any breach of these obligations may result in suspension or blocking of your access to the Site, without notice or compensation.</p>
+              <p><strong>⚠️ Warning:</strong> Any violation of these prohibitions may result in suspension or banning of your account, as well as legal action where applicable.</p>
             </div>
           `
         }
       },
       {
         id: 'cgu-5',
-        title: { fr: '5. Contenu et propriété intellectuelle', en: '5. Content and Intellectual Property' },
+        title: { fr: '5. Soumission de contenus', en: '5. Content Submission' },
         content: {
           fr: `
-            <p><strong>Contenu vidéo :</strong> Tous les films, séries, animations et vidéos diffusés sur Clipsou Streaming sont la propriété exclusive de leurs créateurs respectifs. Le Site ne fait qu'intégrer des liens vers des vidéos YouTube hébergées par les créateurs.</p>
-            <p><strong>Contenu du Site :</strong> Le design, la structure, le code source, les textes et éléments graphiques du Site sont protégés par le droit d'auteur et appartiennent à Clipsou Streaming ou à ses concédants de licence.</p>
-            <p><strong>Utilisation autorisée :</strong> Vous pouvez :</p>
+            <h3>5.1 Conditions de soumission</h3>
+            <p>Pour soumettre un contenu sur Clipsou Streaming, vous devez :</p>
             <ul>
-              <li>Visionner les vidéos pour un usage personnel et non commercial</li>
-              <li>Partager les liens vers les pages du Site</li>
-              <li>Utiliser les fonctionnalités du Site (favoris, notation, recherche)</li>
+              <li>Être connecté via Google OAuth et disposer d'une chaîne YouTube</li>
+              <li>Être le créateur et le propriétaire légitime du contenu soumis</li>
+              <li>Vérifier la propriété de la vidéo YouTube (via notre système de vérification OAuth)</li>
+              <li>Fournir des informations exactes et complètes (titre, description, genres, etc.)</li>
+              <li>Respecter les conditions d'utilisation du formulaire de soumission</li>
+              <li>Respecter la limite d'une demande par période de 24 heures</li>
             </ul>
-            <p><strong>Utilisations interdites :</strong></p>
+            
+            <h3>5.2 Responsabilité des créateurs</h3>
+            <p>En soumettant un contenu, vous déclarez et garantissez que :</p>
             <ul>
-              <li>Télécharger, copier ou redistribuer les vidéos sans autorisation des créateurs</li>
-              <li>Utiliser le contenu à des fins commerciales</li>
-              <li>Modifier, adapter ou créer des œuvres dérivées du Site</li>
+              <li>Vous êtes le titulaire de tous les droits nécessaires sur le contenu (droit d'auteur, droits connexes, droit à l'image, etc.)</li>
+              <li>Le contenu ne porte pas atteinte aux droits de tiers (plagiat, contrefaçon, diffamation, etc.)</li>
+              <li>Le contenu respecte les lois en vigueur et n'est ni illégal, ni offensant, ni inapproprié</li>
+              <li>Vous êtes seul responsable de tout litige, plainte ou réclamation résultant de la diffusion de votre contenu</li>
             </ul>
+            <div class="highlight-box">
+              <p><strong>Important :</strong> Clipsou Streaming agit en tant qu'hébergeur et ne peut être tenu responsable des contenus soumis par les utilisateurs. Nous nous réservons le droit de modérer, refuser ou retirer tout contenu sans préavis.</p>
+            </div>
+            
+            <h3>5.3 Licence accordée</h3>
+            <p>En soumettant un contenu, vous accordez à Clipsou Streaming une licence non exclusive, gratuite, mondiale et révocable pour :</p>
+            <ul>
+              <li>Afficher et diffuser votre contenu sur le Site (via intégration YouTube)</li>
+              <li>Afficher les métadonnées associées (titre, description, miniatures, etc.)</li>
+              <li>Promouvoir votre contenu sur le Site et sur nos réseaux sociaux</li>
+            </ul>
+            <p>Vous conservez l'intégralité de vos droits sur votre contenu et pouvez demander son retrait à tout moment en nous contactant.</p>
           `,
           en: `
-            <p><strong>Video content:</strong> All films, series, animations, and videos broadcast on Clipsou Streaming are the exclusive property of their respective creators. The Site only integrates links to YouTube videos hosted by the creators.</p>
-            <p><strong>Site content:</strong> The Site's design, structure, source code, texts, and graphic elements are protected by copyright and belong to Clipsou Streaming or its licensors.</p>
-            <p><strong>Permitted use:</strong> You may:</p>
+            <h3>5.1 Submission Conditions</h3>
+            <p>To submit content on Clipsou Streaming, you must:</p>
             <ul>
-              <li>Watch videos for personal, non-commercial use</li>
-              <li>Share links to Site pages</li>
-              <li>Use Site features (favorites, ratings, search)</li>
+              <li>Be logged in via Google OAuth and have a YouTube channel</li>
+              <li>Be the creator and legitimate owner of the submitted content</li>
+              <li>Verify ownership of the YouTube video (via our OAuth verification system)</li>
+              <li>Provide accurate and complete information (title, description, genres, etc.)</li>
+              <li>Comply with the submission form's terms of use</li>
+              <li>Respect the limit of one request per 24-hour period</li>
             </ul>
-            <p><strong>Prohibited uses:</strong></p>
+            
+            <h3>5.2 Creator Responsibility</h3>
+            <p>By submitting content, you declare and guarantee that:</p>
             <ul>
-              <li>Download, copy, or redistribute videos without creators' permission</li>
-              <li>Use content for commercial purposes</li>
-              <li>Modify, adapt, or create derivative works of the Site</li>
+              <li>You hold all necessary rights to the content (copyright, related rights, image rights, etc.)</li>
+              <li>The content does not infringe on third party rights (plagiarism, counterfeiting, defamation, etc.)</li>
+              <li>The content complies with applicable laws and is neither illegal, offensive, nor inappropriate</li>
+              <li>You are solely responsible for any dispute, complaint, or claim arising from the distribution of your content</li>
             </ul>
+            <div class="highlight-box">
+              <p><strong>Important:</strong> Clipsou Streaming acts as a host and cannot be held responsible for content submitted by users. We reserve the right to moderate, refuse, or remove any content without notice.</p>
+            </div>
+            
+            <h3>5.3 License Granted</h3>
+            <p>By submitting content, you grant Clipsou Streaming a non-exclusive, free, worldwide, and revocable license to:</p>
+            <ul>
+              <li>Display and broadcast your content on the Site (via YouTube integration)</li>
+              <li>Display associated metadata (title, description, thumbnails, etc.)</li>
+              <li>Promote your content on the Site and on our social networks</li>
+            </ul>
+            <p>You retain full rights to your content and may request its removal at any time by contacting us.</p>
           `
         }
       },
       {
         id: 'cgu-6',
-        title: { fr: '6. Données personnelles', en: '6. Personal Data' },
+        title: { fr: '6. Propriété intellectuelle', en: '6. Intellectual Property' },
         content: {
           fr: `
-            <p>Pour toute information concernant la collecte, le traitement et la protection de vos données personnelles, veuillez consulter notre <a href="privacy.html" style="color: #3b82f6;">Politique de confidentialité</a>.</p>
-            <p>En résumé :</p>
-            <ul>
-              <li>Nous ne collectons pas de données personnelles identifiables</li>
-              <li>Les données de navigation (favoris, notes) sont stockées localement sur votre appareil</li>
-              <li>Nous utilisons des services tiers (YouTube, Cloudinary, GitHub) soumis à leurs propres politiques</li>
-              <li>Vous disposez de droits RGPD (accès, rectification, effacement, etc.)</li>
-            </ul>
+            <h3>6.1 Propriété du Site</h3>
+            <p>Le Site et tous ses éléments (design, code source, structure, bases de données, logos, etc.) sont protégés par le droit d'auteur et appartiennent à Clipsou Streaming ou à ses ayants droit. Toute reproduction, distribution ou modification non autorisée est interdite.</p>
+            
+            <h3>6.2 Propriété des contenus</h3>
+            <p>Les films, séries et vidéos diffusés sur le Site appartiennent à leurs créateurs respectifs. Clipsou Streaming ne revendique aucun droit de propriété sur ces contenus.</p>
+            
+            <h3>6.3 Marques de tiers</h3>
+            <p>Les marques et logos de tiers mentionnés sur le Site (YouTube, Google, Discord, Cloudinary, etc.) appartiennent à leurs propriétaires respectifs et sont utilisés à des fins d'identification uniquement.</p>
           `,
           en: `
-            <p>For all information regarding the collection, processing, and protection of your personal data, please consult our <a href="privacy.html" style="color: #3b82f6;">Privacy Policy</a>.</p>
-            <p>In summary:</p>
-            <ul>
-              <li>We do not collect identifiable personal data</li>
-              <li>Browsing data (favorites, ratings) are stored locally on your device</li>
-              <li>We use third-party services (YouTube, Cloudinary, GitHub) subject to their own policies</li>
-              <li>You have GDPR rights (access, rectification, erasure, etc.)</li>
-            </ul>
+            <h3>6.1 Site Ownership</h3>
+            <p>The Site and all its elements (design, source code, structure, databases, logos, etc.) are protected by copyright and belong to Clipsou Streaming or its licensors. Any unauthorized reproduction, distribution, or modification is prohibited.</p>
+            
+            <h3>6.2 Content Ownership</h3>
+            <p>The films, series, and videos broadcast on the Site belong to their respective creators. Clipsou Streaming claims no ownership rights over this content.</p>
+            
+            <h3>6.3 Third Party Trademarks</h3>
+            <p>Third party trademarks and logos mentioned on the Site (YouTube, Google, Discord, Cloudinary, etc.) belong to their respective owners and are used for identification purposes only.</p>
           `
         }
       },
@@ -193,111 +249,117 @@ window.legalTranslations = {
         title: { fr: '7. Limitation de responsabilité', en: '7. Limitation of Liability' },
         content: {
           fr: `
-            <p>Dans les limites autorisées par la loi, Clipsou Streaming décline toute responsabilité concernant :</p>
+            <p>Dans les limites autorisées par la loi, Clipsou Streaming décline toute responsabilité pour :</p>
             <ul>
-              <li><strong>Contenu tiers :</strong> Le contenu des vidéos YouTube intégrées (nous ne contrôlons pas leur contenu)</li>
-              <li><strong>Interruptions :</strong> Interruptions, erreurs, bugs ou indisponibilité temporaire du Site</li>
-              <li><strong>Perte de données :</strong> Perte ou corruption de données stockées localement</li>
-              <li><strong>Préjudices :</strong> Tout dommage direct ou indirect résultant de l'utilisation du Site</li>
-              <li><strong>Liens externes :</strong> Contenu et disponibilité des sites tiers (Discord, YouTube, etc.)</li>
+              <li>Les interruptions, bugs, erreurs ou dysfonctionnements du Site</li>
+              <li>La perte de données ou de contenus</li>
+              <li>Les dommages directs ou indirects résultant de l'utilisation ou de l'impossibilité d'utiliser le Site</li>
+              <li>Le contenu des vidéos intégrées (hébergées sur YouTube) et les violations de droits commises par les créateurs</li>
+              <li>Les liens externes vers des sites tiers (Discord, YouTube, etc.)</li>
             </ul>
-            <div class="highlight-box">
-              <p><strong>Important :</strong> Le Site est fourni à titre gracieux et sans garantie. Vous utilisez le Site à vos propres risques.</p>
-            </div>
+            <p><strong>Contenus tiers :</strong> Clipsou Streaming agit en tant qu'hébergeur au sens de la loi française (LCEN). Nous ne sommes responsables des contenus soumis par les utilisateurs qu'à partir du moment où nous avons effectivement connaissance de leur caractère illicite et n'avons pas agi promptement pour les retirer.</p>
           `,
           en: `
             <p>To the extent permitted by law, Clipsou Streaming disclaims all liability for:</p>
             <ul>
-              <li><strong>Third-party content:</strong> Content of embedded YouTube videos (we do not control their content)</li>
-              <li><strong>Interruptions:</strong> Interruptions, errors, bugs, or temporary Site unavailability</li>
-              <li><strong>Data loss:</strong> Loss or corruption of locally stored data</li>
-              <li><strong>Damages:</strong> Any direct or indirect damage resulting from Site use</li>
-              <li><strong>External links:</strong> Content and availability of third-party sites (Discord, YouTube, etc.)</li>
+              <li>Interruptions, bugs, errors, or Site malfunctions</li>
+              <li>Loss of data or content</li>
+              <li>Direct or indirect damages resulting from use or inability to use the Site</li>
+              <li>Content of embedded videos (hosted on YouTube) and rights violations committed by creators</li>
+              <li>External links to third-party sites (Discord, YouTube, etc.)</li>
             </ul>
-            <div class="highlight-box">
-              <p><strong>Important:</strong> The Site is provided free of charge and without warranty. You use the Site at your own risk.</p>
-            </div>
+            <p><strong>Third-party content:</strong> Clipsou Streaming acts as a host within the meaning of French law (LCEN). We are only responsible for content submitted by users from the moment we have actual knowledge of its illegal nature and have not acted promptly to remove it.</p>
           `
         }
       },
       {
         id: 'cgu-8',
-        title: { fr: '8. Liens hypertextes', en: '8. Hyperlinks' },
+        title: { fr: '8. Protection des données personnelles', en: '8. Personal Data Protection' },
         content: {
           fr: `
-            <p>Le Site peut contenir des liens vers des sites web tiers (Discord, Tipeee, YouTube, etc.). Ces liens sont fournis à titre informatif uniquement.</p>
-            <p>Clipsou Streaming ne contrôle pas et n'est pas responsable du contenu, des politiques de confidentialité ou des pratiques de ces sites tiers. Vous reconnaissez et acceptez que Clipsou Streaming ne soit pas responsable de tout dommage lié à l'utilisation de ces sites.</p>
-            <p><strong>Liens entrants :</strong> Vous pouvez créer des liens vers les pages du Site sans autorisation préalable, à condition que ces liens :</p>
-            <ul>
-              <li>Ne soient pas trompeurs ou mensongers</li>
-              <li>N'impliquent pas faussement un partenariat ou une approbation</li>
-              <li>S'inscrivent dans un contexte approprié</li>
-            </ul>
+            <p>Nous accordons une grande importance à la protection de vos données personnelles. Pour toute information concernant la collecte, le traitement et la protection de vos données, veuillez consulter notre <a href="privacy.html" style="color: #3b82f6;">Politique de confidentialité</a>.</p>
           `,
           en: `
-            <p>The Site may contain links to third-party websites (Discord, Tipeee, YouTube, etc.). These links are provided for informational purposes only.</p>
-            <p>Clipsou Streaming does not control and is not responsible for the content, privacy policies, or practices of these third-party sites. You acknowledge and agree that Clipsou Streaming is not responsible for any damage related to the use of these sites.</p>
-            <p><strong>Inbound links:</strong> You may create links to Site pages without prior authorization, provided that these links:</p>
-            <ul>
-              <li>Are not misleading or false</li>
-              <li>Do not falsely imply a partnership or endorsement</li>
-              <li>Appear in an appropriate context</li>
-            </ul>
+            <p>We attach great importance to the protection of your personal data. For all information regarding the collection, processing, and protection of your data, please consult our <a href="privacy.html" style="color: #3b82f6;">Privacy Policy</a>.</p>
           `
         }
       },
       {
         id: 'cgu-9',
-        title: { fr: '9. Modification et suspension du service', en: '9. Service Modification and Suspension' },
+        title: { fr: '9. Signalements et réclamations', en: '9. Reports and Complaints' },
         content: {
           fr: `
-            <p>Nous nous réservons le droit, à tout moment et sans préavis, de :</p>
+            <h3>9.1 Signalement d'un contenu</h3>
+            <p>Si vous estimez qu'un contenu diffusé sur le Site porte atteinte à vos droits ou est illégal/inapproprié, vous pouvez nous le signaler en fournissant :</p>
             <ul>
-              <li>Modifier, suspendre ou interrompre tout ou partie du Site</li>
-              <li>Ajouter, modifier ou supprimer des fonctionnalités</li>
-              <li>Modifier le design, la structure ou le contenu du Site</li>
-              <li>Fermer définitivement le Site</li>
+              <li>Identification précise du contenu (titre, URL)</li>
+              <li>Motif du signalement</li>
+              <li>Vos coordonnées</li>
+              <li>Éléments de preuve (si atteinte à des droits)</li>
             </ul>
-            <p>Ces modifications peuvent être effectuées pour des raisons techniques, de maintenance, de sécurité ou pour toute autre raison jugée nécessaire.</p>
-            <p>Nous ne serons pas responsables envers vous ou tout tiers de toute modification, suspension ou interruption du Site.</p>
+            <p>Nous traiterons votre signalement dans les meilleurs délais et prendrons les mesures appropriées (retrait, modération, etc.).</p>
+            <p><strong>Contact :</strong> <a href="mailto:roxxormister@gmail.com" style="color: #3b82f6;">roxxormister@gmail.com</a></p>
+            
+            <h3>9.2 Procédure DMCA / Notification pour atteinte aux droits d'auteur</h3>
+            <p>Pour toute notification formelle d'atteinte aux droits d'auteur, veuillez consulter notre <a href="mentions-legales.html" style="color: #3b82f6;">page Mentions légales (section Procédure de notification)</a>.</p>
           `,
           en: `
-            <p>We reserve the right, at any time and without notice, to:</p>
+            <h3>9.1 Content Reporting</h3>
+            <p>If you believe that content broadcast on the Site infringes your rights or is illegal/inappropriate, you can report it by providing:</p>
             <ul>
-              <li>Modify, suspend, or interrupt all or part of the Site</li>
-              <li>Add, modify, or remove features</li>
-              <li>Modify the Site's design, structure, or content</li>
-              <li>Permanently close the Site</li>
+              <li>Precise identification of the content (title, URL)</li>
+              <li>Reason for the report</li>
+              <li>Your contact information</li>
+              <li>Evidence (if rights infringement)</li>
             </ul>
-            <p>These modifications may be made for technical, maintenance, security reasons, or for any other reason deemed necessary.</p>
-            <p>We will not be liable to you or any third party for any modification, suspension, or interruption of the Site.</p>
+            <p>We will process your report as quickly as possible and take appropriate measures (removal, moderation, etc.).</p>
+            <p><strong>Contact:</strong> <a href="mailto:roxxormister@gmail.com" style="color: #3b82f6;">roxxormister@gmail.com</a></p>
+            
+            <h3>9.2 DMCA Procedure / Copyright Infringement Notification</h3>
+            <p>For any formal copyright infringement notification, please consult our <a href="mentions-legales.html" style="color: #3b82f6;">Legal Notices page (Notification Procedure section)</a>.</p>
           `
         }
       },
       {
         id: 'cgu-10',
-        title: { fr: '10. Droit applicable et juridiction', en: '10. Applicable Law and Jurisdiction' },
+        title: { fr: '10. Modification et résiliation', en: '10. Modification and Termination' },
         content: {
           fr: `
-            <p>Les présentes CGU sont régies par le droit français.</p>
-            <p>En cas de litige relatif à l'interprétation, l'exécution ou la validité des présentes CGU, les parties s'efforceront de le résoudre à l'amiable.</p>
-            <p>À défaut de résolution amiable dans un délai de 30 jours, le litige sera soumis aux tribunaux français compétents.</p>
-            <p><strong>Médiation :</strong> Conformément à la législation européenne, vous avez le droit de recourir à un médiateur de la consommation en cas de litige. Pour plus d'informations, consultez le site de la Commission européenne : <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">ec.europa.eu/consumers/odr</a></p>
+            <h3>10.1 Modifications du Site et des CGU</h3>
+            <p>Nous nous réservons le droit de modifier, suspendre ou interrompre tout ou partie du Site à tout moment, sans préavis. Les présentes CGU peuvent également être modifiées à tout moment. La date de dernière mise à jour est indiquée en haut de cette page.</p>
+            
+            <h3>10.2 Suspension ou bannissement</h3>
+            <p>En cas de violation des présentes CGU, nous nous réservons le droit de suspendre ou de bannir définitivement votre accès au Site, sans préavis ni indemnité.</p>
           `,
           en: `
-            <p>These Terms are governed by French law.</p>
-            <p>In the event of a dispute relating to the interpretation, execution, or validity of these Terms, the parties will endeavor to resolve it amicably.</p>
-            <p>Failing an amicable resolution within 30 days, the dispute will be submitted to the competent French courts.</p>
-            <p><strong>Mediation:</strong> In accordance with European legislation, you have the right to use a consumer mediator in case of dispute. For more information, visit the European Commission website: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">ec.europa.eu/consumers/odr</a></p>
+            <h3>10.1 Site and Terms Modifications</h3>
+            <p>We reserve the right to modify, suspend, or interrupt all or part of the Site at any time, without notice. These Terms may also be modified at any time. The last update date is indicated at the top of this page.</p>
+            
+            <h3>10.2 Suspension or Banning</h3>
+            <p>In case of violation of these Terms, we reserve the right to suspend or permanently ban your access to the Site, without notice or compensation.</p>
+          `
+        }
+      },
+      {
+        id: 'cgu-11',
+        title: { fr: '11. Droit applicable et litiges', en: '11. Applicable Law and Disputes' },
+        content: {
+          fr: `
+            <p>Les présentes CGU sont régies par le droit français. En cas de litige, une solution amiable sera recherchée avant toute action judiciaire.</p>
+            <p>À défaut d'accord amiable, les tribunaux français seront seuls compétents, conformément aux règles de droit commun.</p>
+          `,
+          en: `
+            <p>These Terms are governed by French law. In the event of a dispute, an amicable solution will be sought before any legal action.</p>
+            <p>Failing an amicable agreement, the French courts shall have sole jurisdiction, in accordance with common law rules.</p>
           `
         }
       },
       {
         id: 'cgu-contact',
-        title: { fr: 'Nous contacter', en: 'Contact Us' },
+        title: { fr: '12. Contact', en: '12. Contact Us' },
         content: {
           fr: `
-            <p>Pour toute question concernant ces CGU, vous pouvez nous contacter :</p>
+            <p>Pour toute question concernant ces Conditions Générales d'Utilisation, vous pouvez nous contacter :</p>
             <ul>
               <li><strong>Email :</strong> <a href="mailto:roxxormister@gmail.com" style="color: #3b82f6;">roxxormister@gmail.com</a></li>
               <li><strong>Discord :</strong> arth.d.i.s.c.o.r.d</li>

@@ -23,7 +23,9 @@
       if (pageName === 'cgu') sectionClass = '.cgu-section';
       if (pageName === 'privacy') sectionClass = '.privacy-section';
       
-      const sectionElements = document.querySelectorAll(sectionClass);
+      // Get all sections but exclude those with manual translations
+      const allSections = Array.from(document.querySelectorAll(sectionClass));
+      const sectionElements = allSections.filter(el => !el.hasAttribute('data-manual-translation'));
       
       if (sectionElements[index]) {
         wrapSection(sectionElements[index], section);
