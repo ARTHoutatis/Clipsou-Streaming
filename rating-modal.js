@@ -383,14 +383,18 @@ async function submitRating() {
         submitBtn.textContent = 'Envoyer ma note';
     }, 1500);
 
-    // Tentative d'envoi au serveur en arrière-plan (optionnel)
-    // Note: désactivé car le worker n'est pas encore configuré
-    /*
+    // Envoi au serveur en arrière-plan
     const baseRating = (currentItemData && typeof currentItemData.rating === 'number')
         ? currentItemData.rating
         : null;
 
     try {
+        console.log('📤 Envoi de la note au Worker...', {
+            itemId: currentItemId,
+            rating: currentRating,
+            baseRating
+        });
+
         const response = await fetch(RATING_WORKER_URL, {
             method: 'POST',
             headers: {
@@ -405,15 +409,19 @@ async function submitRating() {
         });
 
         const result = await response.json();
+        console.log('📥 Réponse du Worker:', result);
 
         if (result.ok || response.ok) {
-            console.log('✓ Note envoyée au serveur avec succès');
+            console.log('✅ Note envoyée au serveur avec succès');
             applyOptimisticRatingUpdate();
+        } else {
+            console.warn('⚠️ Erreur du serveur:', result);
+            applyOptimisticRatingUpdate(); // Sauvegarder quand même localement
         }
     } catch (error) {
-        console.log('Note sauvegardée localement uniquement (worker non configuré)');
+        console.error('❌ Erreur lors de l\'envoi de la note:', error);
+        applyOptimisticRatingUpdate(); // Sauvegarder localement en cas d'erreur
     }
-    */
 }
 
 // Toggle favoris
