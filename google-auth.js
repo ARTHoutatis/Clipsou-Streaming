@@ -131,78 +131,19 @@
       if (userInfoDiv) userInfoDiv.hidden = true;
       if (logoutBtn) logoutBtn.hidden = true;
 
-      // Check for local development mode
+      // DEV MODE DISABLED: Always use real OAuth, even on localhost
+      // This ensures video verification works correctly during development
+      /*
       if (isLocalDev() && !shouldForceRealOAuth()) {
         console.warn('[OAuth] 🚧 LOCAL DEVELOPMENT MODE - OAuth bypassed');
-        console.log('%c🚧 MODE DÉVELOPPEMENT LOCAL', 'color: #f59e0b; font-size: 16px; font-weight: bold;');
-        console.log('%cOAuth Google et vérifications de vidéo désactivés pour faciliter les tests.', 'color: #fbbf24;');
-        console.log('%cPour tester l\'OAuth réel en local : ajoutez ?oauth=true à l\'URL', 'color: #fbbf24;');
-
-        const savedDevAuth = getSavedAuth();
-        if (savedDevAuth && isAuthValid(savedDevAuth)) {
-          console.log('[OAuth] Using saved dev user');
-          currentUser = savedDevAuth;
-          showMainContent();
-          return currentUser;
-        }
-
-        googleSignInButton.innerHTML = '';
-
-        const devBtn = document.createElement('button');
-        devBtn.className = 'btn primary';
-        devBtn.style.cssText = 'display: inline-flex; align-items: center; gap: 12px; font-size: 16px; padding: 14px 32px; background: #f59e0b;';
-        devBtn.innerHTML = `
-          <span>🚧</span>
-          Se connecter en mode DEV (Local)
-        `;
-
-        devBtn.onclick = () => {
-          console.log('[OAuth] Creating dev user for local testing');
-          const devUser = createDevUser();
-          saveAuth(devUser);
-          currentUser = devUser;
-          showMainContent();
-
-          setTimeout(() => {
-            alert('🚧 MODE DÉVELOPPEMENT\n\nVous êtes connecté avec un compte de test local.\nCe mode permet de tester les fonctionnalités sans OAuth Google.\n\nEmail: dev@localhost.test\nChaîne: Dev Test Channel');
-          }, 500);
-        };
-
-        googleSignInButton.appendChild(devBtn);
-
-        const realOAuthBtn = document.createElement('button');
-        realOAuthBtn.className = 'btn secondary';
-        realOAuthBtn.style.cssText = 'display: inline-flex; align-items: center; gap: 12px; font-size: 16px; padding: 14px 32px; margin-top: 12px;';
-        const currentLang = localStorage.getItem('site_language') || 'fr';
-        const googleText = window.i18n ? window.i18n.translate('request.auth.google') : (currentLang === 'en' ? 'Sign in with Google' : 'Se connecter à Google');
-        realOAuthBtn.innerHTML = getGoogleButtonHTML().replace(googleText, 'Tester OAuth Google réel');
-
-        realOAuthBtn.onclick = () => {
-          console.log('[OAuth] Switching to real OAuth mode');
-          setOAuthPreference(true);
-          window.location.reload();
-        };
-
-        // Stocker la référence globale pour mise à jour dynamique
-        realOAuthButton = realOAuthBtn;
-
-        googleSignInButton.appendChild(realOAuthBtn);
-
-        const devNotice = document.createElement('div');
-        devNotice.style.cssText = `
-          background: rgba(245, 158, 11, 0.1);
-          border: 1px solid rgba(245, 158, 11, 0.3);
-          color: #fbbf24;
-          padding: 12px 16px;
-          border-radius: 8px;
-          margin-top: 16px;
-          font-size: 14px;
-          text-align: center;
-        `;
-        devNotice.innerHTML = '🚧 <strong>Mode développement local</strong> - Les vérifications OAuth sont désactivées<br><small>Cliquez sur "Tester OAuth Google réel" pour activer l\'authentification Google</small>';
-        googleSignInButton.appendChild(devNotice);
-
-        return currentUser;
+        ... (commented out for real video verification)
+      }
+      */
+      
+      if (isLocalDev()) {
+        console.log('[OAuth] 🔐 LOCAL MODE - Real OAuth enabled for video verification');
+        console.log('%c🔐 Mode local avec OAuth Google réel', 'color: #2563eb; font-size: 16px; font-weight: bold;');
+        console.log('%cLes vérifications de vidéos sont activées.', 'color: #60a5fa;');
       }
 
       if (isLocalDev() && shouldForceRealOAuth()) {
@@ -370,9 +311,8 @@
     if (silentAuthAttempted) return;
     silentAuthAttempted = true;
 
-    if (isLocalDev() && !shouldForceRealOAuth()) {
-      return;
-    }
+    // DEV MODE DISABLED: Always attempt real silent sign-in
+    // if (isLocalDev() && !shouldForceRealOAuth()) { return; }
 
     const success = await refreshAccessToken(savedAuth);
     if (!success) {
@@ -382,7 +322,7 @@
   }
 
   function scheduleTokenRefresh(expiresInSeconds) {
-    if (!expiresInSeconds || isLocalDev() && !shouldForceRealOAuth()) {
+    if (!expiresInSeconds) {
       return;
     }
 
@@ -397,9 +337,8 @@
   }
 
   async function refreshAccessToken(existingAuth = null) {
-    if (isLocalDev() && !shouldForceRealOAuth()) {
-      return true;
-    }
+    // DEV MODE DISABLED: Always use real OAuth refresh
+    // if (isLocalDev() && !shouldForceRealOAuth()) { return true; }
 
     const savedAuth = existingAuth || getSavedAuth();
     if (!savedAuth) {
@@ -873,16 +812,26 @@
    * @returns {Promise<{valid: boolean, error?: string, videoTitle?: string}>}
    */
   async function verifyVideoOwnership(videoUrl) {
-    console.log('[OAuth] Verifying video ownership for:', videoUrl);
+    console.log('🎬 [OAuth] ========== VIDEO VERIFICATION START ==========');
+    console.log('[OAuth] Video URL:', videoUrl);
+    console.log('[OAuth] isLocalDev:', isLocalDev());
+    console.log('[OAuth] shouldForceRealOAuth:', shouldForceRealOAuth());
+    console.log('[OAuth] currentUser exists:', !!currentUser);
+    console.log('[OAuth] accessToken exists:', !!(currentUser && currentUser.accessToken));
     
-    // Skip verification in local dev mode ONLY if not using real OAuth
+    // BYPASS DISABLED: Always perform real video verification, even in local dev
+    // This ensures the video ownership check works correctly during development
+    /*
     if (isLocalDev() && !shouldForceRealOAuth()) {
       console.warn('[OAuth] 🚧 DEV MODE - Skipping video ownership verification');
+      console.log('[OAuth] ========== VERIFICATION END (BYPASSED) ==========');
       return { 
         valid: true, 
         videoTitle: 'Dev Test Video (verification bypassed)'
       };
     }
+    */
+    console.log('[OAuth] ✓ Video verification will be performed (bypass disabled)');
     
     // If in local mode with real OAuth, log it
     if (isLocalDev() && shouldForceRealOAuth()) {
@@ -890,6 +839,8 @@
     }
     
     if (!currentUser || !currentUser.accessToken) {
+      console.error('[OAuth] ❌ No currentUser or accessToken');
+      console.log('[OAuth] ========== VERIFICATION END (NO AUTH) ==========');
       return { valid: false, error: 'Non authentifié' };
     }
 
@@ -904,15 +855,21 @@
     }
 
     const videoId = extractVideoId(videoUrl);
+    console.log('[OAuth] Extracted video ID:', videoId);
+    
     if (!videoId) {
+      console.error('[OAuth] ❌ Failed to extract video ID from URL');
+      console.log('[OAuth] ========== VERIFICATION END (INVALID URL) ==========');
       return { valid: false, error: 'URL YouTube invalide' };
     }
 
     try {
-      // Utiliser mine=true pour récupérer seulement les vidéos de l'utilisateur authentifié
-      // Cela évite le besoin d'une clé API et vérifie directement la propriété
+      console.log('[OAuth] 🌐 Making YouTube API request...');
+      console.log('[OAuth] API URL: https://www.googleapis.com/youtube/v3/videos?part=snippet&id=' + videoId);
+      
+      // Récupérer les informations de la vidéo pour comparer le channelId
       const response = await fetch(
-        `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&mine=true`,
+        `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}`,
         {
           headers: {
             'Authorization': `Bearer ${currentUser.accessToken}`
@@ -920,44 +877,75 @@
         }
       );
 
+      console.log('[OAuth] API Response status:', response.status);
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('[OAuth] YouTube API error:', response.status, errorText);
+        console.error('[OAuth] ❌ YouTube API error:', response.status);
+        console.error('[OAuth] Error response:', errorText);
         
         // Erreurs spécifiques
         if (response.status === 401) {
+          console.log('[OAuth] ========== VERIFICATION END (401 UNAUTHORIZED) ==========');
           return { valid: false, error: 'Session expirée. Veuillez vous reconnecter.' };
         } else if (response.status === 403) {
+          console.log('[OAuth] ========== VERIFICATION END (403 FORBIDDEN) ==========');
           return { valid: false, error: 'Accès refusé. Vérifiez les permissions YouTube.' };
         }
         
+        console.log('[OAuth] ========== VERIFICATION END (API ERROR) ==========');
         return { valid: false, error: 'Erreur lors de la vérification de la vidéo' };
       }
 
       const data = await response.json();
       
-      console.log('[OAuth] API Response:', data);
+      console.log('[OAuth] ✓ API Response data:', JSON.stringify(data, null, 2));
+      console.log('[OAuth] Items count:', data.items?.length || 0);
       
-      // Si mine=true ne retourne aucun résultat, la vidéo n'appartient pas à l'utilisateur
+      // Vérifier si la vidéo existe
       if (!data.items || data.items.length === 0) {
+        console.warn('[OAuth] ❌ No items returned - video not found or private');
+        console.log('[OAuth] ========== VERIFICATION END (NOT FOUND) ==========');
         return { 
           valid: false, 
-          error: 'Cette vidéo ne vous appartient pas ou est introuvable. Vous ne pouvez soumettre que vos propres vidéos YouTube.' 
+          error: 'Vidéo introuvable ou privée. Vérifiez que le lien est correct et que la vidéo est publique.' 
         };
       }
 
       const video = data.items[0];
       const videoTitle = video.snippet.title;
       const videoChannelId = video.snippet.channelId;
+      const videoChannelTitle = video.snippet.channelTitle;
+      const userChannelId = currentUser.channel.id;
 
-      console.log('[OAuth] ✅ Video ownership verified');
-      console.log('[OAuth] Video title:', videoTitle);
-      console.log('[OAuth] Channel ID:', videoChannelId);
+      console.log('[OAuth] 📹 Video info:');
+      console.log('[OAuth]   - Title:', videoTitle);
+      console.log('[OAuth]   - Channel ID:', videoChannelId);
+      console.log('[OAuth]   - Channel Name:', videoChannelTitle);
+      console.log('[OAuth] 👤 User info:');
+      console.log('[OAuth]   - Channel ID:', userChannelId);
+      console.log('[OAuth]   - Channel Name:', currentUser.channel.title);
+      
+      // VÉRIFICATION : Comparer les channel IDs
+      if (videoChannelId !== userChannelId) {
+        console.error('[OAuth] ❌ Channel ID mismatch!');
+        console.log('[OAuth] ========== VERIFICATION END (NOT OWNER) ==========');
+        return {
+          valid: false,
+          error: `Cette vidéo appartient à "${videoChannelTitle}". Vous ne pouvez soumettre que vos propres vidéos YouTube.`,
+          videoTitle
+        };
+      }
+
+      console.log('[OAuth] ✅ Video ownership verified! Channel IDs match.');
+      console.log('[OAuth] ========== VERIFICATION END (SUCCESS) ==========');
       
       return { valid: true, videoTitle };
 
     } catch (error) {
-      console.error('[OAuth] Error verifying video:', error);
+      console.error('[OAuth] 💥 Exception during verification:', error);
+      console.error('[OAuth] Stack trace:', error.stack);
+      console.log('[OAuth] ========== VERIFICATION END (EXCEPTION) ==========');
       return { valid: false, error: 'Erreur lors de la vérification de la vidéo' };
     }
   }

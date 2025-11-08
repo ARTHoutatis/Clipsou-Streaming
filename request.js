@@ -1339,28 +1339,49 @@
       // Wait 1 second before verifying
       videoVerificationTimer = setTimeout(async () => {
         try {
-          if (!window.GoogleAuth || !window.GoogleAuth.isAuthenticated()) {
+          console.log('🔍 [Video Verification] Starting verification for URL:', url);
+          
+          // Check GoogleAuth availability
+          if (!window.GoogleAuth) {
+            console.error('❌ [Video Verification] window.GoogleAuth is not defined');
+            statusDiv.className = 'verification-status error';
+            statusDiv.innerHTML = '❌ Système d\'authentification non chargé';
+            isVideoValid = false;
+            return;
+          }
+          
+          console.log('✓ [Video Verification] GoogleAuth exists');
+          console.log('✓ [Video Verification] isAuthenticated:', window.GoogleAuth.isAuthenticated());
+          
+          if (!window.GoogleAuth.isAuthenticated()) {
+            console.warn('⚠️ [Video Verification] User is not authenticated');
             statusDiv.className = 'verification-status error';
             statusDiv.innerHTML = '❌ Vous devez être connecté pour vérifier la vidéo';
             isVideoValid = false;
             return;
           }
 
+          console.log('🚀 [Video Verification] Calling verifyVideoOwnership...');
           const verification = await window.GoogleAuth.verifyVideoOwnership(url);
+          console.log('📊 [Video Verification] Result:', verification);
+          
           lastVerifiedUrl = url;
 
           if (verification.valid) {
+            console.log('✅ [Video Verification] Video is valid');
             statusDiv.className = 'verification-status success';
             statusDiv.innerHTML = `✅ Vidéo vérifiée : "${verification.videoTitle || 'Titre non disponible'}"`;
             isVideoValid = true;
           } else {
+            console.warn('❌ [Video Verification] Video is invalid:', verification.error);
             statusDiv.className = 'verification-status error';
             statusDiv.innerHTML = `❌ ${verification.error || 'Cette vidéo ne vous appartient pas'}`;
             isVideoValid = false;
           }
 
         } catch (error) {
-          console.error('Error verifying video:', error);
+          console.error('💥 [Video Verification] Exception caught:', error);
+          console.error('Stack trace:', error.stack);
           statusDiv.className = 'verification-status error';
           statusDiv.innerHTML = '❌ Erreur lors de la vérification. Veuillez réessayer.';
           isVideoValid = false;
