@@ -1952,7 +1952,7 @@
       
       if (updatedCount > 0) {
         setRequests(requests);
-        renderRequestsTable();
+        renderTable();
         alert(`✅ ${updatedCount} note(s) mise(s) à jour avec les vraies notes calculées !`);
       } else {
         alert('ℹ️ Aucune note à mettre à jour.');
@@ -2722,8 +2722,14 @@
     return div.innerHTML;
   }
 
-  function renderTable(){
+  async function renderTable(){
     const tbody = $('#requestsTable tbody');
+    
+    // Load ratings data if not already cached
+    if (!cachedRatingsData) {
+      await loadRatingsData();
+    }
+    
     // Exclude requests marked as deleted from the UI
     let reqs = getRequests().filter(r => !(r && r.meta && r.meta.deleted));
     // Apply search filter if any
@@ -2796,11 +2802,21 @@
     reqs.forEach(r => {
       const tr = document.createElement('tr');
       const g3 = (r.data.genres||[]).slice(0,3).filter(Boolean).map(g=>String(g));
+      
+      // Calculate real rating if film has an ID
+      let displayRating = r.data.rating;
+      if (r.data.id) {
+        const realRating = calculateRealRating(r.data.id, r.data.rating);
+        if (realRating !== null) {
+          displayRating = realRating;
+        }
+      }
+      
       tr.innerHTML = `
         <td data-label="Titre">${r.data.title||''}</td>
         <td data-label="Type">${r.data.type||''}</td>
         <td data-label="Genres" class="genres-cell"></td>
-        <td data-label="Note">${(typeof r.data.rating==='number')?r.data.rating:''}</td>
+        <td data-label="Note">${(typeof displayRating==='number')?displayRating:''}</td>
         <td class="row-actions"></td>
       `;
       // Fill genres as span elements for responsive layout
@@ -3888,14 +3904,6 @@
         
         console.log(`✓ Trash emptied: ${successCount} deleted, ${failCount} failed`);
         alert(`Corbeille vidée.\n\n${successCount} film(s) supprimé(s) avec succès.${failCount > 0 ? `\n${failCount} échec(s) de synchronisation.` : ''}`);
-      });
-    }
-
-    // Sync real ratings button
-    const syncRealRatingsBtn = $('#syncRealRatingsBtn');
-    if (syncRealRatingsBtn) {
-      syncRealRatingsBtn.addEventListener('click', () => {
-        syncRealRatingsForAll();
       });
     }
 
