@@ -238,13 +238,13 @@
     "id": "custom-couloirs-thi4",
     "title": "Couloirs",
     "type": "film",
-    "rating": 4,
+    "rating": 3.5,
     "genres": [
       "Horreur psychologique",
       "Action",
       "Horreur"
     ],
-    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761564802/kdkwg37u89kovqysx4pv.png",
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1762683473/duljcegdhccvn9sdejtq.jpg",
     "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761564874/buaizz1z3c5p1klxnqlz.png",
     "description": "Dispute entre étudiants de l’école LES GOBELINS.",
     "watchUrl": "https://youtu.be/wB5v2-8GIuk?si=c0c9azcDION9fTao",
@@ -264,8 +264,7 @@
       }
     ],
     "episodes": [],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761567137/pjl8vzifnmggpz6okhji.png",
-    "ratingCount": 6
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761567137/pjl8vzifnmggpz6okhji.png"
   },
   {
     "id": "custom-elden-ring-le-film-le-pire-guerrier-pxql",
