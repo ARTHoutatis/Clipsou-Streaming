@@ -1925,7 +1925,7 @@
     
     try {
       btn.disabled = true;
-      btn.textContent = '⏳ Chargement...';
+      btn.textContent = '⏳ Chargement des notes...';
       
       // Load ratings data
       const ratingsData = await loadRatingsData();
@@ -1937,6 +1937,7 @@
       // Update all requests with real ratings
       let requests = getRequests();
       let updatedCount = 0;
+      const updatedRequests = [];
       
       requests = requests.map(req => {
         if (!req || !req.data || !req.data.id) return req;
@@ -1945,6 +1946,7 @@
         if (realRating !== null && realRating !== req.data.rating) {
           req.data.rating = realRating;
           updatedCount++;
+          updatedRequests.push(req);
         }
         
         return req;
@@ -1953,7 +1955,29 @@
       if (updatedCount > 0) {
         setRequests(requests);
         renderTable();
-        alert(`✅ ${updatedCount} note(s) mise(s) à jour avec les vraies notes calculées !`);
+        
+        // Publish updates to GitHub for all admins
+        btn.textContent = `⏳ Synchronisation avec GitHub (0/${updatedCount})...`;
+        let syncedCount = 0;
+        let failedCount = 0;
+        
+        for (const req of updatedRequests) {
+          try {
+            await publishRequestUpsert(req);
+            syncedCount++;
+            btn.textContent = `⏳ Synchronisation avec GitHub (${syncedCount}/${updatedCount})...`;
+          } catch (e) {
+            console.error(`Failed to sync rating for ${req.data.title}:`, e);
+            failedCount++;
+          }
+        }
+        
+        const successMsg = `✅ ${updatedCount} note(s) mise(s) à jour !`;
+        const syncMsg = failedCount > 0 
+          ? `\n\n${syncedCount} synchronisée(s) avec GitHub, ${failedCount} échec(s).`
+          : `\n\nToutes les notes ont été synchronisées avec GitHub. Les autres admins verront les changements.`;
+        
+        alert(successMsg + syncMsg);
       } else {
         alert('ℹ️ Aucune note à mettre à jour.');
       }
@@ -1963,7 +1987,7 @@
       alert('❌ Erreur lors du chargement des notes : ' + e.message);
     } finally {
       btn.disabled = false;
-      btn.textContent = '⭐ Charger les vraies notes';
+      btn.textContent = '⭐ Synchroniser les notes réelles';
     }
   }
 
@@ -3904,6 +3928,14 @@
         
         console.log(`✓ Trash emptied: ${successCount} deleted, ${failCount} failed`);
         alert(`Corbeille vidée.\n\n${successCount} film(s) supprimé(s) avec succès.${failCount > 0 ? `\n${failCount} échec(s) de synchronisation.` : ''}`);
+      });
+    }
+
+    // Sync real ratings button
+    const syncRealRatingsBtn = $('#syncRealRatingsBtn');
+    if (syncRealRatingsBtn) {
+      syncRealRatingsBtn.addEventListener('click', () => {
+        syncRealRatingsForAll();
       });
     }
 
