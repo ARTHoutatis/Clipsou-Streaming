@@ -951,14 +951,14 @@
     "id": "custom-the-rise-of-brickbeard-54vw",
     "title": "The Rise Of Brickbeard",
     "type": "film",
-    "rating": 3.5,
+    "rating": 4,
     "genres": [
       "Action",
       "Aventure",
       "Brickfilm"
     ],
     "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761779972/khr1qafa8czobr1lsgvi.webp",
-    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761779973/zmtjzracwl0sx1fkeupm.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1762684198/nzau87pxdamdun1adky9.png",
     "description": "Découvrez l'histoire du légendaire capitaine Brickbeard, la rencontre avec son équipage et comment il réquisitionné son navire.",
     "watchUrl": "https://youtu.be/hklPdjFbZfc?si=Ww0glVJWT8tZAgMC",
     "actors": [
@@ -976,7 +976,6 @@
       }
     ],
     "episodes": [],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761779981/yuur5em3s6lnygvx1gvk.webp",
-    "ratingCount": 4
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761779981/yuur5em3s6lnygvx1gvk.webp"
   }
 ]
