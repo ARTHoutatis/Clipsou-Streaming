@@ -1792,6 +1792,8 @@ document.addEventListener('DOMContentLoaded', async function () {
       items.length = 0; items.push(...out);
     }
 
+    const itemsById = new Map(items.map((it) => [String(it.id), it]));
+
     function primeSnapshotFromItems(list) {
       try {
         if (!Array.isArray(list) || !window.__ClipsouRatings) return;
@@ -1805,18 +1807,16 @@ document.addEventListener('DOMContentLoaded', async function () {
             ? Math.max(0, Math.round(entry.ratingCount))
             : undefined;
           const existing = api.getSnapshotEntry(entry.id);
-          const hasExistingRating = existing && typeof existing.rating === 'number' && !Number.isNaN(existing.rating);
-          if (!hasExistingRating) {
+          const existingCount = (existing && typeof existing.count === 'number' && Number.isFinite(existing.count))
+            ? Math.max(0, Math.round(existing.count))
+            : undefined;
+          const needsUpdate = !existing
+            || typeof existing.rating !== 'number'
+            || Number.isNaN(existing.rating)
+            || Math.abs(existing.rating - rating) > 0.0005
+            || (typeof normalizedCount === 'number' && existingCount !== normalizedCount);
+          if (needsUpdate) {
             api.updateSnapshotEntry(entry.id, rating, normalizedCount);
-            return;
-          }
-          if (typeof normalizedCount === 'number') {
-            const existingCount = (typeof existing.count === 'number' && Number.isFinite(existing.count))
-              ? Math.max(0, Math.round(existing.count))
-              : undefined;
-            if (existingCount !== normalizedCount) {
-              api.updateSnapshotEntry(entry.id, existing.rating, normalizedCount);
-            }
           }
         });
       } catch {}
@@ -1837,11 +1837,11 @@ document.addEventListener('DOMContentLoaded', async function () {
       } catch {}
     }
 
+    primeSnapshotFromItems(items);
+
     try {
       items.forEach(resolveItemRating);
     } catch {}
-
-    primeSnapshotFromItems(items);
 
     (function primeRatingsFromPopups(){
       try {
@@ -2082,17 +2082,37 @@ document.addEventListener('DOMContentLoaded', async function () {
         payload.forEach((entry) => {
           if (!entry || !entry.id || !Array.isArray(entry.ratings)) return;
           const values = entry.ratings.map(Number).filter((n) => Number.isFinite(n));
-          if (!values.length) return;
-          const total = values.reduce((sum, n) => sum + n, 0);
-          const average = total / values.length;
+          let total = values.reduce((sum, n) => sum + n, 0);
+          let count = values.length;
+
+          const baseFromRatings = (typeof entry.baseRating === 'number' && !Number.isNaN(entry.baseRating))
+            ? entry.baseRating
+            : null;
+          const itemRef = itemsById.get(String(entry.id));
+          const baseFromItem = (itemRef && typeof itemRef.rating === 'number' && !Number.isNaN(itemRef.rating))
+            ? itemRef.rating
+            : null;
+          const effectiveBase = baseFromRatings !== null ? baseFromRatings : baseFromItem;
+          if (effectiveBase !== null) {
+            total += effectiveBase;
+            count += 1;
+          }
+
+          if (count <= 0) return;
+
+          const average = total / count;
           const normalized = Math.round(average * 1000) / 1000;
           const existing = window.__ClipsouRatings.getSnapshotEntry(entry.id);
           if (existing && typeof existing.rating === 'number') {
             const sameRating = Math.abs((existing.rating || 0) - normalized) < 0.0005;
-            const sameCount = typeof existing.count === 'number' ? existing.count === values.length : false;
+            const sameCount = typeof existing.count === 'number' ? existing.count === count : false;
             if (sameRating && sameCount) return;
           }
-          window.__ClipsouRatings.updateSnapshotEntry(entry.id, average, values.length);
+          window.__ClipsouRatings.updateSnapshotEntry(entry.id, average, count);
+          if (itemRef) {
+            itemRef.rating = average;
+            itemRef.ratingCount = count;
+          }
         });
       } catch {}
     })();
