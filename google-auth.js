@@ -451,7 +451,8 @@
         expiresAt: Date.now() + expiresInSeconds * 1000,
         user: userInfo,
         channel: channelInfo,
-        authenticatedAt: Date.now()
+        // Preserve original authenticatedAt if this is a refresh, otherwise set to now
+        authenticatedAt: (savedAuth && savedAuth.authenticatedAt) || Date.now()
       };
 
       saveAuth(authData);
@@ -545,6 +546,11 @@
         }, 500);
       }
     }
+
+    // Dispatch custom event for admin auth to listen to
+    window.dispatchEvent(new CustomEvent('googleAuthSuccess', { 
+      detail: { user: currentUser } 
+    }));
 
     // Display user info in header
     displayUserInfo();
@@ -641,6 +647,9 @@
     // Clear authentication data
     clearAuth();
     currentUser = null;
+
+    // Dispatch custom event for admin auth to listen to
+    window.dispatchEvent(new CustomEvent('googleAuthLogout'));
 
     // Hide user info and logout button
     if (userInfoDiv) userInfoDiv.hidden = true;
