@@ -1798,14 +1798,7 @@
           try { sessionStorage.removeItem('clipsou_admin_redirect_attempt'); } catch {}
           showApp();
           initApp();
-          // Display admin profile info after successful login
-          try { 
-            if (window.AdminAuth && typeof window.AdminAuth.displayAdminInfo === 'function') {
-              window.AdminAuth.displayAdminInfo();
-            }
-          } catch (e) {
-            console.error('Error displaying admin info:', e);
-          }
+          // Admin profile will be displayed by initAdminAuth after Google auth check
         } else {
           alert('Mot de passe incorrect.');
           if (pwdInput) pwdInput.value = '';
@@ -1835,16 +1828,7 @@
         try { sessionStorage.removeItem('clipsou_admin_redirect_attempt'); } catch {}
         showApp();
         initApp();
-        // Display admin profile info after auto-login
-        setTimeout(() => {
-          try { 
-            if (window.AdminAuth && typeof window.AdminAuth.displayAdminInfo === 'function') {
-              window.AdminAuth.displayAdminInfo();
-            }
-          } catch (e) {
-            console.error('Error displaying admin info on auto-login:', e);
-          }
-        }, 100);
+        // Admin profile will be displayed by initAdminAuth after Google auth check
         return;
       }
       if (sessionStorage.getItem(APP_KEY_SESSION) === '1') {
@@ -1853,16 +1837,7 @@
         // Clear redirect attempt flag on session restore
         try { sessionStorage.removeItem('clipsou_admin_redirect_attempt'); } catch {}
         initApp();
-        // Display admin profile info after session restore
-        setTimeout(() => {
-          try { 
-            if (window.AdminAuth && typeof window.AdminAuth.displayAdminInfo === 'function') {
-              window.AdminAuth.displayAdminInfo();
-            }
-          } catch (e) {
-            console.error('Error displaying admin info on session restore:', e);
-          }
-        }, 100);
+        // Admin profile will be displayed by initAdminAuth after Google auth check
         return;
       }
     } catch {}

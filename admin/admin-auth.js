@@ -873,7 +873,25 @@
 
   // Flag to prevent multiple auth checks
   let isAuthCheckInProgress = false;
-  let hasShownAuthError = false;
+  
+  // Use sessionStorage to persist error flag during page navigation
+  function getAuthErrorFlag() {
+    try {
+      return sessionStorage.getItem('admin_auth_error_shown') === '1';
+    } catch {
+      return false;
+    }
+  }
+  
+  function setAuthErrorFlag(value) {
+    try {
+      if (value) {
+        sessionStorage.setItem('admin_auth_error_shown', '1');
+      } else {
+        sessionStorage.removeItem('admin_auth_error_shown');
+      }
+    } catch {}
+  }
 
   /**
    * Initialize admin authentication system
@@ -906,18 +924,18 @@
         // If we're on login page, don't show error popup (let the login form handle it)
         if (isLoginPage) {
           console.log('📝 On login page, letting form handle authentication');
+          setAuthErrorFlag(false); // Reset flag when on login page
           return;
         }
         
         // Only show error once to prevent infinite loops
-        if (hasShownAuthError) {
-          console.log('⚠️ Already shown auth error, redirecting silently...');
-          localStorage.removeItem('clipsou_admin_logged_in_v1');
-          window.location.replace('./admin.html');
+        if (getAuthErrorFlag()) {
+          console.log('⚠️ Already shown auth error, stopping to prevent loop');
+          // Don't redirect again, just stop
           return;
         }
         
-        hasShownAuthError = true;
+        setAuthErrorFlag(true);
         
         // Show appropriate message based on reason
         let message = '';
@@ -940,12 +958,14 @@
         }
 
         if (message) {
-          alert(message);
-          // Logout from admin
+          // Logout from admin first
           localStorage.removeItem('clipsou_admin_logged_in_v1');
           
-          // Always redirect to login page
-          window.location.replace('./admin.html');
+          // Show alert
+          alert(message);
+          
+          // Redirect to login page - use href to reload completely
+          window.location.href = './admin.html';
         }
         return;
       }
@@ -953,13 +973,23 @@
       console.log('✅ Admin authenticated:', authResult.admin.email);
       
       // Reset error flag on successful auth
-      hasShownAuthError = false;
+      setAuthErrorFlag(false);
       
       // Update UI immediately
       displayAdminInfo();
       
       // Invalidate admin cache to force fresh data
       invalidateAdminCache();
+      
+      // Show admin interface if needed
+      const appEl = document.getElementById('app');
+      const loginEl = document.getElementById('login');
+      if (appEl && appEl.hidden) {
+        appEl.hidden = false;
+      }
+      if (loginEl && !loginEl.hidden) {
+        loginEl.hidden = true;
+      }
     } finally {
       isAuthCheckInProgress = false;
     }
@@ -986,6 +1016,9 @@
   window.addEventListener('googleAuthSuccess', () => {
     console.log('[AdminAuth] 🎉 Google auth success detected, updating UI...');
     
+    // Reset error flag immediately
+    setAuthErrorFlag(false);
+    
     // Wait a bit for auth to settle
     setTimeout(async () => {
       try {
@@ -995,11 +1028,20 @@
         if (authResult.authenticated) {
           console.log('[AdminAuth] ✅ Admin authenticated after Google login');
           
-          // Reset error flag
-          hasShownAuthError = false;
-          
-          // Update UI
+          // Update UI immediately
           displayAdminInfo();
+          
+          // Show admin interface
+          const appEl = document.getElementById('app');
+          const loginEl = document.getElementById('login');
+          if (appEl) {
+            appEl.hidden = false;
+            console.log('[AdminAuth] App interface shown');
+          }
+          if (loginEl) {
+            loginEl.hidden = true;
+            console.log('[AdminAuth] Login page hidden');
+          }
           
           // Invalidate cache to get fresh admin list
           invalidateAdminCache();
@@ -1014,7 +1056,7 @@
       } catch (error) {
         console.error('[AdminAuth] Error updating UI after Google login:', error);
       }
-    }, 300);
+    }, 100);
   });
 
   // Listen for Google Auth logout to reset flags
@@ -1022,7 +1064,7 @@
     console.log('[AdminAuth] 🔓 Google auth logout detected, resetting flags...');
     
     // Reset error flags to allow re-authentication
-    hasShownAuthError = false;
+    setAuthErrorFlag(false);
     isAuthCheckInProgress = false;
     
     // Clear admin info
@@ -1049,9 +1091,9 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       // Small delay to ensure other scripts are loaded
-      setTimeout(initAdminAuth, 500);
+      setTimeout(initAdminAuth, 200);
     });
   } else {
-    setTimeout(initAdminAuth, 500);
+    setTimeout(initAdminAuth, 200);
   }
 })();
