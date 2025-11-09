@@ -1807,6 +1807,36 @@ document.addEventListener('DOMContentLoaded', async function () {
       } catch {}
     }
 
+    (function primeRatingsFromPopups(){
+      try {
+        if (!window.__ClipsouRatings
+          || typeof window.__ClipsouRatings.updateSnapshotEntry !== 'function'
+          || typeof window.__ClipsouRatings.getSnapshotEntry !== 'function') return;
+        document.querySelectorAll('.fiche-popup[id]').forEach((popup) => {
+          const id = popup.getAttribute('id');
+          if (!id) return;
+          const starNode = popup.querySelector('.rating-genres .stars');
+          if (!starNode) return;
+          const text = starNode.textContent || '';
+          const match = text.match(/([0-9]+(?:[\.,][0-9]+)?)/);
+          if (!match) return;
+          const rating = parseFloat(match[1].replace(',', '.'));
+          if (!Number.isFinite(rating)) return;
+          const existing = window.__ClipsouRatings.getSnapshotEntry(id);
+          const existingCount = existing && typeof existing.count === 'number' && Number.isFinite(existing.count)
+            ? existing.count
+            : undefined;
+          if (!existing || typeof existing.rating !== 'number' || Math.abs(existing.rating - rating) > 0.0005) {
+            window.__ClipsouRatings.updateSnapshotEntry(id, rating, existingCount);
+          }
+        });
+      } catch {}
+    })();
+
+    try {
+      items.forEach(resolveItemRating);
+    } catch {}
+
     // Helper: derive thumbnail and backgrounds
     function deriveThumbnail(src) {
       if (!src) return '';
