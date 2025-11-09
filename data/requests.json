@@ -1,5 +1,42 @@
 [
   {
+    "requestId": "req_1761848529837_ofrzfy6x3",
+    "status": "pending",
+    "data": {
+      "id": "custom-ruberren-eend-pbzx",
+      "requestId": "req_1761848529837_ofrzfy6x3",
+      "title": "Ruberren Eend",
+      "type": "série",
+      "rating": 3,
+      "genres": [
+        "Horreur psychologique",
+        "Mini-série",
+        "Ambience"
+      ],
+      "description": "Un canard présente sa vie",
+      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761850120/py37aetr2ftydrm20f0m.webp",
+      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1762715998/rgym7vkvwn2iiwrq6ixg.png",
+      "watchUrl": "",
+      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761337/m84st4ucoorhtfmmqnsn.png",
+      "actors": [],
+      "episodes": [
+        {
+          "title": "Rubberen Eend",
+          "url": "https://youtu.be/7L7lhqFzqwM?si=Refv2ydq3VSH3ef2"
+        },
+        {
+          "title": "Rubberen Eend is dood",
+          "url": "https://youtu.be/SjrpaZk-2rk?si=_66zP9_lFvcDwUCm"
+        }
+      ]
+    },
+    "meta": {
+      "createdAt": 1761848529837,
+      "source": "user_submission",
+      "updatedAt": 1762716006734
+    }
+  },
+  {
     "requestId": "r_mhazsyuh_ysppgj",
     "status": "pending",
     "data": {
@@ -510,43 +547,6 @@
       "importedFromPublic": true,
       "updatedAt": 1761861293883,
       "createdAt": 1761820711031
-    }
-  },
-  {
-    "requestId": "req_1761848529837_ofrzfy6x3",
-    "status": "approved",
-    "data": {
-      "id": "custom-ruberren-eend-pbzx",
-      "requestId": "req_1761848529837_ofrzfy6x3",
-      "title": "Ruberren Eend",
-      "type": "série",
-      "rating": null,
-      "genres": [
-        "Horreur psychologique",
-        "Mini-série",
-        "Ambience"
-      ],
-      "description": "Un canard présente sa vie",
-      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761850120/py37aetr2ftydrm20f0m.webp",
-      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761848019/rxrlv9wurkhloz31rluq.png",
-      "watchUrl": "",
-      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761337/m84st4ucoorhtfmmqnsn.png",
-      "actors": [],
-      "episodes": [
-        {
-          "title": "Rubberen Eend",
-          "url": "https://youtu.be/7L7lhqFzqwM?si=Refv2ydq3VSH3ef2"
-        },
-        {
-          "title": "Rubberen Eend is dood",
-          "url": "https://youtu.be/SjrpaZk-2rk?si=_66zP9_lFvcDwUCm"
-        }
-      ]
-    },
-    "meta": {
-      "createdAt": 1761848529837,
-      "source": "user_submission",
-      "updatedAt": 1761850138414
     }
   },
   {
