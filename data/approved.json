@@ -795,13 +795,14 @@
     "id": "custom-ruberren-eend-pbzx",
     "title": "Ruberren Eend",
     "type": "série",
+    "rating": 3,
     "genres": [
       "Horreur psychologique",
       "Mini-série",
       "Ambience"
     ],
     "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761850120/py37aetr2ftydrm20f0m.webp",
-    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761848019/rxrlv9wurkhloz31rluq.png",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1762715998/rgym7vkvwn2iiwrq6ixg.png",
     "description": "Un canard présente sa vie",
     "watchUrl": "",
     "actors": [],
@@ -815,9 +816,7 @@
         "url": "https://youtu.be/SjrpaZk-2rk?si=_66zP9_lFvcDwUCm"
       }
     ],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761337/m84st4ucoorhtfmmqnsn.png",
-    "rating": 3,
-    "ratingCount": 9
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761761337/m84st4ucoorhtfmmqnsn.png"
   },
   {
     "id": "custom-south-park-the-fan-made-als5",
