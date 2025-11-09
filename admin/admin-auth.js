@@ -888,28 +888,40 @@
       
       // Show appropriate message based on reason
       let message = '';
+      let redirectToLogin = false;
+      
       switch (authResult.reason) {
         case 'password':
           // Let the existing password system handle this
           return;
         case 'google_not_authenticated':
           message = '🔒 Connexion Google requise\n\nVous devez vous connecter avec votre compte Google admin pour accéder à cette interface.';
+          redirectToLogin = true;
           break;
         case 'not_admin':
           message = `❌ Accès refusé\n\nLe compte Google ${authResult.email} n'est pas autorisé à accéder à l'interface admin.\n\nContactez un administrateur existant pour être ajouté à la liste.`;
+          redirectToLogin = true;
           break;
         case 'google_error':
           message = '❌ Erreur d\'authentification Google\n\nVeuillez réessayer ou contacter le support.';
+          redirectToLogin = true;
           break;
         default:
           message = '❌ Authentification échouée';
+          redirectToLogin = true;
       }
 
       if (message) {
         alert(message);
         // Logout from admin
         localStorage.removeItem('clipsou_admin_logged_in_v1');
-        window.location.reload();
+        
+        if (redirectToLogin) {
+          // Redirect to admin login page
+          window.location.href = './admin.html';
+        } else {
+          window.location.reload();
+        }
       }
       return;
     }
