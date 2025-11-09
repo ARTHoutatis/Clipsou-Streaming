@@ -153,8 +153,16 @@
 
       const savedAuth = getSavedAuth();
       if (savedAuth && isAuthValid(savedAuth)) {
-        console.log('[OAuth] Valid authentication found in storage');
+        console.log('[OAuth] ✅ Valid authentication found in storage');
+        console.log('[OAuth] User data:', savedAuth.user);
         currentUser = savedAuth;
+        
+        // Show content and dispatch event IMMEDIATELY
+        console.log('[OAuth] 📢 Dispatching googleAuthSuccess event with user data');
+        window.dispatchEvent(new CustomEvent('googleAuthSuccess', { 
+          detail: { user: currentUser } 
+        }));
+        
         showMainContent();
         
         // Calculate time until token expires
