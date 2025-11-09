@@ -1792,6 +1792,21 @@ document.addEventListener('DOMContentLoaded', async function () {
       items.length = 0; items.push(...out);
     }
 
+    function resolveItemRating(target) {
+      if (!target || !target.id) return;
+      try {
+        if (window.__ClipsouRatings && typeof window.__ClipsouRatings.resolveRatingValue === 'function') {
+          const res = window.__ClipsouRatings.resolveRatingValue(target.id, target.rating, target.ratingCount);
+          if (res && typeof res.rating === 'number' && !Number.isNaN(res.rating)) {
+            target.rating = res.rating;
+            if (typeof res.count === 'number' && Number.isFinite(res.count)) {
+              target.ratingCount = res.count;
+            }
+          }
+        }
+      } catch {}
+    }
+
     // Helper: derive thumbnail and backgrounds
     function deriveThumbnail(src) {
       if (!src) return '';
@@ -2122,21 +2137,47 @@ document.addEventListener('DOMContentLoaded', async function () {
       } catch {}
     })();
 
-    // Populate Top Rated (sorted by rating desc)
-    const topRated = document.querySelector('#top-rated .rail');
-    if (topRated) {
-      const sorted = items
-        .filter(it => typeof it.rating === 'number' && it.rating >= 3.5)
-        .sort((a, b) => {
-          const ra = (typeof a.rating === 'number') ? a.rating : -Infinity;
-          const rb = (typeof b.rating === 'number') ? b.rating : -Infinity;
-          if (rb !== ra) return rb - ra;
-          return (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' });
+    function rebuildTopRatedSection() {
+      try {
+        const rail = document.querySelector('#top-rated .rail');
+        if (!rail) return;
+        const sec = document.getElementById('top-rated');
+        const prepared = items.map((it) => {
+          const copy = { ...it };
+          resolveItemRating(copy);
+          return copy;
         });
-      topRated.innerHTML = '';
-      sorted.forEach(it => topRated.appendChild(createCard(it)));
-      try { const sec = document.getElementById('top-rated'); ensureSectionSeeAll(sec, '⭐ Mieux notés', sorted, createCard); } catch {}
+        const sorted = prepared
+          .filter(it => typeof it.rating === 'number' && it.rating >= 3.5)
+          .sort((a, b) => {
+            const ra = (typeof a.rating === 'number') ? a.rating : -Infinity;
+            const rb = (typeof b.rating === 'number') ? b.rating : -Infinity;
+            if (rb !== ra) return rb - ra;
+            return (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' });
+          });
+        rail.innerHTML = '';
+        sorted.forEach(it => rail.appendChild(createCard({ ...it })));
+        try { ensureSectionSeeAll(sec, '⭐ Mieux notés', sorted, createCard); } catch {}
+      } catch {}
     }
+
+    rebuildTopRatedSection();
+
+    try {
+      window.addEventListener('clipsou-rating-updated', (event) => {
+        try {
+          const detail = event && event.detail;
+          if (detail && detail.id) {
+            const target = items.find(it => String(it.id) === String(detail.id));
+            if (target) {
+              if (typeof detail.rating === 'number' && !Number.isNaN(detail.rating)) target.rating = detail.rating;
+              if (typeof detail.count === 'number' && Number.isFinite(detail.count)) target.ratingCount = detail.count;
+            }
+          }
+        } catch {}
+        rebuildTopRatedSection();
+      });
+    } catch {}
 
     // Insert 'Séries' and selected Genre sections
     (function buildSeriesAndGenresOnHome(){
