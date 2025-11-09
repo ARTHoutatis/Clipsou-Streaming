@@ -3337,6 +3337,8 @@
       const logoutBtn = $('#logoutBtn');
       if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
+          console.log('[Admin] Logging out...');
+          
           try { sessionStorage.removeItem(APP_KEY_SESSION); } catch {}
           // Broadcast logout so public site hides Admin shortcut immediately
           try { localStorage.removeItem('clipsou_admin_logged_in_v1'); localStorage.setItem('clipsou_admin_session_broadcast', String(Date.now())); } catch {}
@@ -3348,14 +3350,39 @@
             const chk = document.getElementById('showPwd');
             if (chk) chk.checked = false;
           } catch {}
+          
+          // Logout from Google Auth
+          try {
+            if (window.GoogleAuth && typeof window.GoogleAuth.logout === 'function') {
+              console.log('[Admin] Logging out from Google');
+              window.GoogleAuth.logout();
+            }
+          } catch (err) {
+            console.error('[Admin] Error logging out from Google:', err);
+          }
+          
+          // Clear admin auth data
+          try {
+            if (window.AdminAuth && typeof window.AdminAuth.clearCurrentAdmin === 'function') {
+              window.AdminAuth.clearCurrentAdmin();
+            }
+          } catch {}
+          
           // Clear admin profile display
           try {
             const adminInfo = document.getElementById('adminInfo');
             if (adminInfo) adminInfo.remove();
           } catch {}
+          
+          // Show login page and hide app
           const login = $('#login');
           if (app) app.hidden = true;
-          if (login) login.hidden = false;
+          if (login) {
+            login.hidden = false;
+            login.style.display = '';
+          }
+          
+          console.log('[Admin] Logout complete - Login page should be visible');
         });
       }
     } catch {}

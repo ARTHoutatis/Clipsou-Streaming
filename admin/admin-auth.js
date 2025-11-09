@@ -976,6 +976,7 @@
     isSuperAdmin,
     getAdminList,
     getCurrentAdmin,
+    clearCurrentAdmin,
     initAdminAuth,
     displayAdminInfo,
     invalidateAdminCache
@@ -1014,6 +1015,18 @@
         console.error('[AdminAuth] Error updating UI after Google login:', error);
       }
     }, 300);
+  });
+
+  // Listen for Google Auth logout to reset flags
+  window.addEventListener('googleAuthLogout', () => {
+    console.log('[AdminAuth] 🔓 Google auth logout detected, resetting flags...');
+    
+    // Reset error flags to allow re-authentication
+    hasShownAuthError = false;
+    isAuthCheckInProgress = false;
+    
+    // Clear admin info
+    clearCurrentAdmin();
   });
 
   // Listen for storage changes from other tabs/windows
