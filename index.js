@@ -1792,6 +1792,33 @@ document.addEventListener('DOMContentLoaded', async function () {
       items.length = 0; items.push(...out);
     }
 
+    function primeSnapshotFromItems(list) {
+      try {
+        if (!Array.isArray(list) || !window.__ClipsouRatings) return;
+        const api = window.__ClipsouRatings;
+        if (typeof api.updateSnapshotEntry !== 'function' || typeof api.getSnapshotEntry !== 'function') return;
+        list.forEach((entry) => {
+          if (!entry || !entry.id) return;
+          const rating = entry.rating;
+          if (typeof rating !== 'number' || Number.isNaN(rating)) return;
+          const count = (typeof entry.ratingCount === 'number' && Number.isFinite(entry.ratingCount))
+            ? Math.max(0, Math.round(entry.ratingCount))
+            : undefined;
+          const existing = api.getSnapshotEntry(entry.id);
+          const existingCount = (existing && typeof existing.count === 'number' && Number.isFinite(existing.count))
+            ? Math.max(0, Math.round(existing.count))
+            : undefined;
+          const needsUpdate = !existing
+            || typeof existing.rating !== 'number'
+            || Math.abs(existing.rating - rating) > 0.0005
+            || (typeof count === 'number' && existingCount !== count);
+          if (needsUpdate) {
+            api.updateSnapshotEntry(entry.id, rating, count);
+          }
+        });
+      } catch {}
+    }
+
     function resolveItemRating(target) {
       if (!target || !target.id) return;
       try {
@@ -1806,6 +1833,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
       } catch {}
     }
+
+    primeSnapshotFromItems(items);
 
     (function primeRatingsFromPopups(){
       try {
