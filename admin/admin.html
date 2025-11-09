@@ -91,8 +91,8 @@
             </select>
           </label>
           <label>
-            <span>Note (/5)</span>
-            <input type="number" id="rating" step="0.5" min="0" max="5">
+            <span>Note (/5) - Lecture seule</span>
+            <input type="number" id="rating" step="0.5" min="0" max="5" disabled readonly style="opacity: 0.6; cursor: not-allowed; background-color: rgba(255,255,255,0.05);">
           </label>
         </div>
 
@@ -221,6 +221,9 @@
 
     <section class="requests">
       <h2>Requêtes d'ajout</h2>
+      <div class="actions" style="margin: 12px 0;">
+        <button type="button" id="syncRealRatingsBtn" class="btn secondary" title="Charge les vraies notes depuis les votes utilisateurs">⭐ Charger les vraies notes</button>
+      </div>
       <form class="search-row" autocomplete="off" onsubmit="return false" role="search" style="display:flex;gap:10px;align-items:center;margin:8px 0 12px 0;flex-wrap:wrap">
         <label for="requestsSearch" class="muted" style="min-width:120px">Recherche</label>
         <input id="requestsSearch" name="admin_requests_search" type="search" placeholder="Rechercher par titre, type, genre, id, acteur…" style="flex:1;min-width:240px;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:#0f1720;color:#fff;outline:none" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="search" inputmode="search" data-1p-ignore="true" data-lpignore="true" data-bwignore="true">
@@ -248,7 +251,6 @@
       <p id="requestsHelp" class="muted">Approuvez une requête pour la publier. Vous pouvez modifier ou supprimer à tout moment.</p>
     </section>
 
-    
     <section class="user-requests">
       <h2>📬 Demandes utilisateurs <span id="userRequestsCount" class="badge notif-badge" hidden></span></h2>
       <p class="muted">Les utilisateurs peuvent soumettre leurs films via la page publique. Validez les demandes pour les transférer dans "Requêtes d'ajout" où vous pourrez les approuver.</p>

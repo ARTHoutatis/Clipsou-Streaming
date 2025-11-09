@@ -1872,12 +1872,122 @@
     // Don't prefill password for security - user must type it each time after logout
   }
 
-  function fillForm(data){
+  // ===== Real Ratings Sync System =====
+  // Load ratings.json and calculate real average ratings
+  let cachedRatingsData = null;
+  
+  async function loadRatingsData() {
+    try {
+      const response = await fetch('../data/ratings.json', { cache: 'no-store' });
+      if (!response.ok) throw new Error('Failed to load ratings');
+      cachedRatingsData = await response.json();
+      return cachedRatingsData;
+    } catch (e) {
+      console.error('Error loading ratings.json:', e);
+      return null;
+    }
+  }
+  
+  function calculateRealRating(filmId, baseRating) {
+    if (!cachedRatingsData || !Array.isArray(cachedRatingsData)) return null;
+    
+    const itemRatings = cachedRatingsData.find(r => r.id === filmId);
+    if (!itemRatings || !Array.isArray(itemRatings.ratings)) return null;
+    
+    const userRatings = itemRatings.ratings;
+    let total = userRatings.reduce((sum, r) => sum + r, 0);
+    let count = userRatings.length;
+    
+    // Add base rating to calculation (same logic as fiche.js)
+    const baseFromRatings = (typeof itemRatings.baseRating === 'number' && !Number.isNaN(itemRatings.baseRating))
+      ? itemRatings.baseRating
+      : null;
+    const baseFromItem = (typeof baseRating === 'number' && !Number.isNaN(baseRating))
+      ? baseRating
+      : null;
+    
+    const effectiveBase = baseFromRatings !== null ? baseFromRatings : baseFromItem;
+    if (effectiveBase !== null) {
+      total += effectiveBase;
+      count += 1;
+    }
+    
+    if (count === 0) return null;
+    
+    const average = total / count;
+    const rounded = Math.round(average * 2) / 2; // Round to nearest 0.5
+    return rounded;
+  }
+  
+  async function syncRealRatingsForAll() {
+    const btn = $('#syncRealRatingsBtn');
+    if (!btn) return;
+    
+    try {
+      btn.disabled = true;
+      btn.textContent = '⏳ Chargement...';
+      
+      // Load ratings data
+      const ratingsData = await loadRatingsData();
+      if (!ratingsData) {
+        alert('❌ Impossible de charger ratings.json');
+        return;
+      }
+      
+      // Update all requests with real ratings
+      let requests = getRequests();
+      let updatedCount = 0;
+      
+      requests = requests.map(req => {
+        if (!req || !req.data || !req.data.id) return req;
+        
+        const realRating = calculateRealRating(req.data.id, req.data.rating);
+        if (realRating !== null && realRating !== req.data.rating) {
+          req.data.rating = realRating;
+          updatedCount++;
+        }
+        
+        return req;
+      });
+      
+      if (updatedCount > 0) {
+        setRequests(requests);
+        renderRequestsTable();
+        alert(`✅ ${updatedCount} note(s) mise(s) à jour avec les vraies notes calculées !`);
+      } else {
+        alert('ℹ️ Aucune note à mettre à jour.');
+      }
+      
+    } catch (e) {
+      console.error('Error syncing real ratings:', e);
+      alert('❌ Erreur lors du chargement des notes : ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '⭐ Charger les vraies notes';
+    }
+  }
+
+  async function fillForm(data){
     $('#requestId').value = data.requestId || '';
     $('#id').value = data.id || '';
     $('#title').value = data.title || '';
     $('#type').value = data.type || 'film';
-    $('#rating').value = (typeof data.rating === 'number') ? String(data.rating) : '';
+    
+    // Load real rating from ratings.json if film has an ID
+    let displayRating = data.rating;
+    if (data.id) {
+      if (!cachedRatingsData) {
+        await loadRatingsData();
+      }
+      const realRating = calculateRealRating(data.id, data.rating);
+      if (realRating !== null) {
+        displayRating = realRating;
+      }
+    }
+    
+    $('#rating').value = (typeof displayRating === 'number') ? String(displayRating) : '';
+    // Store original rating in data attribute (admins cannot modify ratings)
+    $('#contentForm').dataset.originalRating = (typeof displayRating === 'number') ? String(displayRating) : '';
     $('#genre1').value = (data.genres||[])[0] || '';
     $('#genre2').value = (data.genres||[])[1] || '';
     $('#genre3').value = (data.genres||[])[2] || '';
@@ -1964,14 +2074,12 @@
     let studioBadge = '';
     try { studioBadge = String($('#studioBadge').value || '').trim(); } catch {}
     if (!studioBadge) studioBadge = 'https://clipsoustreaming.com/images/clipsoustudio.webp';
-    const ratingValueRaw = $('#rating').value;
+    // ADMINS CANNOT MODIFY RATINGS - use stored original value instead of form input
+    const originalRatingStr = $('#contentForm').dataset.originalRating || '';
     let rating = null;
-    if (ratingValueRaw !== undefined && ratingValueRaw !== null) {
-      const ratingTrim = String(ratingValueRaw).trim();
-      if (ratingTrim.length > 0) {
-        const parsed = parseFloat(ratingTrim);
-        rating = Number.isNaN(parsed) ? null : parsed;
-      }
+    if (originalRatingStr) {
+      const parsed = parseFloat(originalRatingStr);
+      rating = Number.isNaN(parsed) ? null : parsed;
     }
 
     return {
@@ -3780,6 +3888,14 @@
         
         console.log(`✓ Trash emptied: ${successCount} deleted, ${failCount} failed`);
         alert(`Corbeille vidée.\n\n${successCount} film(s) supprimé(s) avec succès.${failCount > 0 ? `\n${failCount} échec(s) de synchronisation.` : ''}`);
+      });
+    }
+
+    // Sync real ratings button
+    const syncRealRatingsBtn = $('#syncRealRatingsBtn');
+    if (syncRealRatingsBtn) {
+      syncRealRatingsBtn.addEventListener('click', () => {
+        syncRealRatingsForAll();
       });
     }
 
