@@ -1801,19 +1801,22 @@ document.addEventListener('DOMContentLoaded', async function () {
           if (!entry || !entry.id) return;
           const rating = entry.rating;
           if (typeof rating !== 'number' || Number.isNaN(rating)) return;
-          const count = (typeof entry.ratingCount === 'number' && Number.isFinite(entry.ratingCount))
+          const normalizedCount = (typeof entry.ratingCount === 'number' && Number.isFinite(entry.ratingCount))
             ? Math.max(0, Math.round(entry.ratingCount))
             : undefined;
           const existing = api.getSnapshotEntry(entry.id);
-          const existingCount = (existing && typeof existing.count === 'number' && Number.isFinite(existing.count))
-            ? Math.max(0, Math.round(existing.count))
-            : undefined;
-          const needsUpdate = !existing
-            || typeof existing.rating !== 'number'
-            || Math.abs(existing.rating - rating) > 0.0005
-            || (typeof count === 'number' && existingCount !== count);
-          if (needsUpdate) {
-            api.updateSnapshotEntry(entry.id, rating, count);
+          const hasExistingRating = existing && typeof existing.rating === 'number' && !Number.isNaN(existing.rating);
+          if (!hasExistingRating) {
+            api.updateSnapshotEntry(entry.id, rating, normalizedCount);
+            return;
+          }
+          if (typeof normalizedCount === 'number') {
+            const existingCount = (typeof existing.count === 'number' && Number.isFinite(existing.count))
+              ? Math.max(0, Math.round(existing.count))
+              : undefined;
+            if (existingCount !== normalizedCount) {
+              api.updateSnapshotEntry(entry.id, existing.rating, normalizedCount);
+            }
           }
         });
       } catch {}
@@ -1833,6 +1836,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
       } catch {}
     }
+
+    try {
+      items.forEach(resolveItemRating);
+    } catch {}
 
     primeSnapshotFromItems(items);
 
@@ -1857,6 +1864,13 @@ document.addEventListener('DOMContentLoaded', async function () {
             : undefined;
           if (!existing || typeof existing.rating !== 'number' || Math.abs(existing.rating - rating) > 0.0005) {
             window.__ClipsouRatings.updateSnapshotEntry(id, rating, existingCount);
+            const matchItem = items.find(it => it && it.id === id);
+            if (matchItem) {
+              matchItem.rating = rating;
+              if (typeof existingCount === 'number') {
+                matchItem.ratingCount = existingCount;
+              }
+            }
           }
         });
       } catch {}
