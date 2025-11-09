@@ -143,8 +143,18 @@ fieldset { border: 1px solid #334155; border-radius: 12px; padding: 12px; margin
 .actions { display: flex; gap: 10px; margin: 10px 0; flex-wrap: wrap; align-items: center; }
 
 .table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-.table th, .table td { border-bottom: 1px solid #334155; padding: 10px; text-align: left; vertical-align: top; }
+.table th, .table td { border-bottom: 1px solid #334155; padding: 10px; text-align: left; vertical-align: middle; }
 .table .row-actions { display: flex; gap: 8px; }
+/* Limit title length to prevent row height issues */
+.table td[data-label="Titre"] {
+  max-width: 300px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.4;
+}
 /* Genres cell: inline on desktop */
 .table td.genres-cell { white-space: normal; }
 .table td.genres-cell .genre { display: inline; margin-right: 8px; }

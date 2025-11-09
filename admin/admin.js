@@ -3931,14 +3931,6 @@
       });
     }
 
-    // Sync real ratings button
-    const syncRealRatingsBtn = $('#syncRealRatingsBtn');
-    if (syncRealRatingsBtn) {
-      syncRealRatingsBtn.addEventListener('click', () => {
-        syncRealRatingsForAll();
-      });
-    }
-
     // Sync user requests button
     const syncUserRequestsBtn = $('#syncUserRequestsBtn');
     if (syncUserRequestsBtn) {
