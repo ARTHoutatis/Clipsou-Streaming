@@ -497,14 +497,38 @@ function renderFiche(container, item) {
   const rg = document.createElement('div');
   rg.className = 'rating-genres';
   let stars = null;
-  if (typeof item.rating === 'number' && !Number.isNaN(item.rating)) {
+  const ratingInfo = (function(){
+    try {
+      if (window.__ClipsouRatings && typeof window.__ClipsouRatings.resolveRatingValue === 'function') {
+        const res = window.__ClipsouRatings.resolveRatingValue(item.id, item.rating, item.ratingCount);
+        if (res && typeof res.rating === 'number' && !Number.isNaN(res.rating)) {
+          return res;
+        }
+      }
+    } catch {}
+    if (typeof item.rating === 'number' && !Number.isNaN(item.rating)) {
+      return { rating: item.rating, count: item.ratingCount };
+    }
+    return null;
+  })();
+
+  if (ratingInfo && typeof ratingInfo.rating === 'number' && !Number.isNaN(ratingInfo.rating)) {
     stars = document.createElement('div');
-    const rounded = Math.round(item.rating * 2) / 2;
-    let txt = rounded.toFixed(1);
-    if (txt.endsWith('.0')) txt = String(Math.round(rounded));
+    const formatted = window.__ClipsouRatings && typeof window.__ClipsouRatings.format === 'function'
+      ? window.__ClipsouRatings.format(ratingInfo.rating)
+      : (function(){
+          const rounded = Math.round(ratingInfo.rating * 2) / 2;
+          let txt = rounded.toFixed(1);
+          if (txt.endsWith('.0')) txt = String(Math.round(rounded));
+          return txt;
+        })();
     stars.className = 'stars';
-    stars.textContent = '★' + txt + '/5';
+    stars.textContent = '★' + formatted + '/5';
     rg.appendChild(stars);
+    item.rating = ratingInfo.rating;
+    if (typeof ratingInfo.count === 'number' && Number.isFinite(ratingInfo.count)) {
+      item.ratingCount = ratingInfo.count;
+    }
   }
   const genresDiv = document.createElement('div');
   genresDiv.className = 'genres';
@@ -559,6 +583,15 @@ function renderFiche(container, item) {
               }
 
               stars.textContent = '★' + txt + '/5';
+
+              try {
+                if (window.__ClipsouRatings && typeof window.__ClipsouRatings.updateSnapshotEntry === 'function') {
+                  window.__ClipsouRatings.updateSnapshotEntry(item.id, average, count);
+                }
+              } catch {}
+
+              item.rating = average;
+              item.ratingCount = count;
             }
           }
         }
@@ -1120,8 +1153,31 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
         info.setAttribute('data-type-display', translatedType);
       }
       
-      if (typeof it.rating === 'number') {
-        info.setAttribute('data-rating', String(it.rating));
+      const ratingData = (function(){
+        try {
+          if (window.__ClipsouRatings && typeof window.__ClipsouRatings.resolveRatingValue === 'function') {
+            const res = window.__ClipsouRatings.resolveRatingValue(it.id, it.rating, it.ratingCount);
+            if (res && typeof res.rating === 'number' && !Number.isNaN(res.rating)) {
+              return res;
+            }
+          }
+        } catch {}
+        if (typeof it.rating === 'number' && !Number.isNaN(it.rating)) {
+          return { rating: it.rating, count: it.ratingCount };
+        }
+        return null;
+      })();
+
+      if (ratingData && typeof ratingData.rating === 'number' && !Number.isNaN(ratingData.rating)) {
+        const formatted = window.__ClipsouRatings && typeof window.__ClipsouRatings.format === 'function'
+          ? window.__ClipsouRatings.format(ratingData.rating)
+          : String(ratingData.rating);
+        info.setAttribute('data-rating', formatted);
+        if (typeof ratingData.count === 'number' && Number.isFinite(ratingData.count)) {
+          info.dataset.ratingCount = String(ratingData.count);
+        }
+        it.rating = ratingData.rating;
+        if (typeof ratingData.count === 'number' && Number.isFinite(ratingData.count)) it.ratingCount = ratingData.count;
       }
       
       a.appendChild(media);

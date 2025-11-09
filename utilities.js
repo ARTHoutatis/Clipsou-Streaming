@@ -153,6 +153,128 @@ function prependLandscapeVariants(list, src) {
   list.unshift(base + '1.webp');
 }
 
+// ===== Notes & évaluations (helpers partagés) =====
+
+const RATING_SNAPSHOT_KEY = 'clipsou_rating_snapshot_v1';
+let ratingSnapshotCache = null;
+
+function formatRatingForDisplay(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return '';
+  const rounded = Math.round(num * 2) / 2;
+  let txt = rounded.toFixed(1);
+  if (txt.endsWith('.0')) txt = String(Math.round(rounded));
+  return txt;
+}
+
+function readRatingSnapshot() {
+  if (ratingSnapshotCache && typeof ratingSnapshotCache === 'object') return ratingSnapshotCache;
+  try {
+    const raw = localStorage.getItem(RATING_SNAPSHOT_KEY);
+    if (!raw) {
+      ratingSnapshotCache = {};
+      return ratingSnapshotCache;
+    }
+    const parsed = JSON.parse(raw);
+    ratingSnapshotCache = (parsed && typeof parsed === 'object') ? parsed : {};
+    return ratingSnapshotCache;
+  } catch {
+    ratingSnapshotCache = {};
+    return ratingSnapshotCache;
+  }
+}
+
+function writeRatingSnapshot(map) {
+  try {
+    const payload = map && typeof map === 'object' ? map : {};
+    localStorage.setItem(RATING_SNAPSHOT_KEY, JSON.stringify(payload));
+    ratingSnapshotCache = payload;
+  } catch {}
+}
+
+function getRatingSnapshotEntry(id) {
+  if (!id) return null;
+  const map = readRatingSnapshot();
+  const entry = map && map[id];
+  if (!entry || typeof entry !== 'object') return null;
+  if (typeof entry.rating !== 'number' || Number.isNaN(entry.rating)) return null;
+  return entry;
+}
+
+function updateRatingSnapshotEntry(id, rating, count) {
+  if (!id || typeof rating !== 'number' || Number.isNaN(rating)) return;
+  const map = readRatingSnapshot();
+  const normalizedRating = Math.round(rating * 1000) / 1000;
+  const normalizedCount = (typeof count === 'number' && Number.isFinite(count)) ? Math.max(0, Math.round(count)) : undefined;
+  map[id] = {
+    rating: normalizedRating,
+    count: normalizedCount,
+    updatedAt: Date.now()
+  };
+  writeRatingSnapshot(map);
+  applyRatingToCards(id, normalizedRating, normalizedCount);
+  try {
+    window.dispatchEvent(new CustomEvent('clipsou-rating-updated', {
+      detail: { id, rating: normalizedRating, count: normalizedCount }
+    }));
+  } catch {}
+}
+
+function applyRatingToCards(id, rating, count) {
+  if (!id || typeof rating !== 'number' || Number.isNaN(rating)) return;
+  const formatted = formatRatingForDisplay(rating);
+  if (!formatted) return;
+  let selector = `.card-info[data-item-id="${id}"]`;
+  try {
+    const safeId = (typeof CSS !== 'undefined' && CSS.escape) ? CSS.escape(String(id)) : String(id).replace(/["\\]/g, '\\$&');
+    selector = `.card-info[data-item-id="${safeId}"]`;
+  } catch {}
+  try {
+    document.querySelectorAll(selector).forEach((info) => {
+      try {
+        info.setAttribute('data-rating', formatted);
+        if (typeof count === 'number' && Number.isFinite(count)) {
+          info.dataset.ratingCount = String(count);
+        }
+      } catch {}
+    });
+  } catch {}
+}
+
+function resolveRatingValue(id, fallbackRating, fallbackCount) {
+  const result = { rating: null, count: undefined };
+  const hasFallbackRating = typeof fallbackRating === 'number' && !Number.isNaN(fallbackRating);
+  if (hasFallbackRating) result.rating = fallbackRating;
+  if (typeof fallbackCount === 'number' && Number.isFinite(fallbackCount)) {
+    result.count = Math.max(0, Math.round(fallbackCount));
+  }
+
+  if (!id) return result;
+  try {
+    const entry = getRatingSnapshotEntry(id);
+    if (entry && typeof entry.rating === 'number' && !Number.isNaN(entry.rating)) {
+      result.rating = entry.rating;
+      if (typeof entry.count === 'number' && Number.isFinite(entry.count)) {
+        result.count = Math.max(0, Math.round(entry.count));
+      }
+    }
+  } catch {}
+  return result;
+}
+
+if (typeof window !== 'undefined') {
+  window.__ClipsouRatings = window.__ClipsouRatings || {};
+  Object.assign(window.__ClipsouRatings, {
+    key: RATING_SNAPSHOT_KEY,
+    format: formatRatingForDisplay,
+    readSnapshot: readRatingSnapshot,
+    getSnapshotEntry: getRatingSnapshotEntry,
+    updateSnapshotEntry: updateRatingSnapshotEntry,
+    applyRatingToCards,
+    resolveRatingValue
+  });
+}
+
 // ===== Cache busting =====
 
 /**
@@ -409,6 +531,12 @@ if (typeof module !== 'undefined' && module.exports) {
     isValidImageLike,
     preferBetter,
     dedupeByIdAndTitle,
+    formatRatingForDisplay,
+    readRatingSnapshot,
+    writeRatingSnapshot,
+    getRatingSnapshotEntry,
+    updateRatingSnapshotEntry,
+    applyRatingToCards,
     debounce,
     throttle,
     EventManager,

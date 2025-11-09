@@ -1915,7 +1915,34 @@ document.addEventListener('DOMContentLoaded', async function () {
         info.setAttribute('data-type-display', translatedType);
       }
       
-      if (typeof item.rating !== 'undefined') info.setAttribute('data-rating', String(item.rating));
+      const ratingInfo = (function(){
+        try {
+          if (window.__ClipsouRatings && typeof window.__ClipsouRatings.resolveRatingValue === 'function') {
+            const res = window.__ClipsouRatings.resolveRatingValue(item.id, item.rating, item.ratingCount);
+            if (res && typeof res.rating === 'number' && !Number.isNaN(res.rating)) {
+              info.setAttribute('data-rating', String(window.__ClipsouRatings.format(res.rating)));
+              if (typeof res.count === 'number' && Number.isFinite(res.count)) {
+                info.dataset.ratingCount = String(res.count);
+              }
+              return res;
+            }
+          }
+        } catch {}
+        if (typeof item.rating === 'number' && !Number.isNaN(item.rating)) {
+          info.setAttribute('data-rating', String(item.rating));
+          if (typeof item.ratingCount === 'number' && Number.isFinite(item.ratingCount)) {
+            info.dataset.ratingCount = String(item.ratingCount);
+          }
+          return { rating: item.rating, count: item.ratingCount };
+        }
+        return null;
+      })();
+      if (ratingInfo && typeof ratingInfo.rating === 'number' && !Number.isNaN(ratingInfo.rating)) {
+        item.rating = ratingInfo.rating;
+        if (typeof ratingInfo.count === 'number' && Number.isFinite(ratingInfo.count)) {
+          item.ratingCount = ratingInfo.count;
+        }
+      }
       const hasCustomBadge = Boolean(item.studioBadge && String(item.studioBadge).trim());
       const isClipsouOwned = isClipsouOwnedItem(item);
       const badgeSrc = hasCustomBadge ? String(item.studioBadge).trim() : (isClipsouOwned ? CLIPSOU_BADGE_SRC : '');
@@ -1938,6 +1965,49 @@ document.addEventListener('DOMContentLoaded', async function () {
       try { info.appendChild(makeFavButton(item)); } catch {}
       return card;
     }
+
+    // Hydrate all existing cards with snapshot ratings if available
+    (function hydrateExistingCardRatings(){
+      try {
+        if (!window.__ClipsouRatings || typeof window.__ClipsouRatings.readSnapshot !== 'function' || typeof window.__ClipsouRatings.format !== 'function') return;
+        const snapshot = window.__ClipsouRatings.readSnapshot() || {};
+        Object.keys(snapshot).forEach(id => {
+          const entry = snapshot[id];
+          if (!entry || typeof entry.rating !== 'number' || Number.isNaN(entry.rating)) return;
+          window.__ClipsouRatings.applyRatingToCards(id, entry.rating, entry.count);
+        });
+      } catch {}
+    })();
+
+    (async function hydrateRatingsFromDataset(){
+      try {
+        if (!window.__ClipsouRatings
+          || typeof window.__ClipsouRatings.updateSnapshotEntry !== 'function'
+          || typeof window.__ClipsouRatings.getSnapshotEntry !== 'function') return;
+        let isFile = false;
+        try { isFile = (location && location.protocol === 'file:'); } catch {}
+        if (isFile) return;
+        const res = await fetch('data/ratings.json', { credentials: 'same-origin', cache: 'no-store' });
+        if (!res || !res.ok) return;
+        const payload = await res.json();
+        if (!Array.isArray(payload)) return;
+        payload.forEach((entry) => {
+          if (!entry || !entry.id || !Array.isArray(entry.ratings)) return;
+          const values = entry.ratings.map(Number).filter((n) => Number.isFinite(n));
+          if (!values.length) return;
+          const total = values.reduce((sum, n) => sum + n, 0);
+          const average = total / values.length;
+          const normalized = Math.round(average * 1000) / 1000;
+          const existing = window.__ClipsouRatings.getSnapshotEntry(entry.id);
+          if (existing && typeof existing.rating === 'number') {
+            const sameRating = Math.abs((existing.rating || 0) - normalized) < 0.0005;
+            const sameCount = typeof existing.count === 'number' ? existing.count === values.length : false;
+            if (sameRating && sameCount) return;
+          }
+          window.__ClipsouRatings.updateSnapshotEntry(entry.id, average, values.length);
+        });
+      } catch {}
+    })();
 
     // Build Favorites section (above Top Rated)
     function buildFavoritesSection(items){

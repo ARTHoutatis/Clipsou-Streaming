@@ -74,7 +74,22 @@ async function buildDatabaseFromIndex() {
                             const genres = Array.isArray(c.genres) ? c.genres.filter(Boolean) : [];
                             const image = optimizeCloudinaryUrlCard(c.portraitImage || c.image || c.landscapeImage || '');
                             const studioBadge = optimizeCloudinaryUrlSmall(c.studioBadge || '');
-                            items.push({ id: c.id, title: c.title, type, rating, genres, image, studioBadge });
+                            const badgeHtml = studioBadge ? `
+                            <div class="brand-badge">
+                                <img src="${studioBadge}" alt="${studioBadge === 'images/clipsoustudio.webp' ? 'Clipsou Studio' : 'Studio'}" loading="lazy" decoding="async">
+                            </div>` : '';
+                            const badgeAttr = studioBadge ? ` data-studio-badge="${studioBadge.replace(/"/g, '&quot;')}"` : '';
+                            const clipsouAttr = isLocalAsset(image) || LOCAL_FALLBACK_DB.some(local => local.id === c.id) ? ' data-clipsou-owned="1"' : '';
+                            const itemIdAttr = c && c.id ? ` data-item-id="${String(c.id).replace(/"/g, '&quot;')}"` : '';
+                            const base = deriveBase(image);
+                            let initialSrc;
+                            if (base) {
+                                initialSrc = `${base}.webp`;
+                            } else {
+                                // If full URL or no extension, use as-is; otherwise nothing
+                                initialSrc = image || '';
+                            }
+                            items.push({ id: c.id, title: c.title, type, rating, genres, image: initialSrc, base, studioBadge, badgeHtml, badgeAttr, clipsouAttr, itemIdAttr });
                         });
                     }
                 }
@@ -184,7 +199,43 @@ function displayResults(results) {
             if (t === 'série' || t === 'serie' || t.startsWith('s')) typeAttr = 'série';
             else if (t === 'trailer') typeAttr = 'trailer';
         }
-        const ratingAttr = (typeof item.rating !== 'undefined' && item.rating !== null) ? ` data-rating="${item.rating}"` : '';
+        let ratingAttr = '';
+        let ratingCountAttr = '';
+        const ratingData = (function(){
+            if (!item || !item.id) return null;
+            try {
+                if (window.__ClipsouRatings && typeof window.__ClipsouRatings.resolveRatingValue === 'function') {
+                    const res = window.__ClipsouRatings.resolveRatingValue(item.id, item.rating, item.ratingCount);
+                    if (res && typeof res.rating === 'number' && !Number.isNaN(res.rating)) {
+                        return res;
+                    }
+                }
+            } catch {}
+            if (typeof item.rating === 'number' && !Number.isNaN(item.rating)) {
+                return { rating: item.rating, count: item.ratingCount };
+            }
+            return null;
+        })();
+
+        if (ratingData && typeof ratingData.rating === 'number' && !Number.isNaN(ratingData.rating)) {
+            const formatted = (function(val){
+                try {
+                    if (window.__ClipsouRatings && typeof window.__ClipsouRatings.format === 'function') {
+                        return window.__ClipsouRatings.format(val);
+                    }
+                } catch {}
+                const rounded = Math.round(val * 2) / 2;
+                let txt = rounded.toFixed(1);
+                if (txt.endsWith('.0')) txt = String(Math.round(rounded));
+                return txt;
+            })(ratingData.rating);
+            ratingAttr = ` data-rating="${formatted}"`;
+            if (typeof ratingData.count === 'number' && Number.isFinite(ratingData.count)) {
+                ratingCountAttr = ` data-rating-count="${ratingData.count}"`;
+                item.ratingCount = ratingData.count;
+            }
+            item.rating = ratingData.rating;
+        }
         const base = deriveBase(item.image);
         let initialSrc;
         if (base) {
@@ -202,6 +253,7 @@ function displayResults(results) {
                     </div>` : '';
         const badgeAttr = badgeSrc ? ` data-studio-badge="${badgeSrc.replace(/"/g, '&quot;')}"` : '';
         const clipsouAttr = clipsouOwned ? ' data-clipsou-owned="1"' : '';
+        const itemIdAttr = item && item.id ? ` data-item-id="${String(item.id).replace(/"/g, '&quot;')}"` : '';
         return `
         <div class="card">
             <a href="fiche.html?id=${encodeURIComponent(item.id)}&from=search">
@@ -209,13 +261,13 @@ function displayResults(results) {
                     <img data-src="${initialSrc}" data-base="${base}" alt="Affiche de ${item.title}" loading="lazy" decoding="async" onerror="(function(img){var b=img.getAttribute('data-base'); var tried=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=tried; if(b && tried===1){ img.src=b+'.webp'; } else { img.onerror=null; img.removeAttribute('src'); }})(this)">
                     ${badgeHtml}
                 </div>
-                <div class="card-info" data-type="${typeAttr}"${ratingAttr}${badgeAttr}${clipsouAttr}></div>
+                <div class="card-info" data-type="${typeAttr}"${itemIdAttr}${ratingAttr}${ratingCountAttr}${badgeAttr}${clipsouAttr}></div>
             </a>
         </div>`;
     }).join('');
-    
+
     resultsContainer.innerHTML = `<div class="search-grid">${resultsHTML}</div>`;
-    
+
     // Appliquer les traductions sur les cartes nouvellement créées
     if (window.i18n) {
         const lang = window.i18n.getCurrentLanguage();
@@ -226,29 +278,18 @@ function displayResults(results) {
             updateCardTypesLocal(lang);
         }
     }
-}
 
-// Fonction locale pour mettre à jour les types sur les cartes
-function updateCardTypesLocal(lang) {
-    document.querySelectorAll('.card-info[data-type]').forEach(cardInfo => {
-        const type = cardInfo.getAttribute('data-type');
-        if (!type) return;
-        
-        const typeLower = type.toLowerCase();
-        let translatedType = type;
-        
-        if (lang === 'en') {
-            if (typeLower === 'film') translatedType = 'Movie';
-            else if (typeLower === 'série' || typeLower === 'serie') translatedType = 'Series';
-            else if (typeLower === 'trailer') translatedType = 'Trailer';
-        } else {
-            if (typeLower === 'film') translatedType = 'Film';
-            else if (typeLower === 'série' || typeLower === 'serie') translatedType = 'Série';
-            else if (typeLower === 'trailer') translatedType = 'Trailer';
+    try {
+        if (window.__ClipsouRatings && typeof window.__ClipsouRatings.applyRatingToCards === 'function' && typeof window.__ClipsouRatings.resolveRatingValue === 'function') {
+            results.forEach((item) => {
+                if (!item || !item.id) return;
+                const resolved = window.__ClipsouRatings.resolveRatingValue(item.id, item.rating, item.ratingCount);
+                if (resolved && typeof resolved.rating === 'number' && !Number.isNaN(resolved.rating)) {
+                    window.__ClipsouRatings.applyRatingToCards(item.id, resolved.rating, resolved.count);
+                }
+            });
         }
-        
-        cardInfo.setAttribute('data-type-display', translatedType);
-    });
+    } catch {}
 }
 
 // Récupère tous les genres uniques depuis la base (déduplication accent-insensible)

@@ -43,9 +43,16 @@ function applyOptimisticRatingUpdate() {
 
         if (totalCount === 0) return;
 
-        const average = Math.round((totalSum / totalCount) * 2) / 2;
+        const averageRaw = totalSum / totalCount;
+        const average = Math.round(averageRaw * 2) / 2;
 
-        updateRatingDisplay(average, totalCount);
+        updateRatingDisplay(averageRaw, totalCount);
+
+        try {
+            if (window.__ClipsouRatings && typeof window.__ClipsouRatings.updateSnapshotEntry === 'function') {
+                window.__ClipsouRatings.updateSnapshotEntry(currentItemId, averageRaw, totalCount);
+            }
+        } catch {}
 
         try {
             const modal = document.getElementById('ratingModal');
@@ -132,6 +139,13 @@ function updateRatingDisplay(value, count) {
             currentItemData.rating = rounded;
             currentItemData.ratingCount = count;
         }
+
+        try {
+            const modal = document.getElementById('ratingModal');
+            modal.dataset.rating = String(rounded);
+            modal.dataset.ratingCount = String(count);
+        } catch {}
+
     } catch (error) {
         console.error('Erreur lors de l\'actualisation de l\'affichage:', error);
     }
