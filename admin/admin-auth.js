@@ -843,15 +843,25 @@
    * Show admin info in header
    */
   function displayAdminInfo() {
+    console.log('[displayAdminInfo] Called');
     const admin = getCurrentAdmin();
-    if (!admin) return;
+    console.log('[displayAdminInfo] Admin data:', admin);
+    
+    if (!admin) {
+      console.warn('[displayAdminInfo] No admin data found');
+      return;
+    }
 
     const authSection = document.querySelector('.auth');
-    if (!authSection) return;
+    if (!authSection) {
+      console.warn('[displayAdminInfo] Auth section not found');
+      return;
+    }
 
     // Add admin info display
     let infoDiv = document.getElementById('adminInfo');
     if (!infoDiv) {
+      console.log('[displayAdminInfo] Creating adminInfo div');
       infoDiv = document.createElement('div');
       infoDiv.id = 'adminInfo';
       infoDiv.className = 'admin-info-display';
@@ -869,6 +879,8 @@
         </div>
       </div>
     `;
+    
+    console.log('[displayAdminInfo] Admin info displayed successfully');
   }
 
   // Flag to prevent multiple auth checks
@@ -916,49 +928,33 @@
         // Clear admin session
         clearCurrentAdmin();
         
-        // Check if we're on the login page or main admin page
-        const loginEl = document.getElementById('login');
-        const appEl = document.getElementById('app');
-        const isLoginPage = loginEl && !loginEl.hidden && appEl && appEl.hidden;
-        
-        // If we're on login page, don't show error popup (let the login form handle it)
-        if (isLoginPage) {
-          console.log('📝 On login page, letting form handle authentication');
-          setAuthErrorFlag(false); // Reset flag when on login page
-          return;
-        }
-        
-        // Only redirect once to prevent infinite loops
-        if (getAuthErrorFlag()) {
-          console.log('⚠️ Already attempted redirect, stopping to prevent loop');
-          // Don't redirect again, just stop
-          return;
-        }
-        
-        setAuthErrorFlag(true);
-        
         // Handle different auth failure reasons
         if (authResult.reason === 'password') {
           // Let the existing password system handle this
+          console.log('📝 Password auth needed, showing login page');
           return;
         }
         
-        console.log('❌ Auth failed:', authResult.reason);
+        console.log('❌ Auth failed:', authResult.reason, '- Redirecting to login...');
         
         // Logout from admin
         localStorage.removeItem('clipsou_admin_logged_in_v1');
+        clearCurrentAdmin();
         
-        // Silent redirect to login page without popup
-        window.location.href = './admin.html';
+        // Force redirect to login page - no conditions, no popup
+        console.log('🔄 Forcing redirect to admin.html');
+        window.location.replace('./admin.html');
         return;
       }
 
       console.log('✅ Admin authenticated:', authResult.admin.email);
+      console.log('👤 Admin data:', authResult.admin);
       
       // Reset error flag on successful auth
       setAuthErrorFlag(false);
       
       // Update UI immediately
+      console.log('📝 Calling displayAdminInfo...');
       displayAdminInfo();
       
       // Invalidate admin cache to force fresh data
@@ -968,9 +964,11 @@
       const appEl = document.getElementById('app');
       const loginEl = document.getElementById('login');
       if (appEl && appEl.hidden) {
+        console.log('👁️ Showing app interface');
         appEl.hidden = false;
       }
       if (loginEl && !loginEl.hidden) {
+        console.log('🚫 Hiding login page');
         loginEl.hidden = true;
       }
     } finally {
@@ -996,8 +994,9 @@
   };
 
   // Listen for Google Auth success to update UI immediately
-  window.addEventListener('googleAuthSuccess', async (event) => {
-    console.log('[AdminAuth] 🎉 Google auth success detected, updating UI...');
+  window.addEventListener('googleAuthSuccess', (event) => {
+    console.log('[AdminAuth] 🎉 Google auth success event received');
+    console.log('[AdminAuth] Event detail:', event.detail);
     
     // Reset error flag immediately
     setAuthErrorFlag(false);
@@ -1005,42 +1004,57 @@
     try {
       // Get user data from event
       const userData = event.detail?.user;
+      console.log('[AdminAuth] User data from event:', userData);
       
       if (userData && userData.user && userData.user.email) {
         const email = userData.user.email;
         const name = userData.user.name || email;
         const picture = userData.user.picture || '';
         
-        console.log('[AdminAuth] Processing login for:', email);
+        console.log('[AdminAuth] 👤 Processing login for:', email);
         
         // Auto-provision first admin if needed
-        ensureAdminProvision(email);
+        const provisioned = ensureAdminProvision(email);
+        console.log('[AdminAuth] Provision result:', provisioned);
         
         // Check if user is admin
-        if (isEmailAdmin(email)) {
-          // Save admin info immediately
-          saveCurrentAdmin({
+        const isAdmin = isEmailAdmin(email);
+        console.log('[AdminAuth] Is admin?', isAdmin);
+        
+        if (isAdmin) {
+          // Save admin info immediately (synchronous)
+          const adminData = {
             email,
             name,
             picture,
             authenticatedAt: Date.now()
-          });
+          };
+          console.log('[AdminAuth] Saving admin data:', adminData);
+          saveCurrentAdmin(adminData);
+          
+          // Verify save
+          const saved = getCurrentAdmin();
+          console.log('[AdminAuth] Verified saved data:', saved);
           
           console.log('[AdminAuth] ✅ Admin authenticated:', email);
           
-          // Update UI immediately
+          // Update UI immediately (synchronous)
+          console.log('[AdminAuth] Calling displayAdminInfo()...');
           displayAdminInfo();
           
           // Show admin interface
           const appEl = document.getElementById('app');
           const loginEl = document.getElementById('login');
+          console.log('[AdminAuth] App element:', appEl, 'hidden:', appEl?.hidden);
+          console.log('[AdminAuth] Login element:', loginEl, 'hidden:', loginEl?.hidden);
+          
           if (appEl) {
             appEl.hidden = false;
-            console.log('[AdminAuth] App interface shown');
+            console.log('[AdminAuth] 👁️ App interface shown');
           }
           if (loginEl) {
             loginEl.hidden = true;
-            console.log('[AdminAuth] Login page hidden');
+            console.log('[AdminAuth] 🚫 Login page hidden');
           }
           
           // Invalidate cache to get fresh admin list
@@ -1053,11 +1067,14 @@
             renderAdminList();
           }
         } else {
-          console.log('[AdminAuth] ❌ User is not an admin:', email);
+          console.warn('[AdminAuth] ❌ User is not an admin:', email);
         }
+      } else {
+        console.warn('[AdminAuth] ⚠️ No user data in event');
       }
     } catch (error) {
-      console.error('[AdminAuth] Error updating UI after Google login:', error);
+      console.error('[AdminAuth] 🛑 Error updating UI after Google login:', error);
+      console.error(error.stack);
     }
   });
 
