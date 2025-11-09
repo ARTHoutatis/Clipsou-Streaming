@@ -3294,7 +3294,7 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
 @media (min-width: 769px) {
   .rail {
       padding: 0 var(--gutter);
-      scroll-snap-type: inline mandatory; /* enable snapping on desktop only */
+      scroll-snap-type: inline proximity; /* softer snapping to avoid hover shifts */
   }
 }
 .rail::-webkit-scrollbar { height: 10px; }
