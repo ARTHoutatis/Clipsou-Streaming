@@ -871,63 +871,98 @@
     `;
   }
 
+  // Flag to prevent multiple auth checks
+  let isAuthCheckInProgress = false;
+  let hasShownAuthError = false;
+
   /**
    * Initialize admin authentication system
    */
   async function initAdminAuth() {
-    console.log('🔐 Initializing admin authentication...');
-
-    // Check authentication
-    const authResult = await checkAdminAuth();
-
-    if (!authResult.authenticated) {
-      console.log('❌ Admin authentication failed:', authResult.reason);
-      
-      // Clear admin session
-      clearCurrentAdmin();
-      
-      // Show appropriate message based on reason
-      let message = '';
-      let redirectToLogin = false;
-      
-      switch (authResult.reason) {
-        case 'password':
-          // Let the existing password system handle this
-          return;
-        case 'google_not_authenticated':
-          message = '🔒 Connexion Google requise\n\nVous devez vous connecter avec votre compte Google admin pour accéder à cette interface.';
-          redirectToLogin = true;
-          break;
-        case 'not_admin':
-          message = `❌ Accès refusé\n\nLe compte Google ${authResult.email} n'est pas autorisé à accéder à l'interface admin.\n\nContactez un administrateur existant pour être ajouté à la liste.`;
-          redirectToLogin = true;
-          break;
-        case 'google_error':
-          message = '❌ Erreur d\'authentification Google\n\nVeuillez réessayer ou contacter le support.';
-          redirectToLogin = true;
-          break;
-        default:
-          message = '❌ Authentification échouée';
-          redirectToLogin = true;
-      }
-
-      if (message) {
-        alert(message);
-        // Logout from admin
-        localStorage.removeItem('clipsou_admin_logged_in_v1');
-        
-        if (redirectToLogin) {
-          // Redirect to admin login page
-          window.location.href = './admin.html';
-        } else {
-          window.location.reload();
-        }
-      }
+    // Prevent multiple simultaneous auth checks
+    if (isAuthCheckInProgress) {
+      console.log('⏳ Auth check already in progress, skipping...');
       return;
     }
 
-    console.log('✅ Admin authenticated:', authResult.admin.email);
-    displayAdminInfo();
+    console.log('🔐 Initializing admin authentication...');
+    isAuthCheckInProgress = true;
+
+    try {
+      // Check authentication
+      const authResult = await checkAdminAuth();
+
+      if (!authResult.authenticated) {
+        console.log('❌ Admin authentication failed:', authResult.reason);
+        
+        // Clear admin session
+        clearCurrentAdmin();
+        
+        // Check if we're on the login page or main admin page
+        const loginEl = document.getElementById('login');
+        const appEl = document.getElementById('app');
+        const isLoginPage = loginEl && !loginEl.hidden && appEl && appEl.hidden;
+        
+        // If we're on login page, don't show error popup (let the login form handle it)
+        if (isLoginPage) {
+          console.log('📝 On login page, letting form handle authentication');
+          return;
+        }
+        
+        // Only show error once to prevent infinite loops
+        if (hasShownAuthError) {
+          console.log('⚠️ Already shown auth error, redirecting silently...');
+          localStorage.removeItem('clipsou_admin_logged_in_v1');
+          window.location.replace('./admin.html');
+          return;
+        }
+        
+        hasShownAuthError = true;
+        
+        // Show appropriate message based on reason
+        let message = '';
+        
+        switch (authResult.reason) {
+          case 'password':
+            // Let the existing password system handle this
+            return;
+          case 'google_not_authenticated':
+            message = '🔒 Session expirée\n\nVotre session Google a expiré. Vous allez être redirigé vers la page de connexion.';
+            break;
+          case 'not_admin':
+            message = `❌ Accès refusé\n\nLe compte Google ${authResult.email} n'est pas autorisé.`;
+            break;
+          case 'google_error':
+            message = '❌ Erreur d\'authentification Google\n\nVous allez être redirigé vers la page de connexion.';
+            break;
+          default:
+            message = '❌ Authentification échouée\n\nRedirection vers la page de connexion...';
+        }
+
+        if (message) {
+          alert(message);
+          // Logout from admin
+          localStorage.removeItem('clipsou_admin_logged_in_v1');
+          
+          // Always redirect to login page
+          window.location.replace('./admin.html');
+        }
+        return;
+      }
+
+      console.log('✅ Admin authenticated:', authResult.admin.email);
+      
+      // Reset error flag on successful auth
+      hasShownAuthError = false;
+      
+      // Update UI immediately
+      displayAdminInfo();
+      
+      // Invalidate admin cache to force fresh data
+      invalidateAdminCache();
+    } finally {
+      isAuthCheckInProgress = false;
+    }
   }
 
   // Expose public API
@@ -945,6 +980,41 @@
     displayAdminInfo,
     invalidateAdminCache
   };
+
+  // Listen for Google Auth success to update UI immediately
+  window.addEventListener('googleAuthSuccess', () => {
+    console.log('[AdminAuth] 🎉 Google auth success detected, updating UI...');
+    
+    // Wait a bit for auth to settle
+    setTimeout(async () => {
+      try {
+        // Re-check admin auth
+        const authResult = await checkAdminAuth();
+        
+        if (authResult.authenticated) {
+          console.log('[AdminAuth] ✅ Admin authenticated after Google login');
+          
+          // Reset error flag
+          hasShownAuthError = false;
+          
+          // Update UI
+          displayAdminInfo();
+          
+          // Invalidate cache to get fresh admin list
+          invalidateAdminCache();
+          
+          // If admin list popup is open, refresh it
+          const popup = document.getElementById('adminListPopup');
+          if (popup) {
+            console.log('[AdminAuth] Refreshing admin list popup after login');
+            renderAdminList();
+          }
+        }
+      } catch (error) {
+        console.error('[AdminAuth] Error updating UI after Google login:', error);
+      }
+    }, 300);
+  });
 
   // Listen for storage changes from other tabs/windows
   // This allows real-time updates when another admin modifies the list

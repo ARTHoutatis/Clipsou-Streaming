@@ -355,9 +355,15 @@
     // Setup admin list button
     document.addEventListener('DOMContentLoaded', function() {
       const adminListBtn = document.getElementById('adminListBtn');
-      if (adminListBtn && window.AdminAuth) {
+      if (adminListBtn) {
         adminListBtn.addEventListener('click', function() {
-          window.AdminAuth.showAdminListPopup();
+          // Check if AdminAuth is available at click time
+          if (window.AdminAuth && window.AdminAuth.showAdminListPopup) {
+            window.AdminAuth.showAdminListPopup();
+          } else {
+            console.error('AdminAuth not yet loaded');
+            alert('⏳ Chargement en cours... Veuillez réessayer dans quelques secondes.');
+          }
         });
       }
     });
