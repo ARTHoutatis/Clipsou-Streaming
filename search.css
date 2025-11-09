@@ -4,6 +4,12 @@
 
 /* Logo/nav base styles are in common.css */
 
+/* Match navigation brand font with other pages (uses Segoe UI family on index) */
+nav[aria-label="Navigation principale"] .logo,
+nav[aria-label="Navigation principale"] .logo span {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
 /* Accueil link on search page: plain white text next to the logo */
 .home-link { background: transparent; border: 0; color: #fff; box-shadow: none; }
 
