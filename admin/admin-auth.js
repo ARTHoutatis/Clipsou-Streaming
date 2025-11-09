@@ -928,45 +928,28 @@
           return;
         }
         
-        // Only show error once to prevent infinite loops
+        // Only redirect once to prevent infinite loops
         if (getAuthErrorFlag()) {
-          console.log('⚠️ Already shown auth error, stopping to prevent loop');
+          console.log('⚠️ Already attempted redirect, stopping to prevent loop');
           // Don't redirect again, just stop
           return;
         }
         
         setAuthErrorFlag(true);
         
-        // Show appropriate message based on reason
-        let message = '';
+        // Handle different auth failure reasons
+        if (authResult.reason === 'password') {
+          // Let the existing password system handle this
+          return;
+        }
         
-        switch (authResult.reason) {
-          case 'password':
-            // Let the existing password system handle this
-            return;
-          case 'google_not_authenticated':
-            message = '🔒 Session expirée\n\nVotre session Google a expiré. Vous allez être redirigé vers la page de connexion.';
-            break;
-          case 'not_admin':
-            message = `❌ Accès refusé\n\nLe compte Google ${authResult.email} n'est pas autorisé.`;
-            break;
-          case 'google_error':
-            message = '❌ Erreur d\'authentification Google\n\nVous allez être redirigé vers la page de connexion.';
-            break;
-          default:
-            message = '❌ Authentification échouée\n\nRedirection vers la page de connexion...';
-        }
-
-        if (message) {
-          // Logout from admin first
-          localStorage.removeItem('clipsou_admin_logged_in_v1');
-          
-          // Show alert
-          alert(message);
-          
-          // Redirect to login page - use href to reload completely
-          window.location.href = './admin.html';
-        }
+        console.log('❌ Auth failed:', authResult.reason);
+        
+        // Logout from admin
+        localStorage.removeItem('clipsou_admin_logged_in_v1');
+        
+        // Silent redirect to login page without popup
+        window.location.href = './admin.html';
         return;
       }
 
@@ -1013,20 +996,37 @@
   };
 
   // Listen for Google Auth success to update UI immediately
-  window.addEventListener('googleAuthSuccess', () => {
+  window.addEventListener('googleAuthSuccess', async (event) => {
     console.log('[AdminAuth] 🎉 Google auth success detected, updating UI...');
     
     // Reset error flag immediately
     setAuthErrorFlag(false);
     
-    // Wait a bit for auth to settle
-    setTimeout(async () => {
-      try {
-        // Re-check admin auth
-        const authResult = await checkAdminAuth();
+    try {
+      // Get user data from event
+      const userData = event.detail?.user;
+      
+      if (userData && userData.user && userData.user.email) {
+        const email = userData.user.email;
+        const name = userData.user.name || email;
+        const picture = userData.user.picture || '';
         
-        if (authResult.authenticated) {
-          console.log('[AdminAuth] ✅ Admin authenticated after Google login');
+        console.log('[AdminAuth] Processing login for:', email);
+        
+        // Auto-provision first admin if needed
+        ensureAdminProvision(email);
+        
+        // Check if user is admin
+        if (isEmailAdmin(email)) {
+          // Save admin info immediately
+          saveCurrentAdmin({
+            email,
+            name,
+            picture,
+            authenticatedAt: Date.now()
+          });
+          
+          console.log('[AdminAuth] ✅ Admin authenticated:', email);
           
           // Update UI immediately
           displayAdminInfo();
@@ -1052,11 +1052,13 @@
             console.log('[AdminAuth] Refreshing admin list popup after login');
             renderAdminList();
           }
+        } else {
+          console.log('[AdminAuth] ❌ User is not an admin:', email);
         }
-      } catch (error) {
-        console.error('[AdminAuth] Error updating UI after Google login:', error);
       }
-    }, 100);
+    } catch (error) {
+      console.error('[AdminAuth] Error updating UI after Google login:', error);
+    }
   });
 
   // Listen for Google Auth logout to reset flags
@@ -1090,10 +1092,10 @@
   // Initialize on load
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-      // Small delay to ensure other scripts are loaded
-      setTimeout(initAdminAuth, 200);
+      // Use requestAnimationFrame for immediate but non-blocking execution
+      requestAnimationFrame(() => initAdminAuth());
     });
   } else {
-    setTimeout(initAdminAuth, 200);
+    requestAnimationFrame(() => initAdminAuth());
   }
 })();
