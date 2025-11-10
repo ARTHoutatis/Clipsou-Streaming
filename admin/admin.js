@@ -465,7 +465,7 @@
             studioBadge: String(it.studioBadge||''),
             actors: Array.isArray(it.actors) ? it.actors : []
           };
-          list.unshift({ requestId: rid, status: 'approved', data, meta: { importedFromPublic: true, updatedAt: Date.now() } });
+          list.unshift({ requestId: rid, status: 'approved', data, meta: { importedFromPublic: true } });
           changed = true;
         }
       }
