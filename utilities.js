@@ -20,8 +20,10 @@ function optimizeCloudinaryUrl(url) {
     return url;
   }
   
-  // Carousel et grandes images: meilleure qualité
-  const optimized = 'f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:1920,c_limit';
+  // Carousel et grandes images: meilleure qualité avec compression optimisée
+  // Ajout de q_auto:good (au lieu de best) pour balance qualité/vitesse
+  // Ajout de fetch_format pour conversion auto vers WebP/AVIF
+  const optimized = 'f_auto,q_auto:good,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:1920,c_limit,e_sharpen:80';
   
   if (url.includes('/upload/')) {
     return url.replace('/upload/', '/upload/' + optimized + '/');
@@ -65,8 +67,9 @@ function optimizeCloudinaryUrlCard(url) {
     return url;
   }
   
-  // Cartes: qualité moyenne-basse, max 500px
-  const optimized = 'f_auto,q_auto:eco,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:500,c_limit';
+  // Cartes: qualité optimisée pour le web, max 500px avec compression agressive
+  // q_auto:low pour réduire la taille, acceptable pour les petites cartes
+  const optimized = 'f_auto,q_auto:low,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:500,c_limit,e_sharpen:50';
   
   if (url.includes('/upload/')) {
     return url.replace('/upload/', '/upload/' + optimized + '/');
@@ -432,6 +435,8 @@ class EventManager {
 function installLazyImageLoader() {
   const ATTR = 'data-src';
   const pending = new Set();
+  const failed = new WeakSet();
+  const retryDelay = 2000; // 2 secondes avant retry
   
   function load(el) {
     try {
@@ -444,31 +449,69 @@ function installLazyImageLoader() {
       
       el.addEventListener('load', function onLoad() {
         el.classList.add('loaded');
+        failed.delete(el); // Reset failed state on success
         el.removeEventListener('load', onLoad);
       }, { once: true });
       
       el.addEventListener('error', function onError() {
-        el.classList.add('loaded');
         el.removeEventListener('error', onError);
+        
+        // Retry une fois après délai si pas déjà tenté
+        if (!failed.has(el)) {
+          failed.add(el);
+          setTimeout(() => {
+            try {
+              if (el && el.src !== src) {
+                el.src = src; // Retry
+              }
+            } catch {}
+          }, retryDelay);
+        } else {
+          // Échec définitif après retry
+          el.classList.add('loaded');
+          el.classList.add('failed');
+        }
       }, { once: true });
       
-      el.src = src;
+      // Activer le décodage asynchrone pour éviter de bloquer le thread principal
+      if ('decode' in el) {
+        el.decode().then(() => {
+          el.src = src;
+        }).catch(() => {
+          el.src = src; // Fallback si decode() échoue
+        });
+      } else {
+        el.src = src;
+      }
+      
       el.removeAttribute(ATTR);
       pending.delete(el);
     } catch (_) {}
   }
   
-  // Optimisation pour bas de gamme : marges réduites pour charger uniquement le visible proche
-  // Vertical: 150px, Horizontal: 200px - réduit la charge mémoire et CPU
+  // Marges généreuses pour anticiper le scroll et éviter le chargement tardif
+  // Vertical: 300px, Horizontal: 400px - balance entre performance et UX
   const io = ('IntersectionObserver' in window) ? new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       const el = entry.target;
       if (entry.isIntersecting || entry.intersectionRatio > 0) {
         try { io.unobserve(el); } catch (_) {}
-        load(el);
+        
+        // Charger immédiatement les images above-the-fold (visible sans scroll)
+        const rect = el.getBoundingClientRect();
+        const isAboveFold = rect.top >= 0 && rect.top < window.innerHeight;
+        
+        if (isAboveFold) {
+          // Priorité haute pour les images visibles
+          el.loading = 'eager';
+          load(el);
+        } else {
+          // Délai minimal pour les autres images
+          setTimeout(() => load(el), 50);
+        }
       }
     });
-  }, { root: null, rootMargin: '150px 200px', threshold: 0.01 }) : null;
+  }, { root: null, rootMargin: '300px 400px', threshold: 0.01 }) : null;
   
   function observe(el) {
     if (!el || pending.has(el)) return;

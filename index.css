@@ -437,10 +437,34 @@ body:not(.fiche-page-view) {
   align-items: center;
 }
 .resume-dialog-actions .button {
-  flex: 1;
+  flex: 1 1 0; /* Force equal width distribution */
   min-width: 0;
-  padding: 12px 18px;
-  text-align: center;
+  max-width: none;
+  padding: 12px 18px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  line-height: 1.4 !important;
+  border-width: 1px !important;
+  box-sizing: border-box !important;
+}
+/* Garantir aucun changement au survol/focus/active */
+.resume-dialog-actions .button:hover,
+.resume-dialog-actions .button:focus,
+.resume-dialog-actions .button:active {
+  padding: 12px 18px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  line-height: 1.4 !important;
+  border-width: 1px !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 @media (max-width: 540px) {
@@ -449,7 +473,8 @@ body:not(.fiche-page-view) {
     align-items: stretch;
   }
   .resume-dialog-actions .button {
-    width: 100%;
+    width: 100% !important;
+    flex: 0 0 auto;
   }
 }
 

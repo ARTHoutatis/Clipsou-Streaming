@@ -201,7 +201,7 @@ nav[aria-label="Navigation principale"] .logo span {
     /* Prevent animated gradient background from repeating on mobile */
     body {
         background-repeat: no-repeat, no-repeat, no-repeat !important;
-        background-attachment: scroll, scroll, scroll !important;
+        background-attachment: fixed, fixed, fixed !important;
         /* Make radial gradients large enough and the linear fill the page */
         background-size: 180% 80%, 180% 90%, 100% 100% !important;
         background-position: 10% -10%, 100% 0%, center top !important;
@@ -222,6 +222,7 @@ body {
     radial-gradient(1200px 600px at 10% -10%, rgba(43,34,238,0.18), transparent 60%),
     radial-gradient(1000px 700px at 100% 10%, rgba(108,92,231,0.18), transparent 60%),
     linear-gradient(180deg, var(--bg-2), var(--bg-1));
+  background-attachment: fixed, fixed, fixed;
 }
 
 /* Translucent blurred nav (match common.css) */
