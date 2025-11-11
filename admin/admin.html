@@ -48,14 +48,14 @@
         <span class="tab-emoji">📝</span>
         <span class="tab-text">
           <span class="tab-short">Requêtes</span>
-          <span class="tab-long">  d'ajout</span>
+          <span class="tab-long"> d'ajout</span>
         </span>
       </button>
       <button class="tab-button" data-tab="user-requests">
         <span class="tab-emoji">📬</span>
         <span class="tab-text">
           <span class="tab-short">Demandes</span>
-          <span class="tab-long">  utilisateurs</span>
+          <span class="tab-long"> utilisateurs</span>
         </span>
         <span id="userRequestsCountTab" class="badge notif-badge" hidden></span>
       </button>
@@ -63,7 +63,7 @@
         <span class="tab-emoji">🚫</span>
         <span class="tab-text">
           <span class="tab-short">Bannis</span>
-          <span class="tab-long">  utilisateurs</span>
+          <span class="tab-long"> utilisateurs</span>
         </span>
         <span id="bannedUsersCountTab" class="badge notif-badge" hidden></span>
       </button>
@@ -394,6 +394,10 @@
   </div>
 
   <script src="../config.js"></script>
+  <script>
+    // Enable admin mode: allows Google accounts without YouTube channel
+    window.ADMIN_MODE = true;
+  </script>
   <script src="../google-auth.js?v=20251031-buttonalign"></script>
   <script src="admin-auth.js?v=20251031-superadmin"></script>
   <script src="admin.js?v=20251031-profilefix" defer></script>

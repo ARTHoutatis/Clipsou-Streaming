@@ -475,17 +475,11 @@
   }
 
   /**
-   * Check admin authentication (password + Google)
+   * Check admin authentication (Google OAuth ONLY)
    */
   async function checkAdminAuth() {
-    // Check password authentication (existing system)
-    const isPasswordAuth = localStorage.getItem('clipsou_admin_logged_in_v1') === '1';
-    
-    if (!isPasswordAuth) {
-      return { authenticated: false, reason: 'password' };
-    }
-
-    // Check Google authentication
+    // Google authentication is now REQUIRED for admin access
+    // Password authentication has been removed for security
     try {
       await initGoogleAuth();
       
