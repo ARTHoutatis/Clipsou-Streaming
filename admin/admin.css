@@ -448,6 +448,23 @@ fieldset { border: 1px solid #334155; border-radius: 12px; padding: 12px; margin
     padding: 8px 0;
     text-align: left !important;
   }
+
+  /* IMPORTANT: Réinitialiser les hauteurs fixes héritées du desktop pour éviter les chevauchements */
+  .table th,
+  .table td,
+  .table tr {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  /* Le titre doit pouvoir revenir à la ligne et prendre toute la largeur sur mobile */
+  .table td[data-label="Titre"] {
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    word-break: break-word;
+  }
   
   /* Ajoute des labels avant chaque donnée */
   .table td::before {
