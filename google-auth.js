@@ -21,6 +21,9 @@
   let initPromise = null;
   let silentAuthAttempted = false;
   let refreshTimer = null;
+  
+  // Admin mode: doesn't require YouTube channel
+  let adminMode = false;
 
   const GOOGLE_ICON_SVG = `
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -155,28 +158,37 @@
       if (savedAuth && isAuthValid(savedAuth)) {
         console.log('[OAuth] Valid authentication found in storage');
         currentUser = savedAuth;
-        showMainContent();
         
-        // Calculate time until token expires
-        const timeUntilExpiry = Math.floor((savedAuth.expiresAt - Date.now()) / 1000);
-        
-        // If token expires in less than 5 minutes or already expired, refresh immediately
-        if (timeUntilExpiry < 300) {
-          console.log('[OAuth] Token expires soon or expired, attempting silent refresh...');
-          // Attempt silent refresh in background without blocking UI
-          refreshAccessToken(savedAuth).then(success => {
-            if (success) {
-              console.log('[OAuth] Token refreshed successfully');
-            } else {
-              console.log('[OAuth] Silent refresh failed, but keeping session active');
-              // Keep session active anyway for 30 days since last auth
-            }
-          });
+        // In admin mode, always initialize the button even if already authenticated
+        // This allows the user to see the Google auth status and then enter password
+        if (!adminMode) {
+          showMainContent();
+          
+          // Calculate time until token expires
+          const timeUntilExpiry = Math.floor((savedAuth.expiresAt - Date.now()) / 1000);
+          
+          // If token expires in less than 5 minutes or already expired, refresh immediately
+          if (timeUntilExpiry < 300) {
+            console.log('[OAuth] Token expires soon or expired, attempting silent refresh...');
+            // Attempt silent refresh in background without blocking UI
+            refreshAccessToken(savedAuth).then(success => {
+              if (success) {
+                console.log('[OAuth] Token refreshed successfully');
+              } else {
+                console.log('[OAuth] Silent refresh failed, but keeping session active');
+                // Keep session active anyway for 30 days since last auth
+              }
+            });
+          } else {
+            scheduleTokenRefresh(timeUntilExpiry);
+          }
+          
+          return currentUser;
         } else {
-          scheduleTokenRefresh(timeUntilExpiry);
+          console.log('[OAuth] Admin mode: initializing button even with valid auth');
+          // Show content immediately but also init the button for admin UI
+          showMainContent();
         }
-        
-        return currentUser;
       }
 
       await initializeGoogleSignIn(savedAuth);
@@ -190,22 +202,30 @@
    * Initialize Google Sign-In button
    */
   async function initializeGoogleSignIn(savedAuth) {
+    console.log('[OAuth] initializeGoogleSignIn called, savedAuth:', !!savedAuth);
+    console.log('[OAuth] Waiting for Google library...');
+    
     try {
       await waitForGoogleLibrary();
+      console.log('[OAuth] ✅ Google library loaded');
     } catch (error) {
-      console.error('[OAuth] Google Identity Services failed to load', error);
+      console.error('[OAuth] ❌ Google Identity Services failed to load', error);
       showAuthError('Impossible de charger les services Google.');
       return;
     }
 
     const config = window.ClipsouConfig?.google;
+    console.log('[OAuth] ClipsouConfig:', window.ClipsouConfig);
+    console.log('[OAuth] Google config:', config);
+    
     if (!config || !config.clientId) {
       showAuthError('Configuration OAuth manquante');
-      console.error('[OAuth] Google OAuth configuration not found in ClipsouConfig');
+      console.error('[OAuth] ❌ Google OAuth configuration not found in ClipsouConfig');
       return;
     }
 
-    console.log('[OAuth] Rendering Google Sign-In button');
+    console.log('[OAuth] ✅ Config OK, rendering Google Sign-In button');
+    console.log('[OAuth] Client ID:', config.clientId);
 
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: config.clientId,
@@ -432,19 +452,38 @@
       const userInfo = await fetchUserInfo(accessToken);
       console.log('[OAuth] User info received:', userInfo.email);
 
-      console.log('[OAuth] Fetching YouTube channel info...');
-      const channelInfo = await fetchYouTubeChannel(accessToken);
-
-      if (!channelInfo) {
-        showAuthError('Aucune chaîne YouTube trouvée pour ce compte. Vous devez avoir une chaîne YouTube pour soumettre un film.');
-        if (button) {
-          button.disabled = false;
-          button.innerHTML = previousHTML || getGoogleButtonHTML();
+      let channelInfo = null;
+      
+      // In admin mode, YouTube channel is optional
+      if (adminMode) {
+        console.log('[OAuth] 🔐 Admin mode: YouTube channel not required');
+        try {
+          console.log('[OAuth] Attempting to fetch YouTube channel (optional)...');
+          channelInfo = await fetchYouTubeChannel(accessToken);
+          if (channelInfo) {
+            console.log('[OAuth] Channel info received:', channelInfo.title);
+          } else {
+            console.log('[OAuth] No YouTube channel found (OK in admin mode)');
+          }
+        } catch (error) {
+          console.log('[OAuth] YouTube channel fetch failed (OK in admin mode):', error.message);
         }
-        return false;
-      }
+      } else {
+        // User mode: YouTube channel is required
+        console.log('[OAuth] Fetching YouTube channel info (required)...');
+        channelInfo = await fetchYouTubeChannel(accessToken);
 
-      console.log('[OAuth] Channel info received:', channelInfo.title);
+        if (!channelInfo) {
+          showAuthError('Aucune chaîne YouTube trouvée pour ce compte. Vous devez avoir une chaîne YouTube pour soumettre un film.');
+          if (button) {
+            button.disabled = false;
+            button.innerHTML = previousHTML || getGoogleButtonHTML();
+          }
+          return false;
+        }
+
+        console.log('[OAuth] Channel info received:', channelInfo.title);
+      }
 
       const authData = {
         accessToken,
@@ -546,6 +585,17 @@
       }
     }
 
+    // Dispatch custom event for admin login to enable password form
+    console.log('[OAuth] Dispatching googleAuthSuccess event');
+    window.dispatchEvent(new CustomEvent('googleAuthSuccess', {
+      detail: {
+        email: currentUser.user?.email,
+        name: currentUser.user?.name,
+        user: currentUser.user,
+        channel: currentUser.channel
+      }
+    }));
+
     // Display user info in header
     displayUserInfo();
 
@@ -562,9 +612,14 @@
     }
 
     // Hide the Google Sign-In button if user is already logged in
-    const googleSignInButton = document.getElementById('googleSignInButton');
-    if (googleSignInButton) {
-      googleSignInButton.style.display = 'none';
+    // BUT: In admin mode, keep it visible as admin.html will manage the display
+    if (!adminMode) {
+      const googleSignInButton = document.getElementById('googleSignInButton');
+      if (googleSignInButton) {
+        googleSignInButton.style.display = 'none';
+      }
+    } else {
+      console.log('[OAuth] Admin mode: keeping googleSignInButton visible for status display');
     }
 
     // Navigate to step 2 (Terms) only if on step 1
@@ -589,6 +644,9 @@
 
     const { user, channel } = currentUser;
     
+    // If no channel in admin mode, show admin badge instead
+    const isAdmin = adminMode && !channel;
+    
     // Show different badge based on mode
     let badge = '';
     if (isLocalDev()) {
@@ -599,11 +657,14 @@
       }
     }
     
+    const channelDisplay = channel ? `<div class="user-info-channel">📺 ${channel.title}</div>` : 
+      (isAdmin ? '<div class="user-info-channel" style="color: #7c3aed;">🔐 Administrateur</div>' : '');
+    
     userInfoDiv.innerHTML = `
       ${user.picture ? `<img src="${user.picture}" alt="${user.name}">` : ''}
       <div class="user-info-text">
         <div class="user-info-name">${user.name}${badge}</div>
-        <div class="user-info-channel">📺 ${channel.title}</div>
+        ${channelDisplay}
       </div>
     `;
     userInfoDiv.hidden = false;
@@ -642,6 +703,10 @@
     clearAuth();
     currentUser = null;
 
+    // Dispatch custom event for admin logout to disable password form
+    console.log('[OAuth] Dispatching googleAuthLogout event');
+    window.dispatchEvent(new CustomEvent('googleAuthLogout'));
+
     // Hide user info and logout button
     if (userInfoDiv) userInfoDiv.hidden = true;
     if (logoutBtn) logoutBtn.hidden = true;
@@ -661,10 +726,15 @@
     const googleSignInButton = document.getElementById('googleSignInButton');
     if (googleSignInButton) {
       googleSignInButton.style.display = '';
+      // In admin mode, clear the content to show the button again
+      if (adminMode) {
+        googleSignInButton.innerHTML = '';
+        console.log('[OAuth] Admin mode: clearing googleSignInButton for re-init');
+      }
     }
 
-    // Navigate back to step 1 (login)
-    if (typeof window.goToSlide === 'function') {
+    // Navigate back to step 1 (login) - only for non-admin pages
+    if (!adminMode && typeof window.goToSlide === 'function') {
       window.goToSlide(1);
     }
     
@@ -782,6 +852,14 @@
       return true;
     }
     return false;
+  }
+  
+  /**
+   * Enable admin mode (YouTube channel not required)
+   */
+  function setAdminMode(enabled) {
+    adminMode = !!enabled;
+    console.log('[OAuth] Admin mode:', adminMode ? 'ENABLED' : 'DISABLED');
   }
 
   /**
@@ -961,16 +1039,19 @@
 
   // Expose public API
   window.GoogleAuth = {
-    init: initGoogleAuth,
+    initGoogleAuth,
     getCurrentUser,
     getYouTubeChannel,
     isAuthenticated,
     logout: handleLogout,
     verifyVideoOwnership,
-    isLocalDev,
-    shouldForceRealOAuth,
-    setOAuthPreference,
-    refreshAccessToken
+    extractVideoId,
+    setAdminMode,
+    updateGoogleButtonText: () => {
+      if (googleButton) {
+        googleButton.innerHTML = getGoogleButtonHTML();
+      }
+    }
   };
 
   // Écouteurs globaux pour la traduction dynamique du bouton Google
