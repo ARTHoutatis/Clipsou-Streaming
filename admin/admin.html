@@ -360,10 +360,14 @@
 
   <div id="login" class="login">
     <h1>Admin – Connexion</h1>
-    <p class="muted">Entrez le mot de passe admin et connectez-vous avec Google pour accéder à l'interface.</p>
+    <p class="muted">⚠️ <strong>Étape 1/2 :</strong> Connectez-vous d'abord avec votre compte Google admin.</p>
     
     <!-- Google Sign-In Button -->
     <div id="googleSignInButton" style="display:flex; justify-content:center; margin:16px 0;"></div>
+    <div id="googleAuthStatus" style="display:none; text-align:center; margin:12px 0; padding:12px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:8px;">
+      <p style="color:#22c55e; font-weight:600; margin:0;">✅ Connecté avec Google</p>
+      <p class="muted small" style="margin:4px 0 0 0;" id="googleAuthEmail"></p>
+    </div>
     <p class="muted small" style="text-align:center; margin:8px 0;">Connexion Google requise (email autorisé uniquement)</p>
     <p class="muted small" style="text-align:center; margin:8px 0;">
       <a href="../privacy.html" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: none;">
@@ -376,18 +380,22 @@
     
     <hr style="border:none; border-top:1px solid #334155; margin:24px 0;">
     
-    <!-- Provide a dedicated username field so Chrome pairs credentials here instead of targeting unrelated inputs -->
-    <input id="usernameInput" name="username" type="text" autocomplete="username" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none" tabindex="-1" aria-hidden="true">
-    <!-- Hidden current-password decoy to further attract autofill away from the search field -->
-    <input type="password" name="password" autocomplete="current-password" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none" tabindex="-1" aria-hidden="true">
-    <input id="passwordInput" name="admin_password" type="password" placeholder="Mot de passe" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false">
-    <div style="display:flex; gap:12px; justify-content:center; align-items:center; margin:8px 0;">
-      <label style="display:flex; gap:6px; align-items:center;">
-        <input id="showPwd" type="checkbox">
-        <span>Afficher le mot de passe</span>
-      </label>
+    <div id="passwordSection" style="opacity:0.5; pointer-events:none;">
+      <p class="muted" style="text-align:center; margin-bottom:16px;"><strong>Étape 2/2 :</strong> Entrez le mot de passe admin</p>
+      <!-- Provide a dedicated username field so Chrome pairs credentials here instead of targeting unrelated inputs -->
+      <input id="usernameInput" name="username" type="text" autocomplete="username" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none" tabindex="-1" aria-hidden="true">
+      <!-- Hidden current-password decoy to further attract autofill away from the search field -->
+      <input type="password" name="password" autocomplete="current-password" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none" tabindex="-1" aria-hidden="true">
+      <input id="passwordInput" name="admin_password" type="password" placeholder="Mot de passe admin" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" disabled>
+      <div style="display:flex; gap:12px; justify-content:center; align-items:center; margin:8px 0;">
+        <label style="display:flex; gap:6px; align-items:center;">
+          <input id="showPwd" type="checkbox" disabled>
+          <span>Afficher le mot de passe</span>
+        </label>
+      </div>
+      <button id="loginBtn" class="btn" disabled>Se connecter</button>
+      <p class="muted small" style="text-align:center; margin-top:8px;">🔒 Veuillez d'abord vous connecter avec Google</p>
     </div>
-    <button id="loginBtn" class="btn">Se connecter</button>
     <div style="margin-top:8px;">
       <a id="homeShortcutLogin" href="../" class="btn secondary">Retour à l'accueil</a>
     </div>
@@ -415,6 +423,9 @@
           if (typeof window.GoogleAuth.initGoogleAuth === 'function') {
             window.GoogleAuth.initGoogleAuth().then(() => {
               console.log('[Admin] ✅ Google Auth initialized');
+              
+              // Check if user is already authenticated
+              checkGoogleAuthAndEnablePassword();
             }).catch(err => {
               console.error('[Admin] ❌ Failed to initialize Google Auth:', err);
             });
@@ -426,15 +437,195 @@
       setTimeout(() => {
         clearInterval(initAdminGoogleAuth);
       }, 10000);
+      
+      // Function to check Google Auth and enable password form
+      function checkGoogleAuthAndEnablePassword() {
+        console.log('[Admin] checkGoogleAuthAndEnablePassword called');
+        console.log('[Admin] GoogleAuth exists:', !!window.GoogleAuth);
+        console.log('[Admin] isAuthenticated exists:', !!(window.GoogleAuth && window.GoogleAuth.isAuthenticated));
+        
+        // Check if already authenticated
+        if (window.GoogleAuth && window.GoogleAuth.isAuthenticated && window.GoogleAuth.isAuthenticated()) {
+          console.log('[Admin] GoogleAuth.isAuthenticated() = true');
+          const user = window.GoogleAuth.getCurrentUser();
+          console.log('[Admin] getCurrentUser() result:', user);
+          if (user && user.user) {
+            console.log('[Admin] 🔐 Google already authenticated, enabling password form');
+            console.log('[Admin] User email:', user.user.email);
+            enablePasswordForm(user.user.email);
+            return;
+          } else {
+            console.warn('[Admin] isAuthenticated=true but no user data!');
+          }
+        } else {
+          console.log('[Admin] GoogleAuth.isAuthenticated() = false or not available');
+        }
+        
+        // Listen for Google Auth success event
+        console.log('[Admin] Listening for googleAuthSuccess event...');
+        window.addEventListener('googleAuthSuccess', function(event) {
+          console.log('[Admin] 🔐 Google Auth event received!', event.detail);
+          if (event.detail && event.detail.email) {
+            enablePasswordForm(event.detail.email);
+          }
+        }, { once: true });
+        
+        // Also check again after a short delay in case of timing issues
+        setTimeout(() => {
+          console.log('[Admin] Delayed check for Google Auth...');
+          if (window.GoogleAuth && window.GoogleAuth.isAuthenticated && window.GoogleAuth.isAuthenticated()) {
+            const user = window.GoogleAuth.getCurrentUser();
+            console.log('[Admin] Delayed check - user:', user);
+            if (user && user.user && user.user.email) {
+              console.log('[Admin] 🔐 Delayed check found auth, enabling password form');
+              enablePasswordForm(user.user.email);
+            }
+          }
+        }, 500);
+      }
+      
+      // Function to enable password form after Google authentication
+      function enablePasswordForm(email) {
+        console.log('[Admin] enablePasswordForm called with email:', email);
+        const passwordSection = document.getElementById('passwordSection');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const showPwd = document.getElementById('showPwd');
+        const googleAuthStatus = document.getElementById('googleAuthStatus');
+        const googleAuthEmail = document.getElementById('googleAuthEmail');
+        const googleSignInButton = document.getElementById('googleSignInButton');
+        
+        if (passwordSection) {
+          passwordSection.style.opacity = '1';
+          passwordSection.style.pointerEvents = 'auto';
+        }
+        
+        if (passwordInput) {
+          passwordInput.disabled = false;
+          // Don't auto-focus if user is already typing
+          if (document.activeElement !== passwordInput) {
+            passwordInput.focus();
+          }
+        }
+        
+        if (loginBtn) {
+          loginBtn.disabled = false;
+        }
+        
+        if (showPwd) {
+          showPwd.disabled = false;
+        }
+        
+        // Show Google auth status
+        if (googleAuthStatus) {
+          googleAuthStatus.style.display = 'block';
+        }
+        
+        if (googleAuthEmail) {
+          googleAuthEmail.textContent = email;
+        }
+        
+        // Hide Google Sign-In button
+        if (googleSignInButton) {
+          googleSignInButton.style.display = 'none';
+        }
+        
+        console.log('[Admin] ✅ Password form enabled');
+      }
+      
+      // Function to disable password form after Google logout
+      function disablePasswordForm() {
+        console.log('[Admin] disablePasswordForm called');
+        const passwordSection = document.getElementById('passwordSection');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const showPwd = document.getElementById('showPwd');
+        const googleAuthStatus = document.getElementById('googleAuthStatus');
+        const googleSignInButton = document.getElementById('googleSignInButton');
+        
+        if (passwordSection) {
+          passwordSection.style.opacity = '0.5';
+          passwordSection.style.pointerEvents = 'none';
+        }
+        
+        if (passwordInput) {
+          passwordInput.disabled = true;
+          passwordInput.value = ''; // Clear password field
+        }
+        
+        if (loginBtn) {
+          loginBtn.disabled = true;
+        }
+        
+        if (showPwd) {
+          showPwd.disabled = true;
+          showPwd.checked = false; // Reset checkbox
+        }
+        
+        // Hide Google auth status
+        if (googleAuthStatus) {
+          googleAuthStatus.style.display = 'none';
+        }
+        
+        // Show Google Sign-In button again
+        if (googleSignInButton) {
+          googleSignInButton.style.display = '';
+        }
+        
+        console.log('[Admin] ✅ Password form disabled');
+      }
+      
+      // Listen for Google logout event
+      window.addEventListener('googleAuthLogout', function() {
+        console.log('[Admin] 🔓 Google logout event received');
+        disablePasswordForm();
+        
+        // Also check if we need to reload the page or just reset the form
+        // In admin context, we should stay on the login screen
+      });
+      
+      // Expose functions globally for admin.js to use
+      window.enablePasswordForm = enablePasswordForm;
+      window.disablePasswordForm = disablePasswordForm;
+      window.checkGoogleAuthAndEnablePassword = checkGoogleAuthAndEnablePassword;
     })();
   </script>
   <script>
-    // Setup admin list button
+    // Setup admin buttons
     document.addEventListener('DOMContentLoaded', function() {
+      // Admin list button
       const adminListBtn = document.getElementById('adminListBtn');
       if (adminListBtn && window.AdminAuth) {
         adminListBtn.addEventListener('click', function() {
           window.AdminAuth.showAdminListPopup();
+        });
+      }
+      
+      // Logout button - handle both Google logout and admin session
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+          console.log('[Admin] Logout button clicked');
+          
+          // First logout from Google
+          if (window.GoogleAuth && typeof window.GoogleAuth.logout === 'function') {
+            console.log('[Admin] Calling GoogleAuth.logout()');
+            window.GoogleAuth.logout();
+          }
+          
+          // Then clear admin session
+          try {
+            localStorage.removeItem('clipsou_admin_logged_in_v1');
+            sessionStorage.removeItem('clipsou_admin_session_v1');
+            console.log('[Admin] Admin session cleared');
+          } catch (e) {
+            console.error('[Admin] Error clearing admin session:', e);
+          }
+          
+          // Reload page to show login screen
+          setTimeout(() => {
+            window.location.reload();
+          }, 100);
         });
       }
     });

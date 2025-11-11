@@ -981,10 +981,10 @@
       cfg = { url: defaultUrl, secret: '' };
     }
     if (!cfg.secret) {
-      // Prompt for secret if missing
-      const secret = prompt('Worker secret key (one-time setup):');
-      if (!secret) return null;
-      cfg.secret = secret;
+      // Auto-configure with the shared secret
+      const defaultSecret = 'Ns7kE4pP2Yq9vC1rT5wZ8hJ3uL6mQ0aR';
+      console.log('[AdminAuth] Auto-configuring worker secret');
+      cfg.secret = defaultSecret;
       localStorage.setItem('clipsou_admin_publish_api_v1', JSON.stringify(cfg));
     }
     return cfg;

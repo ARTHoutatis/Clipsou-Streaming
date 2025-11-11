@@ -1181,6 +1181,11 @@
       };
       setPublishConfig(cfg);
     } else {
+      // Backfill secret if missing
+      if (!cfg.secret) {
+        console.log('[Admin] Auto-configuring worker secret');
+        cfg.secret = 'Ns7kE4pP2Yq9vC1rT5wZ8hJ3uL6mQ0aR';
+      }
       // Backfill public URLs if missing
       try {
         if (!cfg.publicApprovedUrl) {
@@ -1777,6 +1782,18 @@
     
     // Define doLogin function before attaching handlers
     async function doLogin(){
+      // CRITICAL: Check Google authentication first
+      if (!window.GoogleAuth || !window.GoogleAuth.isAuthenticated || !window.GoogleAuth.isAuthenticated()) {
+        alert('🔒 Connexion Google requise\n\nVous devez d\'abord vous connecter avec votre compte Google admin avant de pouvoir entrer le mot de passe.\n\nVeuillez cliquer sur le bouton "Se connecter à Google" ci-dessus.');
+        return;
+      }
+      
+      const googleUser = window.GoogleAuth.getCurrentUser();
+      if (!googleUser || !googleUser.user || !googleUser.user.email) {
+        alert('🔒 Connexion Google invalide\n\nImpossible de récupérer les informations de votre compte Google.\n\nVeuillez vous reconnecter avec Google.');
+        return;
+      }
+      
       const pwd = (pwdInput && pwdInput.value) || '';
       if (!pwd) {
         alert('Veuillez entrer un mot de passe.');
