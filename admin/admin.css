@@ -68,8 +68,8 @@ h1, h2, h3 { margin: 12px 0; }
 }
 
 .tab-button .tab-text {
-  display: inline-flex;
-  flex-wrap: nowrap;
+  display: inline;
+  white-space: nowrap;
 }
 
 .tab-button .tab-short,
@@ -329,7 +329,7 @@ fieldset { border: 1px solid #334155; border-radius: 12px; padding: 12px; margin
   }
   
   .tab-button.active .tab-text {
-    display: inline-flex;
+    display: inline;
     font-size: 13px;
   }
   
@@ -1310,6 +1310,7 @@ fieldset { border: 1px solid #334155; border-radius: 12px; padding: 12px; margin
   }
   
   .tab-button.active .tab-text {
+    display: inline;
     font-size: 12px;
   }
   
