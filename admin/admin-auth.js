@@ -458,6 +458,12 @@
         return;
       }
 
+      // Enable admin mode (YouTube channel not required)
+      if (typeof window.GoogleAuth.setAdminMode === 'function') {
+        window.GoogleAuth.setAdminMode(true);
+        console.log('[AdminAuth] Admin mode enabled in GoogleAuth');
+      }
+
       // Wait for GoogleAuth to be ready
       const checkReady = setInterval(() => {
         if (window.GoogleAuth && typeof window.GoogleAuth.isAuthenticated === 'function') {
@@ -935,6 +941,25 @@
         </div>
       </div>
     `;
+    
+    // Also display Google auth info in the googleAuthContainer
+    const googleAuthContainer = document.getElementById('googleAuthContainer');
+    if (googleAuthContainer && window.GoogleAuth) {
+      const googleUser = window.GoogleAuth.getCurrentUser();
+      if (googleUser && googleUser.user) {
+        const channel = googleUser.channel;
+        googleAuthContainer.innerHTML = `
+          <div class="google-auth-info" style="display:flex; align-items:center; gap:12px; padding:12px; background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.3); border-radius:8px; margin:12px 0;">
+            ${googleUser.user.picture ? `<img src="${googleUser.user.picture}" alt="${googleUser.user.name}" style="width:40px; height:40px; border-radius:50%;" />` : ''}
+            <div style="flex:1;">
+              <div style="font-weight:600; color:#e5e7eb;">🔐 Connecté avec Google</div>
+              <div style="font-size:13px; color:#94a3b8;">${googleUser.user.email}</div>
+              ${channel ? `<div style="font-size:12px; color:#60a5fa;">📺 ${channel.title}</div>` : '<div style="font-size:12px; color:#7c3aed;">🔐 Administrateur (pas de chaîne YouTube requise)</div>'}
+            </div>
+          </div>
+        `;
+      }
+    }
   }
 
   // ===== Publish Config (shared with admin.js) =====
@@ -1173,6 +1198,53 @@
   }
 
   /**
+   * Block access to admin interface
+   */
+  function blockAdminAccess(reason, details = {}) {
+    console.error('[AdminAuth] Access denied:', reason, details);
+    
+    // Hide admin interface
+    const app = document.getElementById('app');
+    if (app) app.hidden = true;
+    
+    // Show error message
+    let message = '';
+    switch (reason) {
+      case 'password':
+        message = '🔒 Accès restreint\n\nVeuillez vous connecter avec le mot de passe admin.';
+        break;
+      case 'google_not_authenticated':
+        message = '🔒 Connexion Google requise\n\nVous devez vous connecter avec votre compte Google admin pour accéder à cette interface.';
+        break;
+      case 'not_admin':
+        message = `❌ Accès refusé\n\nLe compte Google ${details.email || 'inconnu'} n'est pas autorisé à accéder à l'interface admin.\n\nContactez un administrateur existant pour être ajouté à la liste.`;
+        break;
+      case 'banned':
+        message = `⛔ Compte banni\n\nVotre compte a été banni${details.bannedBy ? ' par ' + details.bannedBy : ''}.\n\nContactez le Super Admin pour plus d'informations.`;
+        break;
+      case 'google_error':
+        message = '❌ Erreur d\'authentification Google\n\nVeuillez réessayer ou contacter le support.';
+        break;
+      default:
+        message = '❌ Authentification échouée\n\nAccès refusé.';
+    }
+    
+    // Show alert
+    alert(message);
+    
+    // Clear admin session if needed
+    if (reason !== 'password') {
+      clearCurrentAdmin();
+      localStorage.removeItem('clipsou_admin_logged_in_v1');
+    }
+    
+    // Redirect to admin login or reload
+    setTimeout(() => {
+      window.location.href = window.location.pathname;
+    }, 100);
+  }
+
+  /**
    * Initialize admin authentication system
    */
   async function initAdminAuth() {
@@ -1184,34 +1256,13 @@
     if (!authResult.authenticated) {
       console.log('❌ Admin authentication failed:', authResult.reason);
       
-      // Clear admin session
-      clearCurrentAdmin();
+      // Block access with appropriate message
+      if (authResult.reason === 'password') {
+        // Let the existing password system handle this
+        return;
+      }
       
-      // Show appropriate message based on reason
-      let message = '';
-      switch (authResult.reason) {
-        case 'password':
-          // Let the existing password system handle this
-          return;
-        case 'google_not_authenticated':
-          message = '🔒 Connexion Google requise\n\nVous devez vous connecter avec votre compte Google admin pour accéder à cette interface.';
-          break;
-        case 'not_admin':
-          message = `❌ Accès refusé\n\nLe compte Google ${authResult.email} n'est pas autorisé à accéder à l'interface admin.\n\nContactez un administrateur existant pour être ajouté à la liste.`;
-          break;
-        case 'google_error':
-          message = '❌ Erreur d\'authentification Google\n\nVeuillez réessayer ou contacter le support.';
-          break;
-        default:
-          message = '❌ Authentification échouée';
-      }
-
-      if (message) {
-        alert(message);
-        // Logout from admin
-        localStorage.removeItem('clipsou_admin_logged_in_v1');
-        window.location.reload();
-      }
+      blockAdminAccess(authResult.reason, authResult);
       return;
     }
 
@@ -1263,6 +1314,7 @@
     initAdminAuth,
     displayAdminInfo,
     invalidateAdminCache,
+    blockAdminAccess,
     // GitHub sync functions
     fetchPublicAdminsArray,
     publishAdminsSync,

@@ -398,6 +398,37 @@
   <script src="admin-auth.js?v=20251031-superadmin"></script>
   <script src="admin.js?v=20251031-profilefix" defer></script>
   <script>
+    // Initialize Google Auth in Admin Mode (no YouTube channel required)
+    (function() {
+      console.log('[Admin] Preparing admin authentication system...');
+      
+      // Wait for GoogleAuth to be available
+      const initAdminGoogleAuth = setInterval(() => {
+        if (window.GoogleAuth && typeof window.GoogleAuth.setAdminMode === 'function') {
+          clearInterval(initAdminGoogleAuth);
+          
+          // Enable admin mode
+          window.GoogleAuth.setAdminMode(true);
+          console.log('[Admin] ✅ Admin mode enabled for Google Authentication');
+          
+          // Initialize Google Auth
+          if (typeof window.GoogleAuth.initGoogleAuth === 'function') {
+            window.GoogleAuth.initGoogleAuth().then(() => {
+              console.log('[Admin] ✅ Google Auth initialized');
+            }).catch(err => {
+              console.error('[Admin] ❌ Failed to initialize Google Auth:', err);
+            });
+          }
+        }
+      }, 100);
+      
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        clearInterval(initAdminGoogleAuth);
+      }, 10000);
+    })();
+  </script>
+  <script>
     // Setup admin list button
     document.addEventListener('DOMContentLoaded', function() {
       const adminListBtn = document.getElementById('adminListBtn');
