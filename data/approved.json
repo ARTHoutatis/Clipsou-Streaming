@@ -772,7 +772,7 @@
     "id": "custom-routine-ciwo",
     "title": "ROUTINE",
     "type": "film",
-    "rating": 3,
+    "rating": 2,
     "genres": [
       "Drame",
       "Psychologique",
@@ -789,7 +789,8 @@
       }
     ],
     "episodes": [],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1762536372/lrqirv0vza2pdgb19liy.png"
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1762536372/lrqirv0vza2pdgb19liy.png",
+    "ratingCount": 1
   },
   {
     "id": "custom-ruberren-eend-pbzx",
