@@ -93,14 +93,6 @@
   .hero-claim h2 { margin: 0 16px; font-size: clamp(18px, 5.6vw, 22px); }
 }
 
-/* ===== Voir tout removed globally ===== */
-/* Hide any inline "Voir tout" buttons regardless of viewport */
-.section > .see-all-btn { display: none !important; }
-/* Hide any existing or legacy all-* popups entirely */
-.fiche-popup[id^="all-"] { display: none !important; visibility: hidden !important; }
-.fiche-popup[id^="all-"] .fiche-content,
-.fiche-popup[id^="all-"] .fiche-right,
-.fiche-popup[id^="all-"] .grid { display: none !important; }
 
 /* Prevent Chrome scroll anchoring from moving the background when images load while a popup is open */
 html, body { overflow-anchor: auto; }
@@ -110,37 +102,6 @@ html.popup-open {
   overflow-anchor: none !important;
 }
 
-/* "Voir tout" popups (id starts with all-) should use full width for the grid */
-.fiche-popup .fiche-content {
-  background: #151D29 !important;
-  border: 1px solid rgba(255,255,255,0.08);
-}
-.fiche-popup[id^="all-"] .fiche-content {
-  grid-template-columns: 1fr !important;
-}
-.fiche-popup[id^="all-"] .fiche-right {
-  padding-left: 0 !important;
-}
-.fiche-popup[id^="all-"] .grid {
-  padding: 0 !important; /* remove inner grid padding so cards span the popup content width */
-  /* Center cards inside the popup */
-  display: flex !important;
-  flex-wrap: wrap !important;
-  justify-content: center !important;
-  align-content: flex-start !important;
-  gap: 22px !important;
-}
-
-/* Standard card width for centered layout in Voir tout popups */
-.fiche-popup[id^="all-"] .grid > * {
-  flex: 0 0 220px !important;
-  max-width: 220px !important;
-}
-
-@media (max-width: 768px) {
-  .fiche-popup[id^="all-"] .grid { gap: 16px !important; padding: 0 8px !important; }
-  .fiche-popup[id^="all-"] .grid > * { flex-basis: 200px !important; max-width: 200px !important; }
-}
 
 /* Continue Watching: use fades that match the box background color (#151D28) */
 @media (min-width: 769px) {

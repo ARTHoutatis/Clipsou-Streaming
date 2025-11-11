@@ -25,24 +25,6 @@
       return map;
     }
 
-    // Helper: ensure a "Voir tout" link next to h2 that opens a dedicated full-screen popup with all items
-    // DISABLED: per request, remove the button and popup on all devices.
-    function ensureSectionSeeAll(section, titleText, fullItems, cardBuilder) {
-      try {
-        if (!section) return;
-        // Keep or create the h2 normally so sections still have titles
-        let h2 = section.querySelector(':scope > h2');
-        if (!h2) { h2 = document.createElement('h2'); h2.textContent = titleText || ''; section.insertBefore(h2, section.firstChild || null); }
-        // Compute the would-be popup id, then remove any existing button/popup
-        const baseId = String(section.id || (titleText || 'section')).toLowerCase().replace(/[^a-z0-9_-]+/g, '-');
-        const popupId = 'all-' + baseId;
-        // Remove inline button if present
-        try { const link = section.querySelector(':scope > .see-all-btn'); if (link && link.parentNode) link.parentNode.removeChild(link); } catch {}
-        // Remove popup element if it already exists in DOM
-        // Do not create anything; feature disabled
-        return;
-      } catch {}
-    }
     // Utilise les fonctions partagées de utilities.js (pas de duplication)
 
 // Activer le lazy loading optimisé pour toutes les images
@@ -2250,7 +2232,6 @@ document.addEventListener('DOMContentLoaded', async function () {
           });
         rail.innerHTML = '';
         sorted.forEach(it => rail.appendChild(createCard({ ...it })));
-        try { ensureSectionSeeAll(sec, '⭐ Mieux notés', sorted, createCard); } catch {}
       } catch {}
     }
 
@@ -2398,7 +2379,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             if (rb !== ra) return rb - ra; return (a.title||'').localeCompare(b.title||'', 'fr', { sensitivity:'base' });
           });
           sorted.forEach(it => rail.appendChild(createCard(it)));
-          try { ensureSectionSeeAll(section, 'Séries', sorted, createCard); } catch {}
         })();
         // Build selected Genre sections
         const ALLOWED = ['Comédie','Familial','Aventure','Action','Horreur'];
@@ -2467,7 +2447,6 @@ document.addEventListener('DOMContentLoaded', async function () {
           });
           rail.innerHTML = ''; const seen = new Set();
           sorted.forEach(it => { const href = `#${it.id}`; if (seen.has(href)) return; rail.appendChild(createCard(it)); seen.add(href); });
-          try { ensureSectionSeeAll(section, pretty(name), sorted, createCard); } catch {}
         });
         // Update Favorites header with custom subtitle and title
         (function setupFavoritesHeader(){

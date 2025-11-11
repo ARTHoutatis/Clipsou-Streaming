@@ -131,8 +131,7 @@
                 return;
               }
             } catch (e) {
-              console.error('Erreur parsing réponse:', e);
-            }
+                  }
             reject(new Error('Réponse upload invalide'));
           } else {
             reject(new Error('Échec upload: ' + xhr.status));
@@ -339,7 +338,6 @@
         }
 
       } catch (error) {
-        console.error('Erreur upload:', error);
         alert('Erreur lors de l\'upload de l\'image. Veuillez réessayer.');
         fileInput.value = '';
       }
@@ -394,11 +392,9 @@
             fileInput.disabled = false;
           }
           
-          console.log('✓ Badge studio pré-rempli depuis l\'historique');
         }
       }
     } catch (e) {
-      console.error('Error prefilling studio badge:', e);
     }
   }
 
@@ -410,13 +406,6 @@
   }
 
   function init() {
-    // Log configuration for debugging
-    console.log('🔧 Request system initialization');
-    console.log('🔧 Worker URL config:', {
-      hasConfig: !!(window.ClipsouConfig && window.ClipsouConfig.workerUrl),
-      workerUrl: window.ClipsouConfig?.workerUrl || 'not configured',
-      localStorageUrl: localStorage.getItem('clipsou_worker_url') || 'not set'
-    });
     // Get DOM elements
     termsCheckbox = document.getElementById('termsAccepted');
     submitBtn = document.getElementById('submitBtn');
@@ -525,14 +514,6 @@
     // Genres validation setup
     setupGenreValidation();
 
-    // Log protection status (dev only)
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      const fp = getBrowserFingerprint();
-      const lastSubmit = getLastSubmitTimeSecure();
-      console.log('%c🛡️ Anti-Bypass Protection Active', 'color: #4ade80; font-weight: bold');
-      console.log('Browser Fingerprint:', fp);
-      console.log('Last Submit Time:', lastSubmit ? new Date(lastSubmit).toLocaleString('fr-FR') : 'None');
-    }
     
     // Setup stepper navigation
     setupStepperNavigation();
@@ -541,18 +522,6 @@
     setTimeout(() => {
       const draftRestored = loadFormDraft();
       if (draftRestored) {
-        console.log('💾 Brouillon restauré - Vous pouvez reprendre où vous en étiez');
-      }
-
-      // Restore saved slide/step
-      const savedSlide = loadCurrentSlide();
-      if (savedSlide > 1 && window.GoogleAuth && window.GoogleAuth.isAuthenticated()) {
-        console.log('📍 Restauration de l\'étape', savedSlide);
-        goToSlide(savedSlide);
-      }
-    }, 100);
-
-    // Setup auto-save for form fields
     setupAutoSave();
   }
   
@@ -607,7 +576,6 @@
       updateCounter();
     }
 
-    console.log('💾 Auto-sauvegarde activée');
   }
 
   /**
@@ -923,20 +891,13 @@
     // Check for pending request first and sync status from GitHub
     const pendingRequest = getPendingRequest();
     if (pendingRequest) {
-      console.log('Pending request found:', {
-        title: pendingRequest.title,
-        status: pendingRequest.status || 'pending',
-        id: pendingRequest.id
-      });
       
       // Try to sync status from GitHub
       const synced = await syncRequestStatusFromGitHub(pendingRequest);
-      console.log('Sync result:', synced ? 'Updated' : 'No change');
       
       // Re-check after sync
       const updatedRequest = getPendingRequest();
       if (updatedRequest) {
-        console.log('Updated request status:', updatedRequest.status || 'pending');
         // Ensure status is set (default to pending if not present)
         if (!updatedRequest.status) {
           updatedRequest.status = 'pending';
@@ -1015,7 +976,6 @@
       // Si le délai est terminé, débloquer le formulaire
       if (timeLeft <= 0) {
         clearInterval(window.rateLimitInterval);
-        console.log('✓ Rate limit expiré - Débloquage du formulaire');
         
         // Cacher le notice
         if (rateLimitNotice) {
@@ -1064,35 +1024,29 @@
       });
       
       if (!response.ok) {
-        console.debug('Could not fetch user-requests.json:', response.status);
         return false;
       }
       
       const requests = await response.json();
       if (!Array.isArray(requests)) {
-        console.debug('Invalid user-requests.json format');
         return false;
       }
       
       // Find this request
       const githubRequest = requests.find(r => r && r.id === request.id);
       if (githubRequest) {
-        console.debug(`Found request on GitHub with status: ${githubRequest.status}`);
         
         if (githubRequest.status !== request.status) {
           // Update local status
           const updated = { ...request, status: githubRequest.status, processedAt: githubRequest.processedAt };
           savePendingRequest(updated);
-          console.log(`✓ Status updated from '${request.status}' to '${githubRequest.status}'`);
           return true;
         }
       } else {
-        console.debug('Request not found on GitHub (may have been deleted)');
       }
       
       return false;
     } catch (error) {
-      console.debug('Could not sync status from GitHub:', error);
       return false;
     }
   }
@@ -1254,13 +1208,9 @@
       }
       
       if (!workerUrl || workerUrl.includes('votre-worker')) {
-        console.warn('⚠️ Worker URL not configured - request saved locally only');
-        console.info('To enable GitHub sync, configure ClipsouConfig.workerUrl or clipsou_worker_url');
         return false;
       }
 
-      console.log('📤 Publishing request to GitHub via worker:', workerUrl);
-      console.log('📤 Request data:', { id: request.id, title: request.title, hasOAuth: !!(request.submittedBy && request.youtubeChannel) });
 
       const response = await fetch(workerUrl, {
         method: 'POST',
@@ -1275,16 +1225,13 @@
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ Worker response error:', response.status, errorText);
         throw new Error(`Worker error: ${response.status} ${errorText}`);
       }
 
       const result = await response.json();
-      console.log('✅ Request published to GitHub successfully:', result);
       return true;
 
     } catch (error) {
-      console.error('❌ Failed to publish request to GitHub:', error);
       // Don't throw - let the main submission continue even if GitHub sync fails
       return false;
     }
@@ -1339,11 +1286,9 @@
       // Wait 1 second before verifying
       videoVerificationTimer = setTimeout(async () => {
         try {
-          console.log('🔍 [Video Verification] Starting verification for URL:', url);
           
           // Check GoogleAuth availability
           if (!window.GoogleAuth) {
-            console.error('❌ [Video Verification] window.GoogleAuth is not defined');
             statusDiv.className = 'verification-status error';
             const authMissingMsg = window.i18n ? window.i18n.translate('video.verify.auth.missing') : '❌ Système d\'authentification non chargé';
             statusDiv.innerHTML = authMissingMsg;
@@ -1351,11 +1296,8 @@
             return;
           }
           
-          console.log('✓ [Video Verification] GoogleAuth exists');
-          console.log('✓ [Video Verification] isAuthenticated:', window.GoogleAuth.isAuthenticated());
           
           if (!window.GoogleAuth.isAuthenticated()) {
-            console.warn('⚠️ [Video Verification] User is not authenticated');
             statusDiv.className = 'verification-status error';
             const authRequiredMsg = window.i18n ? window.i18n.translate('video.verify.auth.required') : '❌ Vous devez être connecté pour vérifier la vidéo';
             statusDiv.innerHTML = authRequiredMsg;
@@ -1363,14 +1305,11 @@
             return;
           }
 
-          console.log('🚀 [Video Verification] Calling verifyVideoOwnership...');
           const verification = await window.GoogleAuth.verifyVideoOwnership(url);
-          console.log('📊 [Video Verification] Result:', verification);
           
           lastVerifiedUrl = url;
 
           if (verification.valid) {
-            console.log('✅ [Video Verification] Video is valid');
             statusDiv.className = 'verification-status success';
             const successMsg = window.i18n 
               ? window.i18n.translate('video.verify.success').replace('{title}', verification.videoTitle || 'N/A')
@@ -1378,7 +1317,6 @@
             statusDiv.innerHTML = successMsg;
             isVideoValid = true;
           } else {
-            console.warn('❌ [Video Verification] Video is invalid:', verification.error);
             statusDiv.className = 'verification-status error';
             // L'erreur est déjà traduite dans google-auth.js
             statusDiv.innerHTML = verification.error || (window.i18n ? window.i18n.translate('video.verify.error') : '❌ Cette vidéo ne vous appartient pas');
@@ -1386,8 +1324,6 @@
           }
 
         } catch (error) {
-          console.error('💥 [Video Verification] Exception caught:', error);
-          console.error('Stack trace:', error.stack);
           statusDiv.className = 'verification-status error';
           const retryMsg = window.i18n ? window.i18n.translate('video.verify.error.retry') : '❌ Erreur lors de la vérification. Veuillez réessayer.';
           statusDiv.innerHTML = retryMsg;
@@ -1411,7 +1347,6 @@
   async function handleSubmit(e) {
     e.preventDefault();
 
-    console.log('📤 [Submit] Starting form submission process...');
 
     // Disable submit button to prevent double submission
     if (submitBtn) {
@@ -1444,7 +1379,6 @@
       const userEmail = currentUser?.user?.email;
       const channelId = youtubeChannel?.id;
       
-      console.log('📤 [Submit] User authenticated:', { email: userEmail, channelId });
       
       if (window.ClipsouAdmin && typeof window.ClipsouAdmin.isUserBanned === 'function') {
         if (window.ClipsouAdmin.isUserBanned(userEmail, channelId)) {
@@ -1475,7 +1409,6 @@
         termsError.hidden = true;
       }
 
-      console.log('📤 [Submit] Gathering form data...');
 
       // Gather form data
       const rawGenres = [
@@ -1540,7 +1473,6 @@
         return;
       }
 
-      console.log('📤 [Submit] Validating form data...');
 
       // Validate all required fields at once
       const isSerie = (formData.type === 'série');
@@ -1603,7 +1535,6 @@
         return;
       }
 
-      console.log('📤 [Submit] Validation passed, saving request...');
 
       // Generate unique ID for the request
       const requestId = 'user_req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -1624,16 +1555,7 @@
       addToHistory(requestWithId);
 
       // Publish to GitHub (best effort - doesn't block submission)
-      console.log('📤 [Submit] Publishing to GitHub...');
-      publishUserRequestToGitHub(requestWithId).then(success => {
-        if (success) {
-          console.log('✅ [Submit] GitHub publish completed successfully');
-        } else {
-          console.warn('⚠️ [Submit] GitHub publish failed, but request was saved locally');
-        }
-      }).catch(err => {
-        console.error('❌ [Submit] GitHub publish error:', err);
-      });
+      publishUserRequestToGitHub(requestWithId).catch(() => {});
 
       // Show success message
       showSuccessMessage();
@@ -1646,10 +1568,8 @@
       clearFormDraft();
       clearCurrentSlide();
 
-      console.log('✅ [Submit] Request submitted successfully:', requestWithId);
       
     } catch (error) {
-      console.error('❌ [Submit] Submission error:', error);
       
       // Show detailed error message
       let errorMessage = '❌ Erreur lors de l\'envoi\n\n';
@@ -2117,9 +2037,7 @@
         savedAt: Date.now()
       };
       localStorage.setItem(STORAGE_KEY_FORM_DRAFT, JSON.stringify(draft));
-      console.log('📝 Form draft saved');
     } catch (e) {
-      console.error('Error saving form draft:', e);
     }
   }
 
@@ -2136,12 +2054,10 @@
       // Check if draft is not too old (7 days)
       const maxAge = 7 * 24 * 60 * 60 * 1000;
       if (Date.now() - draft.savedAt > maxAge) {
-        console.log('📝 Draft too old, clearing...');
         clearFormDraft();
         return false;
       }
 
-      console.log('📝 Restoring form draft...');
 
       // Restore basic fields
       const titleInput = document.getElementById('title');
@@ -2209,10 +2125,8 @@
         descInput.dispatchEvent(new Event('input'));
       }
 
-      console.log('✅ Form draft restored');
       return true;
     } catch (e) {
-      console.error('Error loading form draft:', e);
       return false;
     }
   }
@@ -2223,9 +2137,7 @@
   function clearFormDraft() {
     try {
       localStorage.removeItem(STORAGE_KEY_FORM_DRAFT);
-      console.log('📝 Form draft cleared');
     } catch (e) {
-      console.error('Error clearing form draft:', e);
     }
   }
 
@@ -2236,7 +2148,6 @@
     try {
       localStorage.setItem(STORAGE_KEY_CURRENT_SLIDE, slideNumber.toString());
     } catch (e) {
-      console.error('Error saving current slide:', e);
     }
   }
 
@@ -2248,7 +2159,6 @@
       const slide = localStorage.getItem(STORAGE_KEY_CURRENT_SLIDE);
       return slide ? parseInt(slide, 10) : 1;
     } catch (e) {
-      console.error('Error loading current slide:', e);
       return 1;
     }
   }
@@ -2260,7 +2170,6 @@
     try {
       localStorage.removeItem(STORAGE_KEY_CURRENT_SLIDE);
     } catch (e) {
-      console.error('Error clearing current slide:', e);
     }
   }
 
@@ -2277,7 +2186,6 @@
       const parsed = raw ? JSON.parse(raw) : null;
       return (parsed && typeof parsed === 'object') ? parsed : {};
     } catch (e) {
-      console.error('Error reading history map:', e);
       return {};
     }
   }
@@ -2286,7 +2194,6 @@
     try {
       localStorage.setItem(STORAGE_KEY_HISTORY_MAP, JSON.stringify(map));
     } catch (e) {
-      console.error('Error saving history map:', e);
     }
   }
 

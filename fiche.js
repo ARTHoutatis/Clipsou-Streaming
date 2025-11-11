@@ -405,10 +405,6 @@ async function buildItemsFromIndex() {
               const actors = Array.isArray(c.actors) ? c.actors.filter(a=>a && a.name) : [];
               const episodes = Array.isArray(c.episodes) ? c.episodes.slice() : [];
               
-              // DEBUG: Log episodes for series
-              if (type === 'série' || type === 'serie') {
-                console.log(`📺 Loading series "${c.title}" (ID: ${c.id}) - Episodes in approved.json:`, c.episodes ? c.episodes.length : 0);
-              }
               
               const studioBadgeRaw = (c.studioBadge || '').trim();
               const studioBadge = optimizeCloudinaryUrlSmall(studioBadgeRaw);
@@ -596,7 +592,6 @@ function renderFiche(container, item) {
           }
         }
       } catch (e) {
-        console.log('Ratings not available yet');
       }
     };
     loadUserRatings();
@@ -836,24 +831,19 @@ function renderFiche(container, item) {
     a.setAttribute('data-i18n', 'button.watch');
     a.textContent = window.i18n ? '▶ ' + window.i18n.translate('button.watch') : '▶ Regarder';
     
-    console.log('🔧 [Debug] Creating watch button for item:', item.id);
     
     // Marquer le clic sur Regarder avec timestamp
     a.addEventListener('click', function(e) {
-      console.log('🎯 [Click] Watch button clicked for item:', item.id);
       try {
         const watchData = {
           itemId: item.id,
           timestamp: Date.now()
         };
         localStorage.setItem('clipsou_watching', JSON.stringify(watchData));
-        console.log('✅ [Click] Saved watching data to localStorage:', watchData);
         
         // Vérifier immédiatement
         const verify = localStorage.getItem('clipsou_watching');
-        console.log('✅ [Click] Verification - read back from localStorage:', verify);
       } catch (e) {
-        console.error('❌ [Click] Error saving watching data:', e);
       }
     });
     
@@ -863,7 +853,6 @@ function renderFiche(container, item) {
     };
     window.addEventListener('languageChanged', updateWatchText, { passive: true });
     
-    console.log('🔧 [Debug] Event listener attached to watch button');
     buttons.appendChild(a);
   }
 
@@ -1469,19 +1458,14 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     const title = (currentItem && currentItem.title) || '';
     const idForMatch = (currentItem && currentItem.id) || '';
     
-    // DEBUG: Log currentItem to see if episodes are present
-    console.log('📺 PopulateEpisodes called for:', title, '(ID:', idForMatch, ')');
-    console.log('📺 currentItem.episodes:', currentItem && currentItem.episodes);
     
     // Priority: 1) episodes from currentItem data, 2) EPISODES_DB_NORM, 3) EPISODES_ID_DB
     let list = [];
     if (currentItem && Array.isArray(currentItem.episodes) && currentItem.episodes.length) {
       list = currentItem.episodes;
-      console.log('✅ Using episodes from currentItem.episodes:', list.length, 'episodes');
     } else {
       list = EPISODES_DB_NORM[normalizeTitleKey(title)] || [];
       if (!list.length) list = EPISODES_ID_DB[idForMatch] || [];
-      console.log('⚠️ Using fallback episodes database:', list.length, 'episodes');
     }
     if (!list.length) {
       const empty = document.createElement('p');
@@ -1501,9 +1485,6 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
     const progressList = readProgressList();
     const durCache = readDurCache();
     
-    // DEBUG: Log what we have
-    console.log('📊 Progress entries:', progressList.length);
-    console.log('📊 Duration cache entries:', Object.keys(durCache).length);
     
     // Reliable duration fetching using YouTube IFrame API (slower but works!)
     function writeDurCache(obj){
@@ -1548,10 +1529,9 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
                   const c = readDurCache();
                   c[vid] = { duration: d, updatedAt: Date.now() };
                   writeDurCache(c);
-                  console.log(`✅ Duration for ${vid}: ${d}s`);
                   setTimeout(()=> populateEpisodes(), 10);
                 }
-              } catch(err) { console.error('Duration error:', err); }
+              } catch(err) { }
               try { e.target.destroy(); } catch {}
               try { container.remove(); } catch {}
             },
@@ -1613,7 +1593,6 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
       };
       try {
         const vid = extractVid(ep && ep.url);
-        console.log(`🔍 Episode ${epNum}: vid="${vid}", url="${ep.url}"`);
         if (vid) {
           const keyId = idForMatch + '::' + vid;
           let entry = progressList.find(x => x && x.id === keyId);
@@ -1625,7 +1604,6 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
           if (!duration && durCache[vid] && typeof durCache[vid].duration === 'number') {
             duration = Math.max(0, durCache[vid].duration);
           }
-          console.log(`   ⏱️ seconds=${seconds}, duration=${duration}, entry=${!!entry}, cached=${!!(durCache[vid])}`);
           const remaining = duration > 0 ? Math.max(0, duration - seconds) : 0;
           const finished = !!(entry && entry.finished) || (duration > 0 && remaining <= 5) || (duration > 0 && seconds / duration >= 0.99);
           if (finished) {
@@ -1638,10 +1616,8 @@ function renderSimilarSection(rootEl, similarItems, currentItem) {
             // No duration yet - show skeleton loader
             statusText = 'SKELETON_LOADER';
           }
-          console.log(`   ✨ statusText="${statusText}"`);
         }
       } catch (e) {
-        console.error('❌ Error processing episode:', e);
       }
 
       a.textContent = baseLabel;
@@ -2899,53 +2875,41 @@ const container = document.getElementById('fiche-container');
       const urlParams = new URLSearchParams(window.location.search);
       const currentItemId = urlParams.get('id');
       
-      console.log('🎬 [Rating Popup] Current item ID:', currentItemId);
       
       if (!currentItemId) {
-        console.log('❌ [Rating Popup] No item ID in URL');
         return;
       }
       
       // Vérifier si l'utilisateur vient de regarder un film (depuis watch.html)
       let watchedItemId = sessionStorage.getItem('clipsou_just_watched');
-      console.log('🎬 [Rating Popup] Just watched (from watch.html):', watchedItemId);
       
       if (!watchedItemId) {
         // Vérifier si l'utilisateur a cliqué sur "Regarder" pour CE film
         try {
           const watchingData = localStorage.getItem('clipsou_watching');
-          console.log('🎬 [Rating Popup] Watching data:', watchingData);
           
           if (watchingData) {
             const parsed = JSON.parse(watchingData);
-            console.log('🎬 [Rating Popup] Parsed watching data:', parsed);
-            console.log('🎬 [Rating Popup] Comparing:', parsed.itemId, '===', currentItemId);
             
             // Si c'est le même film, afficher instantanément
             if (parsed.itemId === currentItemId) {
-              console.log('✅ [Rating Popup] MATCH! Will show popup');
               watchedItemId = parsed.itemId;
               localStorage.removeItem('clipsou_watching');
             } else {
-              console.log('⚠️ [Rating Popup] No match, different item');
             }
           }
         } catch (e) {
-          console.error('❌ [Rating Popup] Error parsing watching data:', e);
         }
       } else {
-        console.log('✅ [Rating Popup] Got just_watched flag');
         // Nettoyer le flag
         sessionStorage.removeItem('clipsou_just_watched');
       }
       
       // Vérifier que c'est bien pour le film actuel
       if (!watchedItemId || watchedItemId !== currentItemId) {
-        console.log('❌ [Rating Popup] Not showing popup:', watchedItemId, '!==', currentItemId);
         return;
       }
       
-      console.log('🚀 [Rating Popup] Proceeding to show popup...');
       
       // Vérifier les états dans localStorage
       const getRatingStates = () => {
