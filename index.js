@@ -3304,23 +3304,49 @@ document.addEventListener('DOMContentLoaded', async function () {
         top.className = 'player-topbar';
         const titleEl = document.createElement('h4');
         titleEl.className = 'player-title';
-        titleEl.textContent = 'Lecture';
+        titleEl.setAttribute('data-i18n', 'player.title');
         const closeBtn = document.createElement('button');
         closeBtn.className = 'player-close';
-        closeBtn.setAttribute('aria-label','Fermer le lecteur');
-        closeBtn.textContent = '✕';
+        closeBtn.setAttribute('data-i18n-aria', 'player.close');
         top.appendChild(titleEl);
         top.appendChild(closeBtn);
         const stage = document.createElement('div');
         stage.className = 'player-stage';
-        const footer = document.createElement('div');
-        footer.className = 'player-footer';
-        footer.textContent = 'Appuyez sur Échap ou ✕ pour fermer.';
         shell.appendChild(top);
         shell.appendChild(stage);
-        shell.appendChild(footer);
         overlay.appendChild(shell);
         document.body.appendChild(overlay);
+        const mqClose = (window.matchMedia ? window.matchMedia('(max-width: 768px)') : null);
+        const applyPlayerTexts = () => {
+          const translate = (key, fallback) => {
+            try {
+              return (window.i18n && typeof window.i18n.translate === 'function') ? window.i18n.translate(key) : fallback;
+            } catch { return fallback; }
+          };
+          const titleText = translate('player.title', 'Lecture');
+          titleEl.textContent = titleText;
+          const closeText = translate('player.close', 'Fermer');
+          try { closeBtn.setAttribute('aria-label', closeText); } catch {}
+          if (mqClose && mqClose.matches) {
+            closeBtn.textContent = '✕';
+          } else {
+            closeBtn.textContent = `✕ ${closeText}`;
+          }
+        };
+        applyPlayerTexts();
+        if (mqClose) {
+          const mqHandler = () => applyPlayerTexts();
+          if (typeof mqClose.addEventListener === 'function') {
+            mqClose.addEventListener('change', mqHandler);
+          } else if (typeof mqClose.addListener === 'function') {
+            mqClose.addListener(mqHandler);
+          }
+        }
+        try {
+          const onLanguageChange = () => applyPlayerTexts();
+          window.addEventListener('languageChanged', onLanguageChange);
+          overlay.__playerLocaleListener = onLanguageChange;
+        } catch {}
         // Close behavior
         const close = ()=>{
           try { if (typeof overlay.__activeCleanup === 'function') overlay.__activeCleanup(); } catch {}

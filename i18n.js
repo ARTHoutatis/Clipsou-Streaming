@@ -232,7 +232,7 @@
       
       // Lecteur vidéo
       'player.title': 'Lecture',
-      'player.close': 'Fermer le lecteur',
+      'player.close': 'Fermer',
       'player.skip': 'Passer l\'intro',
       'player.instructions': 'Appuyez sur Échap ou ✕ pour fermer.',
       
@@ -392,7 +392,7 @@
       
       // Video player
       'player.title': 'Playing',
-      'player.close': 'Close player',
+      'player.close': 'Close',
       'player.skip': 'Skip intro',
       'player.instructions': 'Press Esc or ✕ to close.',
       
@@ -555,7 +555,7 @@
       
       // Video player
       'player.title': 'Playing',
-      'player.close': 'Close player',
+      'player.close': 'Close',
       'player.skip': 'Skip intro',
       'player.instructions': 'Press Esc or ✕ to close.',
       

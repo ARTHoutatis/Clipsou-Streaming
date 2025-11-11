@@ -2126,36 +2126,16 @@ const container = document.getElementById('fiche-container');
         overlay.className = 'player-overlay';
         const shell = document.createElement('div'); shell.className = 'player-shell';
         const top = document.createElement('div'); top.className = 'player-topbar';
-        const titleEl = document.createElement('h4'); titleEl.className = 'player-title'; titleEl.textContent = 'Lecture';
+        const titleEl = document.createElement('h4'); titleEl.className = 'player-title';
+        titleEl.setAttribute('data-i18n', 'player.title');
         const closeBtn = document.createElement('button');
         closeBtn.className = 'player-close';
-        closeBtn.setAttribute('aria-label','Fermer le film en cours');
-        // Label adaptatif: sur mobile, n'afficher que la croix pour gagner de la place
-        (function(){
-          try {
-            const mqClose = (window.matchMedia ? window.matchMedia('(max-width: 768px)') : null);
-            const applyCloseLabel = () => {
-              try { closeBtn.textContent = (mqClose && mqClose.matches) ? '✕' : '✕ Fermer'; } catch {}
-            };
-            applyCloseLabel();
-            if (mqClose) {
-              if (typeof mqClose.addEventListener === 'function') {
-                mqClose.addEventListener('change', applyCloseLabel);
-              } else if (typeof mqClose.addListener === 'function') {
-                // Fallback older browsers
-                mqClose.addListener(applyCloseLabel);
-              }
-            }
-          } catch {
-            // Fallback si matchMedia indisponible
-            closeBtn.textContent = '✕ Fermer';
-          }
-        })();
+        closeBtn.setAttribute('data-i18n-aria', 'player.close');
         // Skip Intro button (hidden by default; only visible during intro)
         const skipBtn = document.createElement('button');
         skipBtn.className = 'player-skip';
         skipBtn.type = 'button';
-        skipBtn.textContent = '⏭ Passer l\'intro';
+        skipBtn.setAttribute('data-i18n', 'player.skip');
         skipBtn.hidden = true;
         // Expose on overlay for lifecycle control
         try { overlay.__skipBtn = skipBtn; } catch {}
@@ -2165,6 +2145,39 @@ const container = document.getElementById('fiche-container');
         // Place Skip Intro button inside the stage so it overlays bottom-right of the video
         try { stage.appendChild(skipBtn); } catch {}
         overlay.appendChild(shell); document.body.appendChild(overlay);
+        const mqClose = (window.matchMedia ? window.matchMedia('(max-width: 768px)') : null);
+        const applyPlayerTexts = () => {
+          const translate = (key, fallback) => {
+            try {
+              return (window.i18n && typeof window.i18n.translate === 'function') ? window.i18n.translate(key) : fallback;
+            } catch { return fallback; }
+          };
+          const titleText = translate('player.title', 'Lecture');
+          titleEl.textContent = titleText;
+          const closeText = translate('player.close', 'Fermer');
+          try { closeBtn.setAttribute('aria-label', closeText); } catch {}
+          if (mqClose && mqClose.matches) {
+            closeBtn.textContent = '✕';
+          } else {
+            closeBtn.textContent = `✕ ${closeText}`;
+          }
+          const skipText = translate('player.skip', 'Passer l\'intro');
+          try { skipBtn.textContent = `⏭ ${skipText}`; } catch {}
+        };
+        applyPlayerTexts();
+        if (mqClose) {
+          const mqHandler = () => applyPlayerTexts();
+          if (typeof mqClose.addEventListener === 'function') {
+            mqClose.addEventListener('change', mqHandler);
+          } else if (typeof mqClose.addListener === 'function') {
+            mqClose.addListener(mqHandler);
+          }
+        }
+        try {
+          const onLanguageChange = () => applyPlayerTexts();
+          window.addEventListener('languageChanged', onLanguageChange);
+          overlay.__playerLocaleListener = onLanguageChange;
+        } catch {}
         const close = ()=>{
           try { if (typeof overlay.__activeCleanup === 'function') overlay.__activeCleanup(); } catch {}
           try { window.__introShowing = false; } catch {}
