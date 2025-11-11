@@ -43,6 +43,10 @@
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
   
+  // Pagination for requests table
+  let requestsDisplayLimit = 5; // Show only 5 requests initially
+  let requestsShowAll = false; // Flag to show all requests
+  
   // Global lock to prevent concurrent approve/unapprove operations
   const operationLocks = new Map();
 
@@ -2823,7 +2827,13 @@
     tbody.innerHTML = '';
     // Determine shared-approved state from the current approved list
     const aprList = getApproved();
-    reqs.forEach(r => {
+    
+    // Store total count for pagination
+    const totalRequests = reqs.length;
+    const displayCount = requestsShowAll ? totalRequests : Math.min(requestsDisplayLimit, totalRequests);
+    const displayReqs = reqs.slice(0, displayCount);
+    
+    displayReqs.forEach(r => {
       const tr = document.createElement('tr');
       const g3 = (r.data.genres||[]).slice(0,3).filter(Boolean).map(g=>String(g));
       
@@ -3166,6 +3176,77 @@
     populateActorNamesDatalist();
     // Apply global 30s lock state to any newly rendered buttons
     try { applyPublishLockUI(); } catch {}
+    
+    // Add "Show more" button if there are more than 5 requests
+    updateShowMoreButton(totalRequests, displayCount);
+  }
+  
+  function updateShowMoreButton(total, displayed) {
+    const requestsSection = $('.main-requests-section');
+    if (!requestsSection) return;
+    
+    // Remove existing button if any
+    const existingBtn = $('#showMoreRequestsBtn');
+    if (existingBtn) existingBtn.remove();
+    
+    // Only show button if there are more items to display
+    if (total > requestsDisplayLimit && !requestsShowAll) {
+      const btnContainer = document.createElement('div');
+      btnContainer.id = 'showMoreRequestsBtn';
+      btnContainer.style.cssText = 'text-align: center; margin: 16px 0; padding: 12px;';
+      
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn secondary';
+      btn.textContent = `📋 Voir plus (${total - displayed} restantes)`;
+      btn.style.cssText = 'min-width: 200px;';
+      
+      btn.addEventListener('click', () => {
+        requestsShowAll = true;
+        renderTable();
+      });
+      
+      btnContainer.appendChild(btn);
+      
+      // Insert before the help text
+      const helpText = $('#requestsHelp');
+      if (helpText) {
+        requestsSection.insertBefore(btnContainer, helpText);
+      } else {
+        requestsSection.appendChild(btnContainer);
+      }
+    } else if (total > requestsDisplayLimit && requestsShowAll) {
+      // Show "Show less" button when all are displayed
+      const btnContainer = document.createElement('div');
+      btnContainer.id = 'showMoreRequestsBtn';
+      btnContainer.style.cssText = 'text-align: center; margin: 16px 0; padding: 12px;';
+      
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn secondary';
+      btn.textContent = '📋 Voir moins';
+      btn.style.cssText = 'min-width: 200px;';
+      
+      btn.addEventListener('click', () => {
+        requestsShowAll = false;
+        renderTable();
+        // Scroll to requests section
+        const requestsTable = $('#requestsTable');
+        if (requestsTable) {
+          requestsTable.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+      
+      btnContainer.appendChild(btn);
+      
+      // Insert before the help text
+      const helpText = $('#requestsHelp');
+      if (helpText) {
+        requestsSection.insertBefore(btnContainer, helpText);
+      } else {
+        requestsSection.appendChild(btnContainer);
+      }
+    }
   }
 
   function renderTrash(){
@@ -3422,7 +3503,11 @@
       const searchInput = $('#requestsSearch');
       if (searchInput) {
         let raf = null;
-        const rerender = () => { if (raf) cancelAnimationFrame(raf); raf = requestAnimationFrame(()=>{ try { renderTable(); } catch {} }); };
+        const rerender = () => { 
+          requestsShowAll = false; // Reset to show only 5 requests when filtering
+          if (raf) cancelAnimationFrame(raf); 
+          raf = requestAnimationFrame(()=>{ try { renderTable(); } catch {} }); 
+        };
         searchInput.addEventListener('input', rerender);
         searchInput.addEventListener('change', rerender);
         
@@ -3450,6 +3535,7 @@
       const sortSelect = $('#requestsSort');
       if (sortSelect) {
         sortSelect.addEventListener('change', () => {
+          requestsShowAll = false; // Reset to show only 5 requests when changing sort
           try { renderTable(); } catch {}
         });
       }

@@ -42,6 +42,36 @@
       </div>
     </section>
 
+    <!-- Onglets de navigation -->
+    <nav class="admin-tabs">
+      <button class="tab-button active" data-tab="requests">
+        <span class="tab-emoji">📝</span>
+        <span class="tab-text">
+          <span class="tab-short">Requêtes</span>
+          <span class="tab-long"> d'ajout</span>
+        </span>
+      </button>
+      <button class="tab-button" data-tab="user-requests">
+        <span class="tab-emoji">📬</span>
+        <span class="tab-text">
+          <span class="tab-short">Demandes</span>
+          <span class="tab-long"> utilisateurs</span>
+        </span>
+        <span id="userRequestsCountTab" class="badge notif-badge" hidden></span>
+      </button>
+      <button class="tab-button" data-tab="banned-users">
+        <span class="tab-emoji">🚫</span>
+        <span class="tab-text">
+          <span class="tab-short">Bannis</span>
+          <span class="tab-long"> utilisateurs</span>
+        </span>
+        <span id="bannedUsersCountTab" class="badge notif-badge" hidden></span>
+      </button>
+    </nav>
+
+    <!-- Tab Content: Requêtes d'ajout -->
+    <div class="tab-content active" id="tab-requests">
+
     <section class="form-section" id="cloudinary-section" hidden>
       <h2 style="display:flex; align-items:center; gap:8px;">
         Stockage images (Cloudinary)
@@ -197,8 +227,8 @@
       <datalist id="actorNamesDatalist"></datalist>
     </section>
 
-    <section class="requests">
-      <h2>Corbeille</h2>
+    <section class="requests trash-section">
+      <h2>🗑️ Corbeille</h2>
       <p class="muted">Films supprimés – Vous pouvez les restaurer ou les supprimer définitivement.</p>
       <div id="trashSection" style="margin-bottom:24px;">
         <div class="actions" style="margin:12px 0;">
@@ -219,8 +249,8 @@
       </div>
     </section>
 
-    <section class="requests">
-      <h2>Requêtes d'ajout</h2>
+    <section class="requests main-requests-section">
+      <h2>📝 Requêtes d'ajout</h2>
       <form class="search-row" autocomplete="off" onsubmit="return false" role="search" style="display:flex;gap:10px;align-items:center;margin:8px 0 12px 0;flex-wrap:wrap">
         <label for="requestsSearch" class="muted" style="min-width:120px">Recherche</label>
         <input id="requestsSearch" name="admin_requests_search" type="search" placeholder="Rechercher par titre, type, genre, id, acteur…" style="flex:1;min-width:240px;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:#0f1720;color:#fff;outline:none" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="search" inputmode="search" data-1p-ignore="true" data-lpignore="true" data-bwignore="true">
@@ -248,6 +278,12 @@
       <p id="requestsHelp" class="muted">Approuvez une requête pour la publier. Vous pouvez modifier ou supprimer à tout moment.</p>
     </section>
 
+    </div>
+    <!-- End Tab Content: Requêtes d'ajout -->
+
+    <!-- Tab Content: Demandes utilisateurs -->
+    <div class="tab-content" id="tab-user-requests">
+
     <section class="user-requests">
       <h2>📬 Demandes utilisateurs <span id="userRequestsCount" class="badge notif-badge" hidden></span></h2>
       <p class="muted">Les utilisateurs peuvent soumettre leurs films via la page publique. Validez les demandes pour les transférer dans "Requêtes d'ajout" où vous pourrez les approuver.</p>
@@ -267,8 +303,14 @@
         </thead>
         <tbody></tbody>
       </table>
-      <p class="muted small">Note : Les demandes validées sont transférées dans "Requêtes d'ajout" ci-dessus où vous pouvez les modifier avant publication.</p>
+      <p class="muted small">Note : Les demandes validées sont transférées dans "Requêtes d'ajout" où vous pouvez les modifier avant publication.</p>
     </section>
+
+    </div>
+    <!-- End Tab Content: Demandes utilisateurs -->
+
+    <!-- Tab Content: Utilisateurs bannis -->
+    <div class="tab-content" id="tab-banned-users">
 
     <section class="form-section banned-users-section">
       <h2>🚫 Utilisateurs bannis <span id="bannedUsersCount" class="badge notif-badge" hidden></span></h2>
@@ -310,6 +352,10 @@
       </table>
       <p class="muted small" id="bannedUsersEmpty">Aucun utilisateur banni.</p>
     </section>
+
+    </div>
+    <!-- End Tab Content: Utilisateurs bannis -->
+
   </main>
 
   <div id="login" class="login">
@@ -383,6 +429,89 @@
         // Remove automatic rerand on input to prevent unwanted filtering
         // el.addEventListener('input', rerand);
       } catch {}
+    })();
+  </script>
+  <script>
+    // Tabs switching system
+    (function() {
+      document.addEventListener('DOMContentLoaded', function() {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        function switchTab(tabName) {
+          // Remove active class from all buttons and contents
+          tabButtons.forEach(btn => btn.classList.remove('active'));
+          tabContents.forEach(content => content.classList.remove('active'));
+          
+          // Add active class to selected button and content
+          const selectedButton = document.querySelector(`.tab-button[data-tab="${tabName}"]`);
+          const selectedContent = document.getElementById(`tab-${tabName}`);
+          
+          if (selectedButton) selectedButton.classList.add('active');
+          if (selectedContent) selectedContent.classList.add('active');
+          
+          // Save selected tab in sessionStorage
+          try {
+            sessionStorage.setItem('clipsou_admin_active_tab', tabName);
+          } catch(e) {}
+        }
+        
+        // Add click listeners to all tab buttons
+        tabButtons.forEach(button => {
+          button.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            switchTab(tabName);
+          });
+        });
+        
+        // Restore last active tab from sessionStorage
+        try {
+          const savedTab = sessionStorage.getItem('clipsou_admin_active_tab');
+          if (savedTab) {
+            switchTab(savedTab);
+          }
+        } catch(e) {}
+        
+        // Sync badge counts between tab buttons and section headers
+        function syncBadgeCounts() {
+          // User requests count
+          const userReqCount = document.getElementById('userRequestsCount');
+          const userReqCountTab = document.getElementById('userRequestsCountTab');
+          if (userReqCount && userReqCountTab) {
+            if (userReqCount.hidden) {
+              userReqCountTab.hidden = true;
+            } else {
+              userReqCountTab.hidden = false;
+              userReqCountTab.textContent = userReqCount.textContent;
+              userReqCountTab.className = userReqCount.className;
+            }
+          }
+          
+          // Banned users count
+          const bannedCount = document.getElementById('bannedUsersCount');
+          const bannedCountTab = document.getElementById('bannedUsersCountTab');
+          if (bannedCount && bannedCountTab) {
+            if (bannedCount.hidden) {
+              bannedCountTab.hidden = true;
+            } else {
+              bannedCountTab.hidden = false;
+              bannedCountTab.textContent = bannedCount.textContent;
+              bannedCountTab.className = bannedCount.className;
+            }
+          }
+        }
+        
+        // Sync badge counts on load and periodically
+        syncBadgeCounts();
+        setInterval(syncBadgeCounts, 1000);
+        
+        // Observe changes to badge elements
+        const observer = new MutationObserver(syncBadgeCounts);
+        const userReqCount = document.getElementById('userRequestsCount');
+        const bannedCount = document.getElementById('bannedUsersCount');
+        if (userReqCount) observer.observe(userReqCount, { attributes: true, childList: true, characterData: true, subtree: true });
+        if (bannedCount) observer.observe(bannedCount, { attributes: true, childList: true, characterData: true, subtree: true });
+      });
     })();
   </script>
 </body>
