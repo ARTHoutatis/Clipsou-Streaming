@@ -590,6 +590,11 @@
           </div>
 
           ${addAdminSection}
+
+          <div class="admin-sync-section">
+            <button type="button" id="syncAdminsBtn" class="btn secondary">🔄 Synchroniser depuis GitHub</button>
+            <span class="muted small" style="margin-left: 12px;">Dernière synchro : automatique toutes les 30s</span>
+          </div>
         </div>
       </div>
     `;
@@ -621,6 +626,29 @@
 
     if (addBtn) {
       addBtn.addEventListener('click', () => handleAddAdmin({ emailInput, nameInput, helper }));
+    }
+
+    const syncBtn = document.getElementById('syncAdminsBtn');
+    if (syncBtn) {
+      syncBtn.addEventListener('click', async () => {
+        syncBtn.disabled = true;
+        syncBtn.textContent = '⏳ Synchronisation...';
+        try {
+          await hydrateAdminsFromPublic();
+          syncBtn.textContent = '✅ Synchronisé !';
+          setTimeout(() => {
+            syncBtn.textContent = '🔄 Synchroniser depuis GitHub';
+            syncBtn.disabled = false;
+          }, 2000);
+        } catch (e) {
+          console.error('Sync error:', e);
+          syncBtn.textContent = '❌ Erreur';
+          setTimeout(() => {
+            syncBtn.textContent = '🔄 Synchroniser depuis GitHub';
+            syncBtn.disabled = false;
+          }, 2000);
+        }
+      });
     }
 
     if (emailInput) {
@@ -713,7 +741,7 @@
   /**
    * Handle add admin
    */
-  function handleAddAdmin({ emailInput, nameInput, helper } = {}) {
+  async function handleAddAdmin({ emailInput, nameInput, helper } = {}) {
     if (!emailInput) return;
 
     const rawEmail = emailInput.value;
@@ -739,7 +767,19 @@
       if (nameInput) nameInput.value = '';
       if (helper) helper.hidden = false;
       renderAdminList();
-      console.log('✓ Admin ajouté:', normalized);
+      console.log('✓ Admin ajouté localement:', normalized);
+
+      // Publish to GitHub
+      const admins = getAdminList();
+      const adminEntry = admins.find(a => normalizeEmail(a.email) === normalized);
+      if (adminEntry) {
+        const published = await publishAdminAdd(adminEntry);
+        if (published) {
+          console.log('✓ Admin publié sur GitHub:', normalized);
+        } else {
+          console.warn('⚠️ Échec de publication sur GitHub (local seulement)');
+        }
+      }
     } else {
       alert(result.message);
     }
@@ -786,7 +826,7 @@
   /**
    * Handle remove admin
    */
-  function handleRemoveAdmin(email) {
+  async function handleRemoveAdmin(email) {
     if (!confirm(`Voulez-vous vraiment retirer ${email} de la liste des admins ?`)) {
       return;
     }
@@ -795,7 +835,15 @@
     
     if (result.success) {
       renderAdminList();
-      console.log('✓ Admin retiré:', email);
+      console.log('✓ Admin retiré localement:', email);
+
+      // Publish to GitHub
+      const published = await publishAdminRemove(email);
+      if (published) {
+        console.log('✓ Admin retiré de GitHub:', email);
+      } else {
+        console.warn('⚠️ Échec de retrait sur GitHub (local seulement)');
+      }
     } else {
       alert(result.message);
     }
@@ -804,7 +852,7 @@
   /**
    * Handle ban admin
    */
-  function handleBanAdmin(email) {
+  async function handleBanAdmin(email) {
     if (!confirm(`⚠️ BANNIR ${email}\n\nCet administrateur ne pourra plus accéder au panneau admin.\n\nConfirmez-vous le bannissement ?`)) {
       return;
     }
@@ -814,7 +862,17 @@
     if (result.success) {
       renderAdminList();
       alert(`✅ ${email} a été banni avec succès.\n\nCet admin ne peut plus se connecter au panneau.`);
-      console.log('✓ Admin banni:', email);
+      console.log('✓ Admin banni localement:', email);
+
+      // Publish to GitHub
+      const currentAdmin = getCurrentAdmin();
+      const bannedBy = currentAdmin ? currentAdmin.email : 'system';
+      const published = await publishAdminBan(email, bannedBy);
+      if (published) {
+        console.log('✓ Admin banni sur GitHub:', email);
+      } else {
+        console.warn('⚠️ Échec de bannissement sur GitHub (local seulement)');
+      }
     } else {
       alert(result.message);
     }
@@ -823,7 +881,7 @@
   /**
    * Handle unban admin
    */
-  function handleUnbanAdmin(email) {
+  async function handleUnbanAdmin(email) {
     if (!confirm(`Débannir ${email} ?\n\nCet administrateur pourra à nouveau accéder au panneau admin.`)) {
       return;
     }
@@ -833,7 +891,15 @@
     if (result.success) {
       renderAdminList();
       alert(`✅ ${email} a été débanni avec succès.`);
-      console.log('✓ Admin débanni:', email);
+      console.log('✓ Admin débanni localement:', email);
+
+      // Publish to GitHub
+      const published = await publishAdminUnban(email);
+      if (published) {
+        console.log('✓ Admin débanni sur GitHub:', email);
+      } else {
+        console.warn('⚠️ Échec de débannissement sur GitHub (local seulement)');
+      }
     } else {
       alert(result.message);
     }
@@ -869,6 +935,241 @@
         </div>
       </div>
     `;
+  }
+
+  // ===== Publish Config (shared with admin.js) =====
+  function getPublishConfig() {
+    try {
+      return JSON.parse(localStorage.getItem('clipsou_admin_publish_api_v1') || 'null') || {};
+    } catch {
+      return {};
+    }
+  }
+
+  async function ensurePublishConfig() {
+    let cfg = getPublishConfig();
+    if (!cfg || !cfg.url) {
+      // Prefill defaults from window.ClipsouConfig
+      const defaultUrl = window.ClipsouConfig && window.ClipsouConfig.workerUrl
+        ? window.ClipsouConfig.workerUrl
+        : 'https://clipsou-publish.arthurcapon54.workers.dev';
+      cfg = { url: defaultUrl, secret: '' };
+    }
+    if (!cfg.secret) {
+      // Prompt for secret if missing
+      const secret = prompt('Worker secret key (one-time setup):');
+      if (!secret) return null;
+      cfg.secret = secret;
+      localStorage.setItem('clipsou_admin_publish_api_v1', JSON.stringify(cfg));
+    }
+    return cfg;
+  }
+
+  // ===== GitHub Synchronization Functions =====
+  
+  /**
+   * Fetch admin list from GitHub (public read)
+   */
+  async function fetchPublicAdminsArray() {
+    const originAdmins = (() => {
+      try {
+        return (window.location.origin || '') + '/data/admins.json';
+      } catch {
+        return null;
+      }
+    })();
+
+    const tryUrls = [
+      originAdmins,
+      '../data/admins.json',
+      'data/admins.json'
+    ].filter(Boolean);
+
+    for (const url of tryUrls) {
+      try {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) continue;
+        const arr = await res.json();
+        if (Array.isArray(arr)) {
+          console.log('[AdminAuth] Fetched admin list from GitHub:', arr.length, 'admins');
+          return arr;
+        }
+      } catch (e) {
+        console.warn('[AdminAuth] Failed to fetch from', url, e);
+      }
+    }
+    console.warn('[AdminAuth] Unable to fetch admin list from any URL');
+    return [];
+  }
+
+  /**
+   * Sync entire admin list to GitHub
+   */
+  async function publishAdminsSync(admins) {
+    const cfg = await ensurePublishConfig();
+    if (!cfg || !cfg.url || !cfg.secret) return false;
+    try {
+      const res = await fetch(cfg.url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${cfg.secret}`
+        },
+        body: JSON.stringify({ action: 'admins_sync', admins })
+      });
+      return !!res.ok;
+    } catch (e) {
+      console.error('[AdminAuth] Failed to sync admin list:', e);
+      return false;
+    }
+  }
+
+  /**
+   * Add admin to GitHub
+   */
+  async function publishAdminAdd(admin) {
+    const cfg = await ensurePublishConfig();
+    if (!cfg || !cfg.url || !cfg.secret) return false;
+    try {
+      const res = await fetch(cfg.url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${cfg.secret}`
+        },
+        body: JSON.stringify({ action: 'admin_add', admin })
+      });
+      return !!res.ok;
+    } catch (e) {
+      console.error('[AdminAuth] Failed to add admin:', e);
+      return false;
+    }
+  }
+
+  /**
+   * Remove admin from GitHub
+   */
+  async function publishAdminRemove(email) {
+    const cfg = await ensurePublishConfig();
+    if (!cfg || !cfg.url || !cfg.secret) return false;
+    try {
+      const res = await fetch(cfg.url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${cfg.secret}`
+        },
+        body: JSON.stringify({ action: 'admin_remove', email })
+      });
+      return !!res.ok;
+    } catch (e) {
+      console.error('[AdminAuth] Failed to remove admin:', e);
+      return false;
+    }
+  }
+
+  /**
+   * Ban admin on GitHub
+   */
+  async function publishAdminBan(email, bannedBy) {
+    const cfg = await ensurePublishConfig();
+    if (!cfg || !cfg.url || !cfg.secret) return false;
+    try {
+      const res = await fetch(cfg.url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${cfg.secret}`
+        },
+        body: JSON.stringify({ action: 'admin_ban', email, bannedBy })
+      });
+      return !!res.ok;
+    } catch (e) {
+      console.error('[AdminAuth] Failed to ban admin:', e);
+      return false;
+    }
+  }
+
+  /**
+   * Unban admin on GitHub
+   */
+  async function publishAdminUnban(email) {
+    const cfg = await ensurePublishConfig();
+    if (!cfg || !cfg.url || !cfg.secret) return false;
+    try {
+      const res = await fetch(cfg.url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${cfg.secret}`
+        },
+        body: JSON.stringify({ action: 'admin_unban', email })
+      });
+      return !!res.ok;
+    } catch (e) {
+      console.error('[AdminAuth] Failed to unban admin:', e);
+      return false;
+    }
+  }
+
+  /**
+   * Hydrate admin list from GitHub
+   */
+  async function hydrateAdminsFromPublic() {
+    try {
+      const publicAdmins = await fetchPublicAdminsArray();
+      if (!Array.isArray(publicAdmins) || publicAdmins.length === 0) {
+        console.log('[AdminAuth] No admins in GitHub, keeping local list');
+        return;
+      }
+
+      // Merge with local admins
+      const localAdmins = readAdminsFromStorage() || [];
+      const merged = buildAdminList([...publicAdmins, ...localAdmins], { fallbackAddedBy: 'github' });
+
+      // Save merged list
+      const saved = persistAdmins(merged);
+      if (saved) {
+        console.log('[AdminAuth] Admin list hydrated from GitHub:', saved.length, 'admins');
+        invalidateAdminCache();
+        
+        // Refresh popup if open
+        const popup = document.getElementById('adminListPopup');
+        if (popup) {
+          renderAdminList();
+        }
+      }
+    } catch (e) {
+      console.error('[AdminAuth] Failed to hydrate admin list:', e);
+    }
+  }
+
+  // ===== Polling for admin list updates =====
+  let adminsSyncPoller = null;
+
+  function startAdminsSyncPolling() {
+    if (adminsSyncPoller) return; // Already running
+
+    console.log('[AdminAuth] Starting admin sync polling (every 30s)');
+    
+    adminsSyncPoller = setInterval(async () => {
+      try {
+        await hydrateAdminsFromPublic();
+      } catch (e) {
+        console.error('[AdminAuth] Polling error:', e);
+      }
+    }, 30000); // 30 seconds
+
+    // Initial sync
+    setTimeout(() => hydrateAdminsFromPublic(), 1000);
+  }
+
+  function stopAdminsSyncPolling() {
+    if (adminsSyncPoller) {
+      clearInterval(adminsSyncPoller);
+      adminsSyncPoller = null;
+      console.log('[AdminAuth] Stopped admin sync polling');
+    }
   }
 
   /**
@@ -916,6 +1217,36 @@
 
     console.log('✅ Admin authenticated:', authResult.admin.email);
     displayAdminInfo();
+
+    // Auto-add admin to GitHub if not already there
+    const currentEmail = authResult.admin.email;
+    const publicAdmins = await fetchPublicAdminsArray();
+    const isInGitHub = publicAdmins.some(admin => 
+      normalizeEmail(admin.email) === normalizeEmail(currentEmail)
+    );
+
+    if (!isInGitHub) {
+      console.log('[AdminAuth] Admin not in GitHub, adding...');
+      const adminEntry = {
+        email: normalizeEmail(currentEmail),
+        name: authResult.admin.name || currentEmail,
+        addedAt: Date.now(),
+        addedBy: 'auto-login',
+        schema: ADMIN_SCHEMA_VERSION
+      };
+      
+      const added = await publishAdminAdd(adminEntry);
+      if (added) {
+        console.log('[AdminAuth] ✅ Admin auto-added to GitHub');
+        // Refresh list after adding
+        setTimeout(() => hydrateAdminsFromPublic(), 2000);
+      } else {
+        console.warn('[AdminAuth] ⚠️ Failed to auto-add admin to GitHub');
+      }
+    }
+
+    // Start polling for admin list updates
+    startAdminsSyncPolling();
   }
 
   // Expose public API
@@ -931,7 +1262,17 @@
     getCurrentAdmin,
     initAdminAuth,
     displayAdminInfo,
-    invalidateAdminCache
+    invalidateAdminCache,
+    // GitHub sync functions
+    fetchPublicAdminsArray,
+    publishAdminsSync,
+    publishAdminAdd,
+    publishAdminRemove,
+    publishAdminBan,
+    publishAdminUnban,
+    hydrateAdminsFromPublic,
+    startAdminsSyncPolling,
+    stopAdminsSyncPolling
   };
 
   // Listen for storage changes from other tabs/windows
