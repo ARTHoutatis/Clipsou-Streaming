@@ -199,36 +199,11 @@ function showOAuthValidationNotice() {
     `;
     button.textContent = 'Compris, je continue';
 
-    const MIN_DISPLAY_TIME = 5000;
-    const originalLabel = button.textContent;
-    const startTime = Date.now();
-    let closeAllowed = false;
-    let countdownTimer = null;
+    let closeAllowed = true;
 
-    const updateCountdown = () => {
-      const elapsed = Date.now() - startTime;
-      const remainingMs = MIN_DISPLAY_TIME - elapsed;
-      if (remainingMs > 0) {
-        const remainingSeconds = Math.ceil(remainingMs / 1000);
-        button.textContent = `${originalLabel} (${remainingSeconds}s)`;
-      } else {
-        closeAllowed = true;
-        button.disabled = false;
-        button.style.cursor = 'pointer';
-        button.style.opacity = '1';
-        button.textContent = originalLabel;
-        if (countdownTimer) {
-          clearInterval(countdownTimer);
-          countdownTimer = null;
-        }
-      }
-    };
-
-    button.disabled = true;
-    button.style.cursor = 'not-allowed';
-    button.style.opacity = '0.6';
-    updateCountdown();
-    countdownTimer = setInterval(updateCountdown, 250);
+    button.disabled = false;
+    button.style.cursor = 'pointer';
+    button.style.opacity = '1';
 
     button.addEventListener('mouseenter', () => {
       button.style.transform = 'translateY(-1px)';
@@ -244,10 +219,6 @@ function showOAuthValidationNotice() {
       }
       sessionStorage.setItem(STORAGE_KEY, '1');
       overlay.remove();
-      if (countdownTimer) {
-        clearInterval(countdownTimer);
-        countdownTimer = null;
-      }
     };
 
     button.addEventListener('click', closeNotice);
