@@ -514,7 +514,13 @@
     // Genres validation setup
     setupGenreValidation();
 
-    
+    // Expose navigation helpers globally so other scripts (ex: Google auth) can interact
+    window.goToSlide = goToSlide;
+    Object.defineProperty(window, 'currentSlide', {
+      configurable: true,
+      get() { return currentSlide; }
+    });
+
     // Setup stepper navigation
     setupStepperNavigation();
 
@@ -522,9 +528,19 @@
     setTimeout(() => {
       const draftRestored = loadFormDraft();
       if (draftRestored) {
-    setupAutoSave();
+        const savedSlide = loadCurrentSlide();
+        if (savedSlide && savedSlide !== currentSlide) {
+          const canNavigate = savedSlide === 1 || (termsCheckbox && termsCheckbox.checked);
+          if (canNavigate) {
+            goToSlide(savedSlide);
+          }
+        }
+      }
+      setupAutoSave();
+    }, 0);
+
   }
-  
+
   /**
    * Setup auto-save for form fields
    */
@@ -2348,12 +2364,8 @@
     });
   }
 
-  // Expose functions and variables globally
+  // Expose functions globally
   window.__deleteHistoryItem = deleteFromHistory;
-  window.goToSlide = goToSlide;
-  Object.defineProperty(window, 'currentSlide', {
-    get: function() { return currentSlide; }
-  });
 
   /**
    * Escape HTML to prevent XSS

@@ -37,7 +37,8 @@
       'home.continue': 'Reprendre la lecture',
       'home.favorites': '❤️ Favoris',
       'home.top.rated': '⭐ Mieux notés',
-      'home.discord.title': 'Des questions ? Un souci ? Rejoins-nous',
+      'home.discord.title.line1': 'Des questions ? Un souci ?',
+      'home.discord.title.line2': 'Rejoins-nous',
       'home.discord.desc': 'Rejoins notre serveur Discord pour poser tes questions, suivre les actus, signaler des bugs ou simplement discuter avec la communauté.<br>Tu as une requête ?<br>N\'hésite pas à nous la soumettre : une équipe de modérateurs sera là pour te répondre !',
       'home.discord.button': 'Notre Discord',
 
@@ -337,7 +338,8 @@
       'home.continue': 'Continue watching',
       'home.favorites': '❤️ Favorites',
       'home.top.rated': '⭐ Top rated',
-      'home.discord.title': 'Questions? An issue? Join us',
+      'home.discord.title.line1': 'Questions? An issue?',
+      'home.discord.title.line2': 'Join us',
       'home.discord.desc': 'Join our Discord server to ask questions, follow news, report bugs or simply chat with the community.<br>Do you have a request?<br>Don\'t hesitate to submit it: a team of moderators will be there to answer you!',
       'home.discord.button': 'Our Discord',
 
