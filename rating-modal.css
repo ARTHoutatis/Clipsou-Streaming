@@ -159,8 +159,7 @@
     justify-content: center;
 }
 
-.rating-submit-btn,
-.rating-favorite-btn {
+.rating-submit-btn {
     flex: 1;
     min-width: 0;
     padding: 12px 18px;
@@ -189,33 +188,6 @@
 .rating-submit-btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
-}
-
-.rating-favorite-btn {
-    background: transparent;
-    color: #ff1f5a;
-    border: 2px solid #ff1f5a;
-    font-size: 13px;
-    gap: 8px;
-}
-
-.rating-favorite-btn:hover {
-    background: rgba(255, 31, 90, 0.1);
-    transform: translateY(-2px);
-}
-
-.rating-favorite-btn.favorited {
-    background: #ff1f5a;
-    color: #ffffff;
-}
-
-.heart-icon {
-    width: 18px;
-    height: 18px;
-}
-
-.rating-favorite-btn.favorited .heart-icon {
-    fill: currentColor;
 }
 
 /* Status message */
@@ -292,8 +264,7 @@ body:has(.rating-modal[style*="display: flex"]) {
         flex-direction: column;
     }
 
-    .rating-submit-btn,
-    .rating-favorite-btn {
+    .rating-submit-btn {
         width: 100%;
         font-size: 13px;
         padding: 11px 18px;

@@ -301,9 +301,6 @@ function initRatingModal() {
     // Bouton soumettre
     document.getElementById('submitRatingBtn').addEventListener('click', submitRating);
     
-    // Bouton favoris
-    document.getElementById('addToFavoritesBtn').addEventListener('click', toggleFavorite);
-    
     // Échap pour fermer
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
@@ -438,38 +435,6 @@ async function submitRating() {
     }
 }
 
-// Toggle favoris
-function toggleFavorite() {
-    if (!currentItemId) return;
-
-    try {
-        const favorites = JSON.parse(localStorage.getItem('clipsou_favorites') || '[]');
-        const index = favorites.indexOf(currentItemId);
-        const btn = document.getElementById('addToFavoritesBtn');
-
-        if (index > -1) {
-            // Retirer des favoris
-            favorites.splice(index, 1);
-            btn.classList.remove('favorited');
-            showRatingMessage('Retiré des favoris', 'success');
-        } else {
-            // Ajouter aux favoris
-            favorites.push(currentItemId);
-            btn.classList.add('favorited');
-            showRatingMessage('Ajouté aux favoris', 'success');
-        }
-
-        localStorage.setItem('clipsou_favorites', JSON.stringify(favorites));
-        
-        // Mettre à jour l'affichage si on est sur la fiche
-        if (typeof updateFavoriteButton === 'function') {
-            updateFavoriteButton();
-        }
-    } catch (error) {
-        console.error('Erreur lors de la gestion des favoris:', error);
-        showRatingMessage('Erreur lors de la mise à jour', 'error');
-    }
-}
 
 // Afficher un message
 function showRatingMessage(message, type = 'success') {
