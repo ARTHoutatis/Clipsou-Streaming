@@ -2310,14 +2310,14 @@ body.fiche-page-view .carousel-genres .carousel-rating .star {
 .genre-tag {
     background: rgba(255, 255, 255, 0.1);
     color: #ffffff;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 13px;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 11.5px;
     font-weight: 600;
     border: none;
     white-space: nowrap;
     backdrop-filter: blur(8px);
-    letter-spacing: 0.3px;
+    letter-spacing: 0.2px;
 }
 
 .button-group {
