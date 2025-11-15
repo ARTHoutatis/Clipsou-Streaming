@@ -493,6 +493,38 @@ function renderFiche(container, item) {
   const rg = document.createElement('div');
   rg.className = 'rating-genres';
   let stars = null;
+  let ratingBadge = null;
+  const ensureRatingBadge = () => {
+    if (!ratingBadge && stars && mediaWrap) {
+      ratingBadge = document.createElement('div');
+      ratingBadge.className = 'mobile-rating-badge';
+      mediaWrap.appendChild(ratingBadge);
+    }
+  };
+  const applyStarMarkup = (node, displayText) => {
+    try {
+      if (!node || !displayText) return;
+      const safe = String(displayText);
+      const rest = safe.startsWith('★') ? safe.slice(1) : safe;
+      node.innerHTML = `<span class="star-symbol" aria-hidden="true">★</span>${rest}`;
+      node.setAttribute('data-rating-text', safe);
+    } catch {}
+  };
+  const syncRatingBadge = () => {
+    try {
+      if (stars && stars.textContent) {
+        ensureRatingBadge();
+        if (ratingBadge) {
+          const markup = stars.innerHTML || stars.textContent;
+          ratingBadge.innerHTML = markup;
+          ratingBadge.setAttribute('aria-label', stars.textContent || '');
+        }
+      } else if (ratingBadge) {
+        ratingBadge.remove();
+        ratingBadge = null;
+      }
+    } catch {}
+  };
   const ratingInfo = (function(){
     try {
       if (window.__ClipsouRatings && typeof window.__ClipsouRatings.resolveRatingValue === 'function') {
@@ -519,7 +551,9 @@ function renderFiche(container, item) {
           return txt;
         })();
     stars.className = 'stars';
-    stars.textContent = '★' + formatted + '/5';
+    const displayText = '★' + formatted + '/5';
+    applyStarMarkup(stars, displayText);
+    syncRatingBadge();
     rg.appendChild(stars);
     item.rating = ratingInfo.rating;
     if (typeof ratingInfo.count === 'number' && Number.isFinite(ratingInfo.count)) {
@@ -578,7 +612,9 @@ function renderFiche(container, item) {
                 rg.insertBefore(stars, genresDiv);
               }
 
-              stars.textContent = '★' + txt + '/5';
+              const displayText = '★' + txt + '/5';
+              applyStarMarkup(stars, displayText);
+              syncRatingBadge();
 
               try {
                 if (window.__ClipsouRatings && typeof window.__ClipsouRatings.updateSnapshotEntry === 'function') {
@@ -824,7 +860,7 @@ function renderFiche(container, item) {
   // For non-series or series with watchUrl, show regular watch button
   else if (item.watchUrl) {
     const a = document.createElement('a');
-    a.className = 'button';
+    a.className = 'button watch-button';
     try { a.href = item.watchUrl; } catch { a.href = item.watchUrl || ''; }
     a.target = '_blank';
     a.rel = 'noopener noreferrer';
@@ -868,13 +904,28 @@ function renderFiche(container, item) {
       const favBtn = document.createElement('button');
       favBtn.type = 'button';
       favBtn.className = 'button fav-primary';
-      const ICON_ADD = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="width:18px;height:18px;vertical-align:middle;margin-right:8px;"><path d="M2 9.1371C2 14 6.01943 16.5914 8.96173 18.9109C10 19.7294 11 20.5 12 20.5C13 20.5 14 19.7294 15.0383 18.9109C17.9806 16.5914 22 14 22 9.1371C22 4.27416 16.4998 0.825464 12 5.50063C7.50016 0.825464 2 4.27416 2 9.1371Z" fill="currentColor"></path></svg>';
-      const ICON_REMOVE = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="width:18px;height:18px;vertical-align:middle;margin-right:8px;"><path d="M8.10627 18.2468C5.29819 16.0833 2 13.5422 2 9.1371C2 4.53656 6.9226 1.20176 11.2639 4.81373L9.81064 8.20467C9.6718 8.52862 9.77727 8.90554 10.0641 9.1104L12.8973 11.1341L10.4306 14.012C10.1755 14.3096 10.1926 14.7533 10.4697 15.0304L12.1694 16.7302L11.2594 20.3702C10.5043 20.1169 9.74389 19.5275 8.96173 18.9109C8.68471 18.6925 8.39814 18.4717 8.10627 18.2468Z" fill="currentColor"></path><path d="M12.8118 20.3453C13.5435 20.0798 14.2807 19.5081 15.0383 18.9109C15.3153 18.6925 15.6019 18.4717 15.8937 18.2468C18.7018 16.0833 22 13.5422 22 9.1371C22 4.62221 17.259 1.32637 12.9792 4.61919L11.4272 8.24067L14.4359 10.3898C14.6072 10.5121 14.7191 10.7007 14.7445 10.9096C14.7699 11.1185 14.7064 11.3284 14.5694 11.4882L12.0214 14.4609L13.5303 15.9698C13.7166 16.1561 13.7915 16.4264 13.7276 16.682L12.8118 20.3453Z" fill="currentColor"></path></svg>';
+      const ICON_ADDED = '<svg class="fav-heart-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M1.24264 8.24264L8 15L14.7574 8.24264C15.553 7.44699 16 6.36786 16 5.24264V5.05234C16 2.8143 14.1857 1 11.9477 1C10.7166 1 9.55233 1.55959 8.78331 2.52086L8 3.5L7.21669 2.52086C6.44767 1.55959 5.28338 1 4.05234 1C1.8143 1 0 2.8143 0 5.05234V5.24264C0 6.36786 0.44699 7.44699 1.24264 8.24264Z" fill="#FF4D88"></path></svg>';
+      const ICON_REMOVED = '<svg class="fav-heart-icon" viewBox="-0.96 -0.96 17.92 17.92" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#FF4D88" stroke-width="1.552" aria-hidden="true" focusable="false"><path d="M1.24264 8.24264L8 15L14.7574 8.24264C15.553 7.44699 16 6.36786 16 5.24264V5.05234C16 2.8143 14.1857 1 11.9477 1C10.7166 1 9.55233 1.55959 8.78331 2.52086L8 3.5L7.21669 2.52086C6.44767 1.55959 5.28338 1 4.05234 1C1.8143 1 0 2.8143 0 5.05234V5.24264C0 6.36786 0.44699 7.44699 1.24264 8.24264Z" fill="none"></path></svg>';
+      const renderButton = (active, textContent) => {
+        try {
+          favBtn.innerHTML = active ? ICON_ADDED : ICON_REMOVED;
+          const labelSpan = document.createElement('span');
+          labelSpan.className = 'fav-label-text';
+          labelSpan.textContent = String(textContent || '');
+          favBtn.appendChild(labelSpan);
+        } catch {
+          favBtn.textContent = String(textContent || '');
+        }
+      };
       const setLabel = (active)=>{ 
         const addText = window.i18n ? window.i18n.translate('button.add.favorites') : 'Mettre en favoris';
         const removeText = window.i18n ? window.i18n.translate('button.remove.favorites') : 'Retirer des favoris';
-        favBtn.innerHTML = (active ? ICON_REMOVE + removeText : ICON_ADD + addText); 
+        const labelText = active ? removeText : addText;
+        renderButton(active, labelText);
         favBtn.setAttribute('data-i18n', active ? 'button.remove.favorites' : 'button.add.favorites');
+        favBtn.setAttribute('aria-label', labelText);
+        favBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        favBtn.classList.toggle('is-active', !!active);
       };
       let active = isFavorite(item.id);
       setLabel(active);

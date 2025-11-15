@@ -102,6 +102,11 @@ function updateRatingDisplay(value, count) {
             try { node.textContent = displayText; } catch {}
         });
 
+        const badges = document.querySelectorAll('.mobile-rating-badge');
+        badges.forEach((badge) => {
+            try { badge.textContent = displayText; } catch {}
+        });
+
         const updateCardInfos = (infos) => {
             infos.forEach((info) => {
                 try {

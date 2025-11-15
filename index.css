@@ -1752,9 +1752,17 @@ body.fiche-page-view #fiche .actors-panel .actor-photo img {
   filter: none !important; /* Jamais de brightness */
 }
 .button.fav-primary:hover {
-  background: rgba(255, 77, 136, 0.15) !important; /* Fond rose clair au survol */
+  background: transparent !important;
   border-color: #ff6ba3 !important; /* Bordure rose plus claire */
   color: #ff4d88 !important; /* Texte reste rose */
+}
+
+.button.fav-primary.is-active,
+.button.fav-primary.is-active:hover,
+.button.fav-primary.is-active:focus,
+.button.fav-primary.is-active:active {
+  background: rgba(255, 77, 136, 0.15) !important;
+  border-color: #ff4d88 !important;
 }
 
 /* ===== Remove glow from buttons globally (keep outline only) ===== */
@@ -2264,6 +2272,10 @@ button,
     margin: 0 0 24px 0;
 }
 
+.mobile-rating-badge {
+    display: none;
+}
+
 /* Fiche page: remove any glow around ratings/notes (defensive: kill text/box shadows and filters) */
 body.fiche-page-view .rating-genres,
 body.fiche-page-view .rating-genres .stars,
@@ -2688,7 +2700,7 @@ html {
     .actors-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .actors-panel .actor-card { margin-bottom: 0; padding: 10px; }
       /* Ensure space between the fiche content block and the toggle section */
-    #fiche .fiche-content + .section { margin-top: 12px !important; }
+    #fiche .fiche-content + .section { margin-top: 32px !important; }
     /* Keep a bit of extra room if the button group is the last element inside fiche-content */
     .button-group { margin-bottom: 12px; }
     /* Ensure space between the header buttons and the next block (actors panel or rail) */
@@ -2880,7 +2892,38 @@ html {
 
     /* Overlay on image for title + rating + genres (MOBILE ONLY) */
     .fiche-left { position: static; }
-    .fiche-media-wrap { position: relative; overflow: hidden; border-radius: 12px; }
+    .fiche-media-wrap { position: relative; overflow: visible; border-radius: 12px; background-color: #0b1117; }
+    .fiche-media-wrap::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: -8px; /* extend slightly below image to avoid visible seam */
+        background: linear-gradient(
+            180deg,
+            rgba(11,17,23,0) 0%,
+            rgba(11,17,23,0.18) 20%,
+            rgba(11,17,23,0.65) 55%,
+            rgba(11,17,23,0.92) 80%,
+            rgba(11,17,23,0.98) 92%,
+            rgba(11,17,23,1) 100%
+        );
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .fiche-media-wrap::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -12px;
+        height: 14px;
+        background: #0b1117;
+        pointer-events: none;
+        z-index: 1;
+    }
     /* Fiche page: remove rounded corners on the main image wrapper */
     body.fiche-page-view #fiche .fiche-media-wrap { border-radius: 0 !important; }
     .fiche-media-wrap .fiche-overlay {
@@ -2888,7 +2931,7 @@ html {
         left: 0; right: 0; bottom: 0;
         width: 100%;
         padding: 12px;
-        background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.75) 100%);
+        background: transparent;
         color: #ffffff;
         display: flex;
         flex-direction: column;
@@ -2899,6 +2942,36 @@ html {
         border-bottom-right-radius: 0;
         z-index: 2; /* sit above the image */
         pointer-events: none; /* let taps go to underlying image/buttons */
+    }
+
+    .mobile-rating-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        padding: 6px 12px;
+        border-radius: 12px;
+        background: #0b1117;
+        color: #fff;
+        font-weight: 700;
+        font-size: clamp(0.95rem, 3vw, 1.15rem);
+        letter-spacing: 0.02em;
+        z-index: 3;
+        pointer-events: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    }
+
+    .mobile-rating-badge .star-symbol,
+    .rating-genres .stars .star-symbol {
+        color: #FFD54A;
+        margin-right: 4px;
+        display: inline-block;
+    }
+
+    .mobile-rating-badge::first-letter {
+        color: #FFD54A !important;
     }
     .fiche-media-wrap .fiche-overlay .overlay-title { font-size: 1.4rem; margin: 0; order: 2; }
     body.fiche-page-view #fiche .fiche-media-wrap .fiche-overlay .overlay-meta { display: none !important; }
@@ -2913,24 +2986,77 @@ html {
     
     .button-group { 
         display: flex; 
-        gap: 10px; 
-        flex-wrap: wrap;
+        gap: 8px; 
+        flex-wrap: nowrap;
         justify-content: center; 
         width: 100%;
         margin: 8px auto 0; /* tighter gap under image */
-        padding-top: 8px;   /* reduce internal spacing */
+        padding: 8px 12px;   /* balanced spacing */
         position: static !important; /* override desktop sticky to avoid reserved space */
         bottom: auto !important;
-        padding-bottom: 8px; /* small, fixed padding */
+    }
+
+    .button-group .button,
+    .button-group .button:hover,
+    .button-group .button:focus,
+    .button-group .button:active {
+        flex: 1 1 0;
+        min-width: 0;
+        max-width: none;
+        padding: 12px 16px !important;
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        letter-spacing: 0.02em;
+        height: 48px !important;
+        min-height: 48px !important;
+        max-height: 48px !important;
+    }
+
+    .button-group .fav-primary {
+        flex: 0 0 48px !important;
+        width: 48px !important;
+        min-width: 48px !important;
+        max-width: 48px !important;
+        padding: 0 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .button-group .fav-primary .fav-label-text {
+        display: none !important;
+    }
+
+    .button-group .fav-primary .fav-heart-icon {
+        width: 22px;
+        height: 22px;
+        margin: 0 !important;
+    }
+
+    .button-group .button svg {
+        width: 16px !important;
+        height: 16px !important;
+        margin-right: 6px !important;
+        flex-shrink: 0;
     }
 
     /* Reduce spacing before next content (e.g., HR + similar content) */
     .section { margin: 12px 0; }
     body.fiche-page-view hr { margin: 8px 0; }
     /* When the similar section follows the fiche content, keep it close */
-    #fiche .fiche-content + .section { margin-top: 8px !important; }
-    /* Also ensure any section directly after the image/buttons stays close */
-    #fiche .button-group + .section { margin-top: 8px !important; }
+    #fiche .fiche-content + .section,
+    #fiche .button-group + .section {
+        margin-top: 32px !important;
+    }
+
+    /* Final override: always ensure generous gap after fiche & buttons on mobile */
+    body.fiche-page-view #fiche .fiche-content + .section,
+    body.fiche-page-view #fiche .button-group + .section {
+        margin-top: 36px !important;
+    }
 
     /* POPUPS: make sure content is visible on mobile and left-aligned */
     .fiche-popup .fiche-content {
