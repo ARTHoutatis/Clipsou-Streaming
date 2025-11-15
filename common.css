@@ -437,6 +437,11 @@ a { text-decoration: none; color: inherit; }
   --shadow-elev: 0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
 }
 
+/* Neutraliser toutes les ombres pour alléger le rendu */
+*, *::before, *::after {
+  box-shadow: none !important;
+}
+
 @media (max-width: 768px) {
   :root { --gutter: 12px; }
 }

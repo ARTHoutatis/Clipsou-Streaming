@@ -516,7 +516,7 @@ body.popup-open nav[aria-label="Navigation principale"] {
   font-weight: 800;
   letter-spacing: .2px;
   font-size: 16px;
-  background: radial-gradient(100% 100% at 0% 0%, #5865F2 0%, #3B46CC 100%);
+  background: #5865F2;
   border: 1px solid rgba(255,255,255,0.16);
   box-shadow: 0 10px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
   transition: transform .2s ease, box-shadow .2s ease, filter .2s ease, background .2s ease;
@@ -543,6 +543,10 @@ body.popup-open nav[aria-label="Navigation principale"] {
 @media (min-width: 769px) {
   .discord-banner { display: grid; grid-template-columns: 1fr auto; column-gap: 16px; align-items: center; }
   .discord-banner-btn { justify-self: end; }
+}
+
+@media (min-width: 1024px) {
+  .discord-banner-btn { margin-right: 30px; }
 }
 
 /* Mobile: shrink and shift left the 'Reprendre la lecture' title */
@@ -2084,6 +2088,16 @@ button,
     flex-direction: column;
     justify-content: center;
     padding-left: 20px; /* Décalage supplémentaire du texte vers la droite */
+}
+
+/* Titres fiche : taille responsive, rétrécie via JS pour rester sur 3 lignes max (sans ellipses) */
+.fiche-right > h3 {
+    font-size: clamp(26px, 3.4vw, 48px);
+    line-height: 1.15;
+    margin: 0 0 12px;
+    font-weight: 900;
+    word-break: break-word;
+    hyphens: auto;
 }
 
 .fiche-content h3 { 

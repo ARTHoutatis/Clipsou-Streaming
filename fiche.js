@@ -465,10 +465,67 @@ function setMetaTag(selector, attr, value) {
   el.setAttribute(attr, value);
 }
 
+function clampFicheTitleLines(el, options = {}) {
+  if (!el) return;
+  const maxLines = Number.isFinite(options.maxLines) ? options.maxLines : 3;
+  const minSize = Number.isFinite(options.minSize) ? options.minSize : 18;
+  const step = Number.isFinite(options.step) ? options.step : 1;
+  const baseRatio = Number.isFinite(options.lineHeightRatio) ? options.lineHeightRatio : 1.12;
+  const watch = options.watch !== false;
+
+  const measure = () => {
+    if (!el || !el.isConnected) return;
+    el.style.fontSize = '';
+    el.style.lineHeight = '';
+    const computed = window.getComputedStyle(el);
+    let fontSize = parseFloat(computed.fontSize) || 40;
+    let ratio = baseRatio;
+    const computedLineHeight = parseFloat(computed.lineHeight);
+    if (Number.isFinite(computedLineHeight) && computedLineHeight > 0 && fontSize > 0) {
+      ratio = computedLineHeight / fontSize;
+    }
+    const allowed = () => (fontSize * ratio * maxLines) + 0.5;
+    let guard = 0;
+    const min = Math.max(10, minSize);
+    while (el.scrollHeight > allowed() && fontSize > min && guard < 80) {
+      fontSize = Math.max(min, fontSize - step);
+      el.style.fontSize = fontSize + 'px';
+      el.style.lineHeight = (fontSize * ratio).toFixed(2) + 'px';
+      guard++;
+    }
+    if (!el.style.lineHeight) {
+      el.style.lineHeight = (fontSize * ratio).toFixed(2) + 'px';
+    }
+  };
+
+  const run = () => {
+    if (!el || !el.isConnected) return;
+    window.requestAnimationFrame(measure);
+  };
+
+  run();
+
+  if (watch) {
+    const handler = () => {
+      if (!el || !el.isConnected) {
+        window.removeEventListener('resize', handler);
+        window.removeEventListener('orientationchange', handler);
+        window.removeEventListener('languageChanged', handler);
+        return;
+      }
+      run();
+    };
+    window.addEventListener('resize', handler, { passive: true });
+    window.addEventListener('orientationchange', handler);
+    window.addEventListener('languageChanged', handler);
+  }
+}
+
 function renderFiche(container, item) {
   container.innerHTML = '';
   const wrap = document.createElement('div');
   wrap.className = 'fiche-content landscape-layout';
+  const titlesToClamp = [];
 
   const left = document.createElement('div');
   left.className = 'fiche-left';
@@ -489,6 +546,7 @@ function renderFiche(container, item) {
 
   const h3 = document.createElement('h3');
   h3.textContent = item.title || '';
+  titlesToClamp.push({ el: h3 });
 
   const rg = document.createElement('div');
   rg.className = 'rating-genres';
@@ -827,6 +885,7 @@ function renderFiche(container, item) {
     overlay.appendChild(overlayTitle);
     overlay.appendChild(overlayMeta);
     mediaWrap.appendChild(overlay);
+    titlesToClamp.push({ el: overlayTitle, options: { watch: false } });
   } catch (e) {
     // no-op if cloning fails
   }
@@ -980,6 +1039,11 @@ function renderFiche(container, item) {
   wrap.appendChild(left);
   wrap.appendChild(right);
   container.appendChild(wrap);
+  titlesToClamp.forEach(entry => {
+    try {
+      if (entry && entry.el) clampFicheTitleLines(entry.el, entry.options || {});
+    } catch {}
+  });
   try { window.__currentFicheItem = item; } catch {}
 }
 

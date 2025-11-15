@@ -27,6 +27,23 @@
 
     // Utilise les fonctions partagées de utilities.js (pas de duplication)
 
+const __perfFlags = {
+  lowEnd: !!(
+    (window.__clipsouLowEnd && window.__clipsouLowEnd.enabled) ||
+    (document.documentElement && document.documentElement.classList.contains('low-end-device'))
+  )
+};
+
+function isLowEndMode() {
+  return !!__perfFlags.lowEnd;
+}
+
+try {
+  window.addEventListener('lowEndModeChanged', (event) => {
+    __perfFlags.lowEnd = !!(event && event.detail && event.detail.enabled);
+  });
+} catch (_) {}
+
 // Activer le lazy loading optimisé pour toutes les images
 installLazyImageLoader();
 

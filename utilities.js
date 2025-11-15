@@ -45,7 +45,7 @@ function optimizeCloudinaryUrlSmall(url) {
     return url;
   }
   
-  // Badges et acteurs: qualité basse, max 600px
+  // Badges et acteurs: qualité low pour minimiser le poids, max 600px
   const optimized = 'f_auto,q_auto:low,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit';
   
   if (url.includes('/upload/')) {
@@ -67,8 +67,7 @@ function optimizeCloudinaryUrlCard(url) {
     return url;
   }
   
-  // Cartes: qualité optimisée pour le web, max 500px avec compression agressive
-  // q_auto:low pour réduire la taille, acceptable pour les petites cartes
+  // Cartes: qualité low pour réduire davantage la taille, max 500px
   const optimized = 'f_auto,q_auto:low,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:500,c_limit,e_sharpen:50';
   
   if (url.includes('/upload/')) {
@@ -90,8 +89,8 @@ function optimizeCloudinaryUrlContinue(url) {
     return url;
   }
   
-  // Continue Watching: qualité eco pour équilibrer vitesse et qualité, max 400px
-  const optimized = 'f_auto,q_auto:eco,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:400,c_limit';
+  // Continue Watching: qualité low pour privilégier la vitesse, max 400px
+  const optimized = 'f_auto,q_auto:low,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:400,c_limit';
   
   if (url.includes('/upload/')) {
     return url.replace('/upload/', '/upload/' + optimized + '/');
