@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr" translate="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="google" content="notranslate" />
+  <meta name="googlebot" content="notranslate" />
+  <title>Accès admin bloqué</title>
+  <link rel="stylesheet" href="admin.css" />
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Poppins', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(180deg, #0b1117 0%, #0e141b 100%);
+      color: #e2e8f0;
+      padding: 24px;
+    }
+    .ban-card {
+      width: min(480px, 100%);
+      background: rgba(15,23,42,0.8);
+      border: 1px solid rgba(148,163,184,0.2);
+      border-radius: 18px;
+      padding: 32px;
+      text-align: center;
+      backdrop-filter: blur(12px);
+    }
+    .ban-card h1 {
+      margin: 16px 0 12px;
+      font-size: clamp(1.8rem, 4vw, 2.25rem);
+      color: #f87171;
+      letter-spacing: -0.01em;
+    }
+    .ban-card p {
+      margin: 0 auto 24px;
+      max-width: 360px;
+      line-height: 1.6;
+      color: #cbd5f5;
+    }
+    .ban-icon {
+      font-size: clamp(3rem, 7vw, 4rem);
+    }
+    .contact {
+      font-size: 0.95rem;
+      color: #cbd5f5;
+    }
+    .contact strong {
+      color: #ffffff;
+    }
+    .actions {
+      margin-top: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .ban-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px 20px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: filter 0.2s ease;
+      text-decoration: none;
+      color: #fff;
+    }
+    .ban-button.primary {
+      background: #ef4444;
+    }
+    .ban-button.secondary {
+      background: rgba(148,163,184,0.2);
+      color: #e2e8f0;
+    }
+    .ban-button:hover,
+    .ban-button:focus-visible {
+      filter: brightness(1.08);
+    }
+  </style>
+</head>
+<body class="notranslate">
+  <main class="ban-card" role="alertdialog" aria-live="assertive">
+    <div class="ban-icon" aria-hidden="true">⛔</div>
+    <h1>Votre compte admin est banni</h1>
+    <p>
+      Si vous pensez qu'il s'agit d'une erreur ou si vous souhaitez demander un débannissement,
+      contactez <strong>arth.d.i.s.c.o.r.d</strong> sur Discord.
+    </p>
+    <div class="actions">
+      <a class="ban-button primary" href="../index.html">Retourner à l'accueil</a>
+      <a class="ban-button secondary" href="admin.html">Revenir à la page de connexion</a>
+    </div>
+  </main>
+  <script>
+    try {
+      localStorage.removeItem('clipsou_admin_logged_in_v1');
+      sessionStorage.removeItem('clipsou_admin_session_v1');
+    } catch (e) {
+      console.warn('Unable to clear admin session:', e);
+    }
+  </script>
+</body>
+</html>

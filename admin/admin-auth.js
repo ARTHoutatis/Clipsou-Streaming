@@ -1344,7 +1344,7 @@
     const app = document.getElementById('app');
     if (app) app.hidden = true;
     
-    // Show error message
+    // Show error message (except for dedicated banned flow)
     let message = '';
     switch (reason) {
       case 'password':
@@ -1357,7 +1357,7 @@
         message = `❌ Accès refusé\n\nLe compte Google ${details.email || 'inconnu'} n'est pas autorisé à accéder à l'interface admin.\n\nContactez un administrateur existant pour être ajouté à la liste.`;
         break;
       case 'banned':
-        message = `⛔ Compte banni\n\nVotre compte a été banni${details.bannedBy ? ' par ' + details.bannedBy : ''}.\n\nContactez le Super Admin pour plus d'informations.`;
+        message = '';
         break;
       case 'google_error':
         message = '❌ Erreur d\'authentification Google\n\nVeuillez réessayer ou contacter le support.';
@@ -1366,19 +1366,31 @@
         message = '❌ Authentification échouée\n\nAccès refusé.';
     }
     
-    // Show alert
-    alert(message);
-    
-    // Clear admin session if needed
     if (reason !== 'password') {
       clearCurrentAdmin();
       localStorage.removeItem('clipsou_admin_logged_in_v1');
+      sessionStorage.removeItem('clipsou_admin_session_v1');
     }
+
+    if (reason === 'banned') {
+      redirectToBannedPage();
+      return;
+    }
+
+    alert(message);
     
     // Redirect to admin login or reload
     setTimeout(() => {
       window.location.href = window.location.pathname;
     }, 100);
+  }
+
+  function redirectToBannedPage() {
+    const path = window.location.pathname || '';
+    const lastSlash = path.lastIndexOf('/');
+    const base = lastSlash >= 0 ? path.slice(0, lastSlash + 1) : '';
+    const bannedUrl = `${base}banned.html`;
+    window.location.href = bannedUrl;
   }
 
   /**
