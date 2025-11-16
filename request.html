@@ -347,6 +347,25 @@
     </div><!-- End mainContent -->
   </main>
 
+  <!-- Banned user modal -->
+  <div class="ban-modal" id="banModal" hidden>
+    <div class="ban-modal-backdrop" id="banModalBackdrop"></div>
+    <div class="ban-modal-content" role="dialog" aria-labelledby="banModalTitle" aria-describedby="banModalMessage">
+      <button type="button" class="ban-modal-close" id="banModalClose" aria-label="Fermer">×</button>
+      <div class="ban-modal-icon" aria-hidden="true">⛔</div>
+      <h2 id="banModalTitle">Accès bloqué</h2>
+      <p id="banModalMessage">
+        Votre compte a été banni de Clipsou Streaming.
+        Vous ne pouvez plus soumettre de nouvelles demandes.
+        Si vous pensez qu'il s'agit d'une erreur, contactez <strong>arth.d.i.s.c.o.r.d</strong> sur Discord.
+      </p>
+      <div class="ban-modal-actions">
+        <a href="/" class="btn primary">Retourner à l'accueil</a>
+        <button type="button" class="btn secondary" id="banModalDismiss">Fermer</button>
+      </div>
+    </div>
+  </div>
+
   <script src="i18n.js"></script>
   <script src="config.js"></script>
   <script src="google-auth.js?v=20251108-i18n-support"></script>

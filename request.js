@@ -100,6 +100,11 @@
   let formSection, requestForm;
   let rateLimitNotice, pendingRequestNotice, successMessage;
   let cancelRequestBtn, newRequestBtn;
+  let banModal;
+  let banModalBackdrop;
+  let banModalCloseBtn;
+  let banModalDismissBtn;
+  let isBannedUser = false;
   let actors = [];
   let episodes = [];
   
@@ -417,6 +422,10 @@
     successMessage = document.getElementById('successMessage');
     cancelRequestBtn = document.getElementById('cancelRequestBtn');
     newRequestBtn = document.getElementById('newRequestBtn');
+    banModal = document.getElementById('banModal');
+    banModalBackdrop = document.getElementById('banModalBackdrop');
+    banModalCloseBtn = document.getElementById('banModalClose');
+    banModalDismissBtn = document.getElementById('banModalDismiss');
 
     // Check rate limit and pending request
     checkRateLimitAndPendingRequest();
@@ -622,6 +631,12 @@
     steps.forEach(step => {
       step.addEventListener('click', () => {
         const stepNum = parseInt(step.dataset.step, 10);
+        
+        // Check if user is banned before navigating
+        if (checkBannedUserBeforeForm(true)) {
+          return;
+        }
+        
         if (stepNum < currentSlide || step.classList.contains('completed')) {
           goToSlide(stepNum);
         }
@@ -1363,7 +1378,6 @@
   async function handleSubmit(e) {
     e.preventDefault();
 
-
     // Disable submit button to prevent double submission
     if (submitBtn) {
       submitBtn.disabled = true;
@@ -1391,16 +1405,8 @@
       }
 
       // Check if user is banned
-      const currentUser = window.GoogleAuth.getCurrentUser();
-      const userEmail = currentUser?.user?.email;
-      const channelId = youtubeChannel?.id;
-      
-      
-      if (window.ClipsouAdmin && typeof window.ClipsouAdmin.isUserBanned === 'function') {
-        if (window.ClipsouAdmin.isUserBanned(userEmail, channelId)) {
-          alert('❌ Votre compte a été banni.\n\nVous ne pouvez plus soumettre de demandes sur Clipsou Streaming.\n\nSi vous pensez qu\'il s\'agit d\'une erreur, veuillez contacter l\'administrateur.');
-          return;
-        }
+      if (checkBannedUserBeforeForm(false)) {
+        throw new Error('BANNED_USER');
       }
 
       const termsError = document.getElementById('termsError');
