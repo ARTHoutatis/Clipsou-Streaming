@@ -25,6 +25,9 @@
   // Admin mode: doesn't require YouTube channel
   let adminMode = false;
 
+  // Feature flag: auto silent refresh can trigger popup prompts on page load, keep off by default
+  const ENABLE_AUTO_SILENT_REFRESH = false;
+
   const GOOGLE_ICON_SVG = `
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -301,7 +304,7 @@
     googleSignInButton.innerHTML = '';
     googleSignInButton.appendChild(button);
 
-    if (savedAuth && !isAuthValid(savedAuth) && !silentAuthAttempted) {
+    if (ENABLE_AUTO_SILENT_REFRESH && savedAuth && !isAuthValid(savedAuth) && !silentAuthAttempted) {
       await attemptSilentSignIn(savedAuth);
     }
   }
