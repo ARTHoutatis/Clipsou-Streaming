@@ -438,6 +438,19 @@
         clearInterval(initAdminGoogleAuth);
       }, 10000);
       
+      function hydrateAdminProfileFromGoogle() {
+        if (window.AdminAuth && typeof window.AdminAuth.refreshCurrentAdminInfo === 'function') {
+          const refreshed = window.AdminAuth.refreshCurrentAdminInfo();
+          if (refreshed && typeof window.AdminAuth.displayAdminInfo === 'function') {
+            try {
+              window.AdminAuth.displayAdminInfo();
+            } catch (err) {
+              console.error('[Admin] Failed to display admin info after refresh:', err);
+            }
+          }
+        }
+      }
+
       // Function to check Google Auth and enable password form
       function checkGoogleAuthAndEnablePassword() {
         console.log('[Admin] checkGoogleAuthAndEnablePassword called');
@@ -453,6 +466,7 @@
             console.log('[Admin] 🔐 Google already authenticated, enabling password form');
             console.log('[Admin] User email:', user.user.email);
             enablePasswordForm(user.user.email);
+            hydrateAdminProfileFromGoogle();
             return;
           } else {
             console.warn('[Admin] isAuthenticated=true but no user data!');
@@ -467,6 +481,7 @@
           console.log('[Admin] 🔐 Google Auth event received!', event.detail);
           if (event.detail && event.detail.email) {
             enablePasswordForm(event.detail.email);
+            hydrateAdminProfileFromGoogle();
           }
         }, { once: true });
         

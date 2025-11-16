@@ -88,32 +88,105 @@
         : Date.now();
       const addedBy = normalizeEmail(entry.addedBy) || fallbackAddedBy || 'legacy';
 
-      return {
+      const canonical = {
         email,
         name,
         addedAt,
         addedBy,
         schema: ADMIN_SCHEMA_VERSION
       };
+
+      if (entry && entry.banned === true) {
+        canonical.banned = true;
+
+        const bannedAtCandidate = Number(entry.bannedAt);
+        if (Number.isFinite(bannedAtCandidate) && bannedAtCandidate > 0) {
+          canonical.bannedAt = bannedAtCandidate;
+        }
+
+        const bannedBy = normalizeEmail(entry.bannedBy);
+        if (bannedBy) {
+          canonical.bannedBy = bannedBy;
+        }
+      }
+
+      return canonical;
     }
 
     return null;
+  }
+
+  function mergeAdminEntries(existing, incoming) {
+    if (!existing) return incoming;
+    if (!incoming) return existing;
+
+    const merged = { ...existing };
+
+    if (!merged.name && incoming.name) {
+      merged.name = incoming.name;
+    }
+
+    if (!Number.isFinite(merged.addedAt) || (Number.isFinite(incoming.addedAt) && incoming.addedAt < merged.addedAt)) {
+      merged.addedAt = incoming.addedAt;
+    }
+
+    if (!merged.addedBy && incoming.addedBy) {
+      merged.addedBy = incoming.addedBy;
+    }
+
+    if (Number.isFinite(existing.schema) || Number.isFinite(incoming.schema)) {
+      const existingSchema = Number(existing.schema) || ADMIN_SCHEMA_VERSION;
+      const incomingSchema = Number(incoming.schema) || ADMIN_SCHEMA_VERSION;
+      merged.schema = Math.max(existingSchema, incomingSchema);
+    }
+
+    if (incoming.banned === true) {
+      merged.banned = true;
+
+      if (Number.isFinite(incoming.bannedAt)) {
+        if (!Number.isFinite(merged.bannedAt) || incoming.bannedAt > merged.bannedAt) {
+          merged.bannedAt = incoming.bannedAt;
+        }
+      }
+
+      if (incoming.bannedBy) {
+        merged.bannedBy = incoming.bannedBy;
+      }
+    }
+
+    if (merged.banned !== true) {
+      delete merged.banned;
+      delete merged.bannedAt;
+      delete merged.bannedBy;
+    } else {
+      if (!Number.isFinite(merged.bannedAt)) {
+        delete merged.bannedAt;
+      }
+      if (!merged.bannedBy) {
+        delete merged.bannedBy;
+      }
+    }
+
+    return merged;
   }
 
   /**
    * Build a unique, canonical admin array.
    */
   function buildAdminList(rawList, { fallbackAddedBy } = {}) {
-    const seen = new Set();
     const result = [];
 
     if (Array.isArray(rawList)) {
       rawList.forEach(item => {
         const canonical = canonicalizeAdminEntry(item, { fallbackAddedBy });
         if (!canonical) return;
-        if (seen.has(canonical.email)) return;
-        seen.add(canonical.email);
-        result.push(canonical);
+
+        const existingIndex = result.findIndex(admin => admin.email === canonical.email);
+        if (existingIndex !== -1) {
+          result[existingIndex] = mergeAdminEntries(result[existingIndex], canonical);
+        } else {
+          result.push(canonical);
+        }
       });
     }
 
@@ -261,6 +334,31 @@
     } catch (e) {
       console.error('Error clearing current admin:', e);
     }
+  }
+
+  /**
+   * Refresh current admin info from GoogleAuth (used after first login)
+   */
+  function refreshCurrentAdminInfo() {
+    if (!window.GoogleAuth || typeof window.GoogleAuth.getCurrentUser !== 'function') {
+      console.warn('[AdminAuth] Cannot refresh admin info: GoogleAuth unavailable');
+      return false;
+    }
+
+    const googleUser = window.GoogleAuth.getCurrentUser();
+    if (!googleUser || !googleUser.user || !googleUser.user.email) {
+      console.warn('[AdminAuth] Cannot refresh admin info: Google user data missing');
+      return false;
+    }
+
+    saveCurrentAdmin({
+      email: googleUser.user.email,
+      name: googleUser.user.name || googleUser.user.email,
+      picture: googleUser.user.picture || '',
+      authenticatedAt: Date.now()
+    });
+
+    return true;
   }
 
   /**
@@ -1313,6 +1411,7 @@
     getCurrentAdmin,
     initAdminAuth,
     displayAdminInfo,
+    refreshCurrentAdminInfo,
     invalidateAdminCache,
     blockAdminAccess,
     // GitHub sync functions
