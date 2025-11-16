@@ -589,6 +589,13 @@
       return { authenticated: false, reason: 'password' };
     }
 
+    // Ensure we have the latest admin list (ban status) before continuing
+    try {
+      await hydrateAdminsFromPublic();
+    } catch (error) {
+      console.warn('[AdminAuth] Unable to refresh admin list before auth:', error);
+    }
+
     // Check Google authentication
     try {
       await initGoogleAuth();
@@ -1248,7 +1255,37 @@
 
       // Merge with local admins
       const localAdmins = readAdminsFromStorage() || [];
-      const merged = buildAdminList([...publicAdmins, ...localAdmins], { fallbackAddedBy: 'github' });
+      const mergedRaw = buildAdminList([...publicAdmins, ...localAdmins], { fallbackAddedBy: 'github' });
+
+      // Align ban status with GitHub truth so stale local copies don't reintroduce bans
+      const remoteBanMap = new Map();
+      publicAdmins.forEach(entry => {
+        const email = normalizeEmail(entry && entry.email);
+        if (!email) return;
+        remoteBanMap.set(email, entry && entry.banned === true ? {
+          banned: true,
+          bannedAt: Number(entry.bannedAt) || undefined,
+          bannedBy: normalizeEmail(entry.bannedBy) || undefined
+        } : { banned: false });
+      });
+
+      const merged = mergedRaw.map(entry => {
+        const email = normalizeEmail(entry && entry.email);
+        if (!email || !remoteBanMap.has(email)) {
+          return entry;
+        }
+        const remote = remoteBanMap.get(email);
+        if (remote.banned) {
+          return {
+            ...entry,
+            banned: true,
+            ...(remote.bannedAt ? { bannedAt: remote.bannedAt } : {}),
+            ...(remote.bannedBy ? { bannedBy: remote.bannedBy } : {})
+          };
+        }
+        const { banned, bannedAt, bannedBy, ...clean } = entry;
+        return clean;
+      });
 
       // Save merged list
       const saved = persistAdmins(merged);
@@ -1261,6 +1298,8 @@
         if (popup) {
           renderAdminList();
         }
+
+        enforceCurrentAdminBanStatus();
       }
     } catch (e) {
       console.error('[AdminAuth] Failed to hydrate admin list:', e);
@@ -1340,6 +1379,26 @@
     setTimeout(() => {
       window.location.href = window.location.pathname;
     }, 100);
+  }
+
+  /**
+   * If current admin just became banned (via sync/storage), immediately block access.
+   */
+  function enforceCurrentAdminBanStatus() {
+    try {
+      const currentAdmin = getCurrentAdmin();
+      if (!currentAdmin || isSuperAdmin(currentAdmin.email)) {
+        return;
+      }
+
+      const admins = loadAdminList();
+      const entry = admins.find(admin => admin.email === normalizeEmail(currentAdmin.email));
+      if (entry && entry.banned) {
+        blockAdminAccess('banned', { email: currentAdmin.email, bannedBy: entry.bannedBy });
+      }
+    } catch (error) {
+      console.error('[AdminAuth] Failed to enforce ban status:', error);
+    }
   }
 
   /**
@@ -1439,6 +1498,8 @@
         console.log('[AdminAuth] Refreshing admin list popup');
         renderAdminList();
       }
+
+      enforceCurrentAdminBanStatus();
     }
   });
 
