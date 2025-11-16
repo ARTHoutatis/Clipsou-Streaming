@@ -3447,9 +3447,20 @@ nav[aria-label="Navigation principale"] .yt-link { display: none !important; }
 
 /* ===== Rail edge spacing and clipping (desktop and mobile) ===== */
 /* Desktop: clip horizontal overflow, Mobile: allow scroll */
-@media (min-width: 769px) {
-  .section { overflow: hidden; }
+@media (max-width: 768px) {
+  body.drawer-open,
+  body.popup-open { overflow: hidden; }
 }
+
+@media (max-width: 768px) {
+  body.mobile-title-hide .section > h2,
+  body.mobile-title-hide .section > .genre-subtitle,
+  body.mobile-title-hide #continue-watching > h2 {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
 @media (max-width: 768px) {
   .section { overflow: visible; }
 }

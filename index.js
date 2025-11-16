@@ -2654,6 +2654,13 @@ document.addEventListener('DOMContentLoaded', async function () {
     window.addEventListener('resize', ()=>{ try { document.querySelectorAll('.rail-arrow').forEach(b=>b.remove()); } catch{}; enhanceRailsWithArrows(); });
     // Strip any inline SVG icons found inside main section H2 titles
     (function stripSectionTitleIcons(){
+      function revealMobileTitlesSoon(){
+        if (!document.body) return;
+        if (!document.body.classList.contains('mobile-title-hide')) return;
+        requestAnimationFrame(() => {
+          try { document.body.classList.remove('mobile-title-hide'); } catch {}
+        });
+      }
       function emojiFor(section, h2){
         try {
           const sec = section || (h2 ? h2.closest('.section') : null);
@@ -2704,6 +2711,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
       // Initial run
       applyOnce(document);
+      revealMobileTitlesSoon();
       // Re-apply on DOM changes (sections created later)
       try {
         const mo = new MutationObserver(muts => {
@@ -2723,6 +2731,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             delete h2.dataset.emojiApplied;
           });
           applyOnce(document);
+          revealMobileTitlesSoon();
         });
       } catch {}
     })();
