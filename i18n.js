@@ -75,6 +75,8 @@
       'search.placeholder': 'Recherchez un genre, un film ou une série...',
       'search.filters': 'Filtres',
       'search.filters.toggle': 'Afficher/masquer les filtres',
+      'search.filters.more': 'Voir plus',
+      'search.filters.less': 'Voir moins',
 
       // Page fiche - sections
       'fiche.similar': 'Contenu similaire',
@@ -389,6 +391,8 @@
       'search.placeholder': 'Search for a genre, film or series...',
       'search.filters': 'Filters',
       'search.filters.toggle': 'Show/hide filters',
+      'search.filters.more': 'Show more',
+      'search.filters.less': 'Show less',
 
       // Fiche page - sections
       'fiche.similar': 'Similar content',

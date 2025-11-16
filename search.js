@@ -1,5 +1,40 @@
 // Base dynamique (remplie en parsant index.html au chargement). Un fallback local est utilisé si le fetch échoue (ex: ouverture en file://)
 let moviesDatabase = [];
+const GENRE_SHOW_MORE_THRESHOLD = 10;
+const REQUEST_EXTRA_GENRES = [
+    'Action',
+    'Ambience',
+    'Animation',
+    'Aventure',
+    'Biopic',
+    'Brickfilm',
+    'Comédie',
+    'Documentaire',
+    'Drame',
+    'Émission',
+    'Enfants',
+    'Événement',
+    'Familial',
+    'Fantastique',
+    'Faux film pour enfants',
+    'Found Footage',
+    'Guerre',
+    'Historique',
+    'Horreur',
+    'Horreur psychologique',
+    'Live Action',
+    'Mini-série',
+    'Musical',
+    'Mystère',
+    'Policier',
+    'Psychologique',
+    'Romance',
+    'Science-Fiction',
+    'Sitcom',
+    'Super-héros',
+    'Thriller',
+    'Western'
+];
 
 // Utilise la fonction partagée de utilities.js (pas de duplication)
 
@@ -299,21 +334,26 @@ function getAllGenres() {
     const hasDiacritics = (s) => {
         try { return String(s) !== normalizeStr(String(s)); } catch { return false; }
     };
-    moviesDatabase.forEach(item => {
-        (item.genres || []).forEach(g => {
-            if (!g) return;
-            const key = normalizeStr(g).toLowerCase();
-            if (!byKey.has(key)) {
-                byKey.set(key, g);
-            } else {
-                const cur = byKey.get(key);
-                // Préférer la variante accentuée si disponible
-                if (!hasDiacritics(cur) && hasDiacritics(g)) {
-                    byKey.set(key, g);
-                }
+    const recordGenre = (label) => {
+        if (!label) return;
+        const key = normalizeStr(label).toLowerCase();
+        if (!key) return;
+        if (!byKey.has(key)) {
+            byKey.set(key, label);
+        } else {
+            const cur = byKey.get(key);
+            // Préférer la variante accentuée si disponible
+            if (!hasDiacritics(cur) && hasDiacritics(label)) {
+                byKey.set(key, label);
             }
-        });
+        }
+    };
+
+    moviesDatabase.forEach(item => {
+        (item.genres || []).forEach(recordGenre);
     });
+    REQUEST_EXTRA_GENRES.forEach(recordGenre);
+
     return Array.from(byKey.values()).sort((a, b) => a.localeCompare(b, 'fr'));
 }
 
@@ -322,6 +362,10 @@ function renderGenreFilters(onChange) {
     const container = document.getElementById('genre-chips');
     if (!container) return { getSelected: () => [], selectGenres: () => {} };
     const genres = getAllGenres();
+    const moreBtn = document.getElementById('genre-more-btn');
+    let showAllGenres = false;
+    let chips = [];
+    const chipIndexByGenre = new Map();
     
     // Traduire les genres si i18n est disponible
     const translateGenreText = (g) => {
@@ -335,6 +379,52 @@ function renderGenreFilters(onChange) {
         const translatedGenre = translateGenreText(g);
         return `<button type="button" class="genre-chip" data-genre="${g}" data-original-genre="${g}">${translatedGenre}</button>`;
     }).join('');
+    if (moreBtn && moreBtn.parentElement !== container) {
+        container.appendChild(moreBtn);
+    }
+    function hydrateChipMetadata(){
+        chips = Array.from(container.querySelectorAll('.genre-chip'));
+        chipIndexByGenre.clear();
+        chips.forEach((chip, idx) => {
+            chipIndexByGenre.set(chip.getAttribute('data-genre'), idx);
+        });
+    }
+    hydrateChipMetadata();
+
+    function translateShowMoreLabel(expanded){
+        const key = expanded ? 'search.filters.less' : 'search.filters.more';
+        if (window.i18n && typeof window.i18n.translate === 'function') {
+            const translated = window.i18n.translate(key);
+            if (translated && translated !== key) return translated;
+        }
+        return expanded ? 'Voir moins' : 'Voir plus';
+    }
+
+    function applyShowMoreState(){
+        if (!moreBtn) return;
+        if (!chips.length) hydrateChipMetadata();
+        if (chips.length <= GENRE_SHOW_MORE_THRESHOLD) {
+            moreBtn.hidden = true;
+            moreBtn.setAttribute('aria-expanded', 'true');
+            chips.forEach(chip => chip.classList.remove('chip-hidden'));
+            return;
+        }
+        moreBtn.hidden = false;
+        moreBtn.setAttribute('aria-expanded', showAllGenres ? 'true' : 'false');
+        moreBtn.textContent = translateShowMoreLabel(showAllGenres);
+        chips.forEach((chip, idx) => {
+            const shouldHide = !showAllGenres && idx >= GENRE_SHOW_MORE_THRESHOLD;
+            chip.classList.toggle('chip-hidden', shouldHide);
+        });
+    }
+
+    applyShowMoreState();
+    if (moreBtn) {
+        moreBtn.addEventListener('click', () => {
+            showAllGenres = !showAllGenres;
+            applyShowMoreState();
+        });
+    }
     const selected = new Set();
     function notify(){ if (typeof onChange === 'function') onChange(Array.from(selected)); }
     function setActive(btn, on){ if (!btn) return; btn.classList.toggle('active', !!on); }
@@ -358,6 +448,16 @@ function renderGenreFilters(onChange) {
                 const g = btn.getAttribute('data-genre');
                 if (want.has(g)) { selected.add(g); btn.classList.add('active'); }
             });
+            if (moreBtn && !showAllGenres) {
+                const needsExpansion = Array.from(want).some(g => {
+                    if (!chipIndexByGenre.has(g)) return false;
+                    return chipIndexByGenre.get(g) >= GENRE_SHOW_MORE_THRESHOLD;
+                });
+                if (needsExpansion) {
+                    showAllGenres = true;
+                    applyShowMoreState();
+                }
+            }
             notify();
         } catch {}
     }
@@ -370,6 +470,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const filtersToggleBtn = document.getElementById('filters-toggle');
     const genreFilters = document.getElementById('genre-filters'); // wrapper (kept for aria-controls)
     const genreChips = document.getElementById('genre-chips'); // actual chips container
+    const genreMoreBtn = document.getElementById('genre-more-btn');
     // Met à jour la base depuis l'accueil (nouvelles entrées et genres pris en compte)
     await buildDatabaseFromIndex();
     // Construire les filtres de genres dynamiques
@@ -523,6 +624,14 @@ document.addEventListener('DOMContentLoaded', async function() {
                 btn.textContent = window.i18n.translateGenre(originalGenre);
             }
         });
+        if (genreMoreBtn && window.i18n && typeof window.i18n.translate === 'function') {
+            const expanded = genreMoreBtn.getAttribute('aria-expanded') === 'true';
+            const key = expanded ? 'search.filters.less' : 'search.filters.more';
+            const translated = window.i18n.translate(key);
+            if (translated && translated !== key) {
+                genreMoreBtn.textContent = translated;
+            }
+        }
     }
     
     // Écouter le changement de langue pour mettre à jour les types des cartes et les genres

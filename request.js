@@ -444,6 +444,8 @@
       }
     }
 
+    autoAcceptTermsIfAuthenticated();
+
     // Form submission
     if (requestForm) {
       requestForm.addEventListener('submit', handleSubmit);
@@ -470,6 +472,8 @@
     if (newRequestBtn) {
       newRequestBtn.addEventListener('click', handleNewRequest);
     }
+
+    window.addEventListener('googleAuthSuccess', autoAcceptTermsIfAuthenticated);
 
     // Actor management
     const addActorBtn = document.getElementById('addActorBtn');
@@ -1217,6 +1221,25 @@
     }
     if (resetBtn) {
       resetBtn.disabled = !isChecked;
+    }
+  }
+
+  function autoAcceptTermsIfAuthenticated() {
+    try {
+      if (!termsCheckbox || !window.GoogleAuth || typeof window.GoogleAuth.isAuthenticated !== 'function') {
+        return;
+      }
+      if (!window.GoogleAuth.isAuthenticated()) {
+        return;
+      }
+      if (!termsCheckbox.checked) {
+        termsCheckbox.checked = true;
+        handleTermsChange({ target: termsCheckbox });
+      } else if (!getTermsAccepted()) {
+        saveTermsAccepted(true);
+      }
+    } catch (error) {
+      console.warn('[Request] autoAcceptTermsIfAuthenticated failed:', error);
     }
   }
 
@@ -2330,8 +2353,8 @@
       const statusClass = item.status || 'pending';
       const statusText = {
         pending: translate('request.history.status.pending'),
-        approved: 'approved',
-        rejected: 'rejected'
+        approved: translate('request.history.status.approved'),
+        rejected: translate('request.history.status.rejected')
       }[statusClass] || translate('request.history.status.pending');
 
       const date = new Date(item.submittedAt);

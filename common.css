@@ -559,7 +559,15 @@ body.popup-open nav[aria-label="Navigation principale"] {
 }
 
 /* Ensure the Recherche button is visible on all pages (desktop/tablet) */
-.nav-links .search-link { display: inline-flex; align-items: center; gap: 8px; position: relative; }
+.nav-links .search-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  transition: transform 0.3s ease;
+  transform-origin: center;
+  will-change: transform;
+}
 .nav-links .search-link::before {
   content: '';
   display: inline-block;
@@ -638,6 +646,9 @@ body.popup-open nav[aria-label="Navigation principale"] {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  transition: transform 0.3s ease;
+  transform-origin: center;
+  will-change: transform;
 }
 .home-link::before {
   content: '';
@@ -645,6 +656,15 @@ body.popup-open nav[aria-label="Navigation principale"] {
   width: 18px;
   height: 18px;
   background: url('images/Accueil.webp') no-repeat center / contain;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .home-link:hover,
+  .home-link:focus-visible,
+  nav[aria-label="Navigation principale"] .nav-links .search-link:hover,
+  nav[aria-label="Navigation principale"] .nav-links .search-link:focus-visible {
+    transform: scale(1.05);
+  }
 }
 
 /* Cards (base) */
@@ -676,6 +696,33 @@ body.popup-open nav[aria-label="Navigation principale"] {
   transition: transform 0.3s ease;
 }
 .card:hover .card-media > img { transform: none; }
+
+/* Disable hover animations on touch devices to save perf */
+@media (hover: none), (pointer: coarse) {
+  .button,
+  .card,
+  .card .card-media > img,
+  .home-link,
+  nav[aria-label="Navigation principale"] .nav-links .search-link {
+    transition: none !important;
+  }
+
+  .button:hover,
+  .button:focus,
+  .button:active,
+  .card:hover,
+  .card:focus,
+  .card:active,
+  .card:hover .card-media > img,
+  .home-link:hover,
+  .home-link:focus,
+  nav[aria-label="Navigation principale"] .nav-links .search-link:hover,
+  nav[aria-label="Navigation principale"] .nav-links .search-link:focus {
+    transform: none !important;
+    filter: none !important;
+    box-shadow: none !important;
+  }
+}
 
 /* Mobile: conserver le ratio portrait et coller l'image en haut uniquement en mode portrait */
 @media (max-width: 768px) and (orientation: portrait) {
