@@ -249,10 +249,11 @@ function showOAuthValidationNotice() {
   
   // Check if maintenance mode is enabled
   const MAINTENANCE_ENABLED = false; // Set to false to disable maintenance
+  const SHOW_OAUTH_VALIDATION_NOTICE = false;
   
   if (MAINTENANCE_ENABLED) {
     checkMaintenance();
-  } else {
+  } else if (SHOW_OAUTH_VALIDATION_NOTICE) {
     // If maintenance is disabled but scheduled, show banner
     // showMaintenanceBanner();
     showOAuthValidationNotice();
