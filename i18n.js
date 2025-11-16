@@ -203,6 +203,16 @@
       
       // History
       'request.history.title': '📜 Historique de mes demandes',
+      'request.history.status.pending': 'En attente',
+      'request.history.status.approved': 'Approuvé',
+      'request.history.status.rejected': 'Rejeté',
+      'request.history.meta.date': '📅 {date} à {time}',
+      'request.history.meta.type': '🎬 {type}',
+      'request.history.meta.admin': '👑 Admin - Pas de limite de demandes',
+      'request.history.meta.cooldown': '⏳ Prochaine demande possible dans {hours}h {minutes}min',
+      'request.history.meta.ready': '✓ Vous pouvez faire une nouvelle demande',
+      'request.history.delete': 'Supprimer',
+      'request.history.untitled': 'Sans titre',
       
       // Video verification
       'video.verify.success': '✅ Vidéo vérifiée : "{title}"',
@@ -243,6 +253,9 @@
       'type.film': 'Film',
       'type.serie': 'Série',
       'type.trailer': 'Trailer',
+      'type.documentaire': 'Documentaire',
+      'type.série documentaire': 'Série documentaire',
+      'type.serie documentaire': 'Série documentaire',
       
       // Genres
       'genre.action': 'Action',
@@ -518,6 +531,16 @@
       
       // History
       'request.history.title': '📜 My request history',
+      'request.history.status.pending': 'Pending',
+      'request.history.status.approved': 'Approved',
+      'request.history.status.rejected': 'Rejected',
+      'request.history.meta.date': '📅 {date} at {time}',
+      'request.history.meta.type': '🎬 {type}',
+      'request.history.meta.admin': '👑 Admin - No request limit',
+      'request.history.meta.cooldown': '⏳ Next request available in {hours}h {minutes}min',
+      'request.history.meta.ready': '✓ You can submit a new request',
+      'request.history.delete': 'Delete',
+      'request.history.untitled': 'Untitled',
       
       // Video verification
       'video.verify.success': '✅ Video verified: "{title}"',
@@ -566,6 +589,9 @@
       'type.film': 'Movie',
       'type.serie': 'Series',
       'type.trailer': 'Trailer',
+      'type.documentaire': 'Documentary',
+      'type.série documentaire': 'Documentary series',
+      'type.serie documentaire': 'Documentary series',
       
       // Genres
       'genre.action': 'Action',
@@ -907,8 +933,14 @@
   // Fonction pour traduire un type de contenu
   function translateType(type) {
     if (!type) return '';
-    const key = `type.${type.toLowerCase()}`;
-    return translate(key);
+    const normalized = type.toLowerCase()
+      .normalize('NFD').replace(/[^\p{L}\p{N} ]+/gu, '')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const key = `type.${normalized}`;
+    const translated = translate(key);
+    return translated !== key ? translated : type;
   }
 
   // Fonction pour traduire un genre

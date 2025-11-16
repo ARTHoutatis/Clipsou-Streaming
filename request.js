@@ -2296,6 +2296,22 @@
     const historySection = document.getElementById('historySection');
     const historyList = document.getElementById('historyList');
     const history = getRequestHistory();
+    const hasI18n = window.i18n && typeof window.i18n.translate === 'function';
+    const lang = hasI18n && typeof window.i18n.getCurrentLanguage === 'function'
+      ? window.i18n.getCurrentLanguage()
+      : 'fr';
+    const translate = (key) => (hasI18n ? window.i18n.translate(key) : key);
+    const formatHistoryString = (key, replacements = {}, fallback = '') => {
+      let template = translate(key);
+      if (template === key && fallback) {
+        template = fallback;
+      }
+      Object.entries(replacements).forEach(([name, value]) => {
+        template = template.replace(new RegExp(`\\{${name}\\}`, 'g'), value);
+      });
+      return template;
+    };
+    const locale = lang === 'en' ? 'en-US' : 'fr-FR';
 
     if (!historyList) return;
 
@@ -2313,26 +2329,51 @@
 
       const statusClass = item.status || 'pending';
       const statusText = {
-        pending: 'En attente',
-        approved: 'Approuvé',
-        rejected: 'Rejeté'
-      }[statusClass] || 'En attente';
+        pending: translate('request.history.status.pending'),
+        approved: 'approved',
+        rejected: 'rejected'
+      }[statusClass] || translate('request.history.status.pending');
 
       const date = new Date(item.submittedAt);
-      const dateStr = date.toLocaleDateString('fr-FR', { 
+      const dateStr = date.toLocaleDateString(locale, { 
         day: '2-digit', 
         month: '2-digit', 
         year: 'numeric' 
       });
-      const timeStr = date.toLocaleTimeString('fr-FR', { 
+      const timeStr = date.toLocaleTimeString(locale, { 
         hour: '2-digit', 
-        minute: '2-digit' 
+        minute: '2-digit',
+        hour12: false
       });
+      const dateMeta = formatHistoryString(
+        'request.history.meta.date',
+        { date: escapeHtml(dateStr), time: escapeHtml(timeStr) },
+        `📅 ${dateStr} ${lang === 'en' ? 'at' : 'à'} ${timeStr}`
+      );
+
+      const rawType = (item.type || '').trim();
+      const normalizedType = rawType ? rawType.toLowerCase() : 'film';
+      let translatedType = rawType;
+      if (window.i18n && typeof window.i18n.translateType === 'function') {
+        translatedType = window.i18n.translateType(normalizedType) || rawType;
+      }
+      if (!translatedType) {
+        translatedType = lang === 'en' ? 'Movie' : 'Film';
+      }
+      const typeMeta = formatHistoryString(
+        'request.history.meta.type',
+        { type: escapeHtml(translatedType) },
+        `🎬 ${escapeHtml(translatedType)}`
+      );
 
       // Calculate next request time (admins bypass this)
       let nextRequestStr = '';
       if (isAdmin()) {
-        nextRequestStr = '<span style="color: #fbbf24;">👑 Admin - Pas de limite de demandes</span>';
+        nextRequestStr = `<span style="color: #fbbf24;">${escapeHtml(formatHistoryString(
+          'request.history.meta.admin',
+          {},
+          lang === 'en' ? '👑 Admin - No request limit' : '👑 Admin - Pas de limite de demandes'
+        ))}</span>`;
       } else {
         const nextRequestTime = item.submittedAt + (RATE_LIMIT_HOURS * 60 * 60 * 1000);
         const timeRemaining = nextRequestTime - Date.now();
@@ -2341,27 +2382,46 @@
         if (!canRequestAgain) {
           const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
           const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
-          nextRequestStr = `<span>⏳ Prochaine demande possible dans ${hours}h ${minutes}min</span>`;
+          nextRequestStr = `<span>${escapeHtml(formatHistoryString(
+            'request.history.meta.cooldown',
+            { hours, minutes },
+            `⏳ ${lang === 'en' ? 'Next request available in' : 'Prochaine demande possible dans'} ${hours}h ${minutes}min`
+          ))}</span>`;
         } else {
-          nextRequestStr = '<span style="color: #4ade80;">✓ Vous pouvez faire une nouvelle demande</span>';
+          nextRequestStr = `<span style="color: #4ade80;">${escapeHtml(formatHistoryString(
+            'request.history.meta.ready',
+            {},
+            lang === 'en' ? '✓ You can submit a new request' : '✓ Vous pouvez faire une nouvelle demande'
+          ))}</span>`;
         }
       }
+
+      const titleText = escapeHtml(item.title || formatHistoryString(
+        'request.history.untitled',
+        {},
+        lang === 'en' ? 'Untitled' : 'Sans titre'
+      ));
+      const deleteLabel = escapeHtml(formatHistoryString(
+        'request.history.delete',
+        {},
+        lang === 'en' ? 'Delete' : 'Supprimer'
+      ));
 
       itemEl.innerHTML = `
         <div class="history-item-content">
           <div class="history-item-header">
-            <h3 class="history-item-title">${escapeHtml(item.title || 'Sans titre')}</h3>
+            <h3 class="history-item-title">${titleText}</h3>
             <span class="history-item-status ${statusClass}">${statusText}</span>
           </div>
           <div class="history-item-meta">
-            <span>📅 ${dateStr} à ${timeStr}</span>
-            <span>🎬 ${escapeHtml(item.type || 'Film')}</span>
+            <span>${dateMeta}</span>
+            <span>${typeMeta}</span>
             ${nextRequestStr}
           </div>
         </div>
         <div class="history-item-actions">
           <button class="btn danger" onclick="window.__deleteHistoryItem('${item.id}')">
-            Supprimer
+            ${deleteLabel}
           </button>
         </div>
       `;
@@ -2372,6 +2432,9 @@
 
   // Expose functions globally
   window.__deleteHistoryItem = deleteFromHistory;
+
+  // Re-render history when the language changes
+  window.addEventListener('languageChanged', renderHistory);
 
   /**
    * Escape HTML to prevent XSS
