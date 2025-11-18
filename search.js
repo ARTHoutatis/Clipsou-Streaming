@@ -46,7 +46,6 @@ const LOCAL_FALLBACK_DB = [
     { id: 'film4',  title: 'Karma',               type: 'film',  rating: 2.5, genres: ['Horreur','Mystère','Psychologique'], image: 'images/Ka.webp' },
     { id: 'serie1', title: 'Alex',                type: 'série', rating: 3,   genres: ['Action','Comédie','Familial'], image: 'images/Al.webp' },
     { id: 'serie2', title: 'Lawless Legend',      type: 'série', rating: 3,   genres: ['Western','Comédie','Action'], image: 'images/Law.webp' },
-    { id: 'serie3', title: 'Les Aventures de Jean‑Michel Content', type: 'série', rating: 3.5, genres: ['Familial','Aventure','Comédie'], image: 'images/Je.webp' },
     { id: 'film5',  title: 'Trailer Batman',      type: 'trailer',            genres: ['Action','Drame','Super-héros'], image: 'images/Ba.webp' },
     { id: 'film6',  title: 'Urbanos City',        type: 'film',  rating: 2,   genres: ['Comédie','Familial','Enfants'], image: 'images/Ur.webp' },
     { id: 'film7',  title: 'Backrooms Urbanos',   type: 'film',  rating: 3,   genres: ['Horreur','Mystère','Ambience'], image: 'images/Bac.webp' }

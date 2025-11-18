@@ -17,9 +17,7 @@
         'RYM7vH96y1I': 7,
         'yMYoD9I1xs0': 8,
         'IQXjgoYKyYU': 9,
-        // Les Aventures de Jean‑Michel Content
-        'OgLRqt_iRkI': 1,
-        'Sa_3VceEqaI': 2
+        // Les Aventures de Jean‑Michel Content (removed)
       };
       try { window.__VID2EP = map; } catch {}
       return map;
@@ -642,7 +640,6 @@ document.addEventListener('DOMContentLoaded', async function () {
           'bac': 'images/Bac1.webp',
           'dé': 'images/Dé1.webp',
           'ja': 'images/Ja1.webp',
-          'je': 'images/Je1.webp',
           'ka': 'images/Ka1.webp',
           'la': 'images/La1.webp',
           'law': 'images/Law1.webp',

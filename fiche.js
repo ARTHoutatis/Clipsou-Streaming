@@ -67,10 +67,6 @@ const EPISODES_DB = {
     { n: 1, url: 'https://www.youtube.com/watch?v=I21K4Ksf_4A&list=PLljfI9MJr5K2Li687G4dOxjfyDQkIfJn3&index=1', title: "De l'argent volé pour de l'argent gagné" },
     { n: 2, url: 'https://www.youtube.com/watch?v=jfbOQ7kWKw0&list=PLljfI9MJr5K2Li687G4dOxjfyDQkIfJn3&index=2', title: 'Les voleurs ennemis' },
     { n: 3, url: 'https://www.youtube.com/watch?v=JCW8qyJCqbA&list=PLljfI9MJr5K2Li687G4dOxjfyDQkIfJn3&index=3', title: 'Une mauvaise nouvelle' }
-  ],
-  'Les Aventures de Jean‑Michel Content': [
-    { n: 1, url: 'https://www.youtube.com/watch?v=OgLRqt_iRkI&list=PLljfI9MJr5K17MmHDsdU6QqSFwZJ_Tn-5&index=1', title: 'Jean-Michel Content à la plage' },
-    { n: 2, url: 'https://www.youtube.com/watch?v=Sa_3VceEqaI&list=PLljfI9MJr5K17MmHDsdU6QqSFwZJ_Tn-5&index=2', title: 'Jean-Michel Content fête son anniversaire' }
   ]
 };
 
@@ -88,8 +84,7 @@ const EPISODES_DB_NORM = (() => {
 // Fallback episodes mapping by fiche id (defined AFTER EPISODES_DB/EPISODES_DB_NORM)
 const EPISODES_ID_DB = {
   'serie1': EPISODES_DB['Alex'],
-  'serie2': EPISODES_DB['Lawless Legend'],
-  'serie3': EPISODES_DB['Les Aventures de Jean‑Michel Content']
+  'serie2': EPISODES_DB['Lawless Legend']
 };
 
 // Cache index.html in-session to avoid repeated network/file reads
@@ -200,16 +195,6 @@ const LOCAL_FALLBACK_DB = [
     type: 'film',
     description: "Après avoir chuté à travers le sol, Noob se retrouve piégé dans les Backrooms : un dédale sans fin de couloirs jaunâtres où bourdonnent les néons et où rôdent d’étranges présences...",
     watchUrl: 'https://www.youtube.com/watch?v=b1BSjegjM_s'
-  },
-  {
-    id: 'serie3',
-    title: 'Les Aventures de Jean‑Michel Content',
-    image: 'images/Je1.webp',
-    genres: ['Familial','Aventure','Comédie'],
-    rating: 3.5,
-    type: 'série',
-    description: "Jean‑Michel Content est un homme toujours heureux, quoi qu’il arrive. Avec son esprit enfantin, il multiplie les bêtises et adore déranger les autres. Agaçant mais attachant, il transforme chaque situation en moment absurde.",
-    watchUrl: 'https://youtube.com/playlist?list=PLljfI9MJr5K17MmHDsdU6QqSFwZJ_Tn-5&si=lVyJvllZ6dkb94gq'
   }
 ];
 
@@ -236,14 +221,6 @@ const ACTOR_DB = {
   'Karma': [
     { name: 'Liam Roxxor', role: 'James' },
     { name: 'Stranger Art', role: 'Louise' }
-  ],
-  'Les Aventures de Jean‑Michel Content': [
-    { name: 'Kassielator', role: 'Jean‑Michel Content' },
-    { name: 'Liam Roxxor', role: 'Sébastien' }
-  ],
-  'Jean Michel Content': [
-    { name: 'Kassielator', role: 'Jean michel content' },
-    { name: 'Liam Roxxor', role: 'Sebastien' }
   ],
   'URBANOS city': [
     { name: 'Arth', role: 'Noob' }
