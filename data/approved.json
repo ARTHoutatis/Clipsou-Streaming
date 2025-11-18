@@ -631,6 +631,51 @@
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761345961/hfjaeiqcxeyfqz5gosqr.webp"
   },
   {
+    "id": "custom-les-aventures-de-jean-michel-content-h7xr",
+    "title": "Les Aventures De Jean Michel Content",
+    "type": "série",
+    "genres": [
+      "Comédie",
+      "Aventure",
+      "Familial"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1763491708/badq71ms7anwfqbvs7q4.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1763491709/lty6sooyghyeigghrnbg.webp",
+    "description": "Jean‑Michel Content est un homme toujours heureux, quoi qu’il arrive. Avec son esprit enfantin, il multiplie les bêtises et adore déranger les autres. Agaçant mais attachant, il transforme chaque situation en moment absurde.",
+    "watchUrl": "",
+    "actors": [
+      {
+        "name": "Kassielator",
+        "role": "Jean‑Michel Content",
+        "photo": "kassielator.webp"
+      },
+      {
+        "name": "Liam Roxxor",
+        "role": "Sébastien",
+        "photo": "liam-roxxor.webp"
+      }
+    ],
+    "episodes": [
+      {
+        "title": "Jean-Michel Content à la plage",
+        "url": "https://youtu.be/OgLRqt_iRkI?si=kNyMyjbYCCQ-Mdot"
+      },
+      {
+        "title": "Jean-Michel Content fête son anniversaire",
+        "url": "https://youtu.be/Sa_3VceEqaI?si=7uBr1rDcTKWPGKFp"
+      },
+      {
+        "title": "Jean-Michel Content Au Supermarché",
+        "url": "https://youtu.be/o82FaQnivHQ?si=QF3FHOUtz31OTNfp"
+      },
+      {
+        "title": "Jean-Michel Content Passe Un Entretien",
+        "url": "https://youtu.be/a-ahlAuQORc?si=J3STRyniSWfiySdD"
+      }
+    ],
+    "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp"
+  },
+  {
     "id": "custom-les-aventures-de-kiki-vwu6",
     "title": "Les Aventures de Kiki",
     "type": "film",
