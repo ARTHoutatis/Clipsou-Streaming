@@ -281,8 +281,8 @@ function displayResults(results) {
         const safeInitialSrc = initialSrc ? String(initialSrc).replace(/"/g, '&quot;') : '';
         const safeBase = base ? String(base).replace(/"/g, '&quot;') : '';
         const isRemoteImage = /^https?:/i.test(initialSrc);
-        const dataSrcAttr = safeInitialSrc ? ` data-src="${safeInitialSrc}"` : '';
-        const srcAttr = isRemoteImage && safeInitialSrc ? ` src="${safeInitialSrc}"` : '';
+        const dataSrcAttr = (!isRemoteImage && safeInitialSrc) ? ` data-src="${safeInitialSrc}"` : '';
+        const srcAttr = (isRemoteImage && safeInitialSrc) ? ` src="${safeInitialSrc}"` : '';
         const dataBaseAttr = safeBase ? ` data-base="${safeBase}"` : '';
         const hasCustomBadge = Boolean(item.studioBadge && String(item.studioBadge).trim());
         const clipsouOwned = isClipsouOwned(item) || LOCAL_FALLBACK_DB.some(local => local.id === item.id);
