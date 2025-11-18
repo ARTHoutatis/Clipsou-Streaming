@@ -1,7 +1,7 @@
 [
   {
     "requestId": "r_mi4xjxlf_jd7ayf",
-    "status": "pending",
+    "status": "approved",
     "data": {
       "id": "custom-les-aventures-de-jean-michel-content-h7xr",
       "requestId": "r_mi4xjxlf_jd7ayf",
@@ -51,7 +51,7 @@
     },
     "meta": {
       "createdAt": 1763491914195,
-      "updatedAt": 1763491924201
+      "updatedAt": 1763491927669
     }
   },
   {
