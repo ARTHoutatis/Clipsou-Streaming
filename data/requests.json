@@ -1,5 +1,60 @@
 [
   {
+    "requestId": "r_mi4xjxlf_jd7ayf",
+    "status": "pending",
+    "data": {
+      "id": "custom-les-aventures-de-jean-michel-content-29iz",
+      "requestId": "r_mi4xjxlf_jd7ayf",
+      "title": "Les Aventures De Jean Michel Content",
+      "type": "série",
+      "rating": null,
+      "genres": [
+        "Comédie",
+        "Aventure",
+        "Familial"
+      ],
+      "description": "Jean‑Michel Content est un homme toujours heureux, quoi qu’il arrive. Avec son esprit enfantin, il multiplie les bêtises et adore déranger les autres. Agaçant mais attachant, il transforme chaque situation en moment absurde.",
+      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1763491708/badq71ms7anwfqbvs7q4.webp",
+      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1763491709/lty6sooyghyeigghrnbg.webp",
+      "watchUrl": "",
+      "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp",
+      "actors": [
+        {
+          "name": "Kassielator",
+          "role": "Jean‑Michel Content",
+          "photo": "kassielator.webp"
+        },
+        {
+          "name": "Liam Roxxor",
+          "role": "Sébastien",
+          "photo": "liam-roxxor.webp"
+        }
+      ],
+      "episodes": [
+        {
+          "title": "Jean-Michel Content à la plage",
+          "url": "https://youtu.be/OgLRqt_iRkI?si=kNyMyjbYCCQ-Mdot"
+        },
+        {
+          "title": "Jean-Michel Content fête son anniversaire",
+          "url": "https://youtu.be/Sa_3VceEqaI?si=7uBr1rDcTKWPGKFp"
+        },
+        {
+          "title": "Jean-Michel Content Au Supermarché",
+          "url": "https://youtu.be/o82FaQnivHQ?si=QF3FHOUtz31OTNfp"
+        },
+        {
+          "title": "Jean-Michel Content Passe Un Entretien",
+          "url": "https://youtu.be/a-ahlAuQORc?si=J3STRyniSWfiySdD"
+        }
+      ]
+    },
+    "meta": {
+      "createdAt": 1763491914195,
+      "updatedAt": 1763491914195
+    }
+  },
+  {
     "requestId": "req_1761848529837_ofrzfy6x3",
     "status": "pending",
     "data": {
