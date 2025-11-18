@@ -57,107 +57,101 @@ installLazyImageLoader();
 // Construit dynamiquement la base à partir de index.html (cartes + popups)
 async function buildDatabaseFromIndex() {
     try {
-        // In local file:// mode, skip network fetches that will CORS-fail and use fallback
-        try {
-            if (location && location.protocol === 'file:') {
-                moviesDatabase = LOCAL_FALLBACK_DB;
-                return;
-            }
-        } catch {}
-        const res = await fetch('index.html', { credentials: 'same-origin', cache: 'no-store' });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const html = await res.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-
-        // Construit directement depuis les popups (aucune dépendance aux cartes générées dynamiquement)
-        const items = [];
-        doc.querySelectorAll('.fiche-popup[id]').forEach(popup => {
-            const id = popup.getAttribute('id');
-            // ignorer les popups non contenus (ex: partenariat, submit)
-            if (!/^film\d+|^serie\d+/i.test(id)) return;
-            const titleEl = popup.querySelector('h3');
-            let title = titleEl ? titleEl.textContent.trim() : '';
-            title = title.replace(/\s+/g, ' ').trim();
-            const img = popup.querySelector('.fiche-left img');
-            const image = img ? img.getAttribute('src') : '';
-            const genreEls = popup.querySelectorAll('.rating-genres .genres .genre-tag');
-            const genres = Array.from(genreEls).map(g => g.textContent.trim()).filter(Boolean);
-            const starsText = (popup.querySelector('.rating-genres .stars') || {}).textContent || '';
-            const m = starsText.match(/([0-9]+(?:[\.,][0-9]+)?)/);
-            const rating = m ? parseFloat(m[1].replace(',', '.')) : undefined;
-            let type = 'film';
-            if (/^serie/i.test(id)) type = 'série';
-            else if (/trailer/i.test(title)) type = 'trailer';
-            items.push({ id, title, type, rating, genres, image });
-        });
-
-        // Merge approved items from shared JSON (visible par tous), but skip in file://
-        try {
-            let isFile = false;
-            try { isFile = (location && location.protocol === 'file:'); } catch {}
-            if (!isFile) {
-                const res = await fetch('data/approved.json', { credentials: 'same-origin', cache: 'no-store' });
-                if (res && res.ok) {
-                    const approved = await res.json();
-                    if (Array.isArray(approved)) {
-                        approved.forEach(c => {
-                            if (!c || !c.id || !c.title) return;
-                            const type = c.type || 'film';
-                            const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-                            const genres = Array.isArray(c.genres) ? c.genres.filter(Boolean) : [];
-                            const image = optimizeCloudinaryUrlCard(c.portraitImage || c.image || c.landscapeImage || '');
-                            const studioBadge = optimizeCloudinaryUrlSmall(c.studioBadge || '');
-                            const badgeHtml = studioBadge ? `
-                            <div class="brand-badge">
-                                <img src="${studioBadge}" alt="${studioBadge === 'images/clipsoustudio.webp' ? 'Clipsou Studio' : 'Studio'}" loading="lazy" decoding="async">
-                            </div>` : '';
-                            const badgeAttr = studioBadge ? ` data-studio-badge="${studioBadge.replace(/"/g, '&quot;')}"` : '';
-                            const clipsouAttr = isLocalAsset(image) || LOCAL_FALLBACK_DB.some(local => local.id === c.id) ? ' data-clipsou-owned="1"' : '';
-                            const itemIdAttr = c && c.id ? ` data-item-id="${String(c.id).replace(/"/g, '&quot;')}"` : '';
-                            const base = deriveBase(image);
-                            let initialSrc;
-                            if (base) {
-                                initialSrc = `${base}.webp`;
-                            } else {
-                                // If full URL or no extension, use as-is; otherwise nothing
-                                initialSrc = image || '';
-                            }
-                            items.push({ id: c.id, title: c.title, type, rating, genres, image: initialSrc, base, studioBadge, badgeHtml, badgeAttr, clipsouAttr, itemIdAttr });
-                        });
-                    }
-                }
-            }
-        } catch {}
-
-        // Merge approved admin items from localStorage
-        try {
-            const raw = localStorage.getItem('clipsou_items_approved_v1');
-            if (raw) {
-                const approved = JSON.parse(raw);
-                if (Array.isArray(approved)) {
-                    approved.forEach(c => {
-                        if (!c || !c.id || !c.title) return;
-                        const type = c.type || 'film';
-                        const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-                        const genres = Array.isArray(c.genres) ? c.genres.filter(Boolean) : [];
-                        const image = optimizeCloudinaryUrlCard(c.portraitImage || c.image || '');
-                        const studioBadge = optimizeCloudinaryUrlSmall(c.studioBadge || '');
-                        items.push({ id: c.id, title: c.title, type, rating, genres, image, studioBadge });
-                    });
-                }
-            }
-        } catch {}
-
-        if (items.length > 0) {
-            // Dedupe by id and normalized title, prefer entries with better data (image, rating)
-            moviesDatabase = dedupeByIdAndTitle(items);
-        } else {
-            // Aucun item trouvé (ex: ouverture sans serveur) -> fallback local
+        if (location && location.protocol === 'file:') {
             moviesDatabase = LOCAL_FALLBACK_DB;
+            return;
         }
-    } catch (e) {
-        console.warn('Impossible de charger index.html pour la recherche.', e);
+    } catch {}
+
+    const aggregated = [];
+
+    // 1. Contenu statique présent dans index.html (fiche popups)
+    try {
+        const res = await fetch('index.html', { credentials: 'same-origin', cache: 'no-store' });
+        if (res.ok) {
+            const html = await res.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            doc.querySelectorAll('.fiche-popup[id]').forEach(popup => {
+                const id = popup.getAttribute('id');
+                if (!/^film\d+|^serie\d+/i.test(id)) return;
+                const titleEl = popup.querySelector('h3');
+                let title = titleEl ? titleEl.textContent.trim() : '';
+                title = title.replace(/\s+/g, ' ').trim();
+                const img = popup.querySelector('.fiche-left img');
+                const image = img ? img.getAttribute('src') : '';
+                const genreEls = popup.querySelectorAll('.rating-genres .genres .genre-tag');
+                const genres = Array.from(genreEls).map(g => g.textContent.trim()).filter(Boolean);
+                const starsText = (popup.querySelector('.rating-genres .stars') || {}).textContent || '';
+                const m = starsText.match(/([0-9]+(?:[\.,][0-9]+)?)/);
+                const rating = m ? parseFloat(m[1].replace(',', '.')) : undefined;
+                let type = 'film';
+                if (/^serie/i.test(id)) type = 'série';
+                else if (/trailer/i.test(title)) type = 'trailer';
+                aggregated.push({ id, title, type, rating, genres, image });
+            });
+        } else {
+            console.warn('[Search] Fetch index.html failed:', res.status);
+        }
+    } catch (err) {
+        console.warn('[Search] Impossible de parser index.html:', err);
+    }
+
+    // 2. Contenu approuvé partagé via GitHub (toujours prioritaire)
+    try {
+        const res = await fetch('data/approved.json', { credentials: 'same-origin', cache: 'no-store' });
+        if (res && res.ok) {
+            const approved = await res.json();
+            if (Array.isArray(approved)) {
+                approved.forEach(c => {
+                    if (!c || !c.id || !c.title) return;
+                    const type = c.type || 'film';
+                    const rating = (typeof c.rating === 'number') ? c.rating : undefined;
+                    const genres = Array.isArray(c.genres) ? c.genres.filter(Boolean) : [];
+                    const image = optimizeCloudinaryUrlCard(c.portraitImage || c.image || c.landscapeImage || '');
+                    aggregated.push({
+                        id: c.id,
+                        title: c.title,
+                        type,
+                        rating,
+                        genres,
+                        image,
+                        portraitImage: c.portraitImage || '',
+                        landscapeImage: c.landscapeImage || '',
+                        studioBadge: optimizeCloudinaryUrlSmall(c.studioBadge || '')
+                    });
+                });
+            }
+        } else {
+            console.warn('[Search] Fetch approved.json failed:', res && res.status);
+        }
+    } catch (err) {
+        console.warn('[Search] Impossible de charger data/approved.json:', err);
+    }
+
+    // 3. Contenu approuvé via localStorage (admins connectés)
+    try {
+        const raw = localStorage.getItem('clipsou_items_approved_v1');
+        if (raw) {
+            const approved = JSON.parse(raw);
+            if (Array.isArray(approved)) {
+                approved.forEach(c => {
+                    if (!c || !c.id || !c.title) return;
+                    const type = c.type || 'film';
+                    const rating = (typeof c.rating === 'number') ? c.rating : undefined;
+                    const genres = Array.isArray(c.genres) ? c.genres.filter(Boolean) : [];
+                    const image = optimizeCloudinaryUrlCard(c.portraitImage || c.image || '');
+                    aggregated.push({ id: c.id, title: c.title, type, rating, genres, image, studioBadge: optimizeCloudinaryUrlSmall(c.studioBadge || '') });
+                });
+            }
+        }
+    } catch (err) {
+        console.warn('[Search] Impossible de lire clipsou_items_approved_v1:', err);
+    }
+
+    if (aggregated.length > 0) {
+        moviesDatabase = dedupeByIdAndTitle(aggregated);
+    } else {
         moviesDatabase = LOCAL_FALLBACK_DB;
     }
 }
@@ -284,6 +278,7 @@ function displayResults(results) {
         const dataSrcAttr = (!isRemoteImage && safeInitialSrc) ? ` data-src="${safeInitialSrc}"` : '';
         const srcAttr = (isRemoteImage && safeInitialSrc) ? ` src="${safeInitialSrc}"` : '';
         const dataBaseAttr = safeBase ? ` data-base="${safeBase}"` : '';
+        const loadingAttr = isRemoteImage ? ' loading="eager"' : ' loading="lazy"';
         const hasCustomBadge = Boolean(item.studioBadge && String(item.studioBadge).trim());
         const clipsouOwned = isClipsouOwned(item) || LOCAL_FALLBACK_DB.some(local => local.id === item.id);
         const badgeSrc = hasCustomBadge ? String(item.studioBadge).trim() : (clipsouOwned ? 'images/clipsoustudio.webp' : '');
@@ -298,7 +293,7 @@ function displayResults(results) {
         <div class="card">
             <a href="fiche.html?id=${encodeURIComponent(item.id)}&from=search">
                 <div class="card-media">
-                    <img${dataSrcAttr}${srcAttr}${dataBaseAttr} alt="Affiche de ${item.title}" loading="lazy" decoding="async" onerror="(function(img){var b=img.getAttribute('data-base'); var tried=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=tried; if(b && tried===1){ img.src=b+'.webp'; } else { img.onerror=null; img.removeAttribute('src'); }})(this)">
+                    <img${dataSrcAttr}${srcAttr}${dataBaseAttr}${loadingAttr} decoding="async" alt="Affiche de ${item.title}" onerror="(function(img){var b=img.getAttribute('data-base'); var tried=(parseInt(img.dataset.i||'0',10)||0)+1; img.dataset.i=tried; if(b && tried===1){ img.src=b+'.webp'; } else { img.onerror=null; img.removeAttribute('src'); }})(this)">
                     ${badgeHtml}
                 </div>
                 <div class="card-info" data-type="${typeAttr}"${itemIdAttr}${ratingAttr}${ratingCountAttr}${badgeAttr}${clipsouAttr}></div>
