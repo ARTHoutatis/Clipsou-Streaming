@@ -673,7 +673,9 @@
         "url": "https://youtu.be/a-ahlAuQORc?si=J3STRyniSWfiySdD"
       }
     ],
-    "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp"
+    "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp",
+    "rating": 5,
+    "ratingCount": 1
   },
   {
     "id": "custom-les-aventures-de-kiki-vwu6",
