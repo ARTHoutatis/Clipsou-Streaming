@@ -83,20 +83,59 @@ function optimizeCloudinaryUrlCard(url) {
 function optimizeCloudinaryUrlContinue(url) {
   if (!url || typeof url !== 'string') return url;
   if (!url.includes('res.cloudinary.com') && !url.includes('cloudinary.com')) return url;
-  
+
   // Si l'URL a déjà des transformations, ne pas les modifier
   if (/\/upload\/[^\/]*(?:f_auto|q_auto|w_auto|dpr_auto)/.test(url)) {
     return url;
   }
-  
+
   // Continue Watching: qualité low pour privilégier la vitesse, max 400px
   const optimized = 'f_auto,q_auto:low,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:400,c_limit';
-  
+
   if (url.includes('/upload/')) {
     return url.replace('/upload/', '/upload/' + optimized + '/');
   }
-  
+
   return url;
+}
+
+const CARD_IMAGE_SIZES_ATTR = '(max-width: 520px) 46vw, (max-width: 1024px) 24vw, 220px';
+
+function getCardImageSizesAttr() {
+  return CARD_IMAGE_SIZES_ATTR;
+}
+
+function buildCloudinarySrcSet(url, widths, options = {}) {
+  if (!url || typeof url !== 'string') return '';
+  if (!url.includes('res.cloudinary.com') && !url.includes('cloudinary.com')) return '';
+  if (!Array.isArray(widths) || widths.length === 0) return '';
+  if (/\/upload\/[^\/]*(?:f_auto|q_auto|w_auto|dpr_auto)/.test(url)) return '';
+  const uploadIndex = url.indexOf('/upload/');
+  if (uploadIndex === -1) return '';
+  const before = url.slice(0, uploadIndex + '/upload/'.length);
+  const after = url.slice(uploadIndex + '/upload/'.length);
+  const extraTransforms = Array.isArray(options.extraTransforms) && options.extraTransforms.length
+    ? options.extraTransforms.slice()
+    : ['fl_progressive:steep', 'fl_lossy'];
+  return widths.map((rawWidth) => {
+    const width = Math.max(1, Number(rawWidth) || 0);
+    const transforms = [
+      options.format || 'f_auto',
+      options.quality || 'q_auto:low',
+      options.dpr || 'dpr_auto',
+      options.crop || 'c_limit',
+      `w_${width}`,
+      ...extraTransforms
+    ].filter(Boolean);
+    return `${before}${transforms.join(',')}/${after} ${width}w`;
+  }).join(', ');
+}
+
+function buildCardImageSrcSet(url) {
+  return buildCloudinarySrcSet(url, [220, 320, 420, 520], {
+    quality: 'q_auto:low',
+    extraTransforms: ['fl_progressive:steep', 'fl_lossy', 'e_sharpen:40']
+  });
 }
 
 // ===== Normalisation de texte =====
@@ -433,19 +472,38 @@ class EventManager {
  */
 function installLazyImageLoader() {
   const ATTR = 'data-src';
+  const ATTR_SRCSET = 'data-srcset';
+  const ATTR_SIZES = 'data-sizes';
   const pending = new Set();
   const failed = new WeakSet();
   const retryDelay = 2000; // 2 secondes avant retry
   
+  function hydrateResponsiveAttributes(el) {
+    try {
+      const dataSrcset = el.getAttribute(ATTR_SRCSET);
+      if (dataSrcset) {
+        el.setAttribute('srcset', dataSrcset);
+        el.removeAttribute(ATTR_SRCSET);
+      }
+      const dataSizes = el.getAttribute(ATTR_SIZES);
+      if (dataSizes) {
+        el.setAttribute('sizes', dataSizes);
+        el.removeAttribute(ATTR_SIZES);
+      }
+    } catch (_) {}
+  }
+
   function load(el) {
     try {
       if (!el || !el.getAttribute) return;
       const src = el.getAttribute(ATTR);
       if (!src) return;
-      
+
       // Ajouter une transition fluide
       el.style.transition = 'opacity 0.3s ease-in-out';
-      
+
+      hydrateResponsiveAttributes(el);
+
       el.addEventListener('load', function onLoad() {
         el.classList.add('loaded');
         failed.delete(el); // Reset failed state on success
