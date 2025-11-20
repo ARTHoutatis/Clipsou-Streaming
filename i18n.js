@@ -240,7 +240,7 @@
       'popup.partners.cineclub.title': 'Bienvenue sur Cinéclub – Le serveur des vrais passionnés de cinéma !',
       'popup.partners.cineclub.desc': 'Tu aimes le cinéma et veux échanger avec des cinéphiles qui connaissent leurs classiques (et leurs nanars) ? Rejoins Cinéclub pour débattre, partager tes critiques et participer à des événements réguliers : soirées films, jeux, concours, et plus encore !',
       'popup.partners.cineclub.join': 'Rejoindre Cinéclub',
-      'popup.partners.cineclub.youtube': 'Chaîne YouTube CineMakers',
+      'popup.partners.cineclub.youtube': 'Chaîne CineMakers',
       
       // Lecteur vidéo
       'player.title': 'Lecture',
@@ -570,7 +570,7 @@
       'popup.partners.cineclub.title': 'Welcome to Cinéclub – The server for true cinema enthusiasts!',
       'popup.partners.cineclub.desc': 'Love cinema and want to chat with cinephiles who know their classics (and their trashy movies)? Join Cinéclub to debate, share your reviews and participate in regular events: movie nights, games, contests, and more!',
       'popup.partners.cineclub.join': 'Join Cinéclub',
-      'popup.partners.cineclub.youtube': 'CineMakers YouTube Channel',
+      'popup.partners.cineclub.youtube': 'CineMakers channel',
       
       // YouTube popup
       'popup.youtube.title': 'YouTube Channels',
