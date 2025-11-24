@@ -4,7 +4,10 @@
     "name": "quentin capon",
     "addedAt": 1762881488732,
     "addedBy": "auto-login",
-    "schema": 1
+    "schema": 1,
+    "banned": true,
+    "bannedAt": 1763983062000,
+    "bannedBy": "arthurcapon54@gmail.com"
   },
   {
     "email": "arthurcapon54@gmail.com",
