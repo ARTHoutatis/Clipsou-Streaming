@@ -2362,7 +2362,7 @@
    * Add request to history
    */
   function addToHistory(request) {
-    // Save to user's personal history
+    // Save to user's personal history only
     const history = getRequestHistory();
     history.unshift({
       id: request.id || Date.now().toString(),
@@ -2371,27 +2371,6 @@
     });
     saveRequestHistory(history);
     renderHistory();
-    
-    // ALSO save to admin-visible requests list (shared storage)
-    try {
-      const adminRequests = JSON.parse(localStorage.getItem('user_requests_history') || '[]');
-      
-      // Check if already exists
-      const existingIndex = adminRequests.findIndex(r => r.id === request.id);
-      
-      if (existingIndex === -1) {
-        // Add new request
-        adminRequests.unshift({
-          ...request,
-          status: request.status || 'pending',
-          submittedAt: request.submittedAt || Date.now()
-        });
-        localStorage.setItem('user_requests_history', JSON.stringify(adminRequests));
-        console.log('✓ Request added to admin-visible list');
-      }
-    } catch (e) {
-      console.error('Error adding to admin requests:', e);
-    }
   }
 
   /**
