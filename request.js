@@ -86,6 +86,9 @@
   const STORAGE_KEY_SUBMIT_LOG = 'user_submit_log_v1';
   const STORAGE_KEY_FORM_DRAFT = 'user_form_draft_v1';
   const STORAGE_KEY_CURRENT_SLIDE = 'user_current_slide';
+  const STORAGE_KEY_IMAGE_UPLOAD_LOG = 'user_image_upload_log_v1';
+  const IMAGE_UPLOAD_LIMIT_PER_HOUR = 3;
+  const IMAGE_UPLOAD_WINDOW_MS = 60 * 60 * 1000;
   const RATE_LIMIT_HOURS = 24;
 
   // Cloudinary configuration (unsigned upload)
@@ -147,6 +150,74 @@
       xhr.onerror = () => reject(new Error('Erreur réseau lors de l\'upload'));
       xhr.send(fd);
     });
+  }
+
+  function getImageUploadLog() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY_IMAGE_UPLOAD_LOG) || '[]');
+      if (Array.isArray(raw)) {
+        return raw.map(value => {
+          const num = typeof value === 'number' ? value : parseInt(value, 10);
+          return Number.isFinite(num) ? num : null;
+        }).filter(Boolean);
+      }
+    } catch (error) {
+      console.warn('[Request] Failed to read image upload log:', error);
+    }
+    return [];
+  }
+
+  function saveImageUploadLog(log) {
+    try {
+      localStorage.setItem(STORAGE_KEY_IMAGE_UPLOAD_LOG, JSON.stringify(log));
+    } catch (error) {
+      console.warn('[Request] Failed to save image upload log:', error);
+    }
+  }
+
+  function getPrunedImageUploadLog() {
+    const cutoff = Date.now() - IMAGE_UPLOAD_WINDOW_MS;
+    const log = getImageUploadLog().filter(ts => typeof ts === 'number' && ts > cutoff).sort((a, b) => a - b);
+    saveImageUploadLog(log);
+    return log;
+  }
+
+  function checkImageUploadLimit() {
+    const log = getPrunedImageUploadLog();
+    if (log.length >= IMAGE_UPLOAD_LIMIT_PER_HOUR) {
+      return {
+        allowed: false,
+        nextAllowedAt: log[0] + IMAGE_UPLOAD_WINDOW_MS
+      };
+    }
+    return {
+      allowed: true,
+      remaining: IMAGE_UPLOAD_LIMIT_PER_HOUR - log.length
+    };
+  }
+
+  function registerImageUploadAttempt() {
+    try {
+      const log = getPrunedImageUploadLog();
+      const stamp = Date.now();
+      log.push(stamp);
+      log.sort((a, b) => a - b);
+      saveImageUploadLog(log);
+      return stamp;
+    } catch (error) {
+      console.warn('[Request] Failed to register image upload attempt:', error);
+      return null;
+    }
+  }
+
+  function rollbackImageUploadAttempt(stamp) {
+    if (!stamp) return;
+    try {
+      const log = getPrunedImageUploadLog().filter(ts => ts !== stamp);
+      saveImageUploadLog(log);
+    } catch (error) {
+      console.warn('[Request] Failed to rollback image upload attempt:', error);
+    }
   }
 
   function populateGenreDatalist() {
@@ -334,6 +405,17 @@
         return;
       }
 
+      const limitStatus = checkImageUploadLimit();
+      if (!limitStatus.allowed) {
+        const waitMs = Math.max(0, limitStatus.nextAllowedAt - Date.now());
+        const waitMinutes = Math.max(1, Math.ceil(waitMs / 60000));
+        alert(`Limite d'import atteinte (3 images par heure).\n\nVeuillez réessayer dans environ ${waitMinutes} minute${waitMinutes > 1 ? 's' : ''}.`);
+        fileInput.value = '';
+        return;
+      }
+
+      const uploadStamp = registerImageUploadAttempt();
+
       try {
         // Downscale image
         const optimized = await downscaleImage(file, {
@@ -356,6 +438,7 @@
       } catch (error) {
         alert('Erreur lors de l\'upload de l\'image. Veuillez réessayer.');
         fileInput.value = '';
+        rollbackImageUploadAttempt(uploadStamp);
       }
     });
 
