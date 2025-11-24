@@ -305,6 +305,17 @@
 
     if (!fileInput) return;
 
+    const trigger = document.querySelector(`[data-file-trigger="${config.fileInput}"]`);
+    if (trigger) {
+      trigger.addEventListener('click', (event) => {
+        event.preventDefault();
+        if (trigger.disabled || fileInput.disabled) {
+          return;
+        }
+        fileInput.click();
+      });
+    }
+
     fileInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;

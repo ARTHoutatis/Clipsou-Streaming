@@ -230,10 +230,8 @@
             <span><span data-i18n="request.form.portrait">Affiche (format 9/12)</span> <span class="required">*</span></span>
             <input type="hidden" id="portraitImage">
             <div class="actions">
-              <label class="btn file-label" data-i18n="request.form.upload">
-                Importer image
-                <input type="file" id="portraitFileInput" accept="image/*" hidden disabled>
-              </label>
+              <button type="button" class="btn file-label" data-file-trigger="portraitFileInput" data-i18n="request.form.upload">Importer image</button>
+              <input type="file" id="portraitFileInput" accept="image/*" hidden disabled>
               <button type="button" id="portraitClearBtn" class="btn secondary" data-i18n="request.form.clear" disabled>Effacer</button>
             </div>
             <img id="portraitPreview" class="img-preview" alt="Aperçu portrait" hidden>
@@ -242,10 +240,8 @@
             <span><span data-i18n="request.form.landscape">Image fiche (paysage 16/9)</span> <span class="required">*</span></span>
             <input type="hidden" id="landscapeImage">
             <div class="actions">
-              <label class="btn file-label" data-i18n="request.form.upload">
-                Importer image
-                <input type="file" id="landscapeFileInput" accept="image/*" hidden disabled>
-              </label>
+              <button type="button" class="btn file-label" data-file-trigger="landscapeFileInput" data-i18n="request.form.upload">Importer image</button>
+              <input type="file" id="landscapeFileInput" accept="image/*" hidden disabled>
               <button type="button" id="landscapeClearBtn" class="btn secondary" data-i18n="request.form.clear" disabled>Effacer</button>
             </div>
             <img id="landscapePreview" class="img-preview" alt="Aperçu paysage" hidden>
@@ -254,10 +250,8 @@
             <span data-i18n="request.form.badge">Badge studio (image)</span>
             <input type="hidden" id="studioBadge">
             <div class="actions">
-              <label class="btn file-label" data-i18n="request.form.upload">
-                Importer image
-                <input type="file" id="studioBadgeFileInput" accept="image/*" hidden disabled>
-              </label>
+              <button type="button" class="btn file-label" data-file-trigger="studioBadgeFileInput" data-i18n="request.form.upload">Importer image</button>
+              <input type="file" id="studioBadgeFileInput" accept="image/*" hidden disabled>
               <button type="button" id="studioBadgeClearBtn" class="btn secondary" data-i18n="request.form.clear" disabled>Effacer</button>
             </div>
             <small class="muted" style="display:block;margin-top:4px;" data-i18n="request.form.badge.info">💡 Votre dernier badge studio est automatiquement réutilisé</small>
