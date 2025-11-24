@@ -871,7 +871,7 @@
     "id": "custom-south-park-the-fan-made-als5",
     "title": "South Park / The Fan Made",
     "type": "série",
-    "rating": 0.5,
+    "rating": 1,
     "genres": [
       "Comédie",
       "Mini-série",
@@ -938,7 +938,8 @@
         "url": "https://youtu.be/J7o8YeWzMFQ?si=dS1ySrxTLiWcCOAm"
       }
     ],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761522323/fizxslqefn1k4s9fh4y2.webp"
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761522323/fizxslqefn1k4s9fh4y2.webp",
+    "ratingCount": 2
   },
   {
     "id": "custom-the-psycho-teacher-q2q6",
