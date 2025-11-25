@@ -1,7 +1,7 @@
 [
   {
     "requestId": "req_1764068959009_87igdtuef",
-    "status": "approved",
+    "status": "pending",
     "data": {
       "id": "custom-astron-espace-temps-6d5i",
       "requestId": "req_1764068959009_87igdtuef",
@@ -14,8 +14,8 @@
         "Animation"
       ],
       "description": "8 ans après la catastrophe du trou noir, la galaxie est gouvernée par un régime démocratique, dont le principal délégué du gouvernement est Zekro et Eridix son premier ministre. Les membres d'Astron sont devenus un groupe de héros célèbres et doivent assurer l'éducation d'Elyssa en pleine crise d'adolescence, tout en retrouvant la trace d'un mystérieux assassin à travers l'espace et le temps...",
-      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1764061857/gkg4gthvz0k75l9hhtuw.webp",
-      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1764061883/pcjmmygq0apqkzxpgqvz.webp",
+      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1764069131/uiueo8uu2llas3gf25dk.webp",
+      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1764069130/yrrrh0ktdilpshl3cgph.webp",
       "watchUrl": "https://youtu.be/VZXqBKJSebQ?si=hb4fnkjg4MqrqgZ5",
       "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761821809/t4fblpjkrgxg7q9wyedu.webp",
       "actors": [
@@ -53,7 +53,7 @@
     "meta": {
       "createdAt": 1764068959009,
       "source": "user_submission",
-      "updatedAt": 1764069011649
+      "updatedAt": 1764069135101
     }
   },
   {
