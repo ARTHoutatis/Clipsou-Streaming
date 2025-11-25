@@ -1,7 +1,7 @@
 [
   {
     "requestId": "r_mif0y5rd_w289c8",
-    "status": "pending",
+    "status": "approved",
     "data": {
       "id": "custom-ose-ouvrir-1er-version-etcu",
       "requestId": "r_mif0y5rd_w289c8",
@@ -37,7 +37,7 @@
     },
     "meta": {
       "createdAt": 1764102278569,
-      "updatedAt": 1764102278569
+      "updatedAt": 1764102281831
     }
   },
   {
