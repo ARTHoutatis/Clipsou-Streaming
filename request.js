@@ -1620,6 +1620,24 @@
       // Delay to let paste complete
       setTimeout(debounceVerify, 100);
     });
+
+    // Auto-run verification if field already populated after refresh
+    if (watchUrlInput.value.trim()) {
+      setTimeout(() => debounceVerify(), 250);
+    }
+
+    // Re-run verification when Google auth finishes after refresh
+    const rerunAfterAuth = () => {
+      if (watchUrlInput.value.trim()) {
+        debounceVerify();
+      }
+    };
+    window.addEventListener('googleAuthSuccess', rerunAfterAuth);
+    window.addEventListener('googleAuthLogout', () => {
+      statusDiv.hidden = true;
+      isVideoValid = false;
+      lastVerifiedUrl = null;
+    });
   }
 
   /**
