@@ -3,7 +3,8 @@
     "requestId": "req_1764068959009_87igdtuef",
     "status": "pending",
     "data": {
-      "id": null,
+      "id": "custom-astron-espace-temps-6d5i",
+      "requestId": "req_1764068959009_87igdtuef",
       "title": "Astron - Espace-temps",
       "type": "film",
       "rating": null,
@@ -14,10 +15,9 @@
       ],
       "description": "8 ans après la catastrophe du trou noir, la galaxie est gouvernée par un régime démocratique, dont le principal délégué du gouvernement est Zekro et Eridix son premier ministre. Les membres d'Astron sont devenus un groupe de héros célèbres et doivent assurer l'éducation d'Elyssa en pleine crise d'adolescence, tout en retrouvant la trace d'un mystérieux assassin à travers l'espace et le temps...",
       "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1764061857/gkg4gthvz0k75l9hhtuw.webp",
-      "image": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1764061883/pcjmmygq0apqkzxpgqvz.webp",
       "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1764061883/pcjmmygq0apqkzxpgqvz.webp",
-      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761821809/t4fblpjkrgxg7q9wyedu.webp",
       "watchUrl": "https://youtu.be/VZXqBKJSebQ?si=hb4fnkjg4MqrqgZ5",
+      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761821809/t4fblpjkrgxg7q9wyedu.webp",
       "actors": [
         {
           "name": "Corentin Dubarry",
@@ -52,7 +52,8 @@
     },
     "meta": {
       "createdAt": 1764068959009,
-      "source": "user_submission"
+      "source": "user_submission",
+      "updatedAt": 1764069007124
     }
   },
   {
