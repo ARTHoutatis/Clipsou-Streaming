@@ -948,24 +948,36 @@
     try {
       console.log('[OAuth] 🌐 Making YouTube API request...');
       console.log('[OAuth] API URL: https://www.googleapis.com/youtube/v3/videos?part=snippet&id=' + videoId);
-      
-      // Récupérer les informations de la vidéo pour comparer le channelId
-      const response = await fetch(
-        `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${currentUser.accessToken}`
-          }
-        }
-      );
 
+      const fetchVideoSnippet = async () => {
+        return fetch(
+          `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${currentUser.accessToken}`
+            }
+          }
+        );
+      };
+
+      let response = await fetchVideoSnippet();
       console.log('[OAuth] API Response status:', response.status);
+
+      if (response.status === 401) {
+        console.warn('[OAuth] 401 from YouTube API - attempting silent token refresh before retry.');
+        const refreshed = await refreshAccessToken();
+        if (refreshed) {
+          console.log('[OAuth] Token refresh succeeded, retrying YouTube request...');
+          response = await fetchVideoSnippet();
+          console.log('[OAuth] Retry response status:', response.status);
+        }
+      }
 
       if (!response.ok) {
         const errorText = await response.text();
         console.error('[OAuth] ❌ YouTube API error:', response.status);
         console.error('[OAuth] Error response:', errorText);
-        
+
         // Erreurs spécifiques
         if (response.status === 401) {
           console.log('[OAuth] ========== VERIFICATION END (401 UNAUTHORIZED) ==========');
@@ -976,10 +988,9 @@
           const forbiddenMsg = window.i18n ? window.i18n.translate('video.verify.forbidden') : '❌ Accès refusé. Vérifiez les permissions YouTube.';
           return { valid: false, error: forbiddenMsg };
         }
-        
-        console.log('[OAuth] ========== VERIFICATION END (API ERROR) ==========');
-        const errorMsg = window.i18n ? window.i18n.translate('video.verify.error') : '❌ Erreur lors de la vérification de la vidéo';
-        return { valid: false, error: errorMsg };
+
+        console.log('[OAuth] ========== VERIFICATION END (API ERROR) ==========' );
+        return { valid: false, error: window.i18n ? window.i18n.translate('video.verify.error') : '❌ Erreur lors de la vérification de la vidéo' };
       }
 
       const data = await response.json();
