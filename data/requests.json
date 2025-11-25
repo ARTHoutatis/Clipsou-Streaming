@@ -1,7 +1,7 @@
 [
   {
     "requestId": "req_1764064603577_akl758fle",
-    "status": "pending",
+    "status": "approved",
     "data": {
       "id": "custom-course-poursuite-i8vj",
       "requestId": "req_1764064603577_akl758fle",
@@ -30,7 +30,7 @@
     "meta": {
       "createdAt": 1764064603577,
       "source": "user_submission",
-      "updatedAt": 1764064694501
+      "updatedAt": 1764064730533
     }
   },
   {
