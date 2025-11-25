@@ -238,6 +238,7 @@
     }
     return false;
   }
+  window.checkBannedUserBeforeForm = checkBannedUserBeforeForm;
 
   // Stepper state
   let currentSlide = 1;
