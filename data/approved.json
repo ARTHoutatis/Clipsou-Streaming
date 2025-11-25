@@ -266,6 +266,29 @@
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761567137/pjl8vzifnmggpz6okhji.png"
   },
   {
+    "id": "custom-course-poursuite-i8vj",
+    "title": "Course poursuite",
+    "type": "film",
+    "genres": [
+      "Policier",
+      "Brickfilm",
+      "Action"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1764060344/jfjj2zroioijkhwuxvia.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1764060535/fpaenzibfzmfx3c2cijc.webp",
+    "description": "Course poursuite entre un policier et un fou qui roule trop vite.",
+    "watchUrl": "https://www.youtube.com/watch?v=JEzCGG3ih20",
+    "actors": [
+      {
+        "name": "Ferrisbu",
+        "role": "Policiers",
+        "photo": "images/ferrisbu.webp"
+      }
+    ],
+    "episodes": [],
+    "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp"
+  },
+  {
     "id": "custom-elden-ring-le-film-le-pire-guerrier-pxql",
     "title": "ELDEN RING Le Film : Le pire guerrier",
     "type": "film",
