@@ -202,6 +202,34 @@
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761679859/dfcmcwrwp0nxz8bzvc0x.webp"
   },
   {
+    "id": "custom-batmince-xei5",
+    "title": "Batmince",
+    "type": "film",
+    "genres": [
+      "Comédie",
+      "Action",
+      "Parodie"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1764100734/vl3mkf0bslqn2wa0tgse.png",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1764101044/m8favvsvlj07hlmdooxd.png",
+    "description": "un virus a envahit Gotham grace a un virus destructeur, Batmince va donc devoir le tuer pour sauver Gotham !",
+    "watchUrl": "https://youtu.be/MaqZ3vIgtFM?si=uZrNYaaP-L_AfcOV",
+    "actors": [
+      {
+        "name": "Liam Roxxor",
+        "role": "Batmince",
+        "photo": "liam-roxxor.webp"
+      },
+      {
+        "name": "Kassielator",
+        "role": "Mechant",
+        "photo": "kassielator.webp"
+      }
+    ],
+    "episodes": [],
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1764100729/ipu8g8exqixppi5babir.webp"
+  },
+  {
     "id": "custom-cassette-n-13-sh76",
     "title": "Cassette N°13",
     "type": "film",
