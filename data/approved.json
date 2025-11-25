@@ -286,7 +286,9 @@
       }
     ],
     "episodes": [],
-    "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp"
+    "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp",
+    "rating": 3,
+    "ratingCount": 1
   },
   {
     "id": "custom-elden-ring-le-film-le-pire-guerrier-pxql",
