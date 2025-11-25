@@ -50,6 +50,44 @@
       .replace(/[^a-z0-9]+/g, '');
   }
 
+  function getCurrentUserIdentity() {
+    try {
+      if (window.GoogleAuth && typeof window.GoogleAuth.getCurrentUser === 'function') {
+        const auth = window.GoogleAuth.getCurrentUser();
+        if (auth && auth.user) {
+          return {
+            email: (auth.user.email || '').toLowerCase().trim(),
+            channelId: auth.channel && auth.channel.id ? String(auth.channel.id) : ''
+          };
+        }
+      }
+    } catch (error) {
+      console.warn('[Request] Failed to read user identity for history filtering:', error);
+    }
+    return null;
+  }
+
+  function doesHistoryItemBelongToUser(item, identity) {
+    if (!identity || !item || typeof item !== 'object') return false;
+    const itemEmail = (item.submittedBy && item.submittedBy.email ? item.submittedBy.email : item.email || '').toLowerCase().trim();
+    const itemChannel = item.youtubeChannel && item.youtubeChannel.id
+      ? String(item.youtubeChannel.id)
+      : (item.submittedBy && item.submittedBy.channelId ? String(item.submittedBy.channelId) : '');
+
+    if (identity.email && itemEmail && identity.email === itemEmail) return true;
+    if (identity.channelId && itemChannel && identity.channelId === itemChannel) return true;
+    return false;
+  }
+
+  function getPersonalHistory() {
+    const history = getRequestHistory();
+    const identity = getCurrentUserIdentity();
+    if (!identity || (!identity.email && !identity.channelId)) {
+      return history;
+    }
+    return history.filter(item => doesHistoryItemBelongToUser(item, identity));
+  }
+
   async function syncHistoryStatusesFromGitHub() {
     try {
       const history = getRequestHistory();
@@ -241,12 +279,15 @@
   function handleGoogleAuthSuccessEvent() {
     autoAcceptTermsIfAuthenticated();
     checkBannedUserBeforeForm(true);
+    renderHistory();
+    prefillStudioBadge();
   }
 
   function handleGoogleAuthLogoutEvent() {
     isBannedUser = false;
     hideBanModal();
     unlockFormFromBan();
+    renderHistory();
   }
 
   function checkBannedUserBeforeForm(silent = false) {
@@ -640,7 +681,7 @@
    */
   function prefillStudioBadge() {
     try {
-      const history = getRequestHistory();
+      const history = getPersonalHistory();
       
       // Find the most recent request that has a studio badge
       const lastRequestWithBadge = history.find(req => 
@@ -2604,7 +2645,7 @@
   function renderHistory() {
     const historySection = document.getElementById('historySection');
     const historyList = document.getElementById('historyList');
-    const history = getRequestHistory();
+    const history = getPersonalHistory();
     const hasI18n = window.i18n && typeof window.i18n.translate === 'function';
     const lang = hasI18n && typeof window.i18n.getCurrentLanguage === 'function'
       ? window.i18n.getCurrentLanguage()
