@@ -18,6 +18,9 @@
     "name": "mr roxxor",
     "addedAt": 1762887524498,
     "addedBy": "auto-login",
-    "schema": 1
+    "schema": 1,
+    "banned": true,
+    "bannedAt": 1764061357357,
+    "bannedBy": "arthurcapon54@gmail.com"
   }
 ]
