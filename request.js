@@ -110,7 +110,135 @@
   let isBannedUser = false;
   let actors = [];
   let episodes = [];
-  
+
+  /**
+   * Manage UI state when a banned user is detected
+   */
+  function lockFormForBanned() {
+    try {
+      if (!requestForm) return;
+      if (formSection) {
+        formSection.classList.add('form-disabled');
+      }
+      requestForm.querySelectorAll('input, textarea, select, button, fieldset').forEach((field) => {
+        if (!field.dataset) return;
+        if (!field.dataset.banDisabled) {
+          field.dataset.banDisabled = '1';
+          field.dataset.banWasDisabled = field.disabled ? '1' : '0';
+        }
+        field.disabled = true;
+      });
+    } catch (error) {
+      console.warn('[Request] Failed to lock form for banned user:', error);
+    }
+  }
+
+  function unlockFormFromBan() {
+    try {
+      if (formSection) {
+        formSection.classList.remove('form-disabled');
+      }
+      if (!requestForm) return;
+      requestForm.querySelectorAll('[data-ban-disabled="1"]').forEach((field) => {
+        const restoreDisabled = field.dataset.banWasDisabled === '1';
+        field.disabled = restoreDisabled;
+        delete field.dataset.banDisabled;
+        delete field.dataset.banWasDisabled;
+      });
+      if (termsCheckbox) {
+        handleTermsChange({ target: termsCheckbox });
+      }
+    } catch (error) {
+      console.warn('[Request] Failed to unlock form after ban state:', error);
+    }
+  }
+
+  function showBanModal() {
+    if (!banModal) return;
+    try {
+      banModal.hidden = false;
+      document.body.classList.add('ban-modal-open');
+    } catch {}
+  }
+
+  function hideBanModal() {
+    if (!banModal) return;
+    try {
+      banModal.hidden = true;
+      document.body.classList.remove('ban-modal-open');
+    } catch {}
+  }
+
+  function attachBanModalHandlers() {
+    const closeModal = () => {
+      hideBanModal();
+    };
+    if (banModalCloseBtn) {
+      banModalCloseBtn.removeEventListener('click', closeModal);
+      banModalCloseBtn.addEventListener('click', closeModal);
+    }
+    if (banModalDismissBtn) {
+      banModalDismissBtn.removeEventListener('click', closeModal);
+      banModalDismissBtn.addEventListener('click', closeModal);
+    }
+    if (banModalBackdrop) {
+      banModalBackdrop.removeEventListener('click', closeModal);
+      banModalBackdrop.addEventListener('click', closeModal);
+    }
+  }
+
+  function handleGoogleAuthSuccessEvent() {
+    autoAcceptTermsIfAuthenticated();
+    checkBannedUserBeforeForm(true);
+  }
+
+  function handleGoogleAuthLogoutEvent() {
+    isBannedUser = false;
+    hideBanModal();
+    unlockFormFromBan();
+  }
+
+  function checkBannedUserBeforeForm(silent = false) {
+    try {
+      if (!window.GoogleAuth || typeof window.GoogleAuth.getCurrentUser !== 'function') {
+        return false;
+      }
+      const authPayload = window.GoogleAuth.getCurrentUser();
+      if (!authPayload || !authPayload.user) {
+        return false;
+      }
+
+      const email = (authPayload.user.email || '').toLowerCase().trim();
+      const channelId = authPayload.channel && authPayload.channel.id ? String(authPayload.channel.id) : '';
+      const isUserBanned = Boolean(
+        window.ClipsouAdmin &&
+        typeof window.ClipsouAdmin.isUserBanned === 'function' &&
+        window.ClipsouAdmin.isUserBanned(email, channelId)
+      );
+
+      if (isUserBanned) {
+        if (!isBannedUser) {
+          isBannedUser = true;
+          lockFormForBanned();
+        }
+        showBanModal();
+        if (!silent) {
+          alert('⚠️ Votre compte a été banni. Vous ne pouvez plus soumettre de demandes sur Clipsou Streaming.');
+        }
+        return true;
+      }
+
+      if (isBannedUser) {
+        isBannedUser = false;
+        hideBanModal();
+        unlockFormFromBan();
+      }
+    } catch (error) {
+      console.warn('[Request] Failed to check banned status:', error);
+    }
+    return false;
+  }
+
   // Stepper state
   let currentSlide = 1;
   const totalSlides = 4;
@@ -521,6 +649,8 @@
     banModalCloseBtn = document.getElementById('banModalClose');
     banModalDismissBtn = document.getElementById('banModalDismiss');
 
+    attachBanModalHandlers();
+
     // Check rate limit and pending request
     checkRateLimitAndPendingRequest();
 
@@ -539,6 +669,7 @@
     }
 
     autoAcceptTermsIfAuthenticated();
+    checkBannedUserBeforeForm(true);
 
     // Form submission
     if (requestForm) {
@@ -567,7 +698,8 @@
       newRequestBtn.addEventListener('click', handleNewRequest);
     }
 
-    window.addEventListener('googleAuthSuccess', autoAcceptTermsIfAuthenticated);
+    window.addEventListener('googleAuthSuccess', handleGoogleAuthSuccessEvent);
+    window.addEventListener('googleAuthLogout', handleGoogleAuthLogoutEvent);
 
     // Actor management
     const addActorBtn = document.getElementById('addActorBtn');
