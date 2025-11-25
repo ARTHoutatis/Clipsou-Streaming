@@ -283,12 +283,15 @@
         "name": "Ferrisbu",
         "role": "Policiers",
         "photo": "images/ferrisbu.webp"
+      },
+      {
+        "name": "Ferrisbu",
+        "role": "Pilote",
+        "photo": "images/ferrisbu.webp"
       }
     ],
     "episodes": [],
-    "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp",
-    "rating": 3,
-    "ratingCount": 1
+    "studioBadge": "https://clipsoustreaming.com/images/clipsoustudio.webp"
   },
   {
     "id": "custom-elden-ring-le-film-le-pire-guerrier-pxql",
