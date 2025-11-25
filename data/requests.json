@@ -1,5 +1,43 @@
 [
   {
+    "requestId": "r_mif0999r_7sl2pk",
+    "status": "pending",
+    "data": {
+      "id": "custom-batmince-xei5",
+      "requestId": "r_mif0999r_7sl2pk",
+      "title": "Batmince",
+      "type": "film",
+      "rating": null,
+      "genres": [
+        "Comédie",
+        "Action",
+        "Parodie"
+      ],
+      "description": "un virus a envahit Gotham grace a un virus destructeur, Batmince va donc devoir le tuer pour sauver Gotham !",
+      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1764100734/vl3mkf0bslqn2wa0tgse.png",
+      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1764101044/m8favvsvlj07hlmdooxd.png",
+      "watchUrl": "https://youtu.be/MaqZ3vIgtFM?si=uZrNYaaP-L_AfcOV",
+      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1764100729/ipu8g8exqixppi5babir.webp",
+      "actors": [
+        {
+          "name": "Liam Roxxor",
+          "role": "Batmince",
+          "photo": "liam-roxxor.webp"
+        },
+        {
+          "name": "Kassielator",
+          "role": "Mechant",
+          "photo": "kassielator.webp"
+        }
+      ],
+      "episodes": []
+    },
+    "meta": {
+      "createdAt": 1764101116719,
+      "updatedAt": 1764101116719
+    }
+  },
+  {
     "requestId": "r_mh8dwlcp_d4j316",
     "status": "pending",
     "data": {
