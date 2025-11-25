@@ -248,7 +248,9 @@
   {
     "id": "custom-batmince-xei5",
     "ratings": [
-      5
-    ]
+      5,
+      1
+    ],
+    "baseRating": 5
   }
 ]
