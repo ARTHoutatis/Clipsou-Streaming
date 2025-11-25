@@ -50,6 +50,57 @@
       .replace(/[^a-z0-9]+/g, '');
   }
 
+  async function syncHistoryStatusesFromGitHub() {
+    try {
+      const history = getRequestHistory();
+      if (!history.length) {
+        return false;
+      }
+
+      const response = await fetch('/data/user-requests.json?v=' + Date.now(), {
+        cache: 'no-store'
+      });
+      if (!response.ok) {
+        return false;
+      }
+
+      const requests = await response.json();
+      if (!Array.isArray(requests) || !requests.length) {
+        return false;
+      }
+
+      const requestMap = new Map();
+      requests.forEach(req => {
+        if (req && req.id) {
+          requestMap.set(req.id, req);
+        }
+      });
+
+      let updated = false;
+      const syncedHistory = history.map(item => {
+        if (!item || !item.id) return item;
+        const remote = requestMap.get(item.id);
+        if (remote && remote.status && remote.status !== item.status) {
+          updated = true;
+          return {
+            ...item,
+            status: remote.status,
+            processedAt: remote.processedAt || item.processedAt || null
+          };
+        }
+        return item;
+      });
+
+      if (updated) {
+        saveRequestHistory(syncedHistory);
+        return true;
+      }
+    } catch (error) {
+      console.warn('[Request] History sync failed:', error);
+    }
+    return false;
+  }
+
   const GENRE_CANONICAL_MAP = new Map();
   GENRE_DEFINITIONS.forEach(({ name, aliases = [] }) => {
     const baseKey = normalizeGenreToken(name);
@@ -750,6 +801,13 @@
 
     // Render history
     renderHistory();
+    syncHistoryStatusesFromGitHub().then((changed) => {
+      if (changed) {
+        renderHistory();
+      }
+    }).catch((error) => {
+      console.warn('[Request] Failed to sync history statuses:', error);
+    });
 
     // Genres validation setup
     setupGenreValidation();
