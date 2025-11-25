@@ -1654,6 +1654,10 @@
         return;
       }
 
+      const currentUserData = typeof window.GoogleAuth.getCurrentUser === 'function'
+        ? window.GoogleAuth.getCurrentUser()
+        : null;
+
       // Check if user is banned
       if (checkBannedUserBeforeForm(false)) {
         throw new Error('BANNED_USER');
@@ -1699,7 +1703,7 @@
       }).filter(Boolean);
 
       // Validate that we have user data before proceeding
-      if (!currentUser) {
+      if (!currentUserData) {
         alert('❌ Informations utilisateur manquantes\n\n' +
               'Impossible de récupérer vos informations Google.\n\n' +
               'Solutions :\n' +
@@ -1731,9 +1735,9 @@
         },
         // User information
         submittedBy: {
-          email: currentUser?.user?.email || '',
-          name: currentUser?.user?.name || '',
-          googleId: currentUser?.user?.id || ''
+          email: currentUserData?.user?.email || '',
+          name: currentUserData?.user?.name || '',
+          googleId: currentUserData?.user?.id || ''
         }
       };
 
