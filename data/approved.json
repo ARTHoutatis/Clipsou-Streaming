@@ -67,6 +67,52 @@
     "ratingCount": 5
   },
   {
+    "id": "custom-astron-espace-temps-6d5i",
+    "title": "Astron - Espace-temps",
+    "type": "film",
+    "genres": [
+      "Science-Fiction",
+      "Aventure",
+      "Animation"
+    ],
+    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1764061857/gkg4gthvz0k75l9hhtuw.webp",
+    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1764061883/pcjmmygq0apqkzxpgqvz.webp",
+    "description": "8 ans après la catastrophe du trou noir, la galaxie est gouvernée par un régime démocratique, dont le principal délégué du gouvernement est Zekro et Eridix son premier ministre. Les membres d'Astron sont devenus un groupe de héros célèbres et doivent assurer l'éducation d'Elyssa en pleine crise d'adolescence, tout en retrouvant la trace d'un mystérieux assassin à travers l'espace et le temps...",
+    "watchUrl": "https://youtu.be/VZXqBKJSebQ?si=hb4fnkjg4MqrqgZ5",
+    "actors": [
+      {
+        "name": "Corentin Dubarry",
+        "role": "Einex"
+      },
+      {
+        "name": "Elsa Tamisier",
+        "role": "Zweila"
+      },
+      {
+        "name": "Corentin Le Gat",
+        "role": "Dreyord"
+      },
+      {
+        "name": "Baptiste Pomme",
+        "role": "Vierxy"
+      },
+      {
+        "name": "Nadia El Yak",
+        "role": "HYDRA"
+      },
+      {
+        "name": "Mathieu Desroses",
+        "role": "Eridix"
+      },
+      {
+        "name": "Coralie Morain",
+        "role": "Stella"
+      }
+    ],
+    "episodes": [],
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761821809/t4fblpjkrgxg7q9wyedu.webp"
+  },
+  {
     "id": "custom-astron-les-prophetes-des-8-planetes-fsux",
     "title": "Astron - Les Prophètes des 8 planètes",
     "type": "film",
