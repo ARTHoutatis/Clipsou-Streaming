@@ -1704,8 +1704,65 @@ document.addEventListener('DOMContentLoaded', async function () {
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
-    // Collect items from popups
+    const baseItems = [];
+    let liveApprovedItems = [];
+    let localApprovedItems = [];
     const items = [];
+    let itemsById = new Map();
+
+    function mapApprovedEntry(entry) {
+      if (!entry || !entry.id || !entry.title) return null;
+      const type = entry.type || 'film';
+      const portraitImage = entry.portraitImage || entry.image || '';
+      const landscapeImage = entry.landscapeImage || entry.image || '';
+      const imgName = (landscapeImage || portraitImage || '').split('/').pop();
+      const baseName = (imgName || '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/\d+$/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const rating = (typeof entry.rating === 'number') ? entry.rating : undefined;
+      const studioBadge = optimizeCloudinaryUrlSmall(entry.studioBadge || '');
+      return {
+        id: entry.id,
+        title: entry.title,
+        image: landscapeImage || portraitImage || '',
+        portraitImage,
+        landscapeImage,
+        genres: Array.isArray(entry.genres) ? entry.genres.filter(Boolean) : [],
+        rating,
+        type,
+        category: entry.category || 'LEGO',
+        description: entry.description || '',
+        baseName,
+        watchUrl: entry.watchUrl || '',
+        studioBadge
+      };
+    }
+
+    function rebuildItemsFromSources(options = {}) {
+      const merged = [...baseItems];
+      liveApprovedItems.forEach(it => { if (it) merged.push(it); });
+      localApprovedItems.forEach(it => { if (it) merged.push(it); });
+      const deduped = dedupeByIdAndTitle(merged.filter(Boolean));
+      items.length = 0;
+      deduped.forEach(it => items.push(it));
+      itemsById = new Map(items.map((it) => [String(it.id), it]));
+      primeSnapshotFromItems(items);
+      try { items.forEach(resolveItemRating); } catch {}
+      if (!options.skipRender) {
+        rebuildDataDrivenSections();
+      }
+    }
+
+    function rebuildDataDrivenSections(){
+      try { buildFavoritesSection(items); } catch {}
+      try { buildNouveautes(items); } catch {}
+      try { rebuildTopRatedSection(); } catch {}
+      try { buildSeriesAndGenresOnHome(items); } catch {}
+      if (window.i18n && typeof window.i18n.updateCardTypes === 'function') {
+        const lang = window.i18n.getCurrentLanguage();
+        window.i18n.updateCardTypes(lang);
+      }
+    }
+
+    // Collect items from popups
     document.querySelectorAll('.fiche-popup[id]').forEach(popup => {
       const id = popup.getAttribute('id');
       if (!/^film\d+|^serie\d+/i.test(id)) return;
@@ -1728,67 +1785,85 @@ document.addEventListener('DOMContentLoaded', async function () {
       else if (['ja', 'ka'].includes(baseName)) category = 'Live-action';
       let type = 'film';
       if (/^serie/i.test(id)) type = 'série'; else if (/trailer/i.test(title)) type = 'trailer';
-      items.push({ id, title, image, genres, rating, type, category, description, baseName });
+      baseItems.push({ id, title, image, genres, rating, type, category, description, baseName });
     });
 
     // Merge from shared JSON (visible to all). If it fails, fallback to localStorage only on this device.
-    let sharedLoaded = false;
-    try {
-      let isFile = false;
-      try { isFile = (location && location.protocol === 'file:'); } catch {}
-      if (!isFile) {
-        const res = await fetch('data/approved.json?v=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' });
-        if (res && res.ok) {
-          const approved = await res.json();
-          if (Array.isArray(approved)) {
-          approved.forEach(c => {
-            if (!c || !c.id || !c.title) return;
-            const type = c.type || 'film';
-            const portraitImage = c.portraitImage || c.image || '';
-            const landscapeImage = c.landscapeImage || c.image || '';
-            const imgName = (landscapeImage || portraitImage || '').split('/').pop();
-            const baseName = (imgName || '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/\d+$/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-            const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-            const studioBadge = optimizeCloudinaryUrlSmall(c.studioBadge || '');
-            items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || '', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '', studioBadge });
-          });
-          sharedLoaded = true;
+    // Load approved items once (fallback) and subscribe to live updates
+    async function loadApprovedSnapshot(){
+      let snapshot = [];
+      try {
+        let isFile = false;
+        try { isFile = (location && location.protocol === 'file:'); } catch {}
+        if (!isFile) {
+          const res = await fetch('data/approved.json?v=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' });
+          if (res && res.ok) {
+            const payload = await res.json();
+            if (Array.isArray(payload)) snapshot = payload;
           }
         }
+      } catch {}
+      if (!snapshot.length) {
+        try {
+          const approvedRaw = localStorage.getItem('clipsou_items_approved_v1');
+          if (approvedRaw) {
+            const approved = JSON.parse(approvedRaw);
+            if (Array.isArray(approved)) snapshot = approved;
+          }
+        } catch {}
       }
-    } catch {}
+      liveApprovedItems = snapshot.map(mapApprovedEntry).filter(Boolean);
+    }
 
-    if (!sharedLoaded) {
+    function loadLocalApproved(){
       try {
         const approvedRaw = localStorage.getItem('clipsou_items_approved_v1');
         if (approvedRaw) {
           const approved = JSON.parse(approvedRaw);
           if (Array.isArray(approved)) {
-            approved.forEach(c => {
-              if (!c || !c.id || !c.title) return;
-              const type = c.type || 'film';
-              const portraitImage = c.portraitImage || c.image || '';
-              const landscapeImage = c.landscapeImage || c.image || '';
-              const imgName = (landscapeImage || portraitImage || '').split('/').pop();
-              const baseName = (imgName || '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/\d+$/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-              const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-              const studioBadge = optimizeCloudinaryUrlSmall(c.studioBadge || '');
-              items.push({ id: c.id, title: c.title, image: landscapeImage || portraitImage || '', portraitImage, landscapeImage, genres: Array.isArray(c.genres) ? c.genres.filter(Boolean) : [], rating, type, category: c.category || 'LEGO', description: c.description || '', baseName, watchUrl: c.watchUrl || '', studioBadge });
-            });
+            localApprovedItems = approved.map(mapApprovedEntry).filter(Boolean);
           }
         }
-      } catch {}
+      } catch {
+        localApprovedItems = [];
+      }
     }
 
-    // De-duplicate by id
-    {
-      const seen = new Set();
-      const out = [];
-      for (const it of items) { if (!it || !it.id) continue; if (seen.has(it.id)) continue; seen.add(it.id); out.push(it); }
-      items.length = 0; items.push(...out);
+    await loadApprovedSnapshot();
+    loadLocalApproved();
+    rebuildItemsFromSources({ skipRender: true });
+
+    // Install live sync listeners
+    function handleLiveData(event){
+      const detail = event && event.detail;
+      if (!detail || !detail.key) return;
+      if (detail.key === 'approved' && Array.isArray(detail.data)) {
+        liveApprovedItems = detail.data.map(mapApprovedEntry).filter(Boolean);
+        rebuildItemsFromSources();
+      } else if (detail.key === 'ratings' && Array.isArray(detail.data)) {
+        try {
+          detail.data.forEach((entry) => {
+            if (!entry || !entry.id) return;
+            const itemRef = itemsById.get(String(entry.id));
+            if (itemRef && typeof entry.baseRating === 'number') {
+              itemRef.rating = entry.baseRating;
+            }
+          });
+          rebuildTopRatedSection();
+        } catch {}
+      }
     }
 
-    const itemsById = new Map(items.map((it) => [String(it.id), it]));
+    window.addEventListener('clipsou-live-data', handleLiveData);
+
+    try {
+      if (window.ClipsouLiveSync && typeof window.ClipsouLiveSync.ensureDefaultSources === 'function') {
+        window.ClipsouLiveSync.ensureDefaultSources();
+      }
+    } catch {}
+
+    // De-duplicate by id (initial pass after sources ready)
+    rebuildItemsFromSources();
 
     function primeSnapshotFromItems(list) {
       try {

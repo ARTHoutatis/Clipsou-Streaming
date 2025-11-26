@@ -316,6 +316,129 @@ if (typeof window !== 'undefined') {
   });
 }
 
+// ===== Live data sync (polling helper) =====
+
+(function initClipsouLiveSync(){
+  if (typeof window === 'undefined') return;
+  if (window.ClipsouLiveSync) return; // Already initialized
+
+  const watchers = new Map();
+  let defaultsStarted = false;
+
+  function normalizeUrl(rawUrl){
+    try {
+      return new URL(rawUrl, window.location.href).toString();
+    } catch {
+      return rawUrl;
+    }
+  }
+
+  function computeSignature(payload){
+    try {
+      return JSON.stringify(payload);
+    } catch {
+      return String(payload);
+    }
+  }
+
+  function dispatchLiveData(key, data){
+    try {
+      window.dispatchEvent(new CustomEvent('clipsou-live-data', {
+        detail: {
+          key,
+          data,
+          timestamp: Date.now()
+        }
+      }));
+    } catch {}
+  }
+
+  function watchJson(key, url, options = {}){
+    if (!key || !url) return { stop(){} };
+    if (watchers.has(key)) {
+      const existing = watchers.get(key);
+      return { stop: existing.stop };
+    }
+
+    const resolvedUrl = normalizeUrl(url);
+    const interval = Math.max(4000, Number(options.interval) || 15000);
+    const fetchOptions = {
+      cache: 'no-store',
+      credentials: options.credentials || 'same-origin'
+    };
+
+    const state = {
+      signature: null,
+      timer: null,
+      stopped: false
+    };
+
+    async function poll(){
+      if (state.stopped) return;
+      const bust = resolvedUrl.includes('?') ? '&' : '?';
+      const target = resolvedUrl + bust + '_ts=' + Date.now();
+      try {
+        const res = await fetch(target, fetchOptions);
+        if (!res || !res.ok) throw new Error('HTTP ' + (res && res.status));
+        const data = await res.json();
+        const signature = computeSignature(data);
+        if (signature !== state.signature) {
+          state.signature = signature;
+          dispatchLiveData(key, data);
+        }
+      } catch (err) {
+        console.warn('[LiveSync] Failed to fetch', key, err && err.message ? err.message : err);
+      } finally {
+        if (!state.stopped) {
+          state.timer = setTimeout(poll, interval);
+        }
+      }
+    }
+
+    state.timer = setTimeout(poll, 0);
+
+    function stop(){
+      state.stopped = true;
+      if (state.timer) {
+        clearTimeout(state.timer);
+        state.timer = null;
+      }
+      watchers.delete(key);
+    }
+
+    watchers.set(key, { stop });
+    return { stop };
+  }
+
+  function stop(key){
+    const watcher = watchers.get(key);
+    if (watcher && typeof watcher.stop === 'function') {
+      watcher.stop();
+    }
+  }
+
+  function stopAll(){
+    Array.from(watchers.keys()).forEach(stop);
+  }
+
+  function ensureDefaultSources(config = {}){
+    if (defaultsStarted) return;
+    defaultsStarted = true;
+    const cfg = window.ClipsouConfig || {};
+    const approvedUrl = config.approvedUrl || cfg.publicApprovedUrl || '/data/approved.json';
+    const ratingsUrl = config.ratingsUrl || '/data/ratings.json';
+    watchJson('approved', approvedUrl, { interval: Math.max(8000, config.approvedInterval || 12000) });
+    watchJson('ratings', ratingsUrl, { interval: Math.max(10000, config.ratingsInterval || 20000) });
+  }
+
+  window.ClipsouLiveSync = {
+    watchJson,
+    stop,
+    stopAll,
+    ensureDefaultSources
+  };
+})();
+
 // ===== Cache busting =====
 
 /**

@@ -1,5 +1,34 @@
 // Base dynamique (remplie en parsant index.html au chargement). Un fallback local est utilisé si le fetch échoue (ex: ouverture en file://)
 let moviesDatabase = [];
+const BASE_CATALOG = [];
+let liveApprovedItems = [];
+let localApprovedItems = [];
+let searchLiveSyncAttached = false;
+
+function mapApprovedEntry(entry) {
+    if (!entry || !entry.id || !entry.title) return null;
+    return {
+        id: entry.id,
+        title: entry.title,
+        type: entry.type || 'film',
+        rating: typeof entry.rating === 'number' ? entry.rating : undefined,
+        genres: Array.isArray(entry.genres) ? entry.genres.filter(Boolean) : [],
+        portraitImage: entry.portraitImage || '',
+        landscapeImage: entry.landscapeImage || '',
+        studioBadge: optimizeCloudinaryUrlSmall(entry.studioBadge || ''),
+        image: optimizeCloudinaryUrlCard(entry.portraitImage || entry.image || entry.landscapeImage || '')
+    };
+}
+
+function rebuildMoviesDatabase() {
+    const merged = [
+        ...BASE_CATALOG,
+        ...liveApprovedItems.filter(Boolean),
+        ...localApprovedItems.filter(Boolean)
+    ].filter(Boolean);
+    const deduped = merged.length ? dedupeByIdAndTitle(merged) : LOCAL_FALLBACK_DB;
+    moviesDatabase = deduped;
+}
 const GENRE_SHOW_MORE_THRESHOLD = 10;
 const REQUEST_EXTRA_GENRES = [
     'Action',
@@ -88,7 +117,9 @@ async function buildDatabaseFromIndex() {
                 let type = 'film';
                 if (/^serie/i.test(id)) type = 'série';
                 else if (/trailer/i.test(title)) type = 'trailer';
-                aggregated.push({ id, title, type, rating, genres, image });
+                const baseEntry = { id, title, type, rating, genres, image };
+                aggregated.push(baseEntry);
+                BASE_CATALOG.push(baseEntry);
             });
         } else {
             console.warn('[Search] Fetch index.html failed:', res.status);
@@ -103,24 +134,7 @@ async function buildDatabaseFromIndex() {
         if (res && res.ok) {
             const approved = await res.json();
             if (Array.isArray(approved)) {
-                approved.forEach(c => {
-                    if (!c || !c.id || !c.title) return;
-                    const type = c.type || 'film';
-                    const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-                    const genres = Array.isArray(c.genres) ? c.genres.filter(Boolean) : [];
-                    const image = optimizeCloudinaryUrlCard(c.portraitImage || c.image || c.landscapeImage || '');
-                    aggregated.push({
-                        id: c.id,
-                        title: c.title,
-                        type,
-                        rating,
-                        genres,
-                        image,
-                        portraitImage: c.portraitImage || '',
-                        landscapeImage: c.landscapeImage || '',
-                        studioBadge: optimizeCloudinaryUrlSmall(c.studioBadge || '')
-                    });
-                });
+                liveApprovedItems = approved.map(mapApprovedEntry).filter(Boolean);
             }
         } else {
             console.warn('[Search] Fetch approved.json failed:', res && res.status);
@@ -135,25 +149,63 @@ async function buildDatabaseFromIndex() {
         if (raw) {
             const approved = JSON.parse(raw);
             if (Array.isArray(approved)) {
-                approved.forEach(c => {
-                    if (!c || !c.id || !c.title) return;
-                    const type = c.type || 'film';
-                    const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-                    const genres = Array.isArray(c.genres) ? c.genres.filter(Boolean) : [];
-                    const image = optimizeCloudinaryUrlCard(c.portraitImage || c.image || '');
-                    aggregated.push({ id: c.id, title: c.title, type, rating, genres, image, studioBadge: optimizeCloudinaryUrlSmall(c.studioBadge || '') });
-                });
+                localApprovedItems = approved.map(mapApprovedEntry).filter(Boolean);
             }
         }
     } catch (err) {
         console.warn('[Search] Impossible de lire clipsou_items_approved_v1:', err);
     }
 
-    if (aggregated.length > 0) {
-        moviesDatabase = dedupeByIdAndTitle(aggregated);
-    } else {
-        moviesDatabase = LOCAL_FALLBACK_DB;
-    }
+    rebuildMoviesDatabase();
+
+    attachLiveSync();
+}
+
+function attachLiveSync() {
+    if (searchLiveSyncAttached) return;
+    searchLiveSyncAttached = true;
+
+    try {
+        if (window.ClipsouLiveSync && typeof window.ClipsouLiveSync.ensureDefaultSources === 'function') {
+            window.ClipsouLiveSync.ensureDefaultSources();
+        }
+    } catch {}
+
+    window.addEventListener('clipsou-live-data', function(event) {
+        const detail = event && event.detail;
+        if (!detail || !detail.key) return;
+        if (detail.key === 'approved' && Array.isArray(detail.data)) {
+            liveApprovedItems = detail.data.map(mapApprovedEntry).filter(Boolean);
+            rebuildMoviesDatabase();
+            refreshSearchResults();
+        }
+    });
+
+    window.addEventListener('storage', function(e) {
+        if (e && e.key === 'clipsou_items_approved_v1') {
+            try {
+                const raw = localStorage.getItem('clipsou_items_approved_v1');
+                if (raw) {
+                    const approved = JSON.parse(raw);
+                    if (Array.isArray(approved)) {
+                        localApprovedItems = approved.map(mapApprovedEntry).filter(Boolean);
+                        rebuildMoviesDatabase();
+                        refreshSearchResults();
+                    }
+                }
+            } catch {}
+        }
+    });
+}
+
+function refreshSearchResults() {
+    try {
+        const searchInput = document.getElementById('search-input');
+        const query = searchInput ? searchInput.value : '';
+        const selected = (typeof window.__genreFiltersGetSelected === 'function') ? window.__genreFiltersGetSelected() : [];
+        const results = searchMovies(query, selected || []);
+        displayResults(results);
+    } catch {}
 }
 
 // Utilise les fonctions partagées de utilities.js (pas de duplication)
@@ -461,7 +513,9 @@ function renderGenreFilters(onChange) {
             notify();
         } catch {}
     }
-    return { getSelected: () => Array.from(selected), selectGenres };
+    const api = { getSelected: () => Array.from(selected), selectGenres };
+    try { window.__genreFiltersGetSelected = api.getSelected; } catch {}
+    return api;
 }
 
 // Event listeners

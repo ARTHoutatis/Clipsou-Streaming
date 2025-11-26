@@ -318,12 +318,36 @@ function getActorImageBase(name) {
 }
 
 // Construit la base des fiches depuis index.html
+const BASE_FICHE_ITEMS = [];
+let ficheLiveApproved = [];
+let ficheLocalApproved = [];
+let ficheLiveAttached = false;
+
+function mapFicheEntry(entry) {
+  if (!entry || !entry.id || !entry.title) return null;
+  const type = entry.type || 'film';
+  const genres = Array.isArray(entry.genres) ? entry.genres.filter(Boolean) : [];
+  const image = optimizeCloudinaryUrl(entry.landscapeImage || entry.image || entry.portraitImage || '');
+  const description = entry.description || '';
+  const watchUrl = entry.watchUrl || '';
+  const actors = Array.isArray(entry.actors) ? entry.actors.filter(a=>a && a.name) : [];
+  const episodes = Array.isArray(entry.episodes) ? entry.episodes.slice() : [];
+  const studioBadge = optimizeCloudinaryUrlSmall((entry.studioBadge || '').trim());
+  return { id: entry.id, title: entry.title, type, rating: typeof entry.rating === 'number' ? entry.rating : undefined, genres, image, description, watchUrl, actors, episodes, portraitImage: entry.portraitImage || '', landscapeImage: entry.landscapeImage || '', studioBadge };
+}
+
+function rebuildFicheItems() {
+  const merged = [...BASE_FICHE_ITEMS, ...ficheLiveApproved.filter(Boolean), ...ficheLocalApproved.filter(Boolean)];
+  const deduped = dedupeByIdAndTitle(merged);
+  return deduped.length ? deduped : LOCAL_FALLBACK_DB;
+}
+
 async function buildItemsFromIndex() {
   try {
     const html = await fetchIndexHtmlCached();
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
-    const items = [];
+    BASE_FICHE_ITEMS.length = 0;
     doc.querySelectorAll('.fiche-popup[id]').forEach(popup => {
       const id = popup.getAttribute('id');
       if (!/^(film\d+|serie\d+)/i.test(id)) return;
@@ -348,80 +372,105 @@ async function buildItemsFromIndex() {
         const href = btn.getAttribute('href') || '';
         try { if (/^https?:/i.test(href)) watchUrl = href; } catch {}
       }
-      items.push({ id, title, image, genres, rating, type, description, watchUrl });
+      BASE_FICHE_ITEMS.push({ id, title, image, genres, rating, type, description, watchUrl });
     });
 
-    // Merge items from shared approved.json (visible to all). Skip in file:// to avoid CORS noise.
-    try {
-      let isFile = false;
-      try { isFile = (location && location.protocol === 'file:'); } catch {}
-      if (!isFile) {
-        let approvedUrl = 'data/approved.json';
-        try {
-          const cfgUrl = window?.ClipsouConfig?.publicApprovedUrl;
-          if (cfgUrl) approvedUrl = cfgUrl;
-        } catch {}
-        try {
-          approvedUrl = new URL(approvedUrl, location.href).toString();
-        } catch {}
-
-        const res = await fetch(approvedUrl, { cache: 'no-store', credentials: 'omit' });
-        if (res && res.ok) {
-          const approved = await res.json();
-          if (Array.isArray(approved)) {
-            approved.forEach(c => {
-              if (!c || !c.id || !c.title) return;
-              const type = c.type || 'film';
-              const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-              const genres = Array.isArray(c.genres)
-                ? c.genres.map(g => String(g || '').trim()).filter(Boolean)
-                : [];
-              const image = optimizeCloudinaryUrl(c.landscapeImage || c.image || c.portraitImage || '');
-              const description = c.description || '';
-              const watchUrl = c.watchUrl || '';
-              const actors = Array.isArray(c.actors) ? c.actors.filter(a=>a && a.name) : [];
-              const episodes = Array.isArray(c.episodes) ? c.episodes.slice() : [];
-              
-              
-              const studioBadgeRaw = (c.studioBadge || '').trim();
-              const studioBadge = optimizeCloudinaryUrlSmall(studioBadgeRaw);
-              items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, episodes, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '', studioBadge });
-            });
-          }
-        }
-      }
-    } catch {}
-
-    // Merge approved admin items from localStorage
-    try {
-      const raw = localStorage.getItem('clipsou_items_approved_v1');
-      if (raw) {
-        const approved = JSON.parse(raw);
-        if (Array.isArray(approved)) {
-          approved.forEach(c => {
-            if (!c || !c.id || !c.title) return;
-            const type = c.type || 'film';
-            const rating = (typeof c.rating === 'number') ? c.rating : undefined;
-            const genres = Array.isArray(c.genres)
-              ? c.genres.map(g => String(g || '').trim()).filter(Boolean)
-              : [];
-            const image = c.landscapeImage || c.image || c.portraitImage || '';
-            const description = c.description || '';
-            const watchUrl = c.watchUrl || '';
-            const actors = Array.isArray(c.actors) ? c.actors.filter(a=>a && a.name) : [];
-            const episodes = Array.isArray(c.episodes) ? c.episodes.slice() : [];
-            const studioBadge = optimizeCloudinaryUrlSmall((c.studioBadge || '').trim());
-            items.push({ id: c.id, title: c.title, type, rating, genres, image, description, watchUrl, actors, episodes, portraitImage: c.portraitImage || '', landscapeImage: c.landscapeImage || '', studioBadge });
-          });
-        }
-      }
-    } catch {}
-
-    return items.length > 0 ? items : LOCAL_FALLBACK_DB;
+    await hydrateApprovedSnapshots();
+    attachFicheLiveSync();
+    return rebuildFicheItems();
   } catch (e) {
-    // Fallback silencieux en cas d'erreur de construction
+    console.error('Failed to build items from index:', e);
     return LOCAL_FALLBACK_DB;
   }
+}
+
+async function hydrateApprovedSnapshots() {
+  try {
+    let isFile = false;
+    try { isFile = (location && location.protocol === 'file:'); } catch {}
+    if (!isFile) {
+      let approvedUrl = 'data/approved.json';
+      try {
+        const cfgUrl = window?.ClipsouConfig?.publicApprovedUrl;
+        if (cfgUrl) approvedUrl = cfgUrl;
+      } catch {}
+      try {
+        approvedUrl = new URL(approvedUrl, location.href).toString();
+      } catch {}
+      const res = await fetch(approvedUrl, { cache: 'no-store', credentials: 'omit' });
+      if (res && res.ok) {
+        const approved = await res.json();
+        if (Array.isArray(approved)) {
+          ficheLiveApproved = approved.map(mapFicheEntry).filter(Boolean);
+        }
+      }
+    }
+  } catch {}
+
+  try {
+    const raw = localStorage.getItem('clipsou_items_approved_v1');
+    if (raw) {
+      const approved = JSON.parse(raw);
+      if (Array.isArray(approved)) {
+        ficheLocalApproved = approved.map(mapFicheEntry).filter(Boolean);
+      }
+    }
+  } catch {}
+}
+
+function attachFicheLiveSync() {
+  if (ficheLiveAttached) return;
+  ficheLiveAttached = true;
+  try {
+    if (window.ClipsouLiveSync && typeof window.ClipsouLiveSync.ensureDefaultSources === 'function') {
+      window.ClipsouLiveSync.ensureDefaultSources();
+    }
+  } catch {}
+
+  window.addEventListener('clipsou-live-data', function(event) {
+    const detail = event && event.detail;
+    if (!detail || !detail.key) return;
+    if (detail.key === 'approved' && Array.isArray(detail.data)) {
+      ficheLiveApproved = detail.data.map(mapFicheEntry).filter(Boolean);
+      refreshFicheIfVisible();
+    }
+  });
+
+  window.addEventListener('storage', function(e) {
+    if (e && e.key === 'clipsou_items_approved_v1') {
+      try {
+        const raw = localStorage.getItem('clipsou_items_approved_v1');
+        if (raw) {
+          const approved = JSON.parse(raw);
+          if (Array.isArray(approved)) {
+            ficheLocalApproved = approved.map(mapFicheEntry).filter(Boolean);
+            refreshFicheIfVisible();
+          }
+        }
+      } catch {}
+    }
+  });
+}
+
+function refreshFicheIfVisible() {
+  try {
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id');
+    if (!id) return;
+    const container = document.getElementById('fiche-container');
+    if (!container) return;
+    const merged = rebuildFicheItems();
+    const item = merged.find(it => it && it.id === id);
+    if (!item) return;
+    container.innerHTML = '';
+    updateHeadSEO(item);
+    renderFiche(container, item);
+    try {
+      const similar = computeSimilar(merged, item, 2, 12);
+      const root = document.getElementById('fiche');
+      renderSimilarSection(root, similar, item);
+    } catch {}
+  } catch {}
 }
 
 function setMetaTag(selector, attr, value) {
