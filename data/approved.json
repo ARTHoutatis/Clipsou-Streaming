@@ -916,39 +916,6 @@
     "ratingCount": 1
   },
   {
-    "id": "custom-ose-ouvrir-1er-version-etcu",
-    "title": "Ose Ouvrir ( 1er version )",
-    "type": "film",
-    "genres": [
-      "Comédie",
-      "Action",
-      "Enfants"
-    ],
-    "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1764102180/wabs4m62iecj1fefthc7.png",
-    "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1764102183/ibryjrafpqkutumrmp00.jpg",
-    "description": "un youtubeur se fait braquer chez lui, le criminel sera en fuite avec la police",
-    "watchUrl": "https://www.youtube.com/watch?v=6NtZq3J5WiU",
-    "actors": [
-      {
-        "name": "Ath78",
-        "role": "flic"
-      },
-      {
-        "name": "Ath78",
-        "role": "youtubeur"
-      },
-      {
-        "name": "Ytstraille",
-        "role": "braqueur nul",
-        "photo": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1761521320/qay0cforvxatdv5xa4zt.jpg"
-      }
-    ],
-    "episodes": [],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1764102188/g0sefq9rkzkcunqsucwr.webp",
-    "rating": 1,
-    "ratingCount": 2
-  },
-  {
     "id": "custom-ou-est-partie-ma-mamie-bxxd",
     "title": "Ou Est Partie Ma Mamie ?",
     "type": "film",
