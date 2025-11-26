@@ -830,7 +830,7 @@
     "id": "custom-ose-ouvrir-8vaq",
     "title": "Ose Ouvrir",
     "type": "film",
-    "rating": 2,
+    "rating": 3,
     "genres": [
       "Comédie",
       "Action",
@@ -856,7 +856,8 @@
       }
     ],
     "episodes": [],
-    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1764099273/rfcln3pc4rlup2lvisvz.webp"
+    "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/f_auto,q_auto:best,dpr_auto,fl_progressive:steep,fl_lossy,w_auto:100:600,c_limit/v1764099273/rfcln3pc4rlup2lvisvz.webp",
+    "ratingCount": 1
   },
   {
     "id": "custom-ose-ouvrir-1er-version-etcu",
