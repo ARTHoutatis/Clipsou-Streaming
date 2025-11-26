@@ -998,6 +998,7 @@ html { scrollbar-color: #615d5d #0a0a0a; scrollbar-width: thin; }
     box-shadow: none;
     margin-left: auto !important;
     text-indent: -9999px; /* hide text label on mobile */
+    white-space: nowrap; /* prevent second-line bleed when constrained */
     overflow: hidden;
     position: relative;
     display: inline-flex; /* ensure proper centering box */
