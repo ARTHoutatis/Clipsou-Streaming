@@ -3,7 +3,8 @@
     "requestId": "req_1764170506185_kjjr065ai",
     "status": "pending",
     "data": {
-      "id": null,
+      "id": "custom-astron-anarchie-jich",
+      "requestId": "req_1764170506185_kjjr065ai",
       "title": "Astron - Anarchie",
       "type": "film",
       "rating": null,
@@ -14,10 +15,9 @@
       ],
       "description": "7 ans après la disparition de la cellule Astron, la galaxie est gouvernée par une démocratie corrompue. Le Délégué Eridix a achevé la construction de la Station Exorium sur KigenTa pour contrôler l'ensemble de la galaxie. Elyssa et Eursa vont retrouver les membres d'Astron et tenter de renverser Eridix et son gouvernement. Cependant leur aventure les conduira à découvrir certains mystères...",
       "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1764156752/d4igu7nuqsztu9raze6k.webp",
-      "image": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1764156760/ui7ipg2dvakgeva0qu8u.webp",
       "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1764156760/ui7ipg2dvakgeva0qu8u.webp",
-      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761821809/t4fblpjkrgxg7q9wyedu.webp",
       "watchUrl": "https://youtu.be/C52AjiGvOPI?si=zC1bfqr0Cksz5yns",
+      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761821809/t4fblpjkrgxg7q9wyedu.webp",
       "actors": [
         {
           "name": "Corentin Dubarry",
@@ -60,7 +60,8 @@
     },
     "meta": {
       "createdAt": 1764170506185,
-      "source": "user_submission"
+      "source": "user_submission",
+      "updatedAt": 1764170541228
     }
   },
   {
