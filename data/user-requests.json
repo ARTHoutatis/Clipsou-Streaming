@@ -1,5 +1,7 @@
 [
   {
+    "schema": 1,
+    "id": "user_req_1764156902281_65cw38r2u",
     "title": "Astron - Anarchie",
     "type": "film",
     "genres": [
@@ -12,6 +14,20 @@
     "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1764156760/ui7ipg2dvakgeva0qu8u.webp",
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761821809/t4fblpjkrgxg7q9wyedu.webp",
     "watchUrl": "https://youtu.be/C52AjiGvOPI?si=zC1bfqr0Cksz5yns",
+    "rating": null,
+    "status": "approved",
+    "submittedAt": 1764156902281,
+    "processedAt": 1764170507675,
+    "youtubeChannel": {
+      "id": "UCTuvR9hufM26o0zs-7YbWZw",
+      "title": "Colosseo Production",
+      "customUrl": "@einex36"
+    },
+    "submittedBy": {
+      "email": "einex36-0036@pages.plusgoogle.com",
+      "name": "Colosseo Production",
+      "googleId": "100619461783302581861"
+    },
     "actors": [
       {
         "name": "Corentin Dubarry",
@@ -51,20 +67,7 @@
       }
     ],
     "episodes": [],
-    "submittedAt": 1764156902281,
-    "status": "pending",
-    "youtubeChannel": {
-      "id": "UCTuvR9hufM26o0zs-7YbWZw",
-      "title": "Colosseo Production",
-      "customUrl": "@einex36",
-      "verifiedAt": 1764156902281
-    },
-    "submittedBy": {
-      "email": "einex36-0036@pages.plusgoogle.com",
-      "name": "Colosseo Production",
-      "googleId": "100619461783302581861"
-    },
-    "id": "user_req_1764156902281_65cw38r2u"
+    "notes": ""
   },
   {
     "schema": 1,
