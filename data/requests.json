@@ -1,5 +1,69 @@
 [
   {
+    "requestId": "req_1764170506185_kjjr065ai",
+    "status": "pending",
+    "data": {
+      "id": null,
+      "title": "Astron - Anarchie",
+      "type": "film",
+      "rating": null,
+      "genres": [
+        "Science-Fiction",
+        "Aventure",
+        "Animation"
+      ],
+      "description": "7 ans après la disparition de la cellule Astron, la galaxie est gouvernée par une démocratie corrompue. Le Délégué Eridix a achevé la construction de la Station Exorium sur KigenTa pour contrôler l'ensemble de la galaxie. Elyssa et Eursa vont retrouver les membres d'Astron et tenter de renverser Eridix et son gouvernement. Cependant leur aventure les conduira à découvrir certains mystères...",
+      "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1764156752/d4igu7nuqsztu9raze6k.webp",
+      "image": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1764156760/ui7ipg2dvakgeva0qu8u.webp",
+      "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1764156760/ui7ipg2dvakgeva0qu8u.webp",
+      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761821809/t4fblpjkrgxg7q9wyedu.webp",
+      "watchUrl": "https://youtu.be/C52AjiGvOPI?si=zC1bfqr0Cksz5yns",
+      "actors": [
+        {
+          "name": "Corentin Dubarry",
+          "role": "Einex"
+        },
+        {
+          "name": "Elsa Tamisier",
+          "role": "Zweila"
+        },
+        {
+          "name": "Fred Galliard",
+          "role": "Dreyord"
+        },
+        {
+          "name": "Baptiste Pomme",
+          "role": "Vierxy"
+        },
+        {
+          "name": "Nadia El Yak",
+          "role": "HYDRA"
+        },
+        {
+          "name": "Margot Chantegros",
+          "role": "Elyssa"
+        },
+        {
+          "name": "Mathieu Desroses",
+          "role": "Eridix"
+        },
+        {
+          "name": "Coralie Morain",
+          "role": "Stella"
+        },
+        {
+          "name": "Manuel Dolores",
+          "role": "Eursa"
+        }
+      ],
+      "episodes": []
+    },
+    "meta": {
+      "createdAt": 1764170506185,
+      "source": "user_submission"
+    }
+  },
+  {
     "requestId": "r_mif0y5rd_w289c8",
     "status": "approved",
     "data": {
