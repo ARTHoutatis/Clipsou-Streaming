@@ -1115,12 +1115,21 @@ function isClipsouOwnedItem(item) {
 // ===== NOUVELLE VERSION PROPRE : Section Contenu similaire UNIQUEMENT =====
 function renderSimilarSection(rootEl, similarItems, currentItem) {
   if (!rootEl) return;
+  try {
+    const prev = rootEl.querySelectorAll('[data-dynamic-fiche-section="similar"]');
+    prev.forEach(section => {
+      if (!section) return;
+      if (typeof section.remove === 'function') section.remove();
+      else if (section.parentNode) section.parentNode.removeChild(section);
+    });
+  } catch {}
   if (!Array.isArray(similarItems)) similarItems = [];
   
   // Créer la section principale
   const section = document.createElement('section');
   section.className = 'section similar-section';
   section.id = 'similar-section';
+  try { section.dataset.dynamicFicheSection = 'similar'; } catch {}
   
   // Header avec les 3 boutons: Contenu similaire / Épisodes / Acteurs
   const header = document.createElement('div');
