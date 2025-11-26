@@ -268,8 +268,10 @@
   {
     "id": "custom-ose-ouvrir-8vaq",
     "ratings": [
-      3
-    ]
+      3,
+      1
+    ],
+    "baseRating": 3
   },
   {
     "id": "custom-astron-anarchie-jich",
