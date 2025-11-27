@@ -1,5 +1,7 @@
 [
   {
+    "schema": 1,
+    "id": "user_req_1764252327162_ygd79zjf4",
     "title": "Astron Prélude - Le Projet Léthé",
     "type": "film",
     "genres": [
@@ -12,6 +14,20 @@
     "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1764252164/pe4vzb0rrjko4rbkfaob.webp",
     "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761821809/t4fblpjkrgxg7q9wyedu.webp",
     "watchUrl": "https://youtu.be/QKJp8TeWP9U?si=2epnofqWFsAUsUBg",
+    "rating": null,
+    "status": "approved",
+    "submittedAt": 1764252327162,
+    "processedAt": 1764275188977,
+    "youtubeChannel": {
+      "id": "UCTuvR9hufM26o0zs-7YbWZw",
+      "title": "Colosseo Production",
+      "customUrl": "@einex36"
+    },
+    "submittedBy": {
+      "email": "einex36-0036@pages.plusgoogle.com",
+      "name": "Colosseo Production",
+      "googleId": "100619461783302581861"
+    },
     "actors": [
       {
         "name": "Loïc Testa",
@@ -59,20 +75,7 @@
       }
     ],
     "episodes": [],
-    "submittedAt": 1764252327162,
-    "status": "pending",
-    "youtubeChannel": {
-      "id": "UCTuvR9hufM26o0zs-7YbWZw",
-      "title": "Colosseo Production",
-      "customUrl": "@einex36",
-      "verifiedAt": 1764252327162
-    },
-    "submittedBy": {
-      "email": "einex36-0036@pages.plusgoogle.com",
-      "name": "Colosseo Production",
-      "googleId": "100619461783302581861"
-    },
-    "id": "user_req_1764252327162_ygd79zjf4"
+    "notes": ""
   },
   {
     "schema": 1,
