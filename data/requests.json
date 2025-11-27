@@ -3,7 +3,8 @@
     "requestId": "req_1764275187374_d8nnupih1",
     "status": "pending",
     "data": {
-      "id": null,
+      "id": "custom-astron-prelude-le-projet-lethe-g3hi",
+      "requestId": "req_1764275187374_d8nnupih1",
       "title": "Astron Prélude - Le Projet Léthé",
       "type": "film",
       "rating": null,
@@ -14,10 +15,9 @@
       ],
       "description": "6 ans avant Astron - Résistance, la galaxie est animée par le conflit opposant la Coalition Terrienne et l'Empire Vegalien. Mais dans ce conflit un projet secret se met en place et chaque personnage majeur de la saga aura son rôle à jouer dans ce projet...",
       "portraitImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1764252154/cmkcxfcvf0dh5incsxpq.webp",
-      "image": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1764252164/pe4vzb0rrjko4rbkfaob.webp",
       "landscapeImage": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1764252164/pe4vzb0rrjko4rbkfaob.webp",
-      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761821809/t4fblpjkrgxg7q9wyedu.webp",
       "watchUrl": "https://youtu.be/QKJp8TeWP9U?si=2epnofqWFsAUsUBg",
+      "studioBadge": "https://res.cloudinary.com/dlaisw4zm/image/upload/v1761821809/t4fblpjkrgxg7q9wyedu.webp",
       "actors": [
         {
           "name": "Loïc Testa",
@@ -67,8 +67,8 @@
       "episodes": []
     },
     "meta": {
-      "createdAt": 1764275187374,
-      "source": "user_submission"
+      "createdAt": 1764275244500,
+      "updatedAt": 1764275244500
     }
   },
   {
