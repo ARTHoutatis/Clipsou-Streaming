@@ -23,45 +23,177 @@
         justify-content: center;
         background-color: #0b0f14;
         color: #f5f7fb;
-        padding: 24px;
+        padding: clamp(12px, 3vw, 24px);
+      }
+
+      @media (max-width: 480px) {
+        .maintenance-card {
+          border-radius: 16px;
+        }
+        
+        h1 {
+          letter-spacing: 0.5px;
+        }
       }
 
       .maintenance-card {
-        max-width: 720px;
+        max-width: 600px;
         width: 100%;
         background: #101624;
         border-radius: 24px;
-        padding: 48px 40px;
+        padding: clamp(16px, 4vw, 60px) clamp(16px, 4vw, 48px);
         text-align: center;
         box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
         border: 1px solid rgba(255, 255, 255, 0.08);
       }
 
       .logo {
-        width: 180px;
+        width: clamp(140px, 35vw, 260px);
         height: auto;
-        margin: 0 auto 32px;
+        margin: 0 auto clamp(8px, 2vw, 32px);
         display: block;
       }
 
       h1 {
-        font-size: clamp(2.5rem, 4vw, 3.5rem);
-        margin-bottom: 24px;
-        letter-spacing: 1px;
+        font-size: clamp(2rem, 5vw, 3.2rem);
+        margin-bottom: clamp(12px, 3vw, 32px);
+        letter-spacing: 0.5px;
         text-transform: uppercase;
       }
 
       .message {
-        font-size: 1.1rem;
-        line-height: 1.8;
-        margin-bottom: 32px;
+        font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+        line-height: 1.7;
+        margin-bottom: clamp(12px, 3vw, 36px);
         color: rgba(245, 247, 251, 0.9);
       }
 
       .footer-note {
-        font-size: 0.95rem;
+        font-size: clamp(0.75rem, 2vw, 0.95rem);
         color: rgba(245, 247, 251, 0.7);
-        letter-spacing: 0.04em;
+        letter-spacing: 0.02em;
+      }
+
+      .support-banner {
+        margin-top: clamp(12px, 3vw, 36px);
+        padding: clamp(10px, 2.5vw, 24px);
+        background: #030819;
+        border-radius: 12px;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        transition: all 0.3s ease;
+      }
+
+      .support-banner:hover {
+        background: #040a1f;
+        border-color: rgba(59, 130, 246, 0.4);
+        transform: translateY(-2px);
+      }
+
+      .support-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(8px, 2vw, 16px);
+        text-decoration: none;
+        color: #f5f7fb;
+      }
+
+      .support-logo {
+        width: clamp(50px, 15vw, 100px);
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease;
+      }
+
+      .support-logo:hover {
+        transform: scale(1.05);
+      }
+
+      .support-button {
+        padding: clamp(6px, 1.5vw, 12px) clamp(12px, 3vw, 28px);
+        background: #089ABA;
+        border-radius: 8px;
+        color: #ffffff;
+        font-size: clamp(0.75rem, 2vw, 1rem);
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        box-shadow: 0 0 15px rgba(8, 154, 186, 0.4),
+                    0 0 30px rgba(8, 154, 186, 0.2),
+                    0 0 45px rgba(8, 154, 186, 0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .support-button:hover {
+        background: #0ab5d8;
+        box-shadow: 0 0 30px rgba(8, 154, 186, 0.7),
+                    0 0 60px rgba(8, 154, 186, 0.5),
+                    0 0 80px rgba(8, 154, 186, 0.3),
+                    0 4px 15px rgba(0, 0, 0, 0.3);
+        transform: translateY(-2px);
+      }
+
+      .support-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+      }
+
+      .support-button:hover::before {
+        left: 100%;
+      }
+
+      @media (max-width: 480px) {
+        .maintenance-card {
+          padding: 12px;
+        }
+        
+        .logo {
+          width: clamp(120px, 30vw, 140px);
+          margin: 0 auto 8px;
+        }
+        
+        h1 {
+          font-size: 1.5rem;
+          margin-bottom: 8px;
+        }
+        
+        .message {
+          font-size: 0.85rem;
+          line-height: 1.5;
+          margin-bottom: 12px;
+        }
+        
+        .footer-note {
+          font-size: 0.7rem;
+        }
+        
+        .support-banner {
+          margin-top: 12px;
+          padding: 8px;
+        }
+        
+        .support-link {
+          flex-direction: column;
+          gap: 8px;
+        }
+        
+        .support-logo {
+          width: 50px;
+        }
+        
+        .support-button {
+          font-size: 0.75rem;
+          padding: 6px 12px;
+        }
       }
     </style>
   </head>
@@ -85,6 +217,15 @@
       <p class="footer-note">
         Clipsou Studio 2018 – 2025 (et bien plus encore)
       </p>
+      
+      <div class="support-banner">
+        <a href="https://nova-stream.live/" target="_blank" rel="noopener noreferrer" class="support-link">
+          <img src="./NOVA.webp" alt="Nova Stream" class="support-logo" />
+          <div class="support-button">
+            Allez soutenir
+          </div>
+        </a>
+      </div>
     </main>
   </body>
 </html>
